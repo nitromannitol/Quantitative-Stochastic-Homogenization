@@ -1,20 +1,12 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
 
 /-!
 # Changing spatial weak representatives
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/SpatialWeakCongruence.lean`.
 
-Source: the application–928`. Conditional and center averages agree
+Conditional and center averages agree
 only almost everywhere. Spatial weak equations are invariant under these
 changes of representative, with local integrability retained on the domain.
 -/
@@ -24,7 +16,8 @@ open MeasureTheory
 namespace QSH
 
 /-- An almost-everywhere equality on an open domain preserves local
-integrability there. Source: the application–928`. -/
+integrability there.
+-/
 theorem locallyIntegrableOn_congr_ae {d : ℕ} {U : Set (Vec d)} (hU : IsOpen U)
     {f g : Vec d → ℝ} (hf : LocallyIntegrableOn f U volume)
     (hfg : f =ᵐ[volume.restrict U] g) : LocallyIntegrableOn g U volume := by
@@ -34,7 +27,8 @@ theorem locallyIntegrableOn_congr_ae {d : ℕ} {U : Set (Vec d)} (hU : IsOpen U)
     (hfg.filter_mono (ae_mono (Measure.restrict_mono hKU le_rfl)))
 
 /-- Both representatives in a weak partial derivative may be replaced
-on a spatial null set. Source: the application–928`. -/
+on a spatial null set.
+-/
 theorem hasWeakPartialDerivative_congr_ae {d : ℕ} {U : Set (Vec d)}
     (hU : IsOpen U) {j : Fin d} {f g f' g' : Vec d → ℝ}
     (h : HasWeakPartialDerivative U j f g)
@@ -57,7 +51,7 @@ theorem hasWeakPartialDerivative_congr_ae {d : ℕ} {U : Set (Vec d)}
       rw [hx]
 
 /-- A weak gradient uses one spatial almost-everywhere vector equality.
-Source: the application–928`. -/
+-/
 theorem hasWeakGradient_congr_ae {d : ℕ} {U : Set (Vec d)}
     (hU : IsOpen U) {f f' : Vec d → ℝ} {G G' : Vec d → Vec d}
     (h : HasWeakGradient U f G)

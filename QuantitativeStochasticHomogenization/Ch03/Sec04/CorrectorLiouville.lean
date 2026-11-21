@@ -7,15 +7,15 @@ import HCPoly.Provider.Regularity.CorrectorNormalizedL2Bridge
 import HCPoly.Provider.PolynomialHomogenization.Root.Corrector.AffineLiouvilleGrowth
 
 /-!
-# Dilated source correctors in the Liouville class
+# Dilated correctors in the Liouville class
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceCorrectorLiouville.lean`.
 
-The corrected affine function `x ↦ e·x + φ(2x)/2` of a source corrector of Armstrong, Kuusi and
+The corrected affine function `x ↦ e·x + φ(2x)/2` of a corrector of Armstrong, Kuusi and
 Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*, Definitions
 3.14–3.15, lies in the Liouville class `𝒜_{1,ϑ}` of the dilated coefficient in the sense of
 Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high contrast*: it is in
-`H¹_{s,loc}`, solves the equation, and grows at most linearly because the source corrector is
+`H¹_{s,loc}`, solves the equation, and grows at most linearly because the corrector is
 sublinear.
 -/
 

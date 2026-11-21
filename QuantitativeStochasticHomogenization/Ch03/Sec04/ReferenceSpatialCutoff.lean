@@ -3,19 +3,6 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanNormToLp
 import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanSqNonneg
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.Analysis.Calculus.FDeriv.Prod
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
-import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Reference Spatial Cutoff
@@ -26,7 +13,7 @@ Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelat
 namespace QSH
 
 /-- A nonnegative Euclidean reference cutoff with a uniform gradient bound.
-Source: the application–824`. -/
+-/
 theorem exists_nonnegative_reference_spatial_cutoff (d : ℕ) :
     ∃ (χ : Vec d → ℝ) (D : ℝ), 0 < D ∧
       IsSpatialTest (originBall d 2) χ ∧

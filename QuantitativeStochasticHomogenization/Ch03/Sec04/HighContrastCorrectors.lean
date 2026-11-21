@@ -9,7 +9,7 @@ import HCPoly.MainResults
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/HighContrastCorrectors.lean`.
 
 Theorem C of Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high
-contrast*, applied to the dilated law of a source law of Armstrong, Kuusi and Mourrat,
+contrast*, applied to the dilated law of a law of Armstrong, Kuusi and Mourrat,
 *Quantitative Stochastic Homogenization and Large-Scale Regularity*. The law is
 `(1, K)`-elliptic, stationary and of unit range, so the theorem provides a homogenized matrix,
 a stationary corrector family and a homogenization scale with tail `exp(-t^d)`, above which the
@@ -25,7 +25,7 @@ open _root_.Homogenization hiding euclideanBall Vec Mat
 
 open _root_.Homogenization.HighContrast
 
-/-- The conclusions of Theorem C of Armstrong, Kuusi and Loher for the dilated law of a source
+/-- The conclusions of Theorem C of Armstrong, Kuusi and Loher for the dilated law of a
 law, retaining the clauses on correctors, the Liouville classification and the large-scale
 Lipschitz estimate. -/
 structure HighContrastCorrectorPackage {d : ℕ} {K : ℝ} (hK : 1 ≤ K)
@@ -77,7 +77,7 @@ structure HighContrastCorrectorPackage {d : ℕ} {K : ℝ} (hK : 1 ≤ K)
         weightedGradNorm (fun x => b.1 x) (ellipsoid abar r) Du ≤
           ENNReal.ofReal C * weightedGradNorm (fun x => b.1 x) (ellipsoid abar R) Du
 
-/-- Theorem C of Armstrong, Kuusi and Loher applies to the dilated law of every source law,
+/-- Theorem C of Armstrong, Kuusi and Loher applies to the dilated law of every law,
 with constants depending only on the dimension. -/
 theorem exists_highContrastCorrectorPackage (d : ℕ) (hd : 2 ≤ d) :
     ∃ κ C : ℝ, 0 < κ ∧ 0 < C ∧

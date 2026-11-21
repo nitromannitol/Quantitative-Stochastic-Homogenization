@@ -4,28 +4,13 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.DyadicMeanIncrement
 import QuantitativeStochasticHomogenization.Ch03.Sec04.DyadicMonotoneEnergy
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.Analysis.Calculus.FDeriv.Prod
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.Rademacher
-import Mathlib.Analysis.Calculus.FDeriv.Mul
 
 /-!
-# Centered and uncentered sublinearity of the actual corrector
+# Centered and uncentered sublinearity of correctors
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/AKMLocalCanonicalIdentificationSublinearity.lean`.
 
-Source: the application. The centered ball convention of
-`Corrector` implies the uncentered convention of `IsFirstOrderCorrector`.
-No choice of normalization, quantitative estimate or new source input is used.
+The centered sublinearity of `Corrector` on balls implies the uncentered sublinearity of the corrected affine function used for the high-contrast correctors.
 -/
 
 open MeasureTheory Filter Topology
@@ -33,7 +18,8 @@ open MeasureTheory Filter Topology
 namespace QSH
 
 /-- Centered sublinear mean-square oscillation forces uncentered sublinearity
-for every locally square-integrable scalar potential. Source: the application. -/
+for every locally square-integrable scalar potential.
+-/
 theorem sublinear_uncentered_of_centered {d : ℕ} (u : Vec d → ℝ)
     (hu : ∀ R : ℝ, 0 < R → MemLp u 2 (volume.restrict (ball 0 R)))
     (hsub : Tendsto (fun R : ℝ => R⁻¹ * Real.sqrt (⨍ x in ball 0 R,

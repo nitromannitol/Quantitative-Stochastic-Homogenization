@@ -1,8 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatHessianBounds
-import Mathlib.MeasureTheory.Integral.MeanInequalities
-import Mathlib.MeasureTheory.Group.LIntegral
 
 /-!
 # Convolution with an integrable kernel on `L²`

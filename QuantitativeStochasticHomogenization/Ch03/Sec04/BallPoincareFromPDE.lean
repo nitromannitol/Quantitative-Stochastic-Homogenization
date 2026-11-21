@@ -3,13 +3,12 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.BallPoincareEstimate
 import PDEFoundation.Sobolev.Inequalities.ConvexPoincareL2
 
 /-!
-# Ball Poincare From P D E
+# The Poincaré inequality on balls from convex domains
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Calculus/C2BallPoincareFromPDE.lean`.
 
-Ball Poincaré from the proved bounded convex domain inequality in PDEFoundation.
-The native coordinate carriers and Lebesgue measures agree; Euclidean energies
-are explicit on both sides. The diameter of a radius R ball is bounded by 2R. -/
+The Poincaré inequality on a Euclidean ball follows from the inequality on bounded convex domains of `PDEFoundation`: the coordinate spaces and Lebesgue measures agree, and the diameter of a ball of radius `R` is at most `2R`.
+-/
 
 open MeasureTheory
 

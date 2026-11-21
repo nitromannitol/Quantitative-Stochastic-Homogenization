@@ -6,21 +6,19 @@ import Homogenization.Ambient.MatrixOrderBridge
 import Homogenization.Probability.RegCoeffField.SliceMeasurability
 
 /-!
-# Ellipticity of source coefficients
+# Ellipticity of coefficient fields
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/CoefficientEllipticity.lean`.
 
-The symmetric coefficient bounds in Armstrong, Kuusi and Mourrat,
-*Quantitative Stochastic Homogenization and Large-Scale Regularity*, (0.6),
-imply the inverse ellipticity bounds used by the matrix-valued coefficient carrier.
+The symmetric bounds (0.6) imply the inverse ellipticity bounds of the matrix-valued coefficients of the coarse-graining library.
 -/
 
 open MeasureTheory
 
 namespace QSH
 
-/-- A source coefficient satisfies the inverse ellipticity convention of the
-matrix-valued carrier, with any upper constant dominating its source bound and one. -/
+/-- A coefficient field satisfies the inverse ellipticity convention of the
+matrix-valued carrier, with any upper constant dominating its upper bound and one. -/
 theorem coefficientField_isEllipticMatrix {d : ℕ} {K L : ℝ} (a : CoefficientField d K)
     (hL : 1 ≤ L) (hKL : K ≤ L) (x : Vec d) :
     _root_.Homogenization.IsEllipticMatrix 1 L (a.field x) := by

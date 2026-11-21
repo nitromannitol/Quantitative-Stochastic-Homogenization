@@ -1,15 +1,12 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Tactic.ByContra
 
 /-!
-# The positive energy in the sharpness coefficient
+# Nonnegativity of the squared Euclidean norm
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Sharpness/Energy.lean`.
 
-the application, `eq.sharp-constant`, lines 1261–1265. These pointwise facts use
-the Euclidean sum of squares. The event that the actual constructed gradient is
-nonzero with positive probability is a separate obligation.
+The squared Euclidean norm `euclideanSq` is a sum of squares, hence nonnegative.
 -/
 
 namespace QSH

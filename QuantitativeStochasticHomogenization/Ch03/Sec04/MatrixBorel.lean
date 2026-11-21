@@ -1,9 +1,4 @@
 import QuantitativeStochasticHomogenization.Front.Notation
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Topology.ContinuousMap.Algebra
-import Mathlib.Topology.Instances.Matrix
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-import Mathlib.Probability.Independence.Basic
 
 /-!
 # Coefficient pairs and their translation law

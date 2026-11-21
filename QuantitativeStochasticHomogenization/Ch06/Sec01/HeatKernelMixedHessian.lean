@@ -4,11 +4,12 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.HeatKernelScaling
 import QuantitativeStochasticHomogenization.Ch06.Sec01.GaussianHeatGradientDensity
 
 /-!
-# Heat Kernel Mixed Hessian
+# Mixed second derivatives of the heat kernel
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/HeatKernelMixedHessian.lean`.
 
-Gaussian calculus for the physical transport at the application. -/
+Second coordinate derivatives of the Euclidean heat kernel.
+-/
 
 namespace QSH
 
@@ -37,7 +38,7 @@ theorem coordinateDerivative_two_euclideanHeatKernel {d : ℕ}
         (-(1 / (2 * t)) * x i) • fderiv ℝ (euclideanHeatKernel (d := d) t) x) x :=
     (hdiff x).hasFDerivAt.fun_mul hprod_deriv
   rw [hG.fderiv]
-  simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply,
+  simp only [_root_.add_apply, _root_.smul_apply,
     ContinuousLinearMap.proj_apply, smul_eq_mul]
   rw [fderiv_euclideanHeatKernel t x (unitVector j)]
   have hsumj : (∑ k, x k * unitVector j k) = x j := by

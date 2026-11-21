@@ -1,15 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.Calculus.FDeriv.Symmetric
-import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
 
 /-!
 # Weak Gradient Centering
@@ -49,9 +39,9 @@ private theorem coordinateDerivative_eq_zero_outside_center {d : ℕ} {U : Set (
     {φ : Vec d → ℝ} (hφ : IsSpatialTest U φ) (i : Fin d) (x : Vec d) (hx : x ∉ U) :
     coordinateDerivative i φ x = 0 := by
   have hnot : x ∉ tsupport φ := fun h => hx (hφ.2.2 h)
-  rw [coordinateDerivative, fderiv_of_notMem_tsupport ℝ hnot, ContinuousLinearMap.zero_apply]
+  rw [coordinateDerivative, fderiv_of_notMem_tsupport ℝ hnot, _root_.zero_apply]
 
-/-- Centering a scalar orbit preserves its weak gradient; source the application. -/
+/-- Centering a scalar orbit preserves its weak gradient. -/
 theorem hasWeakGradient_sub_const {d : ℕ} (U : Set (Vec d))
     {u : Vec d → ℝ} {g : Vec d → Vec d} (h : HasWeakGradient U u g) (c : ℝ) :
     HasWeakGradient U (fun x => u x - c) g := by
@@ -76,7 +66,7 @@ theorem hasWeakGradient_sub_const {d : ℕ} (U : Set (Vec d))
     by_cases hx : x ∈ tsupport φ
     · simp only [Set.indicator_of_mem hx]
     · simp only [Set.indicator_of_notMem hx, coordinateDerivative,
-        fderiv_of_notMem_tsupport ℝ hx, ContinuousLinearMap.zero_apply, mul_zero]
+        fderiv_of_notMem_tsupport ℝ hx, _root_.zero_apply, mul_zero]
   have hint : Integrable (fun x => u x * coordinateDerivative i φ x) (volume.restrict U) :=
     hglob.restrict
   have hdi : Integrable (coordinateDerivative i φ) (volume.restrict U) :=

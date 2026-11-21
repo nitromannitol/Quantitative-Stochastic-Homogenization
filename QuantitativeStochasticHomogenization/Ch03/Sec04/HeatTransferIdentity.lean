@@ -1,19 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.Calculus.Deriv.Inv
-import Mathlib.Analysis.Calculus.FDeriv.Const
-import Mathlib.Analysis.Calculus.FDeriv.Prod
-import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Topology.Algebra.Support
 
 /-!
 # Heat-kernel identity for smooth compactly supported kernels
@@ -46,7 +33,7 @@ variable {d : ℕ}
 
 /-- The coordinate Laplacian `∑ᵢ ∂ᵢ² K` of a function on `Vec d`, where `∂ᵢ` is the Fréchet
 derivative in the direction `unitVector i`. For a `C²` function `K` this is the Laplacian `ΔK`
-of the identity `scalar-heat-transfer` in the application. -/
+of the heat-transfer identity. -/
 def coordLaplacian (K : Vec d → ℝ) (x : Vec d) : ℝ :=
   ∑ i, fderiv ℝ (fun y => fderiv ℝ K y (unitVector i)) x (unitVector i)
 
@@ -136,9 +123,9 @@ theorem integral_mul_coordLaplacian_eq {K φ : Vec d → ℝ} (hK : ContDiff ℝ
     (hKc : HasCompactSupport K) (hφ : ContDiff ℝ 2 φ) :
     ∫ x, K x * coordLaplacian φ x = ∫ x, coordLaplacian K x * φ x := by
   simp only [coordLaplacian, Finset.mul_sum, Finset.sum_mul]
-  rw [integral_finset_sum (Finset.univ : Finset (Fin d))
+  rw [integral_finsetSum (Finset.univ : Finset (Fin d))
       (fun i _ => integrable_mul_fderiv_fderiv hK hKc hφ (unitVector i)),
-    integral_finset_sum (Finset.univ : Finset (Fin d))
+    integral_finsetSum (Finset.univ : Finset (Fin d))
       (fun i _ => integrable_fderiv_fderiv_mul hK hKc hφ (unitVector i))]
   exact Finset.sum_congr rfl fun i _ => integral_mul_fderiv_fderiv_eq hK hKc hφ (unitVector i)
 
@@ -165,8 +152,8 @@ private def sqGradient (x : Vec d) : Vec d →L[ℝ] ℝ :=
 private theorem sqGradient_apply (x v : Vec d) :
     sqGradient x v = ∑ j, (x j * v j + x j * v j) := by
   unfold sqGradient
-  simp only [ContinuousLinearMap.sum_apply, ContinuousLinearMap.add_apply,
-    ContinuousLinearMap.smul_apply, ContinuousLinearMap.proj_apply, smul_eq_mul]
+  simp only [_root_.sum_apply, _root_.add_apply,
+    _root_.smul_apply, ContinuousLinearMap.proj_apply, smul_eq_mul]
 
 private theorem hasFDerivAt_euclideanSq (x : Vec d) :
     HasFDerivAt (fun y : Vec d => euclideanSq y) (sqGradient x) x := by
@@ -205,7 +192,7 @@ theorem fderiv_euclideanHeatKernel (t : ℝ) (x v : Vec d) :
     rw [Finset.mul_sum]
     exact Finset.sum_congr rfl fun j _ => by ring
   rw [hH.fderiv, euclideanHeatKernel_eq_exp t x]
-  simp only [ContinuousLinearMap.smul_apply, sqGradient_apply, smul_eq_mul, hS]
+  simp only [_root_.smul_apply, sqGradient_apply, smul_eq_mul, hS]
   ring
 
 private theorem sum_mul_unitVector (x : Vec d) (i : Fin d) :
@@ -243,7 +230,7 @@ theorem coordLaplacian_euclideanHeatKernel (t : ℝ) (x : Vec d) :
       (differentiable_euclideanHeatKernel t x).hasFDerivAt.fun_mul
         ((hasFDerivAt_apply (𝕜 := ℝ) i x).const_mul _)
     rw [fderiv_euclideanHeatKernel_fun_eq t i, hG.fderiv]
-    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply,
+    simp only [_root_.add_apply, _root_.smul_apply,
       ContinuousLinearMap.proj_apply, smul_eq_mul]
     rw [fderiv_euclideanHeatKernel_unitVector, unitVector_apply_self]
     ring

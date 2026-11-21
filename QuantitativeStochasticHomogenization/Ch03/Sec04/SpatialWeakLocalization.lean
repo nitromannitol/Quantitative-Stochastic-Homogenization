@@ -6,7 +6,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.SpatialWeakProduct
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/SpatialWeakLocalization.lean`.
 
-Source: the application–928`. The conditioned equations are valid
+The conditioned equations are valid
 on a ball depending on the conditioning center. A smooth weight supported
 strictly inside that ball extends the weighted equation to the whole
 space. No weak equation for an unweighted field outside its domain is
@@ -18,7 +18,7 @@ open MeasureTheory
 namespace QSH
 
 /-- A derivative of a spatial test is another test on the same domain.
-Source: the application–928`. -/
+-/
 theorem isSpatialTest_coordinateDerivative {d : ℕ} {U : Set (Vec d)}
     {ψ : Vec d → ℝ} (hψ : IsSpatialTest U ψ) (j : Fin d) :
     IsSpatialTest U (coordinateDerivative j ψ) := by
@@ -29,7 +29,7 @@ theorem isSpatialTest_coordinateDerivative {d : ℕ} {U : Set (Vec d)}
   intro x hx
   by_contra hxs
   have hz := fderiv_of_notMem_tsupport (𝕜 := ℝ) hxs
-  exact hx (by simp only [coordinateDerivative, hz, ContinuousLinearMap.zero_apply])
+  exact hx (by simp only [coordinateDerivative, hz, _root_.zero_apply])
 
 private theorem setIntegral_mul_test {d : ℕ} {U : Set (Vec d)}
     (f : Vec d → ℝ) {ψ : Vec d → ℝ} (hψ : IsSpatialTest U ψ) :
@@ -48,7 +48,8 @@ private theorem setIntegral_mul_test_derivative {d : ℕ} {U : Set (Vec d)}
   setIntegral_mul_test f (isSpatialTest_coordinateDerivative hψ j)
 
 /-- Restriction to a smaller spatial domain preserves a weak partial
-derivative. Source: the application–928`. -/
+derivative.
+-/
 theorem hasWeakPartialDerivative_mono {d : ℕ} {U V : Set (Vec d)} (hVU : V ⊆ U)
     {j : Fin d} {f g : Vec d → ℝ} (h : HasWeakPartialDerivative U j f g) :
     HasWeakPartialDerivative V j f g := by
@@ -59,7 +60,8 @@ theorem hasWeakPartialDerivative_mono {d : ℕ} {U V : Set (Vec d)} (hVU : V ⊆
   rw [setIntegral_mul_test_derivative f hψU j, setIntegral_mul_test g hψU] at heq
   rwa [setIntegral_mul_test_derivative f hψ j, setIntegral_mul_test g hψ]
 
-/-- Restriction of a weak gradient. Source: the application–928`. -/
+/-- Restriction of a weak gradient.
+-/
 theorem hasWeakGradient_mono {d : ℕ} {U V : Set (Vec d)} (hVU : V ⊆ U)
     {f : Vec d → ℝ} {G : Vec d → Vec d} (h : HasWeakGradient U f G) :
     HasWeakGradient V f G := fun j => hasWeakPartialDerivative_mono hVU (h j)

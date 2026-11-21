@@ -1,30 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.Calculus.BumpFunction.Convolution
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
-import Mathlib.Analysis.Calculus.FDeriv.Add
-import Mathlib.Analysis.Calculus.FDeriv.Comp
-import Mathlib.Analysis.Calculus.FDeriv.Const
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.Convolution
-import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.LinearAlgebra.Determinant
-import Mathlib.LinearAlgebra.Dimension.Constructions
-import Mathlib.MeasureTheory.Group.Integral
-import Mathlib.MeasureTheory.Group.Measure
-import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
-import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
-import Mathlib.MeasureTheory.Measure.OpenPos
-import Mathlib.Topology.Algebra.Support
 
 /-!
 # Locally integrable functions with zero weak gradient are constant
@@ -165,7 +140,7 @@ private theorem convolution_fderiv_apply_eq_zero {d : ℕ} {w : Vec d → ℝ}
     exact Finset.sum_congr rfl fun j _ => by ring
   have hsplit : ∫ t : Vec d, ∑ j, v j * (w (y - t) * coordinateDerivative j ζ t) =
       ∑ j, ∫ t : Vec d, v j * (w (y - t) * coordinateDerivative j ζ t) :=
-    integral_finset_sum Finset.univ fun j _ =>
+    integral_finsetSum Finset.univ fun j _ =>
       (integrable_coordinateDerivative_reflect hw hζ hζc y j).const_mul (v j)
   simp only [convolution_def, ContinuousLinearMap.lsmul_apply, smul_eq_mul, hpt]
   rw [hsplit]
@@ -185,7 +160,7 @@ private theorem hasFDerivAt_convolution_zero {d : ℕ} {w : Vec d → ℝ}
   refine (hζc.hasFDerivAt_convolution_left (ContinuousLinearMap.lsmul ℝ ℝ) hζ1 hw y).congr_fderiv
     ?_
   ext v
-  rw [fderiv_convolution_apply_eq hζ1 hζc hw y v, ContinuousLinearMap.zero_apply]
+  rw [fderiv_convolution_apply_eq hζ1 hζc hw y v, _root_.zero_apply]
   exact convolution_fderiv_apply_eq_zero hw hzero hζ hζc y v
 
 /-- The convolution `ζ ⋆ w` of a smooth compactly supported `ζ` with a locally integrable `w` of
@@ -228,7 +203,7 @@ theorem ae_eq_const_of_zero_weak_gradient {d : ℕ} {w : Vec d → ℝ}
   have hae := ContDiffBump.ae_convolution_tendsto_right_of_locallyIntegrable
     (φ := shrinkingBump d) (l := atTop) (K := 2) hφ0 h'φ hw
   -- The ambient measure is nonzero, so the almost-everywhere set is nonempty.
-  haveI : (ae (volume : Measure (Vec d))).NeBot := by
+  have : (ae (volume : Measure (Vec d))).NeBot := by
     refine ae_neBot.mpr fun h => ?_
     have hpos := Metric.measure_ball_pos volume (0 : Vec d) one_pos
     rw [h] at hpos

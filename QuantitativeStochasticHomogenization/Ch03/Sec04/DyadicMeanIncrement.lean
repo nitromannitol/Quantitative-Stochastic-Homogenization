@@ -1,13 +1,11 @@
-import Mathlib.Analysis.SpecificLimits.Normed
-import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
-import Mathlib.Tactic
+import QuantitativeStochasticHomogenization.Front.Notation
 
 /-!
 # Sublinear dyadic means from their successive increments
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/DyadicMeanIncrement.lean`.
 
-Source: the application. Summing small normalized
+Summing small normalized
 increments shows that the ball means grow sublinearly along dyadic radii.
 -/
 

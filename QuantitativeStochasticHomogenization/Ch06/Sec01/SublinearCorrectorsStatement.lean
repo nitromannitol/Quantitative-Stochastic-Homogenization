@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxCorrector
 
 /-!
-# Sublinear Correctors Statement
+# Sublinearity of the first-order and flux correctors
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/External/Draft/AKMSublinearCorrectorsV2.lean`.
 -/
@@ -14,18 +14,13 @@ open MeasureTheory
 
 namespace QSH
 
-/-- V2 removes the derived annealed cell-flux integrability premise by using
-`Corrector` and its literal heat-selected flux-potential carrier.
-DRAFT for `external:AKM#3.17-6.2`: the oscillation and local-gradient
-conclusions of Lemma 3.17, (3.85)–(3.86), printed p.100, and the flux-potential
-conclusion of Proposition 6.2, (6.13), pp.249–250. The source flux object is
-selected by (6.7); its existence is stated in Lemma 6.1. Only the oscillation
-part of (3.85) is retained, not its negative norms or energy defect.
-The random radius has the (3.39) stretched-exponential bound, with its constant
-allowed to depend on s. The deterministic exponent and bound precede s and the
-law. Lattice stationarity, unit range, Euclidean norms, normalized spatial
-averages and source spatial correctors are literal. No horizontal or smooth
-pointwise transfer, clock field or complex force occurs in this proposition. -/
+/-- **Lemma 3.17, (3.85)–(3.86), Lemma 6.1 and Proposition 6.2, (6.13).** For `d ≥ 2` and
+`Λ > 1` there are `β, C > 0` such that for every `s ∈ (0, d)` there is `C_s` with: for every law
+satisfying (P1)–(P2), every unit slope `e` and every corrector `φ_e`, a flux corrector exists
+(Lemma 6.1, selected by (6.7)), and for every flux corrector `S` there is a random scale
+`X ≥ 1` with `X ≤ O_s(C_s)` above which the normalized `L²(B_r)` oscillations of `φ_e` and `S`
+are at most `C r^{1 - β(d - s)}` and the normalized gradient energy of `φ_e` is at most `C`. Only
+the oscillation part of (3.85) is stated. -/
 def sublinearCorrectorsStatement : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∀ K : ℝ, 1 < K →
     ∃ β C : ℝ, 0 < β ∧ 0 < C ∧

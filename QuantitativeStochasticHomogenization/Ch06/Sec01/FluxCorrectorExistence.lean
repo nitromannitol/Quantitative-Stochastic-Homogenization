@@ -6,17 +6,17 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastFluxPairing
 import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxCorrector
 
 /-!
-# Existence of the flux corrector of a source corrector
+# Existence of the flux corrector of a corrector
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceFluxCorrectorExistence.lean`.
 
-Let `φ` be a source corrector of a unit slope `e` for a law of Armstrong, Kuusi and Mourrat,
+Let `φ` be a corrector of a unit slope `e` for a law of Armstrong, Kuusi and Mourrat,
 *Quantitative Stochastic Homogenization and Large-Scale Regularity*. Its centered flux
 `a(e + ∇φ) - E[∫_□ a(e + ∇φ)]` has, almost surely, components that are locally square
 integrable with square integrals on balls `B_R`, `R ≥ X`, of order `R^d`, hence Gaussian moments,
 and whose heat Hessians decay at large times, by the pairing bounds for the fluxes. The heat
 formula (6.7) therefore selects a flux gradient and a potential, which depend measurably on the
-coefficient field: this is the flux corrector `SourceFluxCorrector φ` of Lemma 6.1.
+coefficient field: this is the flux corrector `FluxCorrector φ` of Lemma 6.1.
 -/
 
 open MeasureTheory Set Filter
@@ -27,7 +27,7 @@ namespace QSH
 
 variable {d : ℕ} {K : ℝ} {P : Measure (CoefficientField d K)} {e : Vec d}
 
-/-- The measurable representative of the centered source flux of (6.7). -/
+/-- The measurable representative of the centered flux of (6.7). -/
 noncomputable def representativeFlux (φ : Corrector P e) (a : CoefficientField d K)
     (y : Vec d) : Vec d :=
   (coefficientRepresentative a y).mulVec (e + φ.grad a y) - meanFlux φ
@@ -48,7 +48,7 @@ theorem measurable_representativeFlux (φ : Corrector P e) (k : Fin d) :
   exact (Finset.measurable_sum _ fun j _ =>
     (measurable_coefficientRepresentative_apply k j).mul (measurable_const.add (hg j))).sub_const _
 
-/-- The square integrals of the components of the source flux on large balls grow like the
+/-- The square integrals of the components of the flux on large balls grow like the
 volume. -/
 theorem lintegral_flux_sq_le (hK : 1 ≤ K) (a : CoefficientField d K) {g : Vec d → Vec d}
     (hgm : Measurable g) (hmem : ∀ R : ℝ, 0 < R → MemLp g 2 (volume.restrict (ball 0 R)))
@@ -133,7 +133,7 @@ theorem lintegral_flux_sq_le (hK : 1 ≤ K) (a : CoefficientField d K) {g : Vec 
         rw [hvol]
         ring
 
-/-- **The heat formula applies to the source flux almost surely.** -/
+/-- **The heat formula applies to the flux almost surely.** -/
 theorem ae_heatFormulaHypotheses_representativeFlux (hd : 2 ≤ d) (hK : 1 < K)
     (hP : LawHypotheses P) (he : euclideanNorm e = 1) (φ : Corrector P e) :
     ∀ᵐ a ∂P, HeatFormulaHypotheses (representativeFlux φ a) := by
@@ -180,7 +180,7 @@ theorem ae_heatFormulaHypotheses_representativeFlux (hd : 2 ≤ d) (hK : 1 < K)
   exact h2
 
 /-- **Existence of the flux corrector** (Armstrong, Kuusi and Mourrat, Lemma 6.1): for every unit
-slope and every source corrector, the heat formula (6.7) selects a flux corrector. -/
+slope and every corrector, the heat formula (6.7) selects a flux corrector. -/
 theorem nonempty_fluxCorrector (hd : 2 ≤ d) (hK : 1 < K) (hP : LawHypotheses P)
     (he : euclideanNorm e = 1) (φ : Corrector P e) :
     Nonempty (FluxCorrector φ) := by

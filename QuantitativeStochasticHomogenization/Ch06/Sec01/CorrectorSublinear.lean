@@ -6,13 +6,13 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxPairingUniform
 import QuantitativeStochasticHomogenization.Ch06.Sec01.SublinearCorrectorsStatement
 
 /-!
-# Sublinearity of the scalar and flux correctors of source correctors
+# Sublinearity of the scalar and flux correctors of correctors
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceCorrectorSublinear.lean`.
 
-This module proves the statement `akmSublinearCorrectorsStmtV2`: the oscillation and local
+This module proves the statement `sublinearCorrectorsStatement`: the oscillation and local
 gradient bounds of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
-Large-Scale Regularity*, Lemma 3.17, (3.85)–(3.86), for source correctors, together with the
+Large-Scale Regularity*, Lemma 3.17, (3.85)–(3.86), for correctors, together with the
 existence of the flux corrector (Lemma 6.1) and the oscillation bound (6.13) of Proposition 6.2
 for every flux corrector, above one random radius with stretched-exponential moments.
 
@@ -37,7 +37,7 @@ open _root_.Homogenization.HighContrast
 
 variable {d : ℕ}
 
-/-- **Energy and oscillation of source correctors above a multiple of the homogenization
+/-- **Energy and oscillation of correctors above a multiple of the homogenization
 scale.** -/
 theorem exists_corrector_scale_bounds (d : ℕ) (hd : 2 ≤ d) (K : ℝ) (hK : 1 ≤ K)
     {κ C₀ : ℝ} (hκ : 0 < κ) (hC₀ : 0 ≤ C₀) :
@@ -177,7 +177,7 @@ open _root_.Homogenization hiding euclideanBall Vec Mat euclideanNorm
 
 open _root_.Homogenization.HighContrast
 
-/-- **Armstrong, Kuusi and Mourrat, Lemma 3.17 and Proposition 6.2, for source correctors.** -/
+/-- **Armstrong, Kuusi and Mourrat, Lemma 3.17 and Proposition 6.2, for correctors.** -/
 theorem sublinearCorrectors : sublinearCorrectorsStatement := by
   intro d hd K hK
   have hd0 : NeZero d := ⟨by omega⟩
@@ -369,9 +369,8 @@ end QSH
 /-! The high-contrast homogenization theorem raises the CoarseGraining instances
 `Homogenization.instMeasurableSpaceMat` (the product σ-algebra on `Mat d`) and
 `Homogenization.instBorelSpaceMat` to priority `10000`, and CoarseGraining declares further copies
-of `MeasurableSpace (Mat d)`. The modules that use `akm_sublinear_correctors` were elaborated with
-the Borel instance `EinsteinRelation.instMeasurableSpaceMat`; these priorities keep that instance
-for them. -/
+of `MeasurableSpace (Mat d)`. These priorities restore the Borel instance
+`QSH.instMeasurableSpaceMat` for the modules that use `sublinearCorrectors`. -/
 
 attribute [instance 100] Homogenization.instMeasurableSpaceMat
 

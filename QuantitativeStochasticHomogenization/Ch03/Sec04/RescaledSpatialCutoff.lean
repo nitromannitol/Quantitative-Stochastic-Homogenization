@@ -2,19 +2,6 @@ import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanNormToLp
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.Analysis.Calculus.FDeriv.Prod
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
-import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Rescaled Spatial Cutoff
@@ -25,7 +12,7 @@ Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelat
 namespace QSH
 
 /-- Rescaling a fixed Euclidean cutoff retains its plateau and gradient scale.
-Source: the application–824`. -/
+-/
 theorem rescale_reference_spatial_cutoff
     {d : ℕ} {χ : Vec d → ℝ} {D R : ℝ} (hR : 0 < R)
     (hχ : IsSpatialTest (originBall d 2) χ)

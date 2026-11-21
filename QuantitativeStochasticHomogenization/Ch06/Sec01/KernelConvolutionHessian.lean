@@ -1,8 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch06.Sec01.KernelConvolutionL2
-import Mathlib.Analysis.Calculus.ContDiff.Convolution
-import Mathlib.Analysis.Calculus.LineDeriv.IntegrationByParts
-import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 
 /-!
 # Second derivatives of convolutions with an integrable kernel

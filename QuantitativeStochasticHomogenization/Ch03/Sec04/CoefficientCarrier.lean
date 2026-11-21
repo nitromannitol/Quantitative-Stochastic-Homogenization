@@ -4,14 +4,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.MeasurableRepresentative
 import Homogenization.Probability.RegCoeffField.Sigma
 
 /-!
-# Coefficient carriers for homogenization
+# Borel representatives of coefficient fields
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/CoefficientCarrier.lean`.
 
-The locally integrable coefficient fields of Armstrong, Kuusi and Mourrat,
-*Quantitative Stochastic Homogenization and Large-Scale Regularity*, (0.6)–(0.11),
-admit Borel representatives. The representatives preserve the smooth integral
-observations defining the local coefficient sigma algebras.
+The locally integrable coefficient fields of (0.6)–(0.11) admit Borel representatives. The representatives preserve the test integrals (0.7) defining the local σ-algebras and agree with the field almost everywhere.
 -/
 
 open MeasureTheory
@@ -20,7 +17,7 @@ namespace QSH
 
 attribute [local irreducible] coefficientRepresentative
 
-/-- A Borel representative of a source coefficient as a regular coefficient field. -/
+/-- A Borel representative of a coefficient field as a regular coefficient field. -/
 noncomputable def regularCoefficient {d : ℕ} {K : ℝ} (a : CoefficientField d K) :
     _root_.Homogenization.RegCoeffField d where
   toFun := coefficientRepresentative a

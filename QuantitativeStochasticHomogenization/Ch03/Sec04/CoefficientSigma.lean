@@ -1,45 +1,6 @@
 import QuantitativeStochasticHomogenization.Front.Assumptions
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
-import Mathlib.Topology.ContinuousMap.SecondCountableSpace
-import Mathlib.Topology.Metrizable.ContinuousMap
-import Mathlib.Topology.UniformSpace.CompactConvergence
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Topology.Instances.Matrix
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Tactic.FunProp
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
-import Mathlib.MeasureTheory.SpecificCodomains.WithLp
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Analysis.Calculus.Deriv.Comp
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Analysis.Calculus.Deriv.Slope
-import Mathlib.Analysis.Calculus.FDeriv.Add
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.ContDiff.Operations
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
-import Mathlib.MeasureTheory.Function.LpSpace.ContinuousCompMeasurePreserving
-import Mathlib.MeasureTheory.Measure.RegularityCompacts
-import Mathlib.Analysis.Normed.Operator.Mul
-import Mathlib.MeasureTheory.Function.Holder
-import Mathlib.Data.Matrix.Mul
-import Mathlib.Topology.Metrizable.Basic
-import Mathlib.Topology.MetricSpace.ProperSpace.Real
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 /-!
 # Coefficient Sigma
@@ -72,7 +33,8 @@ theorem integrable_testIntegrand {d : ℕ} {K : ℝ} (A : CoefficientField d K)
     (A.locally_integrable i j).integrable_smul_left_of_hasCompactSupport
       u.smooth.continuous u.compact
 
-/-- AKM's full coefficient sigma algebra, defined by the test-integral observables. -/
+/-- the book's full coefficient sigma algebra, defined by the test-integral observables. -/
+@[instance_reducible]
 noncomputable def coefficientSigma {d : ℕ} {K : ℝ} : MeasurableSpace (CoefficientField d K) :=
   ⨆ u : SmoothCompactTest d, ⨆ i : Fin d, ⨆ j : Fin d,
     MeasurableSpace.comap (fun A : CoefficientField d K => testIntegral A u i j) inferInstance

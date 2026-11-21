@@ -5,32 +5,16 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.HighContrastLocalSobolev
 import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakGradientDilation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
-import Mathlib.MeasureTheory.Function.L2Space
 import Homogenization.Sobolev.H1.Definitions
-import Mathlib.MeasureTheory.SpecificCodomains.Pi
 
 /-!
-# Source correctors as correctors of the dilated coefficient
+# correctors as correctors of the dilated coefficient
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceCorrectorHighContrast.lean`.
 
-A source corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
+A corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*, Definitions 3.14–3.15, rescaled by the dilation `x ↦ 2x` that defines
-the high-contrast coefficient of the source coefficient, is a whole-space `H¹_loc` function whose
+the high-contrast coefficient of the coefficient field, is a whole-space `H¹_loc` function whose
 corrected affine function solves the equation of the dilated coefficient in the weak sense of
 Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high contrast*.
 -/
@@ -129,7 +113,7 @@ theorem smoothGrad_comp_inv_two_smul {χ : Vec d → ℝ} (hχ : Differentiable 
   rw [fderiv_comp_smul_apply hχ, unitVector, ← _root_.Homogenization.basisVec]
   field_simp
 
-/-- The corrected affine function of a dilated source corrector solves the equation of the
+/-- The corrected affine function of a dilated corrector solves the equation of the
 dilated coefficient, in the weak sense used by the high-contrast theory. -/
 theorem isWeakSolutionOn_dilated {K : ℝ} (hK : 1 ≤ K) (a : CoefficientField d K) (e : Vec d)
     {g : Vec d → Vec d}

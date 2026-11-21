@@ -1,7 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import Homogenization.Sobolev.H1.Definitions
-import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
-import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 /-!
 # Weak gradients under spatial dilation

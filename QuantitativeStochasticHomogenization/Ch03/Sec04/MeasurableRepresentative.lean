@@ -1,15 +1,13 @@
 import QuantitativeStochasticHomogenization.Front.Assumptions
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
-import Mathlib.Analysis.Calculus.BumpFunction.Convolution
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
 
 /-!
-# A jointly measurable representative of raw AKM coefficients
+# A jointly measurable representative of coefficient fields
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Environment/AKMMeasurableRepresentative.lean`.
 
-Source: the application; AKM (0.7)--(0.8), p. xvii.
+7)--(0.8), p. xvii.
 The observation sigma algebra does not make raw point evaluation measurable.
 Smooth test observations and Lebesgue differentiation provide a representative
 which agrees spatially almost everywhere for every coefficient, for every law.
@@ -32,7 +30,7 @@ def representativeBump (d n : ℕ) : ContDiffBump (0 : Vec d) where
     have : (0 : ℝ) < 1 / ((n : ℝ) + 1) := by positivity
     linarith
 
-/-- A translated averaging kernel, an admissible source coefficient observation. -/
+/-- A translated averaging kernel, an admissible coefficient field observation. -/
 def representativeTest {d : ℕ} (x : Vec d) (n : ℕ) : SmoothCompactTest d :=
   ⟨fun y => (representativeBump d n).normed volume (x - y),
     (representativeBump d n).contDiff_normed.comp (contDiff_const.sub contDiff_id),
@@ -55,7 +53,7 @@ theorem continuous_representative_observation {d : ℕ} {K : ℝ}
 
 attribute [local irreducible] representativeTest testIntegral
 
-/-- Joint measurability of one smoothed matrix entry on the source sigma algebra. -/
+/-- Joint measurability of one smoothed matrix entry on the σ-algebra (0.8). -/
 theorem measurable_representative_observation {d : ℕ} {K : ℝ}
     (n : ℕ) (i j : Fin d) :
     Measurable (fun p : CoefficientField d K × Vec d =>
@@ -93,7 +91,7 @@ raw coefficient's spatial almost-everywhere class. -/
 def coefficientRepresentative {d : ℕ} {K : ℝ} (a : CoefficientField d K) (x : Vec d) : Mat d :=
   fun i j => limsup (fun n => testIntegral a (representativeTest x n) i j) atTop
 
-/-- Joint measurability holds for every law on the original source carrier. -/
+/-- Joint measurability holds for every law of coefficient fields. -/
 theorem measurable_coefficientRepresentative {d : ℕ} {K : ℝ} :
     Measurable (fun p : CoefficientField d K × Vec d => coefficientRepresentative p.1 p.2) := by
   change @Measurable _ (Fin d → Fin d → ℝ) _ (borel _) _

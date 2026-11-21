@@ -5,13 +5,13 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastHomogenizedBo
 import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxCorrectorExistence
 
 /-!
-# Uniform pairing bounds for the fluxes of source correctors
+# Uniform pairing bounds for the fluxes of correctors
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceFluxPairingUniform.lean`.
 
 Fix a package of the homogenization theorem of Armstrong, Kuusi and Loher for a law of Armstrong,
 Kuusi and Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*. Almost
-surely, every component of the source flux `a(e + ∇φ)` of a source corrector of a unit slope,
+surely, every component of the flux `a(e + ∇φ)` of a corrector of a unit slope,
 centered at the homogenized flux `ā e`, has a pairing bound at the scales above twice the
 homogenization scale. Since the homogenized matrix is bounded, the amplitude of this bound and
 the centering vector are bounded by constants depending only on `d`, `K` and the constants of the
@@ -80,7 +80,7 @@ theorem HighContrastCorrectorPackage.fluxAmplitude_le
 
 end Package
 
-/-- **Pairing bounds for the fluxes of source correctors at the homogenization scale.** -/
+/-- **Pairing bounds for the fluxes of correctors at the homogenization scale.** -/
 theorem HighContrastCorrectorPackage.ae_hasScalePairingBound_flux {K : ℝ} {hK : 1 ≤ K}
     {P : Measure (CoefficientField d K)} {κ C : ℝ} (pk : HighContrastCorrectorPackage hK P κ C)
     (hP : LawHypotheses P) (hd : 2 ≤ d) (hκ : 0 < κ) (hC : 0 ≤ C) (e : Vec d)
@@ -140,7 +140,7 @@ theorem HighContrastCorrectorPackage.ae_hasScalePairingBound_flux {K : ℝ} {hK 
   exact (pk.hasScalePairingBound_flux hκ hC hb hbell e (unitVector k) hlocPhi hint).of_dilation
     hX hFG
 
-/-- **Uniform pairing bounds for the fluxes of source correctors.** The amplitude `A` and the
+/-- **Uniform pairing bounds for the fluxes of correctors.** The amplitude `A` and the
 bound `C_ā` on the centering vector depend only on `d`, `K` and the constants of the
 homogenization theorem. -/
 theorem exists_uniform_flux_pairing (d : ℕ) (hd : 2 ≤ d) (K : ℝ) (hK : 1 ≤ K) {κ C : ℝ}

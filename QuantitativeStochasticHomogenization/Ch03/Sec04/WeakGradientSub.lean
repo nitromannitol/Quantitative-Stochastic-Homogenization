@@ -3,29 +3,13 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch03.Sec04.SpatialWeakProduct
 import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanNormToLp
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.Analysis.Calculus.FDeriv.Prod
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Data.Matrix.Mul
-import Mathlib.Tactic.Linarith
-import Mathlib.MeasureTheory.Function.LpSpace.Indicator
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Integral.Prod
 
 /-!
 # The equation for two locally agreeing coefficient fields
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/PairedParabolicEquation.lean`.
 
-Source: the application–830`. If two coefficient fields agree on the
+If two coefficient fields agree on the
 spatial domain, subtracting their actual parabolic solutions gives a
 homogeneous parabolic equation with their gradient difference. Every test
 integral is integrable; subtraction does not use the total-integral zero
@@ -39,7 +23,8 @@ open scoped Topology
 namespace QSH
 
 /-- Subtracting two actual weak partial derivatives preserves the weak
-equation and local integrability. Source: the application–830`. -/
+equation and local integrability.
+-/
 theorem hasWeakPartialDerivative_sub {d : ℕ} {U : Set (Vec d)} {j : Fin d}
     {f₁ f₂ g₁ g₂ : Vec d → ℝ}
     (h₁ : HasWeakPartialDerivative U j f₁ g₁)
@@ -63,7 +48,7 @@ theorem hasWeakPartialDerivative_sub {d : ℕ} {U : Set (Vec d)} {j : Fin d}
   ring
 
 /-- The actual gradient of the difference is the difference of gradients.
-Source: the application–830`. -/
+-/
 theorem hasWeakGradient_sub {d : ℕ} {U : Set (Vec d)}
     {f₁ f₂ : Vec d → ℝ} {G₁ G₂ : Vec d → Vec d}
     (h₁ : HasWeakGradient U f₁ G₁) (h₂ : HasWeakGradient U f₂ G₂) :

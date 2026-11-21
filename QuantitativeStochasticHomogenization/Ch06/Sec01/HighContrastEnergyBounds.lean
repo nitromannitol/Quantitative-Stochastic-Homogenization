@@ -8,11 +8,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.StretchedExponentialTail
 import QuantitativeStochasticHomogenization.Ch03.Sec04.BallMeanSquareComparison
 
 /-!
-# Oscillation and energy bounds for source correctors
+# Oscillation and energy bounds for correctors
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/HighContrastSourceBounds.lean`.
 
-Let `φ` be a source corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
+Let `φ` be a corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
 Homogenization and Large-Scale Regularity*, Definitions 3.14–3.15, of a unit slope `e`. Its
 dilation is the high-contrast corrector of Armstrong, Kuusi and Loher, *Homogenization at a
 polynomial scale in high contrast*, of the dilated coefficient, up to an additive constant. The
@@ -333,11 +333,11 @@ end Package
 
 section Main
 
-/-- **Oscillation and energy bounds for source correctors.** There are `β > 0` and `C`
+/-- **Oscillation and energy bounds for correctors.** There are `β > 0` and `C`
 depending only on `d` and `K` such that for every `s ∈ (0, d)` there is `C_s` with the
 following property. For every law and every unit slope `e`, a random radius `X ≥ 1` with
-`X ≤ O_s(C_s)`, the same for all source correctors, bounds from below the scales `r` at which
-every source corrector `φ` of slope `e` satisfies
+`X ≤ O_s(C_s)`, the same for all correctors, bounds from below the scales `r` at which
+every corrector `φ` of slope `e` satisfies
 `‖φ - (φ)_{B_r}‖_{L²(B_r)} ≤ C r^(1 - β(d-s))` and `‖∇φ‖_{L²(B_r)} ≤ C`, almost surely
 (normalized norms). This is the scalar part of Armstrong, Kuusi and Mourrat, Lemma 3.17,
 (3.85)–(3.86). -/

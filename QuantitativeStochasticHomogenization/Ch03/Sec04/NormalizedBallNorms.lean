@@ -3,20 +3,6 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import HCPoly.Provider.Regularity.CorrectorNormalizedL2Bridge
 import HCPoly.Provider.PolynomialHomogenization.Root.Corrector.AffineLiouvilleGrowth
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
 
 /-!
 # Normalized `L²` norms on Euclidean balls

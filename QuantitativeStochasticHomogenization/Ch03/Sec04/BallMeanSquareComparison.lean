@@ -1,13 +1,12 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.BallMeanSquareScaling
-import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 # Comparing centered means on nested Euclidean balls
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/BallMeanSquareComparison.lean`.
 
-Source: the application. Expanding the square around an
+Expanding the square around an
 arbitrary constant proves the mean-square inequality, and the exact ball
 volume ratio controls successive dyadic means.
 -/
@@ -52,7 +51,7 @@ theorem average_sq_le_twice_centered_add_mean {d : ℕ} (u : Vec d → ℝ)
       2*(⨍ x in ball 0 R, (u x-⨍ y in ball 0 R, u y)^2) +
         2*(⨍ x in ball 0 R, u x)^2 := by
   have hp := ball_volume_pos_finite d R hR
-  haveI : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
+  have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
     isFiniteMeasure_restrict.mpr (ENNReal.toReal_pos_iff.mp hp).2.ne
   have hm : (volume.restrict (ball (0 : Vec d) R)).real Set.univ ≠ 0 := by
     simpa only [measureReal_restrict_apply_univ] using hp.ne'
@@ -74,9 +73,9 @@ theorem sq_ball_mean_sub_double_mean_le {d : ℕ} (u : Vec d → ℝ)
     exact lt_of_lt_of_le hx (by linarith)
   have hp := ball_volume_pos_finite d R hR
   have hp2 := ball_volume_pos_finite d (2*R) (by positivity)
-  haveI : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
+  have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
     isFiniteMeasure_restrict.mpr (ENNReal.toReal_pos_iff.mp hp).2.ne
-  haveI : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) (2*R))) :=
+  have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) (2*R))) :=
     isFiniteMeasure_restrict.mpr (ENNReal.toReal_pos_iff.mp hp2).2.ne
   have hm : (volume.restrict (ball (0 : Vec d) R)).real Set.univ ≠ 0 := by
     simpa only [measureReal_restrict_apply_univ] using hp.ne'

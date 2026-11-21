@@ -7,11 +7,11 @@ import HCPoly.Provider.Regularity.LiouvilleGradientUniqueness
 import HCPoly.Analytic.ClosureH1a
 
 /-!
-# Source correctors are the high-contrast correctors of the dilated coefficient
+# correctors are the high-contrast correctors of the dilated coefficient
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceCorrectorIdentification.lean`.
 
-Let `φ` be a source corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
+Let `φ` be a corrector of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
 Homogenization and Large-Scale Regularity*, Definitions 3.14–3.15, with slope `e`. For almost
 every coefficient `a`, the dilated corrected affine function `x ↦ e·x + φ(2x)/2` lies in the
 Liouville class of the dilated coefficient; by the Liouville classification of Armstrong, Kuusi
@@ -65,7 +65,7 @@ theorem abs_vecDot_le_of_mem_openCubeSet (e : Vec d) {n : ℕ} {x : Vec d}
         exact mul_le_mul_of_nonneg_left (hx' i).le (abs_nonneg _)
     _ = (∑ i, |e i|) * ((3 : ℝ) ^ n / 2) := by rw [Finset.sum_mul]
 
-/-- The dilated corrected affine function of a source corrector is in the Liouville class of
+/-- The dilated corrected affine function of a corrector is in the Liouville class of
 the dilated coefficient. -/
 theorem memLiouvilleClass_dilatedCorrectedAffine [NeZero d] {K : ℝ} (hK : 1 ≤ K)
     (a : CoefficientField d K) (e : Vec d) {u : Vec d → ℝ} {g : Vec d → Vec d}
@@ -175,8 +175,8 @@ theorem ae_mem_Ωend {K : ℝ} {hK : 1 ≤ K} {P : Measure (CoefficientField d K
       tsub_self]
   exact (ae_map_iff (measurable_toHighContrast hK).aemeasurable pk.measurableSet_Ωend).mp hae
 
-/-- **Identification of source correctors.** For almost every coefficient, the dilated
-corrected affine function of a source corrector of slope `e` is the high-contrast corrected
+/-- **Identification of correctors.** For almost every coefficient, the dilated
+corrected affine function of a corrector of slope `e` is the high-contrast corrected
 affine function of slope `e` of the dilated coefficient up to an additive constant, and the
 dilated gradient of the corrector is the high-contrast corrector gradient. -/
 theorem ae_dilated_eq_highContrast {K : ℝ} {hK : 1 ≤ K} {P : Measure (CoefficientField d K)}

@@ -1,13 +1,11 @@
-import Mathlib.Analysis.SpecificLimits.Normed
-import Mathlib.Algebra.Order.Archimedean.Basic
-import Mathlib.Tactic
+import QuantitativeStochasticHomogenization.Front.Notation
 
 /-!
 # Interpolating dyadic spatial energy decay
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/DyadicMonotoneEnergy.lean`.
 
-Source: the application. Nonnegative energy integrals
+Nonnegative energy integrals
 increase with the ball radius, so convergence at dyadic radii controls
 all sufficiently large real radii.
 -/

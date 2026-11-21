@@ -5,36 +5,22 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientCarrier
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import Homogenization.Probability.Source.AKL.RegQuotientAdapter
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
 import HCPoly.Frozen.Stationarity
 import HCPoly.Frozen.UnitRange
 
 /-!
-# The high-contrast coefficient space of a source coefficient
+# The high-contrast coefficient space of a coefficient field
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/HighContrastCarrier.lean`.
 
 A coefficient of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*, (0.6)–(0.11), defines a point of the coefficient space of Armstrong,
 Kuusi and Loher, *Homogenization at a polynomial scale in high contrast*, after the spatial
-dilation `x ↦ 2x`. The dilation turns the Euclidean range of dependence of the source law,
+dilation `x ↦ 2x`. The dilation turns the Euclidean range of dependence of the law,
 which requires a gap strictly larger than one, into the unit range of dependence for the
 sup-distance used there; it preserves stationarity under integer translations.
 
-The map is measurable for the test-integral sigma algebras, and the pushforward of a source law
+The map is measurable for the test-integral sigma algebras, and the pushforward of a law
 is a stationary probability law of unit range.
 -/
 
@@ -46,7 +32,7 @@ namespace QSH
 
 variable {d : ℕ} {K : ℝ}
 
-/-- The representative field of a source coefficient dilated by two, `x ↦ a(2x)`. -/
+/-- The representative field of a coefficient field dilated by two, `x ↦ a(2x)`. -/
 noncomputable def dilatedField (a : CoefficientField d K) (x : Vec d) : Mat d :=
   (regularCoefficient a).toFun ((2 : ℝ) • x)
 
@@ -69,7 +55,7 @@ theorem ae_isEllipticMatrix_dilatedField (hK : 1 ≤ K) (a : CoefficientField d 
   rw [hx]
   exact coefficientField_isEllipticMatrix a hK le_rfl _
 
-/-- The high-contrast coefficient-space point of a source coefficient, dilated by two. -/
+/-- The high-contrast coefficient-space point of a coefficient field, dilated by two. -/
 noncomputable def toHighContrast (hK : 1 ≤ K) (a : CoefficientField d K) :
     _root_.Homogenization.HighContrast.CoeffSpace d :=
   ⟨AEEqFun.mk (dilatedField a) (aestronglyMeasurable_dilatedField a),
@@ -109,7 +95,7 @@ theorem tsupport_halfDilatedTest_subset (φ : Vec d → ℝ) (hφ : ContDiff ℝ
   refine ⟨(2 : ℝ)⁻¹ • y, subset_tsupport φ hy, ?_⟩
   simp [smul_smul]
 
-/-- The observation of the dilated coefficient is an observation of the source coefficient. -/
+/-- The observation of the dilated coefficient is an observation of the coefficient field. -/
 theorem coeffPairing_toHighContrast (hK : 1 ≤ K) (e e' : Vec d) (φ : Vec d → ℝ)
     (hφ : ContDiff ℝ (⊤ : ℕ∞) φ) (hc : HasCompactSupport φ) (a : CoefficientField d K) :
     _root_.Homogenization.HighContrast.coeffPairing e e' φ (toHighContrast hK a) =
@@ -146,7 +132,7 @@ theorem coeffPairing_toHighContrast (hK : 1 ≤ K) (e e' : Vec d) (φ : Vec d �
     rfl
   rw [h1, h2, h3]
 
-/-- Each observation of the dilated coefficient on `U` is measurable for the source local
+/-- Each observation of the dilated coefficient on `U` is measurable for the local
 sigma algebra of `2U`. -/
 theorem measurable_coeffPairing_toHighContrast (hK : 1 ≤ K) (e e' : Vec d) {U : Set (Vec d)}
     {φ : Vec d → ℝ} (hφ : _root_.Homogenization.HighContrast.IsLocalTest U φ) :
@@ -167,7 +153,7 @@ theorem measurable_coeffPairing_toHighContrast (hK : 1 ≤ K) (e e' : Vec d) {U 
   refine Finset.measurable_sum _ fun i _ => Finset.measurable_sum _ fun j _ => ?_
   exact (hm i j).const_mul _
 
-/-- The local sigma algebra of `U` pulls back into the source local sigma algebra of `2U`. -/
+/-- The local sigma algebra of `U` pulls back into the local σ-algebra of `2U`. -/
 theorem comap_coeffSigma_toHighContrast_le (hK : 1 ≤ K) (U : Set (Vec d)) :
     (_root_.Homogenization.HighContrast.coeffSigma d U).comap (toHighContrast hK) ≤
       localSigma (Λ := K) ((2 : ℝ) • U) := by
@@ -189,7 +175,7 @@ theorem measurable_toHighContrast (hK : 1 ≤ K) :
   refine (comap_coeffSigma_toHighContrast_le hK Set.univ).trans ?_
   exact localSigma_le_coefficientSigma _
 
-/-- Dilation by two intertwines the source translation by `2z` with the integer translation
+/-- Dilation by two intertwines the translation by `2z` with the integer translation
 by `z`. -/
 theorem toHighContrast_translate (hK : 1 ≤ K) (z : Fin d → ℤ) (a : CoefficientField d K) :
     toHighContrast hK (translate (latticeShift (2 • z)) a) =
@@ -217,7 +203,7 @@ theorem toHighContrast_translate (hK : 1 ≤ K) (z : Fin d → ℤ) (a : Coeffic
     a.field ((2 : ℝ) • (x + _root_.Homogenization.Source.AKL.intTranslation z))
   rw [hshift]
 
-/-- The pushforward of a stationary source law is stationary under integer translations. -/
+/-- The pushforward of a stationary law is stationary under integer translations. -/
 theorem isStationaryLaw_map_toHighContrast (hK : 1 ≤ K) {P : Measure (CoefficientField d K)}
     (hP : LawHypotheses P) :
     HCPoly.Frozen.IsStationaryLaw (P.map (toHighContrast hK)) := by
@@ -240,7 +226,7 @@ theorem norm_le_euclideanNorm (w : Vec d) : ‖w‖ ≤ euclideanNorm w := by
   exact Finset.single_le_sum (f := fun j => w j * w j) (fun j _ => mul_self_nonneg (w j))
     (Finset.mem_univ i)
 
-/-- The pushforward of a source law has unit range of dependence for the sup-distance. -/
+/-- The pushforward of a law has unit range of dependence for the sup-distance. -/
 theorem isUnitRangeLaw_map_toHighContrast (hK : 1 ≤ K) {P : Measure (CoefficientField d K)}
     (hP : LawHypotheses P) :
     HCPoly.Frozen.IsUnitRangeLaw (P.map (toHighContrast hK)) := by

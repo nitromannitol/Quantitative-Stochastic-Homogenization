@@ -4,21 +4,6 @@ import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatSelectedFluxGradient
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.MeasureTheory.Integral.Average
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
-import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 # Flux Corrector
@@ -32,23 +17,23 @@ noncomputable section
 
 namespace QSH
 
-/-- The literal source mean cell flux. This total integral imposes no
+/-- The mean cell flux `E[∫_□ a(e + ∇φ)]`. This total integral imposes no
 integrability premise on the corrector. Its integrability and identification
 with the homogenized flux must be derived separately. -/
 def meanFlux {d : ℕ} {K : ℝ} {P : Measure (CoefficientField d K)} {e : Vec d}
     (φ : Corrector P e) : Vec d :=
   ∫ a, ∫ x in unitCell d, (a x).mulVec (e + φ.grad a x) ∂volume ∂P
 
-/-- The source flux in (6.7). The spatial Gaussian Hessian annihilates the
+/-- The flux in (6.7). The spatial Gaussian Hessian annihilates the
 constant centering vector. No cell integrability or expected-flux equality
-is a hypothesis of this definition or the heat-selected carrier below. -/
+is a hypothesis of this definition or of the flux corrector below. -/
 def centeredFlux {d : ℕ} {K : ℝ} {P : Measure (CoefficientField d K)}
     {e : Vec d} (φ : Corrector P e) (a : CoefficientField d K) (x : Vec d) : Vec d :=
   (a x).mulVec (e + φ.grad a x) - meanFlux φ
 
-/-- The source flux potential selected up to constants by AKM (6.7), printed
-p.246. This is the existing literal heat selection, weak gradient and local
-Sobolev carrier retyped over `Corrector`; it assumes no quantitative
+/-- The flux potential selected up to constants by AKM (6.7), printed
+p.246. It consists of the heat selection, the weak gradient and the local Sobolev
+regularity; it assumes no quantitative
 bound or derived annealed cell-flux integrability. -/
 structure FluxCorrector {d : ℕ} {K : ℝ} {P : Measure (CoefficientField d K)}
     {e : Vec d} (φ : Corrector P e) where

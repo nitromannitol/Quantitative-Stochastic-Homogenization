@@ -2,7 +2,6 @@ import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatHessianSmoothL2
 import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanSqNonneg
-import Mathlib.Analysis.Normed.Lp.SmoothApprox
 
 /-!
 # The time-truncated heat Hessian on `L²`

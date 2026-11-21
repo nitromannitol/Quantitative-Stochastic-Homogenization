@@ -14,7 +14,7 @@ entries, recentred at every point and averaged over shrinking normalized bumps, 
 measurable in the coefficient and the point; by Lebesgue differentiation their limit superior is
 a representative of the coefficient field. Hence the event that the coefficient field is
 uniformly elliptic almost everywhere, with given constants, is measurable, and the pushforward of
-a source law of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
+a law of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*, is supported on `(1, K)`-elliptic fields.
 -/
 
@@ -155,7 +155,7 @@ theorem measurableSet_ae_isEllipticMatrix (lam Lam : ℝ) :
   rw [hset]
   exact hmeas (measurableSet_singleton 0)
 
-/-- The pushforward of a source law is supported on `(1, K)`-elliptic fields. -/
+/-- The pushforward of a law is supported on `(1, K)`-elliptic fields. -/
 theorem ae_isEllipticMatrix_map_toHighContrast {K : ℝ} (hK : 1 ≤ K)
     {P : Measure (CoefficientField d K)} :
     ∀ᵐ b ∂(P.map (toHighContrast hK)),

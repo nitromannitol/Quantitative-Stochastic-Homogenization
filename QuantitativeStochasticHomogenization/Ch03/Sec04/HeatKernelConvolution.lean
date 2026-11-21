@@ -2,31 +2,13 @@ import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoordLaplacianContinuity
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
-import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
-import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
-import Mathlib.MeasureTheory.Integral.MeanInequalities
-import Mathlib.MeasureTheory.Integral.Pi
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.Prod
-import Mathlib.MeasureTheory.Measure.WithDensity
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.Normed.Group.Bounded
-import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
-import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
 /-!
 # Heat smoothing of compact spatial kernels
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/HeatKernelConvolution.lean`.
 
-The deterministic kernel identity underlying the application–1031`.
-The convolution uses `p_t(x-y)`; the heat kernel is even.
+Convolution of a compactly supported continuous kernel with the Euclidean heat kernel `p_t(x - y)`; the heat kernel is even.
 -/
 
 open MeasureTheory Filter
@@ -94,7 +76,7 @@ theorem integral_euclideanHeatKernel {t : ℝ} (ht : 0 < t) :
     ← Real.rpow_add hx, show -(d : ℝ) / 2 + 1 / 2 * (d : ℝ) = 0 by ring,
     Real.rpow_zero]
 
-/-- Evenness fixes the reflection convention in horizontal convolution. -/
+/-- Evenness fixes the reflection convention in the convolution. -/
 theorem euclideanHeatKernel_neg (t : ℝ) (x : Vec d) :
     euclideanHeatKernel t (-x) = euclideanHeatKernel t x := by
   simp [euclideanHeatKernel, euclideanSq, dot]
@@ -128,7 +110,7 @@ variables is also the domination used for the initial-time limit. -/
 theorem heatKernelConvolution_eq_scaled {t : ℝ} (ht : 0 < t) (K : Vec d → ℝ) (y : Vec d) :
     heatKernelConvolution t K y =
       ∫ z, euclideanHeatKernel 1 z * K (Real.sqrt t • z + y) := by
-  rw [heatKernelConvolution, if_neg ht.ne']
+  rw [heatKernelConvolution, ite_eq_right ht.ne']
   have htrans := integral_add_right_eq_self (μ := (volume : Measure (Vec d))) (fun x : Vec d =>
     K x * euclideanHeatKernel t (x - y)) y
   simp only [add_sub_cancel_right] at htrans
@@ -264,10 +246,10 @@ theorem hasDerivAt_heatKernelConvolution {K : Vec d → ℝ} (hK : ContDiff ℝ 
       ((contDiff_two_euclideanHeatKernel t).comp
         (by fun_prop : ContDiff ℝ 2 fun x : Vec d => x - y))
   rw [hibp] at hdiff
-  rw [heatKernelConvolution, if_neg ht.ne']
+  rw [heatKernelConvolution, ite_eq_right ht.ne']
   apply hdiff.2.congr_of_eventuallyEq
   filter_upwards [eventually_ne_nhds ht.ne'] with s hs
-  simp only [heatKernelConvolution, if_neg hs]
+  simp only [heatKernelConvolution, ite_eq_right hs]
 
 /-- The coordinate Laplacian preserves compact support. -/
 theorem hasCompactSupport_coordLaplacian {K : Vec d → ℝ} (hKc : HasCompactSupport K) :

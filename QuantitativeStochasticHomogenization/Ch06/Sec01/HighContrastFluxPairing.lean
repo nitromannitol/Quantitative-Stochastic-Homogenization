@@ -6,7 +6,7 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastEnergyBounds
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatSelectedFluxPotential
 
 /-!
-# Pairing bounds for the fluxes of source correctors
+# Pairing bounds for the fluxes of correctors
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/HighContrastFluxPairing.lean`.
 
@@ -16,9 +16,9 @@ of `s̄^{1/2} ∇φ` and of `s̄^{-1/2}((a - k̄)(e + ∇φ) - s̄ e)` by `r (r/
 `a(e + ∇φ) - ā e = ((a - k̄)(e + ∇φ) - s̄ e) + k̄ ∇φ`, every component of the flux defect
 `a(e + ∇φ) - ā e` has a pairing bound at the scales above `X` in the sense of
 `HasScalePairingBound`. A pairing bound is preserved by the dilation `x ↦ 2x`, which relates the
-dilated law to a source law of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
-Homogenization and Large-Scale Regularity*; hence the components of the source flux
-`a(e + ∇φ)` of a source corrector, centered at `ā e`, have pairing bounds at the scales above
+dilated law to a law of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
+Homogenization and Large-Scale Regularity*; hence the components of the flux
+`a(e + ∇φ)` of a corrector, centered at `ā e`, have pairing bounds at the scales above
 `2X`.
 -/
 
@@ -473,7 +473,7 @@ theorem HighContrastCorrectorPackage.hasScalePairingBound_flux [NeZero d]
 
 end Package
 
-section Source
+section FluxBounds
 
 open _root_.Homogenization hiding euclideanBall Vec Mat euclideanNorm
 
@@ -530,7 +530,7 @@ theorem abs_flux_le (hK : 1 ≤ K) (a : CoefficientField d K) (y : Vec d) (e v c
     mul_le_mul_of_nonneg_left h2 hK0
   linarith [abs_sub ((a.field y).mulVec (e + v) k) (c k)]
 
-/-- The components of the source flux with a locally square-integrable gradient are locally
+/-- The components of the flux with a locally square-integrable gradient are locally
 square integrable. -/
 theorem memLp_flux (hK : 1 ≤ K) (a : CoefficientField d K) {g : Vec d → Vec d}
     (hgm : Measurable g) (hg : ∀ R : ℝ, 0 < R → MemLp g 2 (volume.restrict (ball 0 R)))
@@ -560,8 +560,8 @@ theorem memLp_flux (hK : 1 ≤ K) (a : CoefficientField d K) {g : Vec d → Vec 
   simp only [hy']
   exact abs_flux_le hK a y e (g y) c k
 
-/-- **Pairing bounds for the fluxes of source correctors.** There is `κ > 0` depending only on
-the dimension such that for every law, slope `e` and source corrector `φ`, almost surely there
+/-- **Pairing bounds for the fluxes of correctors.** There is `κ > 0` depending only on
+the dimension such that for every law, slope `e` and corrector `φ`, almost surely there
 are a scale `R₀ > 0` and a vector `c` for which every component of `a(e + ∇φ) - c` has a
 pairing bound at the scales above `R₀` with decay exponent `κ`. -/
 theorem exists_hasScalePairingBound_flux (d : ℕ) (hd : 2 ≤ d) (K : ℝ) (hK : 1 < K) :
@@ -623,6 +623,6 @@ theorem exists_hasScalePairingBound_flux (d : ℕ) (hd : 2 ≤ d) (K : ℝ) (hK 
   exact ⟨_, mul_nonneg (mul_nonneg (mul_nonneg (pk.fluxAmplitude_nonneg _) (Real.sqrt_nonneg _))
     (le_max_of_le_right zero_le_one)) (mul_nonneg hC₀.le (Real.sqrt_nonneg _)), hmain⟩
 
-end Source
+end FluxBounds
 
 end QSH

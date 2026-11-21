@@ -6,17 +6,16 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxCorrectorExistence
 import QuantitativeStochasticHomogenization.Ch03.Sec04.SpatialWeakCongruence
 import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakGradientSub
 import QuantitativeStochasticHomogenization.Ch03.Sec04.ZeroWeakGradientConstant
-import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
 
 /-!
-# Flux potentials of source correctors are the heat-selected potential up to constants
+# Flux potentials of correctors are the heat-selected potential up to constants
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Homogenization/SourceFluxPotentialIdentification.lean`.
 
 The heat selection (6.7) of Armstrong, Kuusi and Mourrat, *Quantitative Stochastic
 Homogenization and Large-Scale Regularity*, determines the flux gradient almost everywhere, as
 the square-mean limit of the same truncations. Hence the potential of every flux corrector of a
-source corrector differs from the heat-selected potential of the measurable representative of the
+corrector differs from the heat-selected potential of the measurable representative of the
 centered flux by a constant in each entry, and the two have the same oscillation on every ball.
 The normalized oscillation is the oscillation divided by the square root of the volume.
 -/

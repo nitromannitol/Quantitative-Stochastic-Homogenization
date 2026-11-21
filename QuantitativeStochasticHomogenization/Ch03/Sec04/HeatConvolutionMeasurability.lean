@@ -1,49 +1,13 @@
 import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.Calculus.Deriv.Comp
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Analysis.Calculus.Deriv.Slope
-import Mathlib.Analysis.Calculus.FDeriv.Add
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.ContDiff.Operations
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
-import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
-import Mathlib.Analysis.Calculus.BumpFunction.Normed
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Analysis.Convolution
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Group.Prod
-import Mathlib.MeasureTheory.Measure.Haar.Unique
-import Mathlib.Probability.Kernel.CondDistrib
-import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
-import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.Topology.Metrizable.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
-import Mathlib.MeasureTheory.Measure.WithDensity
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 /-!
-# Joint measurability for heat transfer
+# Joint measurability of the heat kernel
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Correctors/HeatConvolutionMeasurability.lean`.
 
-Source: the application–1031`. The time-dependent convolutions in the
-heat-transfer identity are measurable jointly in time and environment.
+The Euclidean heat kernel is jointly measurable in time and space.
 -/
 
 open MeasureTheory
