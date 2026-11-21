@@ -107,7 +107,7 @@ theorem exists_lt_of_condInf_lt {P : ℕ → Prop} [DecidablePred P] {v : ℕ �
   by_contra hcon
   exact absurd (le_condInf hP fun n hn => le_of_not_gt fun h' => hcon ⟨n, hn, h'⟩) (not_le.2 hc)
 
-variable {Ω : Type*} [MeasurableSpace Ω]
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
 
 theorem measurable_nat_index {β : Type*} [MeasurableSpace β] {k : Ω → ℕ} (hk : Measurable k)
     {u : ℕ → Ω → β} (hu : ∀ n, Measurable (u n)) : Measurable fun ω => u (k ω) ω := by
