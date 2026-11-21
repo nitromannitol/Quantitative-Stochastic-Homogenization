@@ -122,7 +122,7 @@ private theorem abs_apply_le_norm (v : Vec d) (i : Fin d) : |v i| ≤ euclideanN
   exact Finset.single_le_sum (f := fun j => v j * v j) (fun j _ => mul_self_nonneg _)
     (Finset.mem_univ i)
 
-theorem volume_ball_zero_lt_top (R : ℝ) : volume (ball (0 : Vec d) R) < ⊤ := by
+theorem measure_ball_zero_lt_top (R : ℝ) : volume (ball (0 : Vec d) R) < ⊤ := by
   have hsub : ball (0 : Vec d) R ⊆ Set.pi Set.univ (fun _ => Set.Ioo (-R) R) := fun x hx i _ => by
     have h1 := abs_apply_le_norm x i
     have h2 : euclideanNorm x < R := by simpa [ball] using hx
@@ -131,8 +131,9 @@ theorem volume_ball_zero_lt_top (R : ℝ) : volume (ball (0 : Vec d) R) < ⊤ :=
   rw [Real.volume_pi_Ioo]
   exact ENNReal.prod_lt_top fun _ _ => ENNReal.ofReal_lt_top
 
-instance (R : ℝ) : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
-  isFiniteMeasure_restrict.mpr (volume_ball_zero_lt_top R).ne
+instance isFiniteMeasure_restrict_ball_zero (R : ℝ) :
+    IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
+  isFiniteMeasure_restrict.mpr (measure_ball_zero_lt_top R).ne
 
 /-- The centered oscillation `⨍_{B_R} |f - (f)_R|²`. -/
 def ballOscillation (f : Vec d → ℝ) (R : ℝ) : ℝ :=

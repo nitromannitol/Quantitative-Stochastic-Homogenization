@@ -46,7 +46,7 @@ theorem mollifiedEntry_eq_testIntegral (n : ℕ) (i j : Fin d) (a : CoefficientF
   rw [mollifiedEntry, convolution_eq_swap, testIntegral]
   rfl
 
-theorem measurable_testIntegral (u : SmoothCompactTest d) (i j : Fin d) :
+theorem measurable_testIntegral_apply (u : SmoothCompactTest d) (i j : Fin d) :
     Measurable (fun a : CoefficientField d Λ => testIntegral a u i j) := by
   rw [measurable_iff_comap_le]
   exact le_iSup_of_le u (le_iSup_of_le i (le_iSup_of_le j le_rfl))
@@ -64,7 +64,7 @@ theorem measurable_mollifiedEntry (n : ℕ) (i j : Fin d) :
     measurable_uncurry_of_continuous_of_measurable
       (fun a => continuous_mollifiedEntry n i j a) fun x => by
         simp only [mollifiedEntry_eq_testIntegral]
-        exact measurable_testIntegral _ i j
+        exact measurable_testIntegral_apply _ i j
   exact h.comp measurable_swap
 
 /-- The entry `(i, j)` of the jointly measurable version: `liminf (φₙ ∗ a_{ij})(x)`. -/
