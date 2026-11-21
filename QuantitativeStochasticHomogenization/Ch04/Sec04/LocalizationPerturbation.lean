@@ -811,4 +811,72 @@ theorem norm_scaleLp_sub_le (hr : r ≠ 0) (u v : Fin d → Lp ℝ 2 (ballMeasur
       ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x)) (fun j _ => mul_self_nonneg _)
       (Finset.mem_univ k)
 
+theorem norm_scaleLp_le (hr : r ≠ 0) (u : Fin d → Lp ℝ 2 (ballMeasure z T)) :
+    ‖(fun k => scaleLp hr (u k))‖ ≤
+      Real.sqrt (∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x)) := by
+  have h := norm_scaleLp_sub_le (z := z) (T := T) hr u 0
+  have e1 : (fun k => scaleLp hr (u k)) - (fun k => scaleLp hr ((0 : Fin d → Lp ℝ 2
+      (ballMeasure z T)) k)) = fun k => scaleLp hr (u k) := by
+    funext k; simp [scaleLp_zero]
+  rw [e1] at h
+  refine h.trans (Real.sqrt_le_sqrt (le_of_eq (integral_congr_ae ?_)))
+  filter_upwards [Lp.coeFn_zero ℝ 2 (ballMeasure z T)] with x hx
+  rw [Pi.zero_apply] at hx
+  simp only [Pi.zero_apply, hx, sub_zero]
+
+theorem integral_heat_euclideanSq_le (hr : r ≠ 0) (u : Fin d → Lp ℝ 2 (ballMeasure z T)) :
+    ∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x) ≤
+      d * ‖(fun k => scaleLp hr (u k))‖ ^ 2 := by
+  have hk : ∀ k, ‖scaleLp hr (u k)‖ ^ 2 =
+      ∫ x in ball z T, heatKernel z r x * (u k : Vec d → ℝ) x ^ 2 := by
+    intro k
+    rw [norm_sq_eq_integral]
+    refine integral_congr_ae ?_
+    filter_upwards [scaleLp_ae (z := z) (T := T) hr (u k)] with x h1
+    rw [h1, mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+  have hint : ∀ k, Integrable (fun x => heatKernel z r x * (u k : Vec d → ℝ) x ^ 2)
+      (ballMeasure z T) := by
+    intro k
+    have := (memLp_sqrtHeat_mul (z := z) (T := T) hr (Lp.memLp (u k))).integrable_sq
+    refine this.congr (Eventually.of_forall fun x => ?_)
+    simp only
+    rw [mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+  have hsum : ∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x) =
+      ∑ k, ‖scaleLp hr (u k)‖ ^ 2 := by
+    simp_rw [hk]
+    rw [← integral_finsetSum _ fun k _ => hint k]
+    exact integral_congr_ae (Eventually.of_forall fun x => by
+      simp only [euclideanSq, dot, Finset.mul_sum, sq])
+  rw [hsum]
+  calc ∑ k, ‖scaleLp hr (u k)‖ ^ 2 ≤ ∑ _k : Fin d, ‖(fun k => scaleLp hr (u k))‖ ^ 2 :=
+        Finset.sum_le_sum fun k _ => pow_le_pow_left₀ (norm_nonneg _)
+          (norm_le_pi_norm (fun k => scaleLp hr (u k)) k) 2
+    _ = d * ‖(fun k => scaleLp hr (u k))‖ ^ 2 := by simp
+
+/-- **The relative weighted form of the approximation of Lemma 4.21 gives the hypothesis of
+Lemma 4.22**: if every gradient tuple `u` of a set is within relative weighted distance `η` of a
+second set, then on the bounded part `‖√Φ u‖ ≤ M` it is within `η √d M` in the rescaled norm. -/
+theorem exists_close_of_relative (hr : r ≠ 0) {A B : Set (Fin d → Lp ℝ 2 (ballMeasure z T))}
+    {η M : ℝ} (hη : 0 ≤ η) (hM : 0 ≤ M)
+    (h : ∀ u ∈ A, ∃ v ∈ B, ∫ x in ball z T, heatKernel z r x *
+        euclideanSq (fun k => (u k : Vec d → ℝ) x - (v k : Vec d → ℝ) x) ≤
+      η ^ 2 * ∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x))
+    {u : Fin d → Lp ℝ 2 (ballMeasure z T)} (hu : u ∈ A)
+    (hub : ‖(fun k => scaleLp hr (u k))‖ ≤ M) :
+    ∃ v ∈ B, ‖(fun k => scaleLp hr (u k)) - (fun k => scaleLp hr (v k))‖ ≤
+      η * Real.sqrt d * M := by
+  obtain ⟨v, hv, huv⟩ := h u hu
+  refine ⟨v, hv, (norm_scaleLp_sub_le hr u v).trans ?_⟩
+  have h1 := integral_heat_euclideanSq_le (z := z) (T := T) hr u
+  have h2 : η ^ 2 * ∫ x in ball z T, heatKernel z r x *
+      euclideanSq (fun k => (u k : Vec d → ℝ) x) ≤ (η * Real.sqrt d * M) ^ 2 := by
+    rw [mul_pow, mul_pow, Real.sq_sqrt (Nat.cast_nonneg d)]
+    have h3 := pow_le_pow_left₀ (norm_nonneg _) hub 2
+    have h4 : ∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x) ≤
+        d * M ^ 2 := h1.trans (mul_le_mul_of_nonneg_left h3 (Nat.cast_nonneg d))
+    calc η ^ 2 * ∫ x in ball z T, heatKernel z r x * euclideanSq (fun k => (u k : Vec d → ℝ) x)
+        ≤ η ^ 2 * (d * M ^ 2) := mul_le_mul_of_nonneg_left h4 (sq_nonneg η)
+      _ = η ^ 2 * d * M ^ 2 := by ring
+  exact Real.sqrt_le_left (by positivity) |>.2 (huv.trans h2)
+
 end QSH
