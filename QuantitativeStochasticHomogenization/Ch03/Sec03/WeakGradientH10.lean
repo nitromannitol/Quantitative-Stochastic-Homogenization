@@ -48,4 +48,28 @@ theorem tendsto_integral_mul_of_eLpNorm_sub {μ : Measure (Vec d)} {f h : Vec d 
   refine hlim'.congr fun n => ?_
   exact (key (hs n) (hhs n)).symm
 
+/-- **Weak gradients tested with `H¹₀` functions.** -/
+theorem integral_grad_mul_h10 {U : Set (Vec d)} {v : Vec d → ℝ} {g : Vec d → Vec d}
+    (hv : MemLp v 2 (volume.restrict U))
+    (hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict U))
+    (hw : HasWeakGradient U v g) (φ : PDE.H10Function U) (j : Fin d) :
+    ∫ x in U, g x j * φ.toH1Function.toFun x = -∫ x in U, v x * φ.toH1Function.grad x j := by
+  have happ : ∀ n, ∫ x in U, v x * coordinateDerivative j (φ.approx n) x =
+      -∫ x in U, g x j * φ.approx n x := fun n =>
+    (hw j).2.2 _ ⟨φ.approx_smooth n, φ.approx_hasCompactSupport n, φ.approx_support_subset n⟩
+  have hφn : ∀ n, MemLp (φ.approx n) 2 (volume.restrict U) := fun n =>
+    ((φ.approx_smooth n).continuous.memLp_of_hasCompactSupport
+      (φ.approx_hasCompactSupport n)).restrict U
+  have hdφn : ∀ n, MemLp (fun x => coordinateDerivative j (φ.approx n) x) 2
+      (volume.restrict U) := fun n =>
+    (((φ.approx_smooth n).continuous_fderiv (by simp)).clm_apply continuous_const
+      |>.memLp_of_hasCompactSupport
+        ((φ.approx_hasCompactSupport n).fderiv_apply (𝕜 := ℝ) (unitVector j))).restrict U
+  have t1 := tendsto_integral_mul_of_eLpNorm_sub (hg j) φ.toH1Function.memL2 hφn φ.tendsto_approx
+  have t2 := tendsto_integral_mul_of_eLpNorm_sub hv (φ.toH1Function.gradMemL2 j) hdφn
+    (φ.tendsto_approx_grad j)
+  have t3 := t2.congr fun n => happ n
+  have := tendsto_nhds_unique t3 t1.neg
+  linarith
+
 end QSH
