@@ -48,9 +48,10 @@ def ExpectedAveragesEstimate (P : Measure (CoefficientField d Λ)) (S : Homogeni
         dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P) -
       dot ξ (S.homogenized.mulVec ξ)| ≤ C * euclideanSq ξ * r ^ (-β)
 
-/-- Almost surely, at every center and scale, the three averages of the corrected fields exist. -/
+/-- Almost surely, at every center and scale `r ≥ 1`, the three averages of the corrected fields
+exist. -/
 def AveragesIntegrable (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P) : Prop :=
-  ∀ᵐ a ∂P, ∀ (z : Vec d) (r : ℝ), 0 < r → ∀ ξ : Vec d,
+  ∀ᵐ a ∂P, ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
     Integrable (fun x => heatKernel z r x • correctedField S a ξ x) ∧
     Integrable (fun x => heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) ∧
     Integrable (fun x => heatKernel z r x *
@@ -93,7 +94,7 @@ theorem trialObjectiveExpectation_of_expectedAverages [IsProbabilityMeasure P]
         dot p (∫ x, heatKernel z r x • (a x).mulVec (correctedField S a k x)) +
         dot q (∫ x, heatKernel z r x • correctedField S a k x) := by
     filter_upwards [hint] with a ha
-    obtain ⟨h1, h2, h3⟩ := ha z r hr0 k
+    obtain ⟨h1, h2, h3⟩ := ha z r hr k
     exact j1Functional_eq_averages a _ p q _ h1 h2 h3
   have hI1 : Integrable (fun a => -(1 / 2 : ℝ) * (∫ x, heatKernel z r x *
       dot (correctedField S a k x) ((a x).mulVec (correctedField S a k x)))) P := hi3.const_mul _

@@ -260,7 +260,7 @@ theorem gradient_sub_osBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : Homoge
     refine (hsz.of_le_ae hNm ?_).mono_scale ?_
     · filter_upwards [hint, hXNe] with a ha hb
       have hX0 : 0 ≤ XN a z := zero_le_one.trans (hXN1 a z)
-      obtain ⟨hP, -⟩ := averages_le_of_energy S a hΛ z hr0 hCN.le hX0 i (ha z r hr0 (unitVector i))
+      obtain ⟨hP, -⟩ := averages_le_of_energy S a hΛ z hr0 hCN.le hX0 i (ha z r hr (unitVector i))
         (hb z r hr (unitVector i)).2
       have h3 : (XN a z / r) ^ ((d : ℝ) / 2) ≤ XN a z ^ ((d : ℝ) / 2) :=
         Real.rpow_le_rpow (div_nonneg hX0 hr0.le) (div_le_self hX0 hr) (by positivity)
@@ -308,7 +308,7 @@ theorem linearAverageEstimate_of_heat [IsProbabilityMeasure P] (hd : 1 ≤ d)
       ((measurable_pi_apply k).comp hc').mul ((measurable_pi_apply k).comp hc')).sqrt
   refine ((hsum.const_mul hξ).of_le_ae hm ?_).mono_scale (le_of_eq (by ring))
   filter_upwards [hint] with a ha
-  have hlin := gradientAverage_eq_sum S a z r ξ fun i => (ha z r hr0 (unitVector i)).1
+  have hlin := gradientAverage_eq_sum S a z r ξ fun i => (ha z r hr (unitVector i)).1
   have e : ∑ i, ξ i • (gradientAverage S a z r (unitVector i) - unitVector i) =
       (∑ i, ξ i • gradientAverage S a z r (unitVector i)) - ξ := by
     simp only [smul_sub, Finset.sum_sub_distrib, sum_smul_unitVector]
