@@ -186,4 +186,69 @@ theorem norm_sub_add_coarsenedOperator_comp_le_sq [FiniteDimensional ℝ H]
       _ ≤ (β + δ * α) * (4 * (b + S) ^ 2) + α * (2 * (b + S) ^ 2) := by gcongr
       _ ≤ 4 * (α + β + δ * α) * (b + S) ^ 2 := by nlinarith
 
+/-! ## Polarization -/
+
+/-- The quadratic form `J(p, q) = ½ ‖U^* q - V^* p‖²`, the form of `J₁(Φ_{z,r}, p, q)` on the
+space of gradients of `A₁`. -/
+def gramEnergy (U V : H →L[ℝ] E) (p q : E) : ℝ := (1 / 2 : ℝ) * ‖(U†) q - (V†) p‖ ^ 2
+
+theorem gramEnergy_smul (U V : H →L[ℝ] E) (t : ℝ) (p q : E) :
+    gramEnergy U V (t • p) (t • q) = t ^ 2 * gramEnergy U V p q := by
+  unfold gramEnergy
+  rw [map_smul, map_smul, ← smul_sub, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
+  ring
+
+/-- The mixed block: `q · U V^* p = J(p, 0) + J(0, q) - J(p, q)`. -/
+theorem inner_comp_adjoint_eq_gramEnergy (U V : H →L[ℝ] E) (p q : E) :
+    ⟪q, (U ∘L V†) p⟫_ℝ = gramEnergy U V p 0 + gramEnergy U V 0 q - gramEnergy U V p q := by
+  unfold gramEnergy
+  rw [map_zero, map_zero, zero_sub, sub_zero, norm_neg, norm_sub_sq_real, comp_apply,
+    ← adjoint_inner_left]
+  ring
+
+/-- The coarsened coefficient by polarization, (5.62): if `D` is symmetric, then
+`p · b k = ½ (J(p + k, D p) - J(p - k, D p))`. -/
+theorem inner_coarsenedOperator_eq_gramEnergy (U V : H →L[ℝ] E) {D : E →L[ℝ] E}
+    (hD : ∀ x y : E, ⟪x, D y⟫_ℝ = ⟪D x, y⟫_ℝ) (p k : E) :
+    ⟪p, coarsenedOperator U V D k⟫_ℝ =
+      (gramEnergy U V (p + k) (D p) - gramEnergy U V (p - k) (D p)) / 2 := by
+  set A := (U†) (D p) - (V†) p with hA
+  set B := (V†) k with hB
+  have h1 : (U†) (D p) - (V†) (p + k) = A - B := by rw [map_add, hA, hB]; abel
+  have h2 : (U†) (D p) - (V†) (p - k) = A + B := by rw [map_sub, hA, hB]; abel
+  unfold gramEnergy
+  rw [h1, h2, norm_sub_sq_real, norm_add_sq_real]
+  have h3 : ⟪A, B⟫_ℝ = ⟪(U†) (D p), B⟫_ℝ - ⟪(V†) p, B⟫_ℝ := by rw [hA, inner_sub_left]
+  have h4 : ⟪p, coarsenedOperator U V D k⟫_ℝ = ⟪(V†) p, B⟫_ℝ - ⟪(U†) (D p), B⟫_ℝ := by
+    rw [coarsenedOperator, sub_apply, inner_sub_right, comp_apply, comp_apply, comp_apply, hD,
+      ← adjoint_inner_left V ((V†) k) p, ← adjoint_inner_left U ((V†) k) (D p), hB]
+  rw [h4, h3]
+  ring
+
+omit [CompleteSpace E] in
+/-- An operator norm is at most the sum of the absolute values of the matrix entries in an
+orthonormal basis. -/
+theorem opNorm_le_sum_abs_inner {ι : Type*} [Fintype ι] (ob : OrthonormalBasis ι ℝ E)
+    (M : E →L[ℝ] E) : ‖M‖ ≤ ∑ j, ∑ k, |⟪ob j, M (ob k)⟫_ℝ| := by
+  have hvec : ∀ y : E, ‖y‖ ≤ ∑ j, |⟪ob j, y⟫_ℝ| := fun y => by
+    conv_lhs => rw [← ob.sum_repr' y]
+    refine (norm_sum_le _ _).trans (le_of_eq ?_)
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [norm_smul, ob.orthonormal.1 j, mul_one, Real.norm_eq_abs]
+  refine opNorm_le_bound _ (by positivity) fun x => ?_
+  have hx : M x = ∑ k, ⟪ob k, x⟫_ℝ • M (ob k) := by
+    conv_lhs => rw [← ob.sum_repr' x]
+    rw [map_sum]
+    simp only [map_smul]
+  have hcoef : ∀ k, |⟪ob k, x⟫_ℝ| ≤ ‖x‖ := fun k => by
+    have := abs_real_inner_le_norm (ob k) x
+    rwa [ob.orthonormal.1 k, one_mul] at this
+  calc ‖M x‖ ≤ ∑ k, ‖⟪ob k, x⟫_ℝ • M (ob k)‖ := by rw [hx]; exact norm_sum_le _ _
+    _ ≤ ∑ k, ‖x‖ * ∑ j, |⟪ob j, M (ob k)⟫_ℝ| := by
+        refine Finset.sum_le_sum fun k _ => ?_
+        rw [norm_smul, Real.norm_eq_abs]
+        exact mul_le_mul (hcoef k) (hvec _) (norm_nonneg _) (norm_nonneg _)
+    _ = (∑ j, ∑ k, |⟪ob j, M (ob k)⟫_ℝ|) * ‖x‖ := by
+        rw [← Finset.mul_sum, Finset.sum_comm, mul_comm]
+
 end QSH
