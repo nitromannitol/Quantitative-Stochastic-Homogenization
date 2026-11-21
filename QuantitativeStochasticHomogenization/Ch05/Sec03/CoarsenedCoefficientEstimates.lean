@@ -199,7 +199,8 @@ satisfying (5.58). -/
 theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
     {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P] {A : Mat d}
     (hA : A.transpose = A) {C₀ : ℝ} (hC₀ : 0 < C₀) (h558 : EnergyEstimate P A C₀)
-    (hJm : ∀ (z : Vec d) (r : ℝ) (p q : Vec d), AEMeasurable (fun a => J1Heat a z r p q) P)
+    (hJm : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      AEMeasurable (fun a => J1Heat a z r p q) P)
     (hdim : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
     (hDm : ∀ (z : Vec d) (r : ℝ), AEMeasurable (fun a => coarseFluxDefect a A z r) P)
     (z : Vec d) (r : ℝ) (hr : 1 ≤ r) :
@@ -277,7 +278,7 @@ theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
     rw [abs_of_nonneg hΛ0, lemma524Quadratic, ← hδdef, ← htdef]
     ring
   have hcc : ∀ j k : Fin d, AEMeasurable (fun a => coarsenedCoefficient a A z r j k) P :=
-    fun j k => ((hJm z r _ _).sub (hJm z r _ _)).div_const 2
+    fun j k => ((hJm z r hr _ _).sub (hJm z r hr _ _)).div_const 2
   have hsize : AEMeasurable (fun a => matrixSize (coarsenedCoefficient a A z r)) P :=
     Real.continuous_sqrt.measurable.comp_aemeasurable (Finset.aemeasurable_fun_sum _ fun j _ =>
       Finset.aemeasurable_fun_sum _ fun k _ => (hcc j k).pow_const 2)
@@ -324,10 +325,10 @@ theorem coarsenedCoefficientEstimates_of
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ S : HomogenizationData P,
         EnergyEstimate P S.homogenized C₀)
     (hJm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
-      LawHypotheses P → ∀ (z : Vec d) (r : ℝ) (p q : Vec d),
+      LawHypotheses P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
         AEMeasurable (fun a => J1Heat a z r p q) P)
     (hdim : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
-      LawHypotheses P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+      LawHypotheses P → HomogenizationData P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
         ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
     (hDm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
       LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ),
@@ -339,6 +340,6 @@ theorem coarsenedCoefficientEstimates_of
   intro P hP S z r hr
   have := hP.1
   exact coarsenedCoefficient_aeOsBound hd hΛ S.symmetric hC₀ (hC P hP S)
-    (hJm d hd Λ hΛ P hP) (hdim d hd Λ hΛ P hP) (hDm d hd Λ hΛ P hP S) z r hr
+    (hJm d hd Λ hΛ P hP) (hdim d hd Λ hΛ P hP S) (hDm d hd Λ hΛ P hP S) z r hr
 
 end QSH
