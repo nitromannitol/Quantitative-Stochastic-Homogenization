@@ -234,4 +234,104 @@ theorem ofReal_abs_integral_mul_le {g Y : Vec d → ℝ} (hg : AEStronglyMeasura
         · exact (hg.mul hY).restrict
     _ ≤ _ := eLpNorm_smul_le_mul_eLpNorm hg.restrict hY.restrict
 
+/-! ## The bound of the negative norm -/
+
+/-- The heat bracket of order `n + 1`:
+`∑_{k ≤ n} ∑_{|β| = k} ‖Y_{β,1}‖_{L²(B_1)} + ∫₀¹ s^n ∑_{|β| = n+1} ‖Y_{β,s}‖_{L²(B_1)} ds`, the
+multi-indices being counted with the multiplicity of the words `w` of length `|β|`. -/
+def heatBracket (n : ℕ) (F : Vec d → ℝ) : ℝ≥0∞ :=
+  (∑ k ∈ Finset.range (n + 1), ∑ w : Fin k → Fin d,
+      eLpNorm (heatDerivativeAverage (countIndex w) 1 F) 2 (volume.restrict (originBall d 1))) +
+    ∫⁻ s in Ioc (0 : ℝ) 1, ENNReal.ofReal (s ^ n) * ∑ w : Fin (n + 1) → Fin d,
+      eLpNorm (heatDerivativeAverage (countIndex w) s F) 2 (volume.restrict (originBall d 1))
+
+theorem enorm_integral_mul_heatSmooth_le (hd : 1 ≤ d) {n : ℕ} {F : Vec d → ℝ}
+    (hFm : AEStronglyMeasurable F volume)
+    (hF : Integrable (fun x => F x * Real.exp (-(‖x‖ ^ 2) / 16))) {ψ : Vec d → ℝ}
+    (hψ : IsSpatialTest (originBall d 1) ψ)
+    (hψn : integerSobolevTestNorm (n + 1) (originBall d 1) ψ ≤ 1) {s : ℝ} (hs : 0 < s)
+    (hs1 : s ≤ 1) {k : ℕ} (hk : k ≤ n + 1) :
+    ‖∫ x, F x * heatSmooth s (iterLaplacian k ψ) x‖ₑ ≤
+      ENNReal.ofReal (unitBallTestConstant d (n + 1)) * ∑ w : Fin k → Fin d,
+        eLpNorm (heatDerivativeAverage (countIndex w) s F) 2 (volume.restrict (originBall d 1)) := by
+  rw [integral_mul_heatSmooth_iterLaplacian_eq hFm hF hs hs1 hψ.1 hψ.2.1 k, Finset.mul_sum]
+  refine (enorm_sum_le _ _).trans (Finset.sum_le_sum fun w _ => ?_)
+  have hsm := multiIndexDerivative_smooth hψ.1 hψ.2.1 (countIndex w)
+  have hzero : ∀ y ∉ originBall d 1, multiIndexDerivative (countIndex w) ψ y = 0 := fun y hy =>
+    image_eq_zero_of_notMem_tsupport fun h =>
+      hy (hψ.2.2 (tsupport_multiIndexDerivative_subset _ _ h))
+  rw [Real.enorm_eq_ofReal_abs]
+  refine (ofReal_abs_integral_mul_le hsm.1.continuous.aestronglyMeasurable
+    (aestronglyMeasurable_heatDerivativeAverage _ s hFm) hzero).trans ?_
+  gcongr
+  exact eLpNorm_multiIndexDerivative_le hd hψ hψn (countIndex w) ((sum_countIndex w).trans_le hk)
+
+/-- **The pathwise heat bound**: for a test `ψ` in the unit ball of `H^{n+1}(B_1)`,
+`|∫ F ψ| ≤ C heatBracket n F`. -/
+theorem ofReal_abs_integral_mul_le_heatBracket (hd : 1 ≤ d) {n : ℕ} {F : Vec d → ℝ}
+    (hFm : AEStronglyMeasurable F volume)
+    (hF : Integrable (fun x => F x * Real.exp (-(‖x‖ ^ 2) / 16))) {ψ : Vec d → ℝ}
+    (hψ : IsSpatialTest (originBall d 1) ψ)
+    (hψn : integerSobolevTestNorm (n + 1) (originBall d 1) ψ ≤ 1) :
+    ENNReal.ofReal |∫ x, F x * ψ x| ≤
+      ENNReal.ofReal (unitBallTestConstant d (n + 1)) * heatBracket n F := by
+  have hsupp : ∀ z ∈ tsupport ψ, ‖z‖ ≤ 1 := fun z hz =>
+    (norm_lt_one_of_mem_originBall (hψ.2.2 hz)).le
+  rw [integral_mul_heatTaylor hFm hF hψ.1 hψ.2.1 hsupp n, ← Real.enorm_eq_ofReal_abs]
+  set c := ENNReal.ofReal (unitBallTestConstant d (n + 1)) with hc
+  unfold heatBracket
+  rw [mul_add]
+  refine enorm_sub_le.trans (add_le_add ?_ ?_)
+  · refine (enorm_sum_le _ _).trans ?_
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun k hk => ?_
+    rw [enorm_mul]
+    have hk' : k ≤ n + 1 := by
+      rw [Finset.mem_range] at hk
+      omega
+    have hcoef : ‖(-1 : ℝ) ^ k / (k ! : ℝ)‖ₑ ≤ 1 := by
+      rw [Real.enorm_eq_ofReal_abs, abs_div, abs_pow, abs_neg, abs_one, one_pow,
+        abs_of_pos (by positivity : (0 : ℝ) < k !), ENNReal.ofReal_le_one]
+      exact div_le_one_of_le₀ (by exact_mod_cast Nat.one_le_iff_ne_zero.mpr (Nat.factorial_ne_zero k))
+        (by positivity)
+    calc ‖(-1 : ℝ) ^ k / (k ! : ℝ)‖ₑ * ‖∫ x, F x * heatSmooth 1 (iterLaplacian k ψ) x‖ₑ
+        ≤ 1 * (c * ∑ w : Fin k → Fin d, eLpNorm (heatDerivativeAverage (countIndex w) 1 F) 2
+          (volume.restrict (originBall d 1))) :=
+          mul_le_mul' hcoef (enorm_integral_mul_heatSmooth_le hd hFm hF hψ hψn one_pos le_rfl hk')
+      _ = _ := one_mul _
+  · rw [intervalIntegral.integral_of_le zero_le_one]
+    refine (enorm_integral_le_lintegral_enorm _).trans ?_
+    rw [← lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+    refine setLIntegral_mono' measurableSet_Ioc fun s hs => ?_
+    rw [enorm_mul]
+    have hcoef : ‖(-s) ^ n / (n ! : ℝ)‖ₑ ≤ ENNReal.ofReal (s ^ n) := by
+      rw [Real.enorm_eq_ofReal_abs]
+      refine ENNReal.ofReal_le_ofReal ?_
+      rw [abs_div, abs_pow, abs_neg, abs_of_pos hs.1, abs_of_pos (by positivity : (0 : ℝ) < n !)]
+      exact div_le_self (by have := hs.1; positivity)
+        (by exact_mod_cast Nat.one_le_iff_ne_zero.mpr (Nat.factorial_ne_zero n))
+    calc ‖(-s) ^ n / (n ! : ℝ)‖ₑ * ‖∫ x, F x * heatSmooth s (iterLaplacian (n + 1) ψ) x‖ₑ
+        ≤ ENNReal.ofReal (s ^ n) * (c * ∑ w : Fin (n + 1) → Fin d,
+          eLpNorm (heatDerivativeAverage (countIndex w) s F) 2 (volume.restrict (originBall d 1))) :=
+          mul_le_mul' hcoef (enorm_integral_mul_heatSmooth_le hd hFm hF hψ hψn hs.1 hs.2 le_rfl)
+      _ = _ := mul_left_comm _ _ _
+
+/-- **The normalized `H^{-(n+1)}(B_1)` norm is bounded by the heat bracket.** -/
+theorem negativeIntegerSobolevNorm_le_heatBracket (hd : 1 ≤ d) (n : ℕ) {F : Vec d → ℝ}
+    (hFm : AEStronglyMeasurable F volume)
+    (hF : Integrable (fun x => F x * Real.exp (-(‖x‖ ^ 2) / 16))) :
+    negativeIntegerSobolevNorm (n + 1) (originBall d 1) F ≤
+      ENNReal.ofReal ((volume (originBall d 1)).toReal⁻¹ * unitBallTestConstant d (n + 1)) *
+        heatBracket n F := by
+  unfold negativeIntegerSobolevNorm
+  refine iSup_le fun ψ => ?_
+  have hzero : ∀ x ∉ originBall d 1, F x * ψ.1 x = 0 := fun x hx => by
+    rw [image_eq_zero_of_notMem_tsupport fun h => hx (ψ.2.1.2.2 h), mul_zero]
+  have hv : 0 ≤ (volume (originBall d 1)).toReal⁻¹ := inv_nonneg.mpr ENNReal.toReal_nonneg
+  rw [setAverage_eq, smul_eq_mul, measureReal_def,
+    setIntegral_eq_integral_of_forall_compl_eq_zero hzero, abs_mul, abs_of_nonneg hv,
+    ENNReal.ofReal_mul hv, ENNReal.ofReal_mul hv, mul_assoc]
+  gcongr
+  exact ofReal_abs_integral_mul_le_heatBracket hd hFm hF ψ.2.1 ψ.2.2
+
 end QSH
