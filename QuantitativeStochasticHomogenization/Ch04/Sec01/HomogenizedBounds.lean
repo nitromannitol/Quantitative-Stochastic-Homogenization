@@ -62,4 +62,21 @@ theorem homogenizedMatrixBounds_of_integrable {P : Measure (CoefficientField d �
   have h2 := le_of_tendsto' hlim hup
   constructor <;> linarith
 
+/-- **`I ≤ ā ≤ Λ I`** given only the almost sure strong measurability of the Dirichlet energies
+on the triadic cubes (they are bounded, hence integrable). -/
+theorem homogenizedMatrixBounds_of_aestronglyMeasurable {P : Measure (CoefficientField d Λ)}
+    [IsProbabilityMeasure P] (S : HomogenizationData P) (hΛ : 0 ≤ Λ)
+    (hmeas : ∀ (n : ℕ) (ξ : Vec d),
+      AEStronglyMeasurable (fun a : CoefficientField d Λ => dirichletEnergy a (triadicCube d n) ξ) P) :
+    HomogenizedMatrixBounds S.homogenized Λ := by
+  refine homogenizedMatrixBounds_of_integrable S hΛ fun n ξ => ?_
+  refine Integrable.of_bound (hmeas n ξ) ((1 / 2 : ℝ) * Λ * euclideanSq ξ)
+    (Filter.Eventually.of_forall fun a => ?_)
+  have h0 := le_dirichletEnergy a (volume_triadicCube_ne_zero d n) (volume_triadicCube_ne_top d n) ξ
+  have h1 := dirichletEnergy_le a (volume_triadicCube_ne_zero d n) (volume_triadicCube_ne_top d n)
+    hΛ ξ
+  have h2 := euclideanSq_nonneg ξ
+  rw [Real.norm_eq_abs, abs_of_nonneg (by linarith)]
+  exact h1
+
 end QSH
