@@ -497,10 +497,10 @@ theorem polarization_sum_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (h
         K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
           fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P))) P :=
-    integrable_finset_sum _ fun i _ => hint i
+    integrable_finsetSum _ fun i _ => hint i
   refine ⟨hsum.const_mul hKq, hsi.const_mul Kq, ?_, fun a => ?_⟩
   · simp only [Y]
-    rw [integral_const_mul, integral_finset_sum _ fun i _ => hint i]
+    rw [integral_const_mul, integral_finsetSum _ fun i _ => hint i]
     refine mul_le_mul_of_nonneg_left ?_ hKq.le
     have hle : ∀ i ∈ (Finset.univ : Finset (Fin d)), (∫ a,
         (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
