@@ -159,8 +159,13 @@ of each module names the source files and commits.
   from the joint measurability of the corrector gradients); the flux averages involve `a(x)`, and
   their joint measurability is a hypothesis. The averages and the trial are integrable at the
   scales `r ≥ 1` under the energy bound (`averagesIntegrable_of_energyBound`,
-  `trialIntegrable_of_energyBound`), and `estimate558_of_heatIdentityBound` is (5.58) without these
-  hypotheses.
+  `trialIntegrable_of_energyBound`). The energy bound below the scale follows from Proposition 3.21
+  and the bounds on `ā` (`gaussianEnergyBound_of_rate`), by `Φ_{z,r} ≤ (R/r)^d Φ_{z,R}` for `r ≤ R`
+  (`heatKernel_le_mul`). `estimate558_of_heatIdentityBound` is (5.58) without these hypotheses;
+  its inputs are the structure (4.12) of `A₁`, the measurability of the Dirichlet energies,
+  Proposition 3.21 at every exponent `τ ∈ (0, d)`, the expectations (1) of the averages, the
+  measurability of `J₁`, of the trial and of the flux averages, `HeatIdentityBound`, and the
+  conclusions of Propositions 4.11 and 4.12.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
