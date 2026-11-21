@@ -113,4 +113,55 @@ theorem exists_matching_matrix (S : HomogenizationData P) (hΛ : 0 < Λ)
 
 end MatchingMatrix
 
+section EStep
+
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
+
+/-- **The expectation step** (Step 2 of Lemma 4.13): if the means of the gradient and flux
+averages `P eₗ`, `F eₗ` are within `η` of `eₗ` and `ā eₗ`, and `E|F eₗ - D₀ P eₗ| ≤ ξ`, then
+`|(D₀ - ā) v| ≤ √d (η + √d ξ + K₀ η) |v|`, where `|D₀ w| ≤ K₀ |w|`. -/
+theorem matching_matrix_near [IsProbabilityMeasure P] {D D₀ : Mat d} {K₀ η ξ : ℝ}
+    (hK₀ : 0 ≤ K₀) (hη : 0 ≤ η) (hξ : 0 ≤ ξ)
+    (hD₀ : ∀ w, euclideanNorm (D₀.mulVec w) ≤ K₀ * euclideanNorm w)
+    (Pv Fv : Fin d → Ω → Vec d) (hPi : ∀ l k, Integrable (fun ω => Pv l ω k) P)
+    (hFi : ∀ l k, Integrable (fun ω => Fv l ω k) P)
+    (hEP : ∀ l, euclideanNorm ((fun k => ∫ ω, Pv l ω k ∂P) - unitVector l) ≤ η)
+    (hEF : ∀ l, euclideanNorm ((fun k => ∫ ω, Fv l ω k ∂P) - D.mulVec (unitVector l)) ≤ η)
+    (hdi : ∀ l, Integrable (fun ω => euclideanNorm (Fv l ω - D₀.mulVec (Pv l ω))) P)
+    (hdm : ∀ l, ∫ ω, euclideanNorm (Fv l ω - D₀.mulVec (Pv l ω)) ∂P ≤ ξ) (v : Vec d) :
+    euclideanNorm ((D₀ - D).mulVec v) ≤
+      Real.sqrt d * (η + Real.sqrt d * ξ + K₀ * η) * euclideanNorm v := by
+  have hcol : ∀ l, euclideanNorm (D₀.mulVec (unitVector l) - D.mulVec (unitVector l)) ≤
+      η + Real.sqrt d * ξ + K₀ * η := by
+    intro l
+    set EP : Vec d := fun k => ∫ ω, Pv l ω k ∂P with hEPdef
+    set EF : Vec d := fun k => ∫ ω, Fv l ω k ∂P with hEFdef
+    have hlin : (fun k => ∫ ω, (Fv l ω - D₀.mulVec (Pv l ω)) k ∂P) = EF - D₀.mulVec EP := by
+      funext k
+      simp only [Pi.sub_apply, hEFdef, hEPdef, Matrix.mulVec, dotProduct]
+      have hint : ∀ m, Integrable (fun ω => D₀ k m * Pv l ω m) P := fun m => (hPi l m).const_mul _
+      rw [integral_sub (hFi l k) (integrable_finsetSum _ fun m _ => hint m),
+        integral_finsetSum _ fun m _ => hint m]
+      congr 1
+      exact Finset.sum_congr rfl fun m _ => integral_const_mul _ _
+    have hEdiff : euclideanNorm (EF - D₀.mulVec EP) ≤ Real.sqrt d * ξ := by
+      rw [← hlin]
+      refine (euclideanNorm_integral_le (fun k => ?_) (hdi l)).trans
+        (mul_le_mul_of_nonneg_left (hdm l) (Real.sqrt_nonneg _))
+      simp only [Pi.sub_apply, Matrix.mulVec, dotProduct]
+      exact (hFi l k).sub (integrable_finsetSum _ fun m _ => (hPi l m).const_mul _)
+    have hdec : D₀.mulVec (unitVector l) - D.mulVec (unitVector l) =
+        (EF - D.mulVec (unitVector l)) - (EF - D₀.mulVec EP) - D₀.mulVec (EP - unitVector l) := by
+      rw [Matrix.mulVec_sub]; abel
+    rw [hdec]
+    have h1 := euclideanNorm_sub_le ((EF - D.mulVec (unitVector l)) - (EF - D₀.mulVec EP))
+      (D₀.mulVec (EP - unitVector l))
+    have h2 := euclideanNorm_sub_le (EF - D.mulVec (unitVector l)) (EF - D₀.mulVec EP)
+    have h3 := (hD₀ (EP - unitVector l)).trans (mul_le_mul_of_nonneg_left (hEP l) hK₀)
+    have h4 := hEF l
+    linarith
+  exact euclideanNorm_sub_mulVec_le_of_columns (by positivity) hcol v
+
+end EStep
+
 end QSH
