@@ -2293,6 +2293,173 @@ theorem centeredOsBound_integral_of_scale [SFinite P] {E : Type*} [MeasurableSpa
     hmeas.aestronglyMeasurable]
   exact ENNReal.toReal_le_of_le_ofReal (Real.exp_pos _).le hlint
 
+/-- The second-order Taylor bound of `exp` on the real line:
+`|exp z - 1 - z - z²/2| ≤ 4 |z|³ exp |z|`. -/
+theorem abs_exp_sub_quadratic_le (z : ℝ) :
+    |Real.exp z - (1 + z + z ^ 2 / 2)| ≤ 4 * (|z| ^ 3 * Real.exp |z|) := by
+  have hz3 : 0 ≤ |z| ^ 3 := by positivity
+  have he : 1 ≤ Real.exp |z| := Real.one_le_exp (abs_nonneg z)
+  rcases le_or_gt |z| 1 with hz | hz
+  · have h := Real.exp_bound hz (n := 3) (by norm_num)
+    have e : ∑ m ∈ Finset.range 3, z ^ m / (m.factorial : ℝ) = 1 + z + z ^ 2 / 2 := by
+      norm_num [Finset.sum_range_succ, Nat.factorial]
+    rw [e] at h
+    have hc : |z| ^ 3 * ((Nat.succ 3 : ℕ) / ((Nat.factorial 3 : ℕ) * (3 : ℕ)) : ℝ) ≤ |z| ^ 3 := by
+      refine mul_le_of_le_one_right hz3 ?_
+      norm_num [Nat.factorial]
+    calc |Real.exp z - (1 + z + z ^ 2 / 2)| ≤ |z| ^ 3 := h.trans hc
+      _ ≤ 4 * (|z| ^ 3 * Real.exp |z|) := by nlinarith
+  · have hz1 : 1 ≤ |z| := hz.le
+    have h0 : 1 ≤ |z| ^ 3 := one_le_pow₀ hz1
+    have h3 : |z| ≤ |z| ^ 3 := by
+      simpa using pow_le_pow_right₀ hz1 (show 1 ≤ 3 by norm_num)
+    have h2 : z ^ 2 ≤ |z| ^ 3 := by
+      rw [← sq_abs]
+      exact pow_le_pow_right₀ hz1 (by norm_num)
+    set A : ℝ := |z| ^ 3 * Real.exp |z| with hA
+    have hA1 : |z| ^ 3 ≤ A := le_mul_of_one_le_right hz3 he
+    have hAe : Real.exp |z| ≤ A := le_mul_of_one_le_left (Real.exp_pos _).le h0
+    have hez : Real.exp z ≤ Real.exp |z| := Real.exp_le_exp.2 (le_abs_self z)
+    have hzpos := Real.exp_pos z
+    have hn := neg_abs_le z
+    have hp := le_abs_self z
+    have hsq := sq_nonneg z
+    rw [abs_le]
+    constructor <;> nlinarith
+
+/-- **Lemma A.8**: there is `C` such that, if `E[exp(2|X|)] ≤ 2` and `E[X] = 0`, then for every
+`λ ∈ [-1, 1]` the variable `exp(λ X)` is integrable and
+`|log E[exp(λ X)] - E[X²] λ²/2| ≤ C |λ|³`. The proof is the Taylor expansion of `exp` to the
+second order, `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`, in place of the
+derivatives of the logarithm of the Laplace transform. -/
+theorem exists_abs_log_integral_exp_sub_le :
+    ∃ C : ℝ, 0 < C ∧ ∀ {Ω : Type u} [MeasurableSpace Ω] (P : Measure Ω) [IsProbabilityMeasure P]
+      (X : Ω → ℝ), Measurable X → Integrable (fun ω => Real.exp (2 * |X ω|)) P →
+        ∫ ω, Real.exp (2 * |X ω|) ∂P ≤ 2 → ∫ ω, X ω ∂P = 0 →
+        Integrable (fun ω => X ω ^ 2) P ∧ ∀ t : ℝ, |t| ≤ 1 →
+          Integrable (fun ω => Real.exp (t * X ω)) P ∧
+            |Real.log (∫ ω, Real.exp (t * X ω) ∂P) - (∫ ω, X ω ^ 2 ∂P) * t ^ 2 / 2| ≤
+              C * |t| ^ 3 := by
+  refine ⟨49 ^ 2 + 48, by norm_num, ?_⟩
+  intro Ω _ P _ X hX hFi hF2 hmean
+  have hFm : Measurable fun ω => Real.exp (2 * |X ω|) :=
+    (measurable_const.mul (continuous_abs.measurable.comp hX)).exp
+  have hy1 : ∀ y : ℝ, |y| ≤ Real.exp (2 * |y|) := fun y => by
+    linarith [Real.add_one_le_exp (2 * |y|), abs_nonneg y]
+  have hy2 : ∀ y : ℝ, y ^ 2 ≤ Real.exp (2 * |y|) := fun y => by
+    have h := Real.quadratic_le_exp_of_nonneg (mul_nonneg zero_le_two (abs_nonneg y))
+    have : (2 * |y|) ^ 2 = 4 * y ^ 2 := by rw [mul_pow, sq_abs]; norm_num
+    nlinarith [abs_nonneg y, sq_nonneg y]
+  have hy3 : ∀ y : ℝ, |y| ^ 3 * Real.exp |y| ≤ 6 * Real.exp (2 * |y|) := fun y => by
+    have h := Real.pow_div_factorial_le_exp (x := |y|) (abs_nonneg y) 3
+    have h6 : |y| ^ 3 ≤ 6 * Real.exp |y| := by
+      norm_num [Nat.factorial] at h
+      linarith
+    have e2 : Real.exp (2 * |y|) = Real.exp |y| * Real.exp |y| := by
+      rw [← Real.exp_add]
+      ring_nf
+    rw [e2]
+    nlinarith [Real.exp_pos |y|]
+  have hXi : Integrable X P :=
+    hFi.mono' hX.aestronglyMeasurable (Filter.Eventually.of_forall fun ω => by
+      rw [Real.norm_eq_abs]
+      exact hy1 _)
+  have hX2i : Integrable (fun ω => X ω ^ 2) P :=
+    hFi.mono' (hX.pow_const 2).aestronglyMeasurable (Filter.Eventually.of_forall fun ω => by
+      rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
+      exact hy2 _)
+  refine ⟨hX2i, fun t ht => ?_⟩
+  have hteX : ∀ ω, Real.exp (t * X ω) ≤ Real.exp (2 * |X ω|) := fun ω => by
+    refine Real.exp_le_exp.2 ?_
+    have h1 : t * X ω ≤ |t| * |X ω| := by
+      rw [← abs_mul]
+      exact le_abs_self _
+    nlinarith [abs_nonneg t, abs_nonneg (X ω)]
+  have hMi : Integrable (fun ω => Real.exp (t * X ω)) P :=
+    hFi.mono' (measurable_const.mul hX).exp.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun ω => by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact hteX ω)
+  refine ⟨hMi, ?_⟩
+  set M : ℝ := ∫ ω, Real.exp (t * X ω) ∂P with hMdef
+  set σ2 : ℝ := ∫ ω, X ω ^ 2 ∂P with hσdef
+  have hσ0 : 0 ≤ σ2 := integral_nonneg fun ω => sq_nonneg _
+  have hσ2 : σ2 ≤ 2 := (integral_mono hX2i hFi fun ω => hy2 _).trans hF2
+  have hLi : Integrable (fun ω => 1 + t * X ω) P := (integrable_const 1).add (hXi.const_mul t)
+  have hL : ∫ ω, (1 + t * X ω) ∂P = 1 := by
+    rw [integral_add (integrable_const 1) (hXi.const_mul t), integral_const_mul, hmean,
+      integral_const]
+    simp
+  have hQi : Integrable (fun ω => 1 + t * X ω + t ^ 2 / 2 * X ω ^ 2) P :=
+    hLi.add (hX2i.const_mul _)
+  have hQ : ∫ ω, (1 + t * X ω + t ^ 2 / 2 * X ω ^ 2) ∂P = 1 + t ^ 2 / 2 * σ2 := by
+    rw [integral_add hLi (hX2i.const_mul _), hL, integral_const_mul, ← hσdef]
+  have hpt : ∀ ω, |Real.exp (t * X ω) - (1 + t * X ω + t ^ 2 / 2 * X ω ^ 2)| ≤
+      24 * |t| ^ 3 * Real.exp (2 * |X ω|) := by
+    intro ω
+    have h := abs_exp_sub_quadratic_le (t * X ω)
+    have e : (t * X ω) ^ 2 / 2 = t ^ 2 / 2 * X ω ^ 2 := by ring
+    rw [e, abs_mul] at h
+    have hE : Real.exp (|t| * |X ω|) ≤ Real.exp |X ω| :=
+      Real.exp_le_exp.2 (mul_le_of_le_one_left (abs_nonneg _) ht)
+    have ht3 : 0 ≤ |t| ^ 3 := by positivity
+    calc |Real.exp (t * X ω) - (1 + t * X ω + t ^ 2 / 2 * X ω ^ 2)|
+        ≤ 4 * ((|t| * |X ω|) ^ 3 * Real.exp (|t| * |X ω|)) := h
+      _ ≤ 4 * (|t| ^ 3 * (|X ω| ^ 3 * Real.exp |X ω|)) := by
+          rw [mul_pow, mul_assoc]
+          gcongr
+      _ ≤ 4 * (|t| ^ 3 * (6 * Real.exp (2 * |X ω|))) :=
+          mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left (hy3 _) ht3) (by norm_num)
+      _ = 24 * |t| ^ 3 * Real.exp (2 * |X ω|) := by ring
+  have hdiff : |M - (1 + t ^ 2 / 2 * σ2)| ≤ 48 * |t| ^ 3 := by
+    have h := norm_integral_le_of_norm_le (hFi.const_mul (24 * |t| ^ 3))
+      (f := fun ω => Real.exp (t * X ω) - (1 + t * X ω + t ^ 2 / 2 * X ω ^ 2))
+      (Filter.Eventually.of_forall fun ω => by
+        rw [Real.norm_eq_abs]
+        exact hpt ω)
+    rw [integral_sub hMi hQi, hQ, integral_const_mul, Real.norm_eq_abs] at h
+    have ht3 : 0 ≤ |t| ^ 3 := by positivity
+    calc |M - (1 + t ^ 2 / 2 * σ2)| ≤ 24 * |t| ^ 3 * ∫ ω, Real.exp (2 * |X ω|) ∂P := h
+      _ ≤ 24 * |t| ^ 3 * 2 := by gcongr
+      _ = 48 * |t| ^ 3 := by ring
+  have hM1 : 1 ≤ M := by
+    have h := integral_mono hLi hMi
+      fun ω => (by linarith [Real.add_one_le_exp (t * X ω)] :
+        (1 : ℝ) + t * X ω ≤ Real.exp (t * X ω))
+    rw [hL] at h
+    exact h
+  set v : ℝ := M - 1 with hvdef
+  have hv0 : 0 ≤ v := by linarith
+  have hlog_le : Real.log M ≤ v := by
+    have := Real.log_le_sub_one_of_pos (show 0 < M by linarith)
+    linarith
+  have hlog_ge : v - v ^ 2 ≤ Real.log M := by
+    have hM0 : 0 < M := by linarith
+    have h := Real.log_le_sub_one_of_pos (inv_pos.2 hM0)
+    rw [Real.log_inv] at h
+    have h' : v / M ≤ Real.log M := by
+      have : M⁻¹ - 1 = -(v / M) := by
+        rw [hvdef]
+        field_simp
+        ring
+      linarith
+    refine le_trans ?_ h'
+    rw [le_div_iff₀ hM0, hvdef]
+    nlinarith
+  have ht1 : |t| ^ 3 ≤ |t| ^ 2 := pow_le_pow_of_le_one (abs_nonneg t) ht (by norm_num)
+  have ht2 : |t| ^ 4 ≤ |t| ^ 3 := pow_le_pow_of_le_one (abs_nonneg t) ht (by norm_num)
+  have htsq : t ^ 2 = |t| ^ 2 := (sq_abs t).symm
+  have hv49 : v ≤ 49 * |t| ^ 2 := by
+    have := (abs_le.1 hdiff).2
+    nlinarith
+  have hv2 : v ^ 2 ≤ 49 ^ 2 * |t| ^ 3 := by
+    have h1 : v ^ 2 ≤ (49 * |t| ^ 2) ^ 2 := pow_le_pow_left₀ hv0 hv49 2
+    have h2 : (49 * |t| ^ 2) ^ 2 = 49 ^ 2 * |t| ^ 4 := by ring
+    nlinarith
+  rw [abs_le]
+  have hd := abs_le.1 hdiff
+  constructor <;> nlinarith
+
 /-- A bound `|X| ≤ O_s(θ)` gives `X ≤ O_s(θ)` and `-X ≤ O_s(θ)`, that is, `X = O_s(θ)` in the
 notation following (A.2). -/
 theorem OsBound.of_abs {X : Ω → ℝ} {s θ : ℝ} (h : OsBound P (fun ω => |X ω|) s θ)

@@ -8,11 +8,11 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 11 of them are proved or defined, all in Appendix A and Section 4.2, and 1 is in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 12 of them are proved or defined, all in Appendix A and Section 4.2, and 1 is in progress.
 
 ## Moving from einstein-relation-lean
 
-- Moved: the `O_s` calculus of Appendix A (Lemmas A.1, A.3–A.5 and A.9–A.12 proved), Definitions 4.7–4.9, Theorem 4.6, parts (i), (iii) and (iv), conditional on Propositions 4.10–4.12, and the semigroup property of the heat kernel (Chapter 4, opening). Lemmas A.7 and A.8 are not formalized.
+- Moved: the `O_s` calculus of Appendix A (Lemmas A.1, A.3–A.5 and A.8–A.12 proved), Definitions 4.7–4.9, Theorem 4.6, parts (i), (iii) and (iv), conditional on Propositions 4.10–4.12, and the semigroup property of the heat kernel (Chapter 4, opening). Lemma A.7 is not formalized.
 - Proved inside einstein-relation-lean and to move here later: Lemma 3.17, Lemma 6.1 and Proposition 6.2, in the form used as the sublinear corrector input, and Proposition 5.14 (the existence of white noise).
 
 ## Summary by chapter
@@ -30,12 +30,12 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
 | 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 | 0 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
-| Appendix A | The O_s Notation | 10 | 8 | 0 |
+| Appendix A | The O_s Notation | 10 | 9 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **11** | **1** |
+| | **Total** | **226** | **12** | **1** |
 
 ## Front matter
 
@@ -507,7 +507,7 @@ Module `AppA/OsNotation.lean`.
 | Lemma A.4 |  | proved (see CORRESPONDENCE.md) |
 | Lemma A.5 | Laplace transform | proved (see CORRESPONDENCE.md) |
 | Lemma A.7 |  | not started |
-| Lemma A.8 |  | not started |
+| Lemma A.8 |  | proved (see CORRESPONDENCE.md) |
 | Lemma A.9 |  | proved (see CORRESPONDENCE.md) |
 | Lemma A.10 |  | proved (see CORRESPONDENCE.md) |
 | Lemma A.11 |  | proved |

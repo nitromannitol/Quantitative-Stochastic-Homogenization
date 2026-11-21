@@ -73,7 +73,12 @@ of each module names the source files and commits.
   (A.5) is `osBound_of_log_integral_exp_le`, with `C = 2 · 8^{1/s}`; it assumes the integrability
   of `exp(λ X)` for `λ ≥ 1` and follows the book (the Chernoff bound at `λ = (x/2)^{s-1}`), with
   `osBound_of_tail` in place of Lemma A.1 and Remark A.2.
-- Lemmas A.7 and A.8 are not formalized.
+- **Lemma A.8.** `exists_abs_log_integral_exp_sub_le`: the bound is
+  `|log E[exp(λ X)] - E[X²] λ²/2| ≤ C |λ|³` (the book writes `C λ³`), with the integrability of
+  `exp(2|X|)`, `X²` and `exp(λ X)` stated. The proof is the second-order Taylor bound of `exp`
+  (`abs_exp_sub_quadratic_le`), `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`,
+  instead of the derivatives of `λ ↦ log E[exp(λ X)]`.
+- Lemma A.7 is not formalized.
 
 ## Chapter 4, opening (`Ch04/Opening.lean`)
 
