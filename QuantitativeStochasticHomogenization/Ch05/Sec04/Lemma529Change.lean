@@ -67,4 +67,51 @@ theorem exists_centeredOsBound_small_block {B A : ℝ} (hs1 : 1 < s) (hs2 : s �
   exact h₀ P _ (B * τ) (measurable_block X r hw _) (mul_pos hB0 hτ) hY
     (integral_block_eq_zero X r hwi _)
 
+theorem cube_mono (z : Vec d) {R₁ R₂ : ℝ} (h : R₁ ≤ R₂) : cube z R₁ ⊆ cube z R₂ :=
+  fun _ hx i => (hx i).trans_le (by linarith)
+
+theorem centeredOsBound_zero' {P : Measure Ω} [IsProbabilityMeasure P] {s θ : ℝ} (hs1 : 1 < s)
+    (hs2 : s ≤ 2) (hθ : 0 < θ) : CenteredOsBound P (fun _ => (0 : ℝ)) s θ := by
+  refine ⟨measurable_const, hs1, hs2, hθ, fun t => ⟨by simp, ?_⟩⟩
+  simp only [mul_zero, Real.exp_zero, integral_const, probReal_univ, one_smul]
+  exact Real.one_le_exp (le_max_of_le_left (sq_nonneg t))
+
+/-- The heat average of the indicator of a cube: `0 ≤ g ≤ 1`, and `1 - g` is at most
+`2^{d/2} exp(-(L/2)²/(8ρ²))` on the cube of side `R - L`. -/
+theorem heatSmooth_cube_bounds (z : Vec d) {R L ρ : ℝ} (hρ : 0 < ρ) (hL : 0 ≤ L) (x : Vec d) :
+    0 ≤ heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ∧
+      heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤ 1 ∧
+      (x ∈ cube z (R - L) → 1 - heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤
+        2 ^ ((d : ℝ) / 2) * Real.exp (-((L / 2) ^ 2 / (8 * ρ ^ 2)))) := by
+  have hm := measurableSet_cube z R
+  have e : heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x =
+      ∫ y in cube z R, heatKernel x ρ y := by
+    unfold heatSmooth
+    rw [← integral_indicator hm]
+    congr 1
+    funext y
+    by_cases hy : y ∈ cube z R
+    · rw [Set.indicator_of_mem hy, Set.indicator_of_mem hy, one_mul, heatKernel_comm]
+    · rw [Set.indicator_of_notMem hy, Set.indicator_of_notMem hy, zero_mul]
+  rw [e]
+  have hi := integrable_heatKernel x hρ
+  have htot : (∫ y in cube z R, heatKernel x ρ y) + ∫ y in (cube z R)ᶜ, heatKernel x ρ y = 1 := by
+    rw [integral_add_compl hm hi, integral_heatKernel x hρ]
+  have hc : 0 ≤ ∫ y in (cube z R)ᶜ, heatKernel x ρ y :=
+    setIntegral_nonneg hm.compl fun y _ => heatKernel_nonneg x ρ y
+  refine ⟨setIntegral_nonneg hm fun y _ => heatKernel_nonneg x ρ y, by linarith, fun hx => ?_⟩
+  have hfar : ∀ y ∈ (cube z R)ᶜ, L / 2 ≤ euclideanNorm (y - x) := by
+    intro y hy
+    simp only [cube, Set.mem_compl_iff, Set.mem_ofPred_eq, not_forall, not_lt] at hy
+    obtain ⟨i, hi⟩ := hy
+    have hxi := hx i
+    have h1 : |y i - x i| ≤ euclideanNorm (y - x) := by
+      simpa using abs_apply_le_euclideanNorm' (y - x) i
+    have h2 : |y i - z i| ≤ |y i - x i| + |x i - z i| := by
+      calc |y i - z i| = |(y i - x i) + (x i - z i)| := by ring_nf
+        _ ≤ _ := abs_add_le _ _
+    linarith
+  have := setIntegral_heatKernel_le_of_far x hρ (by positivity) hm.compl hfar
+  linarith
+
 end QSH
