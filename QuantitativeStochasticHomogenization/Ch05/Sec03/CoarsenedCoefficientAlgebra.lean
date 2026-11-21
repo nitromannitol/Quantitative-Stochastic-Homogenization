@@ -12,9 +12,10 @@ linear maps. In the application `H` is the space of gradients of `A₁` with the
 `J₁(Φ_{z,r}, p, q) = ½ |U^* q - V^* p|²`, and the coarsened coefficient `b_r(z)` of (5.62) is the
 matrix of the operator `b = V V^* - D U V^*` below, with `D = ā`.
 
-With `T = ‖V V^* - D‖ + ‖U V^* - I‖` this file proves the factorization
-`V - (D + b) U = (V - D U) (I - V^* U)`, the bound `‖b‖ ≤ (1 + ‖D‖) T`, and, when
-`dim H ≤ dim E` and `D ≥ I`, the quadratic bound `‖V - (D + b) U‖ ≤ C T²`.
+This file proves `b = (V - D U) V^*`, the factorization `V - (D + b) U = (V - D U) (I - V^* U)`, the
+bound `‖b‖ ≤ (1 + ‖D‖) (‖V V^* - D‖ + ‖U V^* - I‖)`, and, when `dim H ≤ dim E`, the quadratic bound
+`‖V - (D + b) U‖ ≤ C (‖b‖ + ‖U V^* - I‖)²`: if `‖U V^* - I‖ ≤ 1/2`, then `U V^*` is invertible,
+`V^*` is onto, and `(V - (D + b) U) V^* = b (I - U V^*)`.
 -/
 
 open scoped InnerProduct InnerProductSpace
@@ -75,88 +76,69 @@ theorem norm_coarsenedOperator_le (U V : H →L[ℝ] E) (D : E →L[ℝ] E) :
   rw [h3] at h2
   linarith
 
-/-- If `‖V V^* - D‖ ≤ 1/2` and `D ≥ I`, then `|x|² ≤ 2 ‖V^* x‖²`. -/
-theorem sq_norm_le_two_mul_sq_norm_adjoint {U V : H →L[ℝ] E} {D : E →L[ℝ] E}
-    (hD : ∀ x : E, ‖x‖ ^ 2 ≤ ⟪D x, x⟫_ℝ) (hT : firstOrderDefect U V D ≤ 1 / 2) (x : E) :
-    ‖x‖ ^ 2 ≤ 2 * ‖(V†) x‖ ^ 2 := by
-  have hVV : ‖(V†) x‖ ^ 2 = ⟪(V ∘L V†) x, x⟫_ℝ := by
-    rw [← real_inner_self_eq_norm_sq, comp_apply, adjoint_inner_left, real_inner_comm]
-  have hsplit : ⟪(V ∘L V†) x, x⟫_ℝ = ⟪D x, x⟫_ℝ + ⟪(V ∘L V† - D) x, x⟫_ℝ := by
-    rw [sub_apply, inner_sub_left]
-    ring
-  have hM : |⟪(V ∘L V† - D) x, x⟫_ℝ| ≤ ‖V ∘L V† - D‖ * ‖x‖ ^ 2 := by
-    calc |⟪(V ∘L V† - D) x, x⟫_ℝ| ≤ ‖(V ∘L V† - D) x‖ * ‖x‖ := abs_real_inner_le_norm _ _
-      _ ≤ ‖V ∘L V† - D‖ * ‖x‖ * ‖x‖ := by gcongr; exact le_opNorm _ _
-      _ = ‖V ∘L V† - D‖ * ‖x‖ ^ 2 := by ring
-  have hA : ‖V ∘L V† - D‖ ≤ 1 / 2 := by
-    have := norm_nonneg (U ∘L V† - 1)
-    unfold firstOrderDefect at hT
-    linarith
-  have hx2 := sq_nonneg ‖x‖
-  have hAx : ‖V ∘L V† - D‖ * ‖x‖ ^ 2 ≤ 1 / 2 * ‖x‖ ^ 2 := by gcongr
-  have := neg_abs_le ⟪(V ∘L V† - D) x, x⟫_ℝ
-  have := hD x
+/-- If `‖U V^* - I‖ ≤ 1/2`, then `‖x‖ ≤ 2 ‖U V^* x‖`. -/
+theorem norm_le_two_mul_norm_comp_adjoint {U V : H →L[ℝ] E} (hC : ‖U ∘L V† - 1‖ ≤ 1 / 2)
+    (x : E) : ‖x‖ ≤ 2 * ‖(U ∘L V†) x‖ := by
+  have h1 : ‖(U ∘L V† - 1) x‖ ≤ 1 / 2 * ‖x‖ :=
+    (le_opNorm _ _).trans (mul_le_mul_of_nonneg_right hC (norm_nonneg x))
+  have h2 : (U ∘L V† - 1) x = (U ∘L V†) x - x := by
+    rw [sub_apply, one_apply_eq_self]
+  rw [h2] at h1
+  have h3 := norm_sub_norm_le x ((U ∘L V†) x)
+  rw [norm_sub_rev] at h3
   linarith
 
-/-- If `dim H ≤ dim E`, `D ≥ I` and `T ≤ 1/2`, every `h ∈ H` is `V^* x` with `‖x‖ ≤ 2 ‖h‖`. -/
+/-- If `dim H ≤ dim E` and `‖U V^* - I‖ ≤ 1/2`, every `h ∈ H` is `V^* x` with
+`‖x‖ ≤ 2 ‖U‖ ‖h‖`. -/
 theorem exists_adjoint_eq_of_finrank_le [FiniteDimensional ℝ H] [FiniteDimensional ℝ E]
-    {U V : H →L[ℝ] E} {D : E →L[ℝ] E}
-    (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E)
-    (hD : ∀ x : E, ‖x‖ ^ 2 ≤ ⟪D x, x⟫_ℝ) (hT : firstOrderDefect U V D ≤ 1 / 2) (h : H) :
-    ∃ x : E, (V†) x = h ∧ ‖x‖ ≤ 2 * ‖h‖ := by
+    {U V : H →L[ℝ] E} (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E)
+    (hC : ‖U ∘L V† - 1‖ ≤ 1 / 2) (h : H) :
+    ∃ x : E, (V†) x = h ∧ ‖x‖ ≤ 2 * ‖U‖ * ‖h‖ := by
   have hinj : Function.Injective ((V† : E →L[ℝ] H) : E →ₗ[ℝ] H) := by
     rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
     intro x hx
-    have h1 := sq_norm_le_two_mul_sq_norm_adjoint hD hT x
     have hx' : (V†) x = 0 := hx
-    rw [hx', norm_zero] at h1
-    have : ‖x‖ ^ 2 ≤ 0 := by linarith
-    have h0 : ‖x‖ = 0 := by
-      have := sq_nonneg ‖x‖
-      nlinarith [norm_nonneg x]
-    exact norm_eq_zero.mp h0
+    have h1 := norm_le_two_mul_norm_comp_adjoint hC x
+    rw [comp_apply, hx', map_zero, norm_zero, mul_zero] at h1
+    exact norm_le_zero_iff.mp h1
   have hle := LinearMap.finrank_le_finrank_of_injective hinj
   have hsurj : Function.Surjective ((V† : E →L[ℝ] H) : E →ₗ[ℝ] H) :=
     (LinearMap.injective_iff_surjective_of_finrank_eq_finrank (le_antisymm hle hdim)).mp hinj
   obtain ⟨x, hx⟩ := hsurj h
   have hx' : (V†) x = h := hx
   refine ⟨x, hx', ?_⟩
-  have h1 := sq_norm_le_two_mul_sq_norm_adjoint hD hT x
-  rw [hx'] at h1
-  have h2 : ‖x‖ ^ 2 ≤ (2 * ‖h‖) ^ 2 := by
-    have := sq_nonneg ‖h‖
-    nlinarith
-  exact (pow_le_pow_iff_left₀ (norm_nonneg x) (by positivity) (by norm_num)).mp h2
+  have h1 := norm_le_two_mul_norm_comp_adjoint hC x
+  rw [comp_apply, hx'] at h1
+  calc ‖x‖ ≤ 2 * ‖U h‖ := h1
+    _ ≤ 2 * (‖U‖ * ‖h‖) := by gcongr; exact le_opNorm _ _
+    _ = 2 * ‖U‖ * ‖h‖ := by ring
 
-/-- **The quadratic error for small defect**: if `dim H ≤ dim E`, `D ≥ I` and `T ≤ 1/2`, then
-`‖V - (D + b) U‖ ≤ 2 ‖b‖ T`. -/
+/-- **The quadratic error for small mixed defect**: if `dim H ≤ dim E` and `‖U V^* - I‖ ≤ 1/2`,
+then `‖V - (D + b) U‖ ≤ 2 ‖U‖ ‖b‖ ‖U V^* - I‖`, since `(V - (D + b) U) V^* = b (I - U V^*)` and
+`V^*` is onto. -/
 theorem norm_sub_add_coarsenedOperator_comp_le_of_le_half [FiniteDimensional ℝ H]
-    [FiniteDimensional ℝ E] {U V : H →L[ℝ] E} {D : E →L[ℝ] E}
-    (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E)
-    (hD : ∀ x : E, ‖x‖ ^ 2 ≤ ⟪D x, x⟫_ℝ) (hT : firstOrderDefect U V D ≤ 1 / 2) :
+    [FiniteDimensional ℝ E] {U V : H →L[ℝ] E} (D : E →L[ℝ] E)
+    (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E) (hC : ‖U ∘L V† - 1‖ ≤ 1 / 2) :
     ‖V - (D + coarsenedOperator U V D) ∘L U‖ ≤
-      2 * ‖coarsenedOperator U V D‖ * firstOrderDefect U V D := by
-  rw [sub_add_coarsenedOperator_comp]
+      2 * ‖U‖ * ‖coarsenedOperator U V D‖ * ‖U ∘L V† - 1‖ := by
   have hb := norm_nonneg (coarsenedOperator U V D)
-  have hT0 := firstOrderDefect_nonneg U V D
+  have hU := norm_nonneg U
+  have hS := norm_nonneg (U ∘L V† - 1)
   refine opNorm_le_bound _ (by positivity) fun h => ?_
-  obtain ⟨x, rfl, hx⟩ := exists_adjoint_eq_of_finrank_le hdim hD hT h
-  have hval : ((V - D ∘L U) ∘L (1 - V† ∘L U)) ((V†) x) =
+  obtain ⟨x, rfl, hx⟩ := exists_adjoint_eq_of_finrank_le hdim hC h
+  have hval : (V - (D + coarsenedOperator U V D) ∘L U) ((V†) x) =
       coarsenedOperator U V D ((1 - U ∘L V†) x) := by
-    rw [coarsenedOperator_eq_comp]
-    simp only [comp_apply, sub_apply, one_apply_eq_self, map_sub]
+    simp only [coarsenedOperator, sub_apply, add_apply, comp_apply, one_apply_eq_self, map_sub]
+    abel
   rw [hval]
-  have hI : ‖(1 : E →L[ℝ] E) - U ∘L V†‖ ≤ firstOrderDefect U V D := by
-    rw [norm_sub_rev]
-    unfold firstOrderDefect
-    linarith [norm_nonneg (V ∘L V† - D)]
+  have hI : ‖(1 : E →L[ℝ] E) - U ∘L V†‖ = ‖U ∘L V† - 1‖ := norm_sub_rev _ _
   calc ‖coarsenedOperator U V D ((1 - U ∘L V†) x)‖
       ≤ ‖coarsenedOperator U V D‖ * ‖(1 - U ∘L V†) x‖ := le_opNorm _ _
-    _ ≤ ‖coarsenedOperator U V D‖ * (‖(1 : E →L[ℝ] E) - U ∘L V†‖ * ‖x‖) := by
-        gcongr; exact le_opNorm _ _
-    _ ≤ ‖coarsenedOperator U V D‖ * (firstOrderDefect U V D * (2 * ‖(V†) x‖)) := by
+    _ ≤ ‖coarsenedOperator U V D‖ * (‖U ∘L V† - 1‖ * ‖x‖) := by
+        gcongr; rw [← hI]; exact le_opNorm _ _
+    _ ≤ ‖coarsenedOperator U V D‖ * (‖U ∘L V† - 1‖ * (2 * ‖U‖ * ‖(V†) x‖)) := by
         gcongr
-    _ = 2 * ‖coarsenedOperator U V D‖ * firstOrderDefect U V D * ‖(V†) x‖ := by ring
+    _ = 2 * ‖U‖ * ‖coarsenedOperator U V D‖ * ‖U ∘L V† - 1‖ * ‖(V†) x‖ := by ring
 
 /-- The crude bound `‖V - (D + b) U‖ ≤ ‖V‖ + (‖D‖ + ‖b‖) ‖U‖`. -/
 theorem norm_sub_add_coarsenedOperator_comp_le (U V : H →L[ℝ] E) (D : E →L[ℝ] E) :
@@ -168,45 +150,40 @@ theorem norm_sub_add_coarsenedOperator_comp_le (U V : H →L[ℝ] E) (D : E →L
     _ ≤ ‖V‖ + (‖D‖ + ‖coarsenedOperator U V D‖) * ‖U‖ := by
         gcongr; exact norm_add_le _ _
 
-/-- **The quadratic error**: if `dim H ≤ dim E`, `D ≥ I`, `‖U‖ ≤ α`, `‖V‖ ≤ β` and `‖D‖ ≤ δ`, then
-`‖V - (D + b) U‖ ≤ (2 (1 + δ) (1 + α) + 4 (β + δ α)) T²`. -/
+/-- **The quadratic error**: if `dim H ≤ dim E`, `‖U‖ ≤ α`, `‖V‖ ≤ β` and `‖D‖ ≤ δ`, then
+`‖V - (D + b) U‖ ≤ 4 (α + β + δ α) (‖b‖ + ‖U V^* - I‖)²`. -/
 theorem norm_sub_add_coarsenedOperator_comp_le_sq [FiniteDimensional ℝ H]
     [FiniteDimensional ℝ E] {U V : H →L[ℝ] E} {D : E →L[ℝ] E}
-    (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E)
-    (hD : ∀ x : E, ‖x‖ ^ 2 ≤ ⟪D x, x⟫_ℝ) {α β δ : ℝ} (hU : ‖U‖ ≤ α) (hV : ‖V‖ ≤ β)
+    (hdim : Module.finrank ℝ H ≤ Module.finrank ℝ E) {α β δ : ℝ} (hU : ‖U‖ ≤ α) (hV : ‖V‖ ≤ β)
     (hDδ : ‖D‖ ≤ δ) :
     ‖V - (D + coarsenedOperator U V D) ∘L U‖ ≤
-      (2 * (1 + δ) * (1 + α) + 4 * (β + δ * α)) * firstOrderDefect U V D ^ 2 := by
-  set T := firstOrderDefect U V D with hTdef
-  have hT0 : 0 ≤ T := firstOrderDefect_nonneg U V D
+      4 * (α + β + δ * α) * (‖coarsenedOperator U V D‖ + ‖U ∘L V† - 1‖) ^ 2 := by
+  set b := ‖coarsenedOperator U V D‖ with hbdef
+  set S := ‖U ∘L V† - 1‖ with hSdef
+  have hb0 : 0 ≤ b := norm_nonneg _
+  have hS0 : 0 ≤ S := norm_nonneg _
   have hα : 0 ≤ α := (norm_nonneg U).trans hU
   have hβ : 0 ≤ β := (norm_nonneg V).trans hV
   have hδ : 0 ≤ δ := (norm_nonneg D).trans hDδ
-  have hb := norm_coarsenedOperator_le U V D
-  have hbδ : ‖coarsenedOperator U V D‖ ≤ (1 + δ) * T :=
-    hb.trans (by gcongr)
-  have hT2 : 0 ≤ T ^ 2 := sq_nonneg T
-  have hrest : 0 ≤ 2 * (1 + δ) * α * T ^ 2 + 4 * (β + δ * α) * T ^ 2 := by positivity
-  rcases le_or_gt T (1 / 2) with hsmall | hlarge
-  · have h1 := norm_sub_add_coarsenedOperator_comp_le_of_le_half hdim hD hsmall
-    have h2 : 2 * ‖coarsenedOperator U V D‖ * T ≤ 2 * ((1 + δ) * T) * T := by gcongr
-    have h3 : 2 * ((1 + δ) * T) * T = 2 * (1 + δ) * T ^ 2 := by ring
-    calc ‖V - (D + coarsenedOperator U V D) ∘L U‖ ≤ 2 * (1 + δ) * T ^ 2 := by linarith
-      _ ≤ (2 * (1 + δ) * (1 + α) + 4 * (β + δ * α)) * T ^ 2 := by nlinarith
+  have hδα : 0 ≤ δ * α := mul_nonneg hδ hα
+  have hT2 : 0 ≤ (b + S) ^ 2 := sq_nonneg _
+  rcases le_or_gt S (1 / 2) with hsmall | hlarge
+  · have h1 := norm_sub_add_coarsenedOperator_comp_le_of_le_half D hdim hsmall
+    have h2 : 2 * ‖U‖ * b * S ≤ 2 * α * (b + S) ^ 2 := by
+      have hbS : b * S ≤ (b + S) ^ 2 := by nlinarith
+      calc 2 * ‖U‖ * b * S = 2 * ‖U‖ * (b * S) := by ring
+        _ ≤ 2 * α * (b + S) ^ 2 := by gcongr
+    have h3 : 2 * α * (b + S) ^ 2 ≤ 4 * (α + β + δ * α) * (b + S) ^ 2 := by
+      gcongr <;> linarith
+    exact h1.trans (h2.trans h3)
   · have h1 := norm_sub_add_coarsenedOperator_comp_le U V D
-    have h2 : ‖V‖ + (‖D‖ + ‖coarsenedOperator U V D‖) * ‖U‖ ≤ β + (δ + (1 + δ) * T) * α := by
-      gcongr
-    have h4 : β + δ * α ≤ 4 * (β + δ * α) * T ^ 2 := by
-      have : 1 ≤ 4 * T ^ 2 := by nlinarith
-      have hβδ : 0 ≤ β + δ * α := by positivity
-      nlinarith
-    have h5 : (1 + δ) * T * α ≤ 2 * (1 + δ) * α * T ^ 2 := by
-      have : T ≤ 2 * T ^ 2 := by nlinarith
-      have h1δα : 0 ≤ (1 + δ) * α := by positivity
-      nlinarith
-    calc ‖V - (D + coarsenedOperator U V D) ∘L U‖ ≤ β + (δ + (1 + δ) * T) * α := h1.trans h2
-      _ = (β + δ * α) + (1 + δ) * T * α := by ring
-      _ ≤ 4 * (β + δ * α) * T ^ 2 + 2 * (1 + δ) * α * T ^ 2 := add_le_add h4 h5
-      _ ≤ (2 * (1 + δ) * (1 + α) + 4 * (β + δ * α)) * T ^ 2 := by nlinarith
+    have h2 : ‖V‖ + (‖D‖ + b) * ‖U‖ ≤ β + (δ + b) * α := by gcongr
+    have hT : 1 / 2 < b + S := by linarith
+    have h4 : 1 ≤ 4 * (b + S) ^ 2 := by nlinarith
+    have h5 : b ≤ 2 * (b + S) ^ 2 := by nlinarith
+    calc ‖V - (D + coarsenedOperator U V D) ∘L U‖ ≤ β + (δ + b) * α := h1.trans h2
+      _ = (β + δ * α) * 1 + α * b := by ring
+      _ ≤ (β + δ * α) * (4 * (b + S) ^ 2) + α * (2 * (b + S) ^ 2) := by gcongr
+      _ ≤ 4 * (α + β + δ * α) * (b + S) ^ 2 := by nlinarith
 
 end QSH
