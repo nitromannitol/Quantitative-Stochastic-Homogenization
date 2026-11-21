@@ -478,6 +478,77 @@ theorem norm_V_le : ‖F.V‖ ≤ |Λ| := by
   rw [V_toH, toH, SeparationQuotient.norm_mk]
   exact F.norm_fluxAverage_le (F.toSpace ξ)
 
+/-! ## The energy quantity on the Gram space -/
+
+theorem dot_smul_right (p v : Vec d) (c : ℝ) : dot p (c • v) = c * dot p v := by
+  simp only [dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun i _ => by ring
+
+theorem j1Functional_field (p q ξ : Vec d) :
+    j1Functional F.coeff F.mask p q (F.field ξ) =
+      -(1 / 2 : ℝ) * F.form ξ ξ - dot p (∫ x, F.mask x • (F.coeff x).mulVec (F.field ξ x)) +
+        dot q (∫ x, F.mask x • F.field ξ x) := by
+  have hfl := integrable_dot_left p (F.integrable_flux ξ)
+  have hgr := integrable_dot_left q (F.integrable_gradient ξ)
+  have hen := (F.integrable_form ξ ξ).const_mul (-(1 / 2 : ℝ))
+  have e1 : ∫ x, ((-(1 / 2 : ℝ) * (F.mask x * dot (F.field ξ x) ((F.coeff x).mulVec (F.field ξ x))) -
+        dot p (F.mask x • (F.coeff x).mulVec (F.field ξ x))) + dot q (F.mask x • F.field ξ x)) =
+      (∫ x, (-(1 / 2 : ℝ) * (F.mask x * dot (F.field ξ x) ((F.coeff x).mulVec (F.field ξ x))) -
+        dot p (F.mask x • (F.coeff x).mulVec (F.field ξ x)))) +
+        ∫ x, dot q (F.mask x • F.field ξ x) :=
+    integral_add (hen.sub hfl) hgr
+  have e2 : ∫ x, (-(1 / 2 : ℝ) * (F.mask x * dot (F.field ξ x) ((F.coeff x).mulVec (F.field ξ x))) -
+        dot p (F.mask x • (F.coeff x).mulVec (F.field ξ x))) =
+      (∫ x, -(1 / 2 : ℝ) * (F.mask x * dot (F.field ξ x) ((F.coeff x).mulVec (F.field ξ x)))) -
+        ∫ x, dot p (F.mask x • (F.coeff x).mulVec (F.field ξ x)) :=
+    integral_sub hen hfl
+  rw [dot_integral p (F.integrable_flux ξ), dot_integral q (F.integrable_gradient ξ), form,
+    ← integral_const_mul, ← e2, ← e1]
+  unfold j1Functional
+  congr 1
+  funext x
+  rw [dot_smul_right, dot_smul_right]
+  ring
+
+theorem j1Functional_field_eq (p q ξ : Vec d) :
+    j1Functional F.coeff F.mask p q (F.field ξ) =
+      -(1 / 2 : ℝ) * ‖F.toH ξ‖ ^ 2 +
+        ⟪(F.U†) (WithLp.toLp 2 q) - (F.V†) (WithLp.toLp 2 p), F.toH ξ⟫_ℝ := by
+  rw [j1Functional_field, norm_toH_sq, inner_sub_left, ContinuousLinearMap.adjoint_inner_left,
+    ContinuousLinearMap.adjoint_inner_left, U_toH, V_toH, inner_toLp_toLp_eq_dot,
+    inner_toLp_toLp_eq_dot]
+  ring
+
+/-- **`J₁` on the Gram space**: if the gradients of `A₁` are, up to null sets, exactly the fields
+`G ξ` ((4.12)), then `J₁(Ψ, p, q) = ½ ‖U^* q - V^* p‖²`. -/
+theorem J1_eq_gramEnergy
+    (hspan : ∀ w : HarmonicA1 F.coeff, ∃ ξ, w.grad =ᵐ[volume] F.field ξ)
+    (hreal : ∀ ξ, ∃ w : HarmonicA1 F.coeff, w.grad =ᵐ[volume] F.field ξ) (p q : Vec d) :
+    J1 F.coeff F.mask p q = gramEnergy F.U F.V (WithLp.toLp 2 p) (WithLp.toLp 2 q) := by
+  obtain ⟨y, hy⟩ : ∃ y, y = (F.U†) (WithLp.toLp 2 q) - (F.V†) (WithLp.toLp 2 p) := ⟨_, rfl⟩
+  have hval : ∀ ξ, j1Functional F.coeff F.mask p q (F.field ξ) =
+      gramEnergy F.U F.V (WithLp.toLp 2 p) (WithLp.toLp 2 q) - (1 / 2 : ℝ) * ‖F.toH ξ - y‖ ^ 2 := by
+    intro ξ
+    have h1 := F.j1Functional_field_eq p q ξ
+    rw [← hy] at h1
+    have h2 := norm_sub_sq_real (F.toH ξ) y
+    have h3 : gramEnergy F.U F.V (WithLp.toLp 2 p) (WithLp.toLp 2 q) = (1 / 2 : ℝ) * ‖y‖ ^ 2 := by
+      rw [hy]; rfl
+    rw [h1, h3, h2, real_inner_comm]
+    ring
+  rw [J1_eq_sSup_j1Functional]
+  refine IsGreatest.csSup_eq ⟨?_, ?_⟩
+  · obtain ⟨ξ₀, hξ₀⟩ := F.toH_surjective y
+    obtain ⟨w, hw⟩ := hreal ξ₀
+    refine ⟨w, ?_⟩
+    rw [j1Functional_congr_ae _ _ _ _ hw, hval, hξ₀, sub_self, norm_zero]
+    ring
+  · rintro e ⟨w, rfl⟩
+    obtain ⟨ξ, hξ⟩ := hspan w
+    rw [j1Functional_congr_ae _ _ _ _ hξ, hval]
+    have := sq_nonneg ‖F.toH ξ - y‖
+    linarith
+
 end GramFamily
 
 end QSH
