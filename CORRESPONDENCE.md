@@ -158,8 +158,11 @@ of each module names the source files and commits.
   the sharp factor `¼ (1 + C R^{-ν})` (`quarterExcessStepStatement`), and the iteration of this step
   classifies the subquadratic solutions. By the change of variables `x = M y` the second estimate
   reduces to square-integrable weakly harmonic functions on balls
-  (`harmonicExpansionBallStatement`, `firstOrderLiouville_of_harmonicApproximation_of_ball`). The
-  approximation (2) and the expansion on balls are stated and not yet proved here.
+  (`harmonicExpansionBallStatement`), proved as `harmonicExpansionBall` with the elliptic regularity
+  library: Weyl's lemma, the Almgren frequency of the first-order Taylor remainder is at least two,
+  so its sphere and ball means decay like `(t/r)⁴`, and it is orthogonal on balls to affine
+  functions. Hence `firstOrderLiouville_of_harmonicApproximation_only` derives the classification
+  from the approximation (2), which is stated and not yet proved here.
 - `J₁ = ½‖-V*p + U*q‖²` is stated in coordinates: `M` is the Gram matrix of the corrector columns
   `eᵢ + ∇φ_{eᵢ}` for the inner product `∫ Φ_{z,r} v·a w` and `b` the load `∫ Φ_{z,r}(-p·a Wᵢ + q·Wᵢ)`.
 - The bound `0 ≤ J₁ ≤ Λ|p|² + |q|²` holds for every coefficient field, and so does the sharper
