@@ -82,7 +82,7 @@ theorem heatSmooth_finsetSum {ι : Type*} (s : Finset ι) {t : ℝ} {f : ι → 
 
 /-- **Half of the derivatives on the kernel**: `Φ(s) ∗ Δ^k χ = ∑_w ∂^{β_w} Φ(s) ∗ ∂^{β_w} χ`, where
 `β_w` counts the coordinates of `w`. -/
-theorem heatSmooth_iterLaplacian {s : ℝ} (hs : 0 < s) {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ)
+theorem heatSmooth_iterLaplacian (s : ℝ) {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ)
     (hcχ : HasCompactSupport χ) (k : ℕ) (x : Vec d) :
     heatSmooth s (iterLaplacian k χ) x = ∑ w : Fin k → Fin d,
       (multiIndexDerivative (countIndex w) (euclideanHeatKernel (d := d) s) ⋆[
@@ -109,7 +109,7 @@ theorem sum_count_eq_length (l : List (Fin d)) : ∑ i, l.count i = l.length := 
   | cons a l ih =>
     simp only [List.count_cons, List.length_cons, beq_iff_eq]
     rw [Finset.sum_add_distrib, ih]
-    simp [Finset.sum_ite_eq']
+    simp
 
 theorem sum_countIndex {k : ℕ} (w : Fin k → Fin d) : ∑ i, (countIndex w i).val = k := by
   simp only [countIndex]
