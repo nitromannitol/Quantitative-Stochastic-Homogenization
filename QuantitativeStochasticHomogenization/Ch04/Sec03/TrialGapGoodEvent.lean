@@ -37,7 +37,7 @@ theorem fieldOf_sub (W : Fin d → Vec d → Vec d) (ξ η x : Vec d) :
 theorem fieldOf_unitVector (W : Fin d → Vec d → Vec d) (i : Fin d) (x : Vec d) :
     fieldOf W (unitVector i) x = W i x := by
   simp only [fieldOf, unitVector, Pi.single_apply, ite_smul, one_smul, zero_smul,
-    Finset.sum_ite_eq', Finset.mem_univ, if_true]
+    Finset.sum_ite_eq', Finset.mem_univ, ite_true]
 
 theorem dot_add_mulVec_add_sub {M : Mat d} (hM : M.transpose = M) (u v : Vec d) :
     dot (u + v) (M.mulVec (u + v)) - dot (u - v) (M.mulVec (u - v)) = 4 * dot u (M.mulVec v) := by
@@ -96,7 +96,7 @@ bounds (3.101)–(3.103) hold at `Φ_{y,r}` with error `ε ≤ 1/4`, then for ev
 maximizing slope. -/
 theorem trialGap_le_of_averages (S : HomogenizationData P) (a : CoefficientField d Λ)
     (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
-    (hspan : GradientsOfA1AreCorrected S a) (y : Vec d) (r : ℝ) {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
+    (hspan : GradientsOfA1AreCorrected S a) (y : Vec d) (r : ℝ) {ε : ℝ} (hε : ε ≤ 1 / 4)
     (havg : GaussianAverageBounds a S.homogenized (correctedField S a) y r ε) (p q k : Vec d) :
     J1Heat a y r p q - j1Functional a (heatKernel y r) p q (correctedField S a k) ≤
       8 / 9 * (Λ + 1 / 2) * euclideanNorm ((∫ x, heatKernel y r x • correctedField S a k x) -
