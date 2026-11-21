@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevGaussian
+import QuantitativeStochasticHomogenization.Front.Assumptions.MeasurableVersion
 
 /-!
 # Section 4.6: Gaussian averages of rescaled vector fields
@@ -11,7 +12,10 @@ frozen statement of Theorem 4.1), then the Gaussian averages of the components o
 `A_t(G(·/ε)_j)(u)` is the `j`-th component of the average of `G` at the center `u/ε` and the radius
 `√t/ε ≥ 1`. With the Gaussian moments and the Gaussian energy estimate of the rescaled fields
 (`GaussianEnergyEstimate`), this gives the frozen statement (4.126) from (4.2) and (4.3) in the form
-of the frozen statement of Theorem 4.1 (`negativeSobolevCorrector_of_averages`).
+of the frozen statement of Theorem 4.1 (`negativeSobolevCorrector_of_averages`). The jointly
+measurable version of the flux is obtained from the jointly measurable version of the coefficient
+field (`coefficientVersion`), so that (4.3) and the energy estimate of the flux may be stated for
+the flux itself (`negativeSobolevCorrector_of_flux_averages`).
 -/
 
 open MeasureTheory Filter Set
@@ -137,5 +141,83 @@ theorem negativeSobolevCorrector_of_averages
         (hFl a)
       filter_upwards [h1] with x hx
       simp only [hx]
+
+/-- **(4.126) from (4.2), (4.3) and the Gaussian energy estimates** of the rescaled corrector
+gradient and flux, all stated for the corrector gradient and the flux themselves. -/
+theorem negativeSobolevCorrector_of_flux_averages
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C C₁ : ℝ, 0 < C ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, ∀ e : Vec d, euclideanNorm e < 1 →
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • (S.corrector e).grad a y)) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • (S.corrector e).grad a y))
+              1 (C * r ^ (-(d : ℝ) / 2))) ∧
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) 1
+                (C * r ^ (-(d : ℝ) / 2))) ∧
+          ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∀ j : Fin d,
+            GaussianEnergyEstimate P (fun a x => (S.corrector e).grad a (ε⁻¹ • x) j) C₁ ∧
+            GaussianEnergyEstimate P (fun a x => ((a (ε⁻¹ • x)).mulVec
+              (e + (S.corrector e).grad a (ε⁻¹ • x)) - S.homogenized.mulVec e) j) C₁) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_averages fun d hd Λ hΛ => ?_
+  obtain ⟨C, C₁, hC, hC₁, hP⟩ := h d hd Λ hΛ
+  refine ⟨C, C₁, hC, hC₁, fun P hPl => ?_⟩
+  obtain ⟨S, hS⟩ := hP P hPl
+  refine ⟨S, fun e he => ?_⟩
+  obtain ⟨hE1, hE3, hen⟩ := hS e he
+  set Fl : CoefficientField d Λ → Vec d → Vec d := fun a y =>
+    (coefficientVersion a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e
+    with hFldef
+  have hFlm : Measurable (fun p : CoefficientField d Λ × Vec d => Fl p.1 p.2) := by
+    have hmv : Continuous (fun q : Mat d × Vec d => q.1.mulVec q.2) :=
+      Continuous.matrix_mulVec continuous_fst continuous_snd
+    refine Measurable.sub ?_ measurable_const
+    exact hmv.measurable.comp (measurable_coefficientVersion.prodMk
+      (measurable_const.add (S.corrector e).measurable_grad))
+  have hFl : ∀ a : CoefficientField d Λ, ∀ᵐ y ∂(volume : Measure (Vec d)),
+      Fl a y = (a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e := fun a => by
+    filter_upwards [ae_coefficientVersion_eq a] with y hy
+    simp only [hFldef, hy]
+  refine ⟨hE1, Fl, hFlm, hFl, fun z r hr => ?_, fun ε hε hε2 j => ?_⟩
+  · obtain ⟨hint, hos⟩ := hE3 z r hr
+    have heq : ∀ a : CoefficientField d Λ, (fun y => heatKernel z r y • Fl a y) =ᵐ[volume]
+        fun y => heatKernel z r y •
+          ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e) := fun a => by
+      filter_upwards [hFl a] with y hy
+      rw [hy]
+    refine ⟨?_, ?_⟩
+    · filter_upwards [hint] with a ha
+      exact ha.congr (heq a).symm
+    · have hfun : (fun a => euclideanNorm (∫ y, heatKernel z r y • Fl a y)) = fun a =>
+          euclideanNorm (∫ y, heatKernel z r y •
+            ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e)) := by
+        funext a
+        rw [integral_congr_ae (heq a)]
+      rw [hfun]
+      exact hos
+  · obtain ⟨hG, ⟨hFg, R, hRo, hR⟩⟩ := hen ε hε hε2 j
+    have hεi : ε⁻¹ ≠ 0 := inv_ne_zero hε.ne'
+    have heq : ∀ a : CoefficientField d Λ, (fun x => Fl a (ε⁻¹ • x) j) =ᵐ[volume] fun x =>
+        ((a (ε⁻¹ • x)).mulVec (e + (S.corrector e).grad a (ε⁻¹ • x)) -
+          S.homogenized.mulVec e) j := fun a => by
+      have h1 := (Measure.quasiMeasurePreserving_smul (μ := (volume : Measure (Vec d))) hεi).ae
+        (hFl a)
+      filter_upwards [h1] with x hx
+      simp only [hx]
+    refine ⟨hG, ⟨?_, R, hRo, ?_⟩⟩
+    · filter_upwards [hFg] with a ha τ hτ y
+      refine (ha τ hτ y).congr ?_
+      filter_upwards [heq a] with x hx
+      rw [hx]
+    · filter_upwards [hR] with a ha
+      refine le_of_eq_of_le ?_ ha
+      congr 1
+      refine lintegral_congr_ae ?_
+      filter_upwards [heq a] with x hx
+      rw [hx]
 
 end QSH
