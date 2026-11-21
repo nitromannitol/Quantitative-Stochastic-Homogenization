@@ -160,4 +160,129 @@ theorem defectAt_smul (A : Mat d) (a : CoefficientField d Λ) (t : ℝ) (ξ : Ve
 
 end Columns
 
+/-! ## The defect on the event of (4.12) -/
+
+section GoodEvent
+
+variable {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P) (A : Mat d) (z : Vec d)
+  {r : ℝ} (hr : 0 < r) {a : CoefficientField d Λ}
+  (hint : ∀ i : Fin d, Integrable (fun x => heatKernel z r x *
+    euclideanSq (unitVector i + (S.corrector (unitVector i)).grad a x)))
+
+include hr hint
+
+theorem aemeasurable_correctedCoordinate (i : Fin d) :
+    AEMeasurable (correctedCoordinate S a i) volume :=
+  ((measurable_correctedCoordinate_uncurry S i).comp measurable_prodMk_left).aemeasurable
+
+theorem integrable_heatKernel_smul_correctedCoordinate (i : Fin d) :
+    Integrable (fun x => heatKernel z r x • correctedCoordinate S a i x) :=
+  integrable_mask_smul (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+    (aemeasurable_correctedCoordinate S z hr hint i) (hint i)
+
+theorem integrable_heatKernel_smul_flux_correctedCoordinate (i : Fin d) :
+    Integrable (fun x => heatKernel z r x • (a x).mulVec (correctedCoordinate S a i x)) :=
+  integrable_mask_smul (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+    (aemeasurable_mulVec a (aemeasurable_correctedCoordinate S z hr hint i))
+    (integrable_mask_mul_euclideanSq_mulVec a (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+      (aemeasurable_correctedCoordinate S z hr hint i) (hint i))
+
+theorem integrable_heatKernel_mul_dot_correctedCoordinate (i j : Fin d) :
+    Integrable (fun x => heatKernel z r x *
+      dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)) := by
+  have hmi := aemeasurable_correctedCoordinate S z hr hint i
+  have hmj := aemeasurable_correctedCoordinate S z hr hint j
+  refine Integrable.mono' (((hint i).add (hint j)).div_const 2)
+    (((integrable_heatKernel z hr).aestronglyMeasurable.aemeasurable.mul
+      (aemeasurable_dot hmi hmj)).aestronglyMeasurable) (Eventually.of_forall fun x => ?_)
+  have hk := heatKernel_nonneg z r x
+  rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg hk]
+  have h1 := abs_dot_le (correctedCoordinate S a i x) (correctedCoordinate S a j x)
+  have h2 := euclideanNorm_sq (correctedCoordinate S a i x)
+  have h3 := euclideanNorm_sq (correctedCoordinate S a j x)
+  have h4 := euclideanNorm_nonneg (correctedCoordinate S a i x)
+  have h5 := euclideanNorm_nonneg (correctedCoordinate S a j x)
+  change heatKernel z r x * |dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)| ≤
+    (heatKernel z r x * euclideanSq (correctedCoordinate S a i x) +
+      heatKernel z r x * euclideanSq (correctedCoordinate S a j x)) / 2
+  have h6 : |dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)| ≤
+      (euclideanSq (correctedCoordinate S a i x) + euclideanSq (correctedCoordinate S a j x)) / 2 := by
+    rw [← h2, ← h3]
+    nlinarith [sq_nonneg (euclideanNorm (correctedCoordinate S a i x) -
+      euclideanNorm (correctedCoordinate S a j x))]
+  calc heatKernel z r x * |dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)|
+      ≤ heatKernel z r x * ((euclideanSq (correctedCoordinate S a i x) +
+          euclideanSq (correctedCoordinate S a j x)) / 2) := mul_le_mul_of_nonneg_left h6 hk
+    _ = _ := by ring
+
+theorem integral_heatKernel_smul_correctedField (ξ : Vec d) :
+    ∫ x, heatKernel z r x • correctedField S a ξ x = ∑ i, ξ i • columnAverage S z r a i := by
+  have hi : ∀ i, Integrable (fun x => ξ i • (heatKernel z r x • correctedCoordinate S a i x)) :=
+    fun i => (integrable_heatKernel_smul_correctedCoordinate S z hr hint i).smul (ξ i)
+  have heq : (fun x => heatKernel z r x • correctedField S a ξ x) =
+      fun x => ∑ i, ξ i • (heatKernel z r x • correctedCoordinate S a i x) := by
+    funext x
+    rw [correctedField, Finset.smul_sum]
+    exact Finset.sum_congr rfl fun i _ => smul_comm _ _ _
+  rw [heq, integral_finsetSum _ fun i _ => hi i]
+  exact Finset.sum_congr rfl fun i _ => integral_smul _ _
+
+theorem integral_heatKernel_smul_flux_correctedField (ξ : Vec d) :
+    ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x) =
+      ∑ i, ξ i • columnFlux S z r a i := by
+  have hi : ∀ i, Integrable (fun x => ξ i • (heatKernel z r x •
+      (a x).mulVec (correctedCoordinate S a i x))) :=
+    fun i => (integrable_heatKernel_smul_flux_correctedCoordinate S z hr hint i).smul (ξ i)
+  have heq : (fun x => heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) =
+      fun x => ∑ i, ξ i • (heatKernel z r x • (a x).mulVec (correctedCoordinate S a i x)) := by
+    funext x
+    rw [correctedField, Matrix.mulVec_sum, Finset.smul_sum]
+    exact Finset.sum_congr rfl fun i _ => by rw [Matrix.mulVec_smul, smul_comm]
+  rw [heq, integral_finsetSum _ fun i _ => hi i]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [integral_smul, columnFlux]
+  congr 1
+  refine integral_congr_ae ?_
+  filter_upwards [ae_coefficientVersion_eq a] with x hx
+  rw [hx]
+
+omit hr hint in
+theorem euclideanSq_correctedField (ξ x : Vec d) :
+    euclideanSq (correctedField S a ξ x) = ∑ i, ∑ j, ξ i * ξ j *
+      dot (correctedCoordinate S a i x) (correctedCoordinate S a j x) := by
+  simp only [correctedField, euclideanSq, dot, Finset.sum_apply, Pi.smul_apply, smul_eq_mul,
+    Finset.sum_mul, Finset.mul_sum]
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  exact Finset.sum_congr rfl fun k _ => by ring
+
+theorem integrable_heatKernel_mul_euclideanSq_correctedField (ξ : Vec d) :
+    Integrable (fun x => heatKernel z r x * euclideanSq (correctedField S a ξ x)) := by
+  simp only [euclideanSq_correctedField, Finset.mul_sum]
+  exact integrable_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ => by
+    simpa [mul_comm, mul_left_comm, mul_assoc] using
+      (integrable_heatKernel_mul_dot_correctedCoordinate S z hr hint i j).const_mul (ξ i * ξ j)
+
+theorem integral_heatKernel_mul_euclideanSq_correctedField (ξ : Vec d) :
+    ∫ x, heatKernel z r x * euclideanSq (correctedField S a ξ x) = gramEnergyAt S z r a ξ := by
+  have hij : ∀ i j, Integrable (fun x => ξ i * ξ j * (heatKernel z r x *
+      dot (correctedCoordinate S a i x) (correctedCoordinate S a j x))) := fun i j =>
+    (integrable_heatKernel_mul_dot_correctedCoordinate S z hr hint i j).const_mul _
+  have heq : (fun x => heatKernel z r x * euclideanSq (correctedField S a ξ x)) =
+      fun x => ∑ i, ∑ j, ξ i * ξ j * (heatKernel z r x *
+        dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)) := by
+    funext x
+    rw [euclideanSq_correctedField, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun j _ => by ring
+  rw [heq, integral_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ => hij i j]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [integral_finsetSum _ fun j _ => hij i j]
+  exact Finset.sum_congr rfl fun j _ => by rw [integral_const_mul]; rfl
+
+end GoodEvent
+
 end QSH
