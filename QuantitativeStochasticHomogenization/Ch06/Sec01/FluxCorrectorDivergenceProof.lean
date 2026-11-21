@@ -104,21 +104,23 @@ theorem HasGaussianMoments.sub_const {f : Vec d → ℝ} (hf : HasGaussianMoment
             one_mul]
       _ ≤ B + |c| := by linarith [(hB x hx).2]
 
-/-- **Lemma 6.1, (6.6).** -/
-theorem fluxCorrectorDivergence : fluxCorrectorDivergenceStatement := by
-  intro d hd Λ hΛ P hP e he φ S
+/-- **Lemma 6.1, (6.6)**, for the homogenized matrix `ā` of a high-contrast corrector package:
+almost surely the rows of a flux corrector have weak divergence `(a(e + ∇φ_e))_j - (ā e)_j`. -/
+theorem FluxCorrector.ae_hasWeakDivergence_of_package {Λ κ C₀ : ℝ} (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (hκ : 0 < κ) (hC₀ : 0 ≤ C₀)
+    (pk : HighContrastCorrectorPackage hΛ.le P κ C₀) {e : Vec d} (he : euclideanNorm e = 1)
+    {φ : Corrector P e} (S : FluxCorrector φ) :
+    ∀ᵐ a ∂P, ∀ j, HasWeakDivergence Set.univ (fun x k => S.potential a x j k)
+      (fun x => ((a x).mulVec (e + φ.grad a x)) j -
+        (_root_.Homogenization.matVecMul pk.abar e) j) := by
   have hK1 : 1 ≤ Λ := hΛ.le
-  obtain ⟨κ, C₀, hκ, hC₀, hpk⟩ := exists_highContrastCorrectorPackage d hd
-  obtain ⟨pk⟩ := hpk Λ hK1 P hP
-  obtain ⟨Ap, Cab, hAp, -, hpair⟩ := exists_uniform_flux_pairing d hd Λ hK1 hκ hC₀.le
-  refine ⟨fun k => (_root_.Homogenization.matVecMul pk.abar e) k, ?_⟩
+  obtain ⟨Ap, Cab, hAp, -, hpair⟩ := exists_uniform_flux_pairing d hd Λ hK1 hκ hC₀
   filter_upwards [hpair P pk hP e he φ, ae_heatFormulaHypotheses_representativeFlux hd hΛ hP he φ,
     S.heat_selected, S.weak_gradient, φ.harmonic] with a hpa hg hS hwS hharm
   intro j
   set g := representativeFlux φ a with hgdef
   set c : Vec d := fun k => (_root_.Homogenization.matVecMul pk.abar e) k - meanFlux φ k with hc
   have hrep := coefficientRepresentative_ae_eq a
-  -- divergence free
   have hdiv : HasWeakDivergence Set.univ g (fun _ => 0) := by
     have h1 := hasWeakDivergence_add hharm (hasWeakDivergence_const (-meanFlux φ))
     refine h1.congr_ae ?_ (Eventually.of_forall fun x => by simp)
@@ -149,5 +151,13 @@ theorem fluxCorrectorDivergence : fluxCorrectorDivergenceStatement := by
   filter_upwards [hrep] with x hx
   simp only [hgdef, hc, representativeFlux, Pi.sub_apply, hx]
   ring
+
+/-- **Lemma 6.1, (6.6).** -/
+theorem fluxCorrectorDivergence : fluxCorrectorDivergenceStatement := by
+  intro d hd Λ hΛ P hP e he φ S
+  obtain ⟨κ, C₀, hκ, hC₀, hpk⟩ := exists_highContrastCorrectorPackage d hd
+  obtain ⟨pk⟩ := hpk Λ hΛ.le P hP
+  exact ⟨fun k => (_root_.Homogenization.matVecMul pk.abar e) k,
+    S.ae_hasWeakDivergence_of_package hd hΛ hP hκ hC₀.le pk he⟩
 
 end QSH

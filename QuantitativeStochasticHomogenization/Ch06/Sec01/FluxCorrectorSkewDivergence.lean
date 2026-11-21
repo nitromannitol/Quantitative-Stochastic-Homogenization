@@ -73,4 +73,24 @@ theorem FluxCorrector.exists_skew_divergence {Λ : ℝ} {P : Measure (Coefficien
     (f := fun j x => ((a x).mulVec (e + φ.grad a x)) j - D j) ha hsym j,
     fun k => hasWeakGradient_skew hw j k⟩
 
+/-- **Lemma 6.1, (6.5)–(6.6), the skew flux corrector**, for the homogenized matrix `ā` of a
+high-contrast corrector package. -/
+theorem FluxCorrector.ae_skew_divergence_of_package {Λ κ C₀ : ℝ} (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (hκ : 0 < κ) (hC₀ : 0 ≤ C₀)
+    (pk : HighContrastCorrectorPackage hΛ.le P κ C₀) {e : Vec d} (he : euclideanNorm e = 1)
+    {φ : Corrector P e} (S : FluxCorrector φ) :
+    ∀ᵐ a ∂P, ∀ j,
+      HasWeakDivergence Set.univ (fun x k => (S.potential a x j k - S.potential a x k j) / 2)
+        (fun x => ((a x).mulVec (e + φ.grad a x)) j -
+          (_root_.Homogenization.matVecMul pk.abar e) j) ∧
+      ∀ k, HasWeakGradient Set.univ (fun x => (S.potential a x j k - S.potential a x k j) / 2)
+        (fun x => (1 / 2 : ℝ) • (S.grad a j k x - S.grad a k j x)) := by
+  filter_upwards [S.ae_hasWeakDivergence_of_package hd hΛ hP hκ hC₀ pk he,
+    S.ae_add_transpose_eq_const, S.weak_gradient] with a ha hsym hw
+  intro j
+  exact ⟨hasWeakDivergence_skew_row
+    (f := fun j x => ((a x).mulVec (e + φ.grad a x)) j -
+      (_root_.Homogenization.matVecMul pk.abar e) j) ha hsym j,
+    fun k => hasWeakGradient_skew hw j k⟩
+
 end QSH
