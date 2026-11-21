@@ -158,4 +158,146 @@ theorem norm_fst_sq_le_of_isGradientPair (F : PairSpace d z T) (hF : IsGradientP
   rw [norm_sq_eq_integral]
   simpa using h
 
+/-! ## Test pairs -/
+
+variable (z T) in
+/-- The mean-zero potential `φ - (φ)_{B_T(z)}` of a test pair. -/
+def testPotential (φ : Vec d → ℝ) (x : Vec d) : ℝ := φ x - ⨍ y in ball z T, φ y
+
+theorem IsSpatialTest.memLp_testPotential {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z T) φ) :
+    MemLp (testPotential z T φ) 2 (ballMeasure z T) :=
+  (hφ.memLp _).sub (memLp_const _)
+
+/-- **The test pair** `(φ - (φ)_{B_T(z)}, ∇φ)` of a test function `φ` in `B_T(z)`. -/
+def testPair {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z T) φ) : PairSpace d z T :=
+  (hφ.memLp_testPotential.toLp _,
+    fun k => (hφ.memLp_coordinateDerivative k (ballMeasure z T)).toLp _)
+
+theorem isGradientPair_testPair {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z T) φ) :
+    IsGradientPair (testPair hφ) := by
+  intro ψ hψ i
+  rw [gradConstraint_eq]
+  have h1 : (∫ x in ball z T, (testPair hφ).1 x * coordinateDerivative i ψ x) =
+      ∫ x in ball z T, testPotential z T φ x * coordinateDerivative i ψ x := by
+    refine integral_congr_ae ?_
+    filter_upwards [hφ.memLp_testPotential.coeFn_toLp] with x hx
+    rw [testPair, hx]
+  have h2 : (∫ x in ball z T, (testPair hφ).2 i x * ψ x) =
+      ∫ x in ball z T, coordinateDerivative i φ x * ψ x := by
+    refine integral_congr_ae ?_
+    filter_upwards [(hφ.memLp_coordinateDerivative i (ballMeasure z T)).coeFn_toLp] with x hx
+    rw [testPair, hx]
+  rw [h1, h2]
+  have hcd : ContDiff ℝ 1 (testPotential z T φ) :=
+    (hφ.1.of_le (by simp)).sub contDiff_const
+  have hER := PDE.HasWeakPartialDerivOn.of_contDiff (U := ball z T) (i := i) hcd ψ hψ.1 hψ.2.1
+    hψ.2.2
+  have hfd : ∀ x, fderiv ℝ (testPotential z T φ) x = fderiv ℝ φ x := fun x =>
+    fderiv_sub_const _
+  simp only [hfd] at hER
+  have e1 : (∫ x in ball z T, testPotential z T φ x * coordinateDerivative i ψ x) =
+      ∫ x in ball z T, testPotential z T φ x * (fderiv ℝ ψ x) (PDE.basisVec i) := rfl
+  have e2 : (∫ x in ball z T, coordinateDerivative i φ x * ψ x) =
+      ∫ x in ball z T, (fderiv ℝ φ x) (PDE.basisVec i) * ψ x := rfl
+  rw [e1, e2, hER]
+  ring
+
+theorem pairMean_testPair (hT : 0 < T) {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z T) φ) :
+    pairMean (testPair hφ) = 0 := by
+  rw [pairMean]
+  have h1 : (∫ x in ball z T, (testPair hφ).1 x) = ∫ x in ball z T, testPotential z T φ x := by
+    refine integral_congr_ae ?_
+    filter_upwards [hφ.memLp_testPotential.coeFn_toLp] with x hx
+    rw [testPair, hx]
+  rw [h1]
+  unfold testPotential
+  have hint : Integrable φ (ballMeasure z T) := (hφ.memLp _).integrable one_le_two
+  rw [integral_sub hint (integrable_const _), setIntegral_const, setAverage_eq, smul_eq_mul,
+    smul_eq_mul, ← mul_assoc, mul_inv_cancel₀ (volume_real_ball_pos z hT).ne', one_mul, sub_self]
+
+/-- The weak harmonicity constraint is the energy pairing with the test pair. -/
+theorem harmConstraint_eq_energyForm (a : CoefficientField d Λ) {φ : Vec d → ℝ}
+    (hφ : IsSpatialTest (ball z T) φ) (F : PairSpace d z T) :
+    harmConstraint a hφ F = energyForm a F (testPair hφ) := by
+  rw [harmConstraint, energyForm, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun l _ => ?_
+  rw [inner_toLp_left]
+  unfold coefficientTest weightedPairing
+  rw [← integral_finsetSum _ fun k _ => integrable_weighted
+    (aestronglyMeasurable_coefficient_ball a k l) (coefficient_bound a k l) _ _]
+  have hk := ae_all_iff.2 fun k =>
+    (hφ.memLp_coordinateDerivative k (ballMeasure z T)).coeFn_toLp
+  refine integral_congr_ae ?_
+  filter_upwards [hk] with x hx
+  simp only [testPair, hx, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun k _ => by ring
+
+/-! ## The closure of the test pairs -/
+
+/-- The span of the test pairs. -/
+def testPairSpan (d : ℕ) (z : Vec d) (T : ℝ) : Submodule ℝ (PairSpace d z T) :=
+  Submodule.span ℝ (Set.range fun φ : {φ : Vec d → ℝ // IsSpatialTest (ball z T) φ} =>
+    testPair φ.2)
+
+/-- **The closed space `T₀` of limits of test pairs.** -/
+def testPairClosure (d : ℕ) (z : Vec d) (T : ℝ) : Submodule ℝ (PairSpace d z T) :=
+  (testPairSpan d z T).topologicalClosure
+
+theorem isClosed_testPairClosure : IsClosed (testPairClosure d z T : Set (PairSpace d z T)) :=
+  Submodule.isClosed_topologicalClosure _
+
+theorem testPair_mem_testPairClosure {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z T) φ) :
+    testPair hφ ∈ testPairClosure d z T :=
+  Submodule.le_topologicalClosure _ (Submodule.subset_span ⟨⟨φ, hφ⟩, rfl⟩)
+
+theorem testPairClosure_induction {P : PairSpace d z T → Prop} (hP : IsClosed {t | P t})
+    (h0 : P 0) (hadd : ∀ x y, P x → P y → P (x + y)) (hsmul : ∀ (c : ℝ) x, P x → P (c • x))
+    (hgen : ∀ (φ : Vec d → ℝ) (hφ : IsSpatialTest (ball z T) φ), P (testPair hφ))
+    {t : PairSpace d z T} (ht : t ∈ testPairClosure d z T) : P t := by
+  have hspan : ∀ x ∈ testPairSpan d z T, P x := fun x hx => by
+    induction hx using Submodule.span_induction with
+    | mem x hx =>
+      obtain ⟨⟨φ, hφ⟩, rfl⟩ := hx
+      exact hgen φ hφ
+    | zero => exact h0
+    | add x y _ _ hx hy => exact hadd x y hx hy
+    | smul c x _ hx => exact hsmul c x hx
+  have hsub : (testPairClosure d z T : Set (PairSpace d z T)) ⊆ {t | P t} := by
+    rw [testPairClosure, Submodule.topologicalClosure_coe]
+    exact closure_minimal hspan hP
+  exact hsub ht
+
+theorem IsGradientPair.of_mem_testPairClosure {t : PairSpace d z T}
+    (ht : t ∈ testPairClosure d z T) : IsGradientPair t :=
+  testPairClosure_induction isClosed_setOf_isGradientPair isGradientPair_zero
+    (fun _ _ hx hy => hx.add hy) (fun c _ hx => hx.smul c)
+    (fun _ hφ => isGradientPair_testPair hφ) ht
+
+theorem pairMean_add (F G : PairSpace d z T) : pairMean (F + G) = pairMean F + pairMean G := by
+  rw [pairMean_eq_inner, pairMean_eq_inner, pairMean_eq_inner, Prod.fst_add, inner_add_right]
+
+theorem pairMean_smul (c : ℝ) (F : PairSpace d z T) : pairMean (c • F) = c * pairMean F := by
+  rw [pairMean_eq_inner, pairMean_eq_inner, Prod.smul_fst, real_inner_smul_right]
+
+theorem pairMean_eq_zero_of_mem (hT : 0 < T) {t : PairSpace d z T}
+    (ht : t ∈ testPairClosure d z T) : pairMean t = 0 :=
+  testPairClosure_induction (P := fun t => pairMean t = 0)
+    (isClosed_eq continuous_pairMean continuous_const)
+    (by rw [pairMean_eq_inner]; simp)
+    (fun x y hx hy => by rw [pairMean_add, hx, hy, add_zero])
+    (fun c x hx => by rw [pairMean_smul, hx, mul_zero])
+    (fun _ hφ => pairMean_testPair hT hφ) ht
+
+/-- Harmonic pairs are orthogonal to `T₀` for the energy form. -/
+theorem energyForm_eq_zero_of_isHarmonicPair (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ)
+    {F : PairSpace d z T} (hF : IsHarmonicPair a F) {t : PairSpace d z T}
+    (ht : t ∈ testPairClosure d z T) : energyForm a F t = 0 :=
+  testPairClosure_induction (P := fun t => energyForm a F t = 0)
+    (isClosed_eq ((continuous_energyForm a hΛ).comp (continuous_const.prodMk continuous_id))
+      continuous_const)
+    (by simpa using energyForm_smul_right a 0 F 0)
+    (fun x y hx hy => by rw [energyForm_add_right, hx, hy, add_zero])
+    (fun c x hx => by rw [energyForm_smul_right, hx, mul_zero])
+    (fun _ hφ => by rw [← harmConstraint_eq_energyForm]; exact hF.2 _ hφ) ht
+
 end QSH
