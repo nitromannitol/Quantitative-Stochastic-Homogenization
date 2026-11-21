@@ -879,4 +879,35 @@ theorem exists_close_of_relative (hr : r ≠ 0) {A B : Set (Fin d → Lp ℝ 2 (
       _ = η ^ 2 * d * M ^ 2 := by ring
   exact Real.sqrt_le_left (by positivity) |>.2 (huv.trans h2)
 
+/-! ## Bounds on the localized energy -/
+
+/-- **`0 ≤ J₁^{(δ)}(z, r, p, q) ≤ L²/2`** for every localized basis, with
+`L = ((∑|p_k|) d Λ + ∑|q_k|) ‖Φ_{z,r}^{1/2}‖_{L²(B_T(z))}`. -/
+theorem localizedJ1_mem_Icc {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0) {S σ θ C : ℝ}
+    (W : LocalizedBasis a z T S σ θ C) (p q : Vec d) :
+    0 ≤ localizedJ1 W r p q ∧
+      localizedJ1 W r p q ≤ tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ ^ 2 / 2 := by
+  have hE := isConcaveEnergy_tuple (z := z) (T := T) a hΛ hr p q
+  set E : (Fin d → Lp ℝ 2 (ballMeasure z T)) → ℝ := fun h =>
+    -(1 / 2 : ℝ) * tupleForm a h h + tupleLinear a hr p q h
+  set sc : Vec d → Fin d → Lp ℝ 2 (ballMeasure z T) :=
+    fun c k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k)
+  have heq : localizedJ1 W r p q = sSup (Set.range (E ∘ sc)) := by
+    rw [localizedJ1_eq_sSup W hr p q]
+    congr 1
+    congr 1
+    funext c
+    exact pairEnergy_eq_tuple a hr p q _
+  have hbdd : BddAbove (Set.range (E ∘ sc)) :=
+    ⟨_, by rintro _ ⟨c, rfl⟩; exact hE.energy_le _⟩
+  have hsc0 : sc 0 = 0 := by
+    funext k
+    simp only [sc, pairCombination, Pi.zero_apply, zero_smul, Finset.sum_const_zero, scaleLp_zero]
+  rw [heq]
+  refine ⟨?_, csSup_le (Set.range_nonempty _) (by rintro _ ⟨c, rfl⟩; exact hE.energy_le _)⟩
+  have h0 : (E ∘ sc) 0 = 0 := by
+    simp only [Function.comp_apply, hsc0]
+    exact hE.map_zero
+  exact h0 ▸ le_csSup hbdd ⟨0, rfl⟩
+
 end QSH
