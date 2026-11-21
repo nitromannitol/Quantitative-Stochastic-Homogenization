@@ -98,4 +98,88 @@ theorem isUnit_det_of_near_inverse {A B : Mat d} (hAdet : IsUnit A.det) (hΛ : 0
   have := hlow (B⁻¹.mulVec w)
   rwa [mulVec_inv_mulVec hdet w] at this
 
+theorem euclideanNorm_le_of_abs_le {v : Vec d} {c : ℝ} (hc : 0 ≤ c) (h : ∀ k, |v k| ≤ c) :
+    euclideanNorm v ≤ Real.sqrt d * c := by
+  rw [euclideanNorm, show Real.sqrt d * c = Real.sqrt (d * c ^ 2) by
+    rw [Real.sqrt_mul (Nat.cast_nonneg d), Real.sqrt_sq hc]]
+  exact Real.sqrt_le_sqrt (euclideanSq_le_of_abs_le h)
+
+section MeanNear
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **The mean of `2 m(0, eᵢ/2)` is close to `ā⁻¹ eᵢ`**: if at the center `y` and the scale `r` the
+bounds (3.101)–(3.103) hold with error `ε` (`ε ≤ 1/4`, `√d ε ≤ 1/2`) outside a measurable bad set
+`Bad`, then the mean is within `√d ((9 + √d) ε + (16 (Λ + 1) + 1) P(Bad))` of `ā⁻¹ eᵢ`. -/
+theorem mean_polarization_near_inverse [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (y : Vec d) {r : ℝ} (hr : 0 < r) {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
+    (hεd : Real.sqrt d * ε ≤ 1 / 2) {Bad : Set (CoefficientField d Λ)} (hBad : MeasurableSet Bad)
+    (hgood : ∀ᵐ a ∂P, a ∉ Bad →
+      GaussianAverageBounds a S.homogenized (correctedField S a) y r ε) (i : Fin d) :
+    euclideanNorm ((fun k => ∫ a, ((2 : ℝ) • polarizationVector a y r 0
+        ((1 / 2 : ℝ) • unitVector i)) k ∂P) - S.homogenized⁻¹.mulVec (unitVector i)) ≤
+      Real.sqrt d * ((9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) * P.real Bad) := by
+  set D := S.homogenized with hD
+  set B : CoefficientField d Λ → Vec d :=
+    fun a => (2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) with hBdef
+  have hnorm : euclideanNorm ((1 / 2 : ℝ) • (unitVector i : Vec d)) < 1 := by
+    rw [euclideanNorm_smul, euclideanNorm_unitVector]; norm_num
+  have h00 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
+  have hBk : ∀ a k, |B a k| ≤ 16 * (Λ + 1) := by
+    intro a k
+    have := abs_polarizationVector_le a hΛ y hr h00 hnorm k
+    simp only [hBdef, Pi.smul_apply, smul_eq_mul, abs_mul, abs_two]
+    linarith
+  have hDe : euclideanNorm (D⁻¹.mulVec (unitVector i)) ≤ 1 := by
+    have := euclideanNorm_inv_mulVec_le (fun ξ => (hA ξ).1) (unitVector i)
+    rwa [euclideanNorm_unitVector] at this
+  have hJm : ∀ p q : Vec d, Measurable fun a : CoefficientField d Λ => J1Heat a y r p q :=
+    fun p q => (hmeasJ r p q).comp (measurable_id.prodMk measurable_const)
+  have hBm : ∀ k, Measurable fun a => B a k := fun k => by
+    simp only [hBdef, Pi.smul_apply, smul_eq_mul, polarizationVector]
+    exact measurable_const.mul (measurable_const.mul (((hJm _ _).sub (hJm _ _)).sub (hJm _ _)))
+  have hBi : ∀ k, Integrable (fun a => B a k) P := fun k =>
+    Integrable.of_bound (hBm k).aestronglyMeasurable (16 * (Λ + 1))
+      (Filter.Eventually.of_forall fun a => by rw [Real.norm_eq_abs]; exact hBk a k)
+  set c : ℝ := (9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) * P.real Bad with hc
+  have hc0 : 0 ≤ c := by positivity
+  refine euclideanNorm_le_of_abs_le hc0 fun k => ?_
+  simp only [Pi.sub_apply]
+  have hdiff : (∫ a, B a k ∂P) - (D⁻¹.mulVec (unitVector i)) k =
+      ∫ a, (B a k - (D⁻¹.mulVec (unitVector i)) k) ∂P := by
+    rw [integral_sub (hBi k) (integrable_const _), integral_const, probReal_univ, one_smul]
+  rw [hdiff]
+  refine (abs_integral_le_integral_abs).trans ?_
+  have hpt : ∀ᵐ a ∂P, |B a k - (D⁻¹.mulVec (unitVector i)) k| ≤
+      (9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) * Bad.indicator (fun _ => (1 : ℝ)) a := by
+    filter_upwards [hgood, hspan] with a ha hsa
+    by_cases hab : a ∈ Bad
+    · rw [Set.indicator_of_mem hab, mul_one]
+      have h1 := abs_sub (B a k) ((D⁻¹.mulVec (unitVector i)) k)
+      have h2 := (abs_apply_le_euclideanNorm _ k).trans hDe
+      have h3 := hBk a k
+      have h4 : 0 ≤ (9 + Real.sqrt d) * ε := by positivity
+      linarith
+    · rw [Set.indicator_of_notMem hab, mul_zero, add_zero]
+      have h := polarizationVector_near_inverse S a hA hsa y r hε0 hε hεd (ha hab) i
+      have := abs_apply_le_euclideanNorm (B a - D⁻¹.mulVec (unitVector i)) k
+      simp only [Pi.sub_apply] at this
+      linarith
+  have hint2 : Integrable (fun a => (9 + Real.sqrt d) * ε +
+      (16 * (Λ + 1) + 1) * Bad.indicator (fun _ => (1 : ℝ)) a) P :=
+    (integrable_const _).add (((integrable_const (1 : ℝ)).indicator hBad).const_mul _)
+  calc ∫ a, |B a k - (D⁻¹.mulVec (unitVector i)) k| ∂P
+      ≤ ∫ a, ((9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) * Bad.indicator (fun _ => (1 : ℝ)) a) ∂P :=
+        integral_mono_ae ((hBi k).sub (integrable_const _)).abs hint2 hpt
+    _ = c := by
+        rw [integral_add (integrable_const _) (((integrable_const (1 : ℝ)).indicator hBad).const_mul _),
+          integral_const, probReal_univ, one_smul, integral_const_mul, integral_indicator hBad,
+          setIntegral_const, smul_eq_mul, mul_one, hc]
+
+end MeanNear
+
 end QSH
