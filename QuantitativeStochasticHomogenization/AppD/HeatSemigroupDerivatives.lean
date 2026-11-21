@@ -58,4 +58,71 @@ theorem abs_foldr_euclideanHeatKernel_le {t : ℝ} (ht : 0 < t) (l : List (Fin d
     (fun _ => contDiff_heatKernel1 t), prodFun, Finset.abs_prod]
   exact Finset.prod_le_prod₀ (fun i _ => abs_nonneg _) fun i _ => hCb i (v i)
 
+/-! ## Differentiation under the integral -/
+
+theorem norm_clm_le_sum_coordinate (L : Vec d →L[ℝ] ℝ) : ‖L‖ ≤ ∑ j, |L (unitVector j)| := by
+  classical
+  refine ContinuousLinearMap.opNorm_le_bound _ (Finset.sum_nonneg fun j _ => abs_nonneg _)
+    fun u => ?_
+  have hu : u = ∑ j, u j • unitVector j := by
+    funext k
+    simp [unitVector, Pi.single_apply]
+  rw [hu, map_sum, Real.norm_eq_abs, Finset.sum_mul]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun j _ => ?_)
+  rw [map_smul, smul_eq_mul, abs_mul, mul_comm]
+  have hj : |u j| ≤ ‖∑ j, u j • unitVector (d := d) j‖ := by
+    rw [← hu]
+    exact (Real.norm_eq_abs (u j)) ▸ norm_le_pi_norm u j
+  exact mul_le_mul_of_nonneg_left hj (abs_nonneg _)
+
+theorem coordinateDerivative_integral_comp_sub {K : Vec d → ℝ} (hK : ContDiff ℝ ∞ K)
+    (hK0 : ∃ C, ∀ v, |K v| ≤ C) (hK1 : ∀ j, ∃ C, ∀ v, |coordinateDerivative j K v| ≤ C)
+    {w : Vec d → ℝ} (hw : Integrable w) (j : Fin d) (x : Vec d) :
+    coordinateDerivative j (fun x => ∫ y, K (x - y) * w y) x =
+      ∫ y, coordinateDerivative j K (x - y) * w y := by
+  obtain ⟨C0, hC0⟩ := hK0
+  choose C1 hC1 using hK1
+  have hdiff : ∀ v, HasFDerivAt K (fderiv ℝ K v) v := fun v =>
+    ((hK.differentiable (by simp)) v).hasFDerivAt
+  have hcontd : Continuous (fderiv ℝ K) := hK.continuous_fderiv (by simp)
+  have hF : ∀ x y, HasFDerivAt (fun x => K (x - y) * w y) (w y • fderiv ℝ K (x - y)) x :=
+    fun x y => by
+      have h1 : HasFDerivAt (fun x => K (x - y)) (fderiv ℝ K (x - y)) x :=
+        (hasFDerivAt_comp_sub y).mpr (hdiff (x - y))
+      have := h1.mul_const (w y)
+      simpa [mul_comm] using this
+  have hbound : ∀ x y, ‖w y • fderiv ℝ K (x - y)‖ ≤ (∑ j, C1 j) * |w y| := fun x y => by
+    rw [norm_smul, Real.norm_eq_abs, mul_comm]
+    refine mul_le_mul_of_nonneg_right ((norm_clm_le_sum_coordinate _).trans
+      (Finset.sum_le_sum fun j _ => hC1 j (x - y))) (abs_nonneg _)
+  have hFint : Integrable (fun y => K (x - y) * w y) := by
+    refine (hw.abs.const_mul C0).mono' ((hK.continuous.comp (continuous_const.sub
+      continuous_id)).aestronglyMeasurable.mul hw.aestronglyMeasurable)
+      (Eventually.of_forall fun y => ?_)
+    rw [Real.norm_eq_abs, abs_mul]
+    exact mul_le_mul_of_nonneg_right (hC0 _) (abs_nonneg _)
+  have hmain := hasFDerivAt_integral_of_dominated_of_fderiv_le (μ := volume) (x₀ := x)
+    (F := fun x y => K (x - y) * w y) (F' := fun x y => w y • fderiv ℝ K (x - y))
+    (bound := fun y => (∑ j, C1 j) * |w y|) Filter.univ_mem
+    (Eventually.of_forall fun x =>
+      ((hK.continuous.comp (continuous_const.sub continuous_id)).aestronglyMeasurable.mul
+        hw.aestronglyMeasurable))
+    hFint
+    (hw.aestronglyMeasurable.smul
+      (hcontd.comp (continuous_const.sub continuous_id)).aestronglyMeasurable)
+    (Eventually.of_forall fun y x _ => hbound x y)
+    ((hw.abs).const_mul _)
+    (Eventually.of_forall fun y x _ => hF x y)
+  unfold coordinateDerivative
+  rw [hmain.fderiv]
+  have hint : Integrable (fun y => w y • fderiv ℝ K (x - y)) :=
+    ((hw.abs).const_mul (∑ j, C1 j)).mono'
+      (hw.aestronglyMeasurable.smul
+        (hcontd.comp (continuous_const.sub continuous_id)).aestronglyMeasurable)
+      (Eventually.of_forall fun y => hbound x y)
+  rw [ContinuousLinearMap.integral_apply hint]
+  refine integral_congr_ae (Eventually.of_forall fun y => ?_)
+  simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+  ring
+
 end QSH
