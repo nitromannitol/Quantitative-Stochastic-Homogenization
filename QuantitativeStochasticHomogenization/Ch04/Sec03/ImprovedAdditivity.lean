@@ -318,9 +318,9 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
   have hle : ∀ᵐ a ∂P, |J1Heat a z R p q - ∫ x, heatKernel z ρ x * J1Heat a x r p q| ≤
       Real.sqrt (2 * δ) * Real.sqrt (G a) +
         K * ((∫ y, heatKernel z ρ y * F y a) + (R⁻¹ * X a z) ^ κ) := by
-    filter_upwards [hspan, htrial, (hX z).2, hgoodY, hB₁i] with a hsa hta hgz hgy hB1int
+    filter_upwards [hspan, htrial z, (hX z).2, hgoodY, hB₁i] with a hsa hta hgz hgy hB1int
     obtain ⟨h0, h1⟩ := additivityDefect_le_trialGap S a hsa z hr0 hrR p q
-      (hJy a).aestronglyMeasurable (hta z R hR p q)
+      (hJy a).aestronglyMeasurable (hta R (hr.trans hrR.le) p q)
     have hRb := hgood a z R hrR.le (fun h => hgz R h p q)
     have hyb : ∀ᵐ y ∂(volume : Measure (Vec d)),
         heatKernel z ρ y * J1Heat a y r p q ≤ heatKernel z ρ y * (c + δ + K * F y a) := by

@@ -78,7 +78,15 @@ of each module names the source files and commits.
   `exp(2|X|)`, `X²` and `exp(λ X)` stated. The proof is the second-order Taylor bound of `exp`
   (`abs_exp_sub_quadratic_le`), `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`,
   instead of the derivatives of `λ ↦ log E[exp(λ X)]`.
-- Lemma A.7 is not formalized.
+- **Lemma A.7.** `osBound_triadicCube_sub_two_integral`: the random map `ρ` is a function of
+  sets, and the hypotheses are assumed for the open cubes only: (A.6) for an abstract monotone
+  family `F` of sub-σ-algebras with a unit range of dependence (`HasUnitRange`), (A.7) as
+  `0 ≤ ρ ≤ K` with `K > 0`, the stationarity as the identical distribution of `ρ(U)` and
+  `ρ(z + U)` for `z ∈ ℤ^d`, and (A.8) only for the subdivision of a cube of side `3^{N+k}` into
+  its `3^{kd}` subcubes of side `3^N` (`triadicOffset`), which is the case of (A.8) used in the
+  proof. The conclusion (A.9) holds with `C = 1`: the last step uses
+  `exp(y₊) ≤ exp(y) + 1` instead of the Chebyshev inequality and Lemma A.1. The subcubes are
+  grouped by the residues of their indices modulo `3`, as in the book.
 
 ## Chapter 4, opening (`Ch04/Opening.lean`)
 
@@ -196,6 +204,61 @@ of each module names the source files and commits.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
+- **The bounds `½|e|² ≤ μ(U, e) ≤ ½Λ|e|²`** (`le_dirichletEnergy`, `dirichletEnergy_le`, in
+  `Ch01/Sec02/DirichletEnergyBounds.lean`), for a measurable set of finite positive volume: the
+  lower bound uses `∫_U g = 0` for `g` the gradient of a function of `H¹₀(U)`
+  (`setIntegral_eq_zero_of_H01`, by the approximation in the definition of `H¹₀(U)` and
+  `∫ ∂ᵢφ = 0`) and Jensen's inequality (`sq_setAverage_le`). Consequently
+  `homogenizedMatrixBounds_of_aestronglyMeasurable`: `I ≤ ā ≤ Λ I` for a homogenization datum, given
+  the almost sure measurability of `a ↦ μ(□ₙ, ξ)`, which the limit (1.22) (a Bochner integral)
+  needs.
+- **Lemma 4.13 (deterministic step).** `corrected_averages_eq_sum`: at a good scale the averaged
+  gradient and flux of `eⱼ + ∇φ_{eⱼ}` are combinations, with coefficients bounded by
+  `2 √d (Λ + 1)`, of the averaged gradients and fluxes of the maximizers at the loads `(0, eᵢ/2)`,
+  which are polarization vectors of `J₁` (`integral_maximizer_eq_polarizationVector`,
+  `integral_flux_maximizer_eq_fluxPolarizationVector`).
+- **Lemma 4.13.** `lemma413` (`Ch04/Sec03/Lemma413Statement.lean`) proves (4.34) for the corrected
+  coordinates with the Gaussian masks, `|∫ Φ_{z,r} (a - ā)(eⱼ + ∇φ_{eⱼ})| ≤ O_s(C r^{-α})`
+  (`CommutatorEstimate`), under `Fluc(s, α)` with `α ≤ d/2`, from Proposition 3.21 and the energy
+  bound below the scale at one exponent `τ ≥ s d/2`, the expectations of the averages at the rate
+  `r^{-α}` (`ExpectedAveragesEstimate`) and the measurability of the averages, which are
+  hypotheses. The proof is not the book's: the polarization vectors `Bᵢ = 2 m(0, eᵢ/2)` and
+  `Cᵢ = 2 f(0, eᵢ/2)` fluctuate by `O_s(C r^{-α})` (`polarization_pair_fluctuation`); the mean of
+  `Bᵢ` is close to `ā⁻¹eᵢ` at large scales (`mean_polarization_near_inverse`), so the matrix `D₀`
+  with `D₀ E[Bᵢ] = E[Cᵢ]` exists and is bounded (`exists_matching_matrix`); the commutator against
+  `D₀` is bounded pointwise by the fluctuations and, at bad scales, by the energy
+  (`commutator_matching_le`); the expectations of the averages give `|D₀ - ā| ≤ C r^{-α}`
+  (`matching_matrix_near`, `commutator_assembly`); below the threshold the energy bound suffices
+  (`commutator_small`). `commutatorEstimate_of_flucJ1` and `estimate558_of_commutator` insert it in
+  the proof of (5.58).
+- **The linear estimate (Step 1 of the route of Proposition 4.10).** `HeatIdentityBound` records,
+  as a hypothesis, the bound that the heat identity (H) of the route gives for `r ≥ 2`:
+  `|∫ Φ_{z,r} (eᵢ + ∇φ_{eᵢ}) - eᵢ| ≤ ∫_{u > r²/2} ∫ k_r(u, x) |commutator at (z - x, √u)| dx du`
+  almost surely, for a positive kernel with `∫ k_r(u, ·) ≤ C_k/u`. From it and Lemma 4.13,
+  Lemma A.4 on the product of the time and space measures gives
+  `|∫ Φ_{z,r} (eᵢ + ∇φ_{eᵢ}) - eᵢ| ≤ O_s(C r^{-α})` (`gradient_sub_osBound_of_heat`,
+  `gradient_sub_osBound`), and linearity in the slope gives `LinearAverageEstimate`
+  (`linearAverageEstimate_of_heat`). `estimate558_of_heatIdentity` proves (5.58) with this
+  hypothesis in place of the linear estimate. The identity (H) itself (anisotropic Gaussians,
+  integration by parts against the corrector, the limit `T → ∞`) is not formalized.
+- **Integrability and measurability of the averages.** The gradient averages are jointly
+  measurable in the center, the radius and the coefficient field (`measurable_gradientAverage_uncurry`,
+  from the joint measurability of the corrector gradients); the flux averages involve `a(x)`, and
+  their joint measurability is a hypothesis. The averages and the trial are integrable at the
+  scales `r ≥ 1` under the energy bound (`averagesIntegrable_of_energyBound`,
+  `trialIntegrable_of_energyBound`). The energy bound below the scale follows from Proposition 3.21
+  and the bounds on `ā` (`gaussianEnergyBound_of_rate`), by `Φ_{z,r} ≤ (R/r)^d Φ_{z,R}` for `r ≤ R`
+  (`heatKernel_le_mul`); `estimate558_of_heatIdentityBound` is (5.58) without these hypotheses.
+- **The bounds `I ≤ ā ≤ Λ I` from the expectations (1).** Jensen's inequality for the heat kernel
+  average and for the expectation (`euclideanSq_integral_le`), with `|av|² ≤ Λ v·av`
+  (`euclideanSq_coefficient_mulVec_le`), gives `|E P ξ|² ≤ E[E ξ]` and `|E F ξ|² ≤ Λ E[E ξ]`; the
+  limit `r → ∞` in (1) gives `|ξ|² ≤ ξ·āξ` and `|āξ|² ≤ Λ ξ·āξ`
+  (`homogenizedMatrixBounds_of_expectedAverages`). `estimate558_of_heatBound_and_rate` is (5.58)
+  from the structure (4.12) of `A₁`, Proposition 3.21 at every exponent `τ ∈ (0, d)`, the
+  expectations (1) of the averages, the measurability of `J₁`, of the trial and of the flux
+  averages, `HeatIdentityBound`, and the conclusions of Propositions 4.11 and 4.12. From the same
+  inputs, Theorem 4.6 (i) gives `Fluc(s, d/2)` (`flucJ1_half_dim_of_heat`), and Lemma 4.13 and
+  the linear estimate hold at the exponent `d/2` (`linearAverageEstimate_half_dim`).
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
@@ -229,6 +292,22 @@ of each module names the source files and commits.
   (`TrialExpectationEstimate`), which are hypotheses, together with the inputs of Proposition 4.3,
   the almost sure integrability of the trial (`TrialIntegrable`) and the joint measurability of
   `(a, x) ↦ J₁(Φ_{x,r}, p, q)`.
+- **The trial gap estimate (Step 2 of the route of Proposition 4.10).** On a linear family of
+  gradients spanning `A₁`, the functional of (4.8) is `-½ ξ·Aξ + l·ξ` (`j1Functional_fieldOf`),
+  `J₁ = ½ l·A⁻¹l` and the gap to the trial at a slope `k` is `½ (k - c)·A(k - c)`
+  (`J1_sub_j1Functional_fieldOf`); the averaged gradient `m` of the maximizer is the polarization
+  vector of `J₁` ((4.16), `integral_maximizer_eq_polarizationVector`), whose fluctuations are
+  bounded by `Fluc(s, α)` (`polarizationVector_fluctuation`). The comparison of the expectations of
+  the gaps at the deterministic slopes `E[m]` and `c*` gives `|E[m] - c*| ≤ C r^{-α}`, and
+  `trialGapEstimate_of_linearAverages` gives the trial gap estimate `O_{s/2}(C r^{-2α})` from the
+  linear estimate of the gradient averages (`LinearAverageEstimate`, the output of Step 1, through
+  the heat identity, in the route), the expectation of the trial at deterministic slopes
+  (`TrialObjectiveExpectation`, from the cell averages of the stationary fields), the energy of
+  the corrected fields below the scale (`GaussianEnergyBound`) and Proposition 3.21; these are
+  hypotheses. `proposition410_of_linearAverages` and `estimate558_of_linearAverages` state
+  Proposition 4.10 and (5.58) from them. The finite sums, squares and means of `O_s` variables at
+  every exponent used here are `osBound_finset_sum_of_pos`, `OsBound.sq`, `OsBound.integral_sq_le`
+  and `OsBound.integral_le_factorial_mul`.
 - **Remark 4.18, (4.70), and Theorem 4.6 (ii).** `ExpectationEstimates` states (4.70);
   `expectationJ1Estimate_of_trialGap` proves it from the trial, with the mean bound
   `OsBound.integral_le_factorial_mul` for `O_t` variables with `t < 1`.
