@@ -11,7 +11,7 @@ Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-S
 open MeasureTheory QSH
 open scoped ENNReal
 
-/-- **AKM (4.126)** after Theorem 4.24, `p = 2`, integer `m > d/2`, `s = 1` (einstein input E7):
+/-- **AKM (4.126)** after Theorem 4.24, `p = 2`, integer `m > d/2`, `s = 1`:
 the `H^{-m}(B_1)` norms of `∇φ_e(·/ε)` and `a(·/ε)(e + ∇φ_e(·/ε)) - ā e` are bounded by a
 measurable `Z ≤ O_1(C ε^{d/2})`, for `0 < ε < 1/2`. -/
 -- FROZEN-STATEMENT-BEGIN

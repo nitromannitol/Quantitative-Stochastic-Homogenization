@@ -12,8 +12,8 @@ Theorem 4.1, (4.2), in the form used by the formalization of the Einstein relati
 open MeasureTheory QSH
 open scoped ENNReal
 
-/-- **AKM Theorem 4.1, (4.2), with `s = 1`** (einstein input E1): for `d ≥ 2` and `Λ > 1` there is
-`C` such that every law satisfying (P1)-(P2) has correctors and a homogenized matrix with
+/-- **AKM Theorem 4.1, (4.2), with `s = 1`**: for `d ≥ 2` and `Λ > 1` there is `C` such that
+every law satisfying (0.10)-(0.11) has correctors and a homogenized matrix with
 `|∫ Φ_{z,r} ∇φ_e| ≤ O_1(C r^{-d/2})` for `|e| < 1`, `z ∈ ℝ^d`, `r ≥ 1`. -/
 -- FROZEN-STATEMENT-BEGIN
 def QSH.Frozen.averagedCorrectorGradient : Prop :=
