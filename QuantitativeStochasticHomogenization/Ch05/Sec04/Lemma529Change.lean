@@ -319,20 +319,34 @@ theorem centeredOsBound_change_step [IsProbabilityMeasure P] (X : CenteredLocalF
   linear_combination (-(R ^ (-(d : ℝ)))) * hdec +
     (∫ y, (cube z (R + L) \ cube z R).indicator g y * X.field r₁ a y) * hc'
 
-/-- **Lemma 5.29 (iii)**, for centered local additive fields: the gain `ε` depends only on the
-exponents. -/
+/-- The gain of Lemma 5.29 (iii): `ε = min(η₁ α - d/2, (1 - b)/2)` with
+`b = max((1+β)/2, (1+η₁(1+δ))/2)`. -/
+noncomputable def changeGain (d : ℕ) (δ α η₁ β : ℝ) : ℝ :=
+  min (η₁ * α - (d : ℝ) / 2) ((1 - max ((1 + β) / 2) ((1 + η₁ * (1 + δ)) / 2)) / 2)
+
+omit [MeasurableSpace Ω] in
+theorem changeGain_pos {η₁ η₂ β : ℝ} (hδ : 0 < δ) (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1)
+    (hα : (d : ℝ) / 2 < η₁ * α) (hβ1 : β < 1) : 0 < changeGain d δ α η₁ β := by
+  have hη₁δ : η₁ * (1 + δ) < 1 := by
+    have : η₁ * (1 + δ) < η₂ * (1 + δ) := mul_lt_mul_of_pos_right hη₁₂ (by linarith)
+    linarith
+  have hb1 : max ((1 + β) / 2) ((1 + η₁ * (1 + δ)) / 2) < 1 := max_lt (by linarith) (by linarith)
+  exact lt_min (by linarith) (by linarith)
+
+/-- **Lemma 5.29 (iii)**, for centered local additive fields, with the gain `changeGain`. -/
 theorem exists_blockBound_change (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2)
     {η₁ η₂ β : ℝ} (hδ : 0 < δ) (hη₁ : 0 < η₁) (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1)
     (hα : (d : ℝ) / 2 < η₁ * α) (hβ1 : β < 1) :
-    ∃ ε : ℝ, 0 < ε ∧ ∀ B A : ℝ, 0 < B → 0 < A → ∃ C : ℝ, 0 < C ∧
+    ∀ B A : ℝ, 0 < B → 0 < A → ∃ C : ℝ, 0 < C ∧
       ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
       ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R → ∀ r : ℝ, R ^ η₁ ≤ r →
       r ≤ R ^ β → ∀ z : Vec d,
       CenteredOsBound P (fun a =>
         (R ^ (-(d : ℝ)) * ∫ x, (cube z R).indicator (fun _ => (1 : ℝ)) x * X.field r a x) -
         R ^ (-(d : ℝ)) * ∫ x, (cube z R).indicator (fun _ => (1 : ℝ)) x * X.field (R ^ η₁) a x)
-        s (C * R ^ (-(d : ℝ) / 2 - ε)) := by
+        s (C * R ^ (-(d : ℝ) / 2 - changeGain d δ α η₁ β)) := by
   classical
+  intro B A hB hA
   have hη₁δ : η₁ * (1 + δ) < 1 := by
     have : η₁ * (1 + δ) < η₂ * (1 + δ) := mul_lt_mul_of_pos_right hη₁₂ (by linarith)
     linarith
@@ -342,9 +356,8 @@ theorem exists_blockBound_change (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < 
   have hbη : η₁ * (1 + δ) ≤ b := (by linarith : η₁ * (1 + δ) ≤ (1 + η₁ * (1 + δ)) / 2).trans
     (le_max_right _ _)
   have hb0 : 0 ≤ b := (by positivity : (0 : ℝ) ≤ (1 + η₁ * (1 + δ)) / 2).trans (le_max_right _ _)
-  set ε : ℝ := min (η₁ * α - (d : ℝ) / 2) ((1 - b) / 2) with hεdef
-  have hε : 0 < ε := lt_min (by linarith) (by linarith)
-  refine ⟨ε, hε, fun B A hB hA => ?_⟩
+  set ε : ℝ := changeGain d δ α η₁ β with hεdef
+  have hε : 0 < ε := changeGain_pos hδ hη₁₂ hη₂ hα hβ1
   obtain ⟨Cl, hCl, hlay⟩ := exists_blockBound_layer (Ω := Ω) (F := F) (δ := δ) (α := α) (B := B)
     (A := A) hd hmono hs1 hs2 hB hA hδ hη₁ hη₁₂ hη₂ hα
   obtain ⟨Cs, hCs, hsmall⟩ := exists_centeredOsBound_small_block (Ω := Ω) (F := F) (δ := δ)
@@ -373,6 +386,8 @@ theorem exists_blockBound_change (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < 
   have hfz : ∀ x ∉ closedCube z R, f x = 0 := fun x hx =>
     Set.indicator_of_notMem (fun h => hx (cube_subset_closedCube z R h)) _
   have hQ0 : 0 ≤ R ^ (-(d : ℝ) / 2 - ε) := Real.rpow_nonneg hR0.le _
+  have hε1 : ε ≤ η₁ * α - (d : ℝ) / 2 := min_le_left _ _
+  have hε2 : ε ≤ (1 - b) / 2 := min_le_right _ _
   by_cases hRs : R < Rth
   · have h1 := hsmall P X r hR0 one_pos f hfm hf1 hfz
     have h2 := (hsmall P X (R ^ η₁) hR0 one_pos f hfm hf1 hfz).neg
@@ -403,8 +418,6 @@ theorem exists_blockBound_change (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < 
       ((measurable_block X (R ^ η₁) hfm (R ^ (-(d : ℝ)))).sub
         (measurable_block X (R ^ η₁) hfm (R ^ (-(d : ℝ)))))
       (Filter.Eventually.of_forall fun a => (sub_self _).symm)
-  have hε1 : ε ≤ η₁ * α - (d : ℝ) / 2 := min_le_left _ _
-  have hε2 : ε ≤ (1 - b) / 2 := min_le_right _ _
   set r₁ : ℝ := R ^ η₁ with hr₁def
   have hr₁1 : 1 ≤ r₁ := Real.one_le_rpow hR hη₁.le
   have hLR : R ^ b ≤ R := by
