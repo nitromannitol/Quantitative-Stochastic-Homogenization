@@ -223,7 +223,7 @@ theorem addJ1_of_trialGapEstimate [IsProbabilityMeasure P] (S : HomogenizationDa
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (htrial : TrialIntegrable P S)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
       Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    {t β : ℝ} (ht : 0 < t) (hgap : TrialGapEstimate P S t β) : AddJ1 P t β := by
+    {t β : ℝ} (hgap : TrialGapEstimate P S t β) : AddJ1 P t β := by
   obtain ⟨C, hC, hgap⟩ := hgap
   set Ct : ℝ := max 1 ((1 + (1 - t) / (t * Real.log 2)) ^ t⁻¹) with hCt
   have hCt1 : 1 ≤ Ct := le_max_left _ _
