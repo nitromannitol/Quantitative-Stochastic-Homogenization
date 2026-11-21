@@ -147,7 +147,11 @@ of each module names the source files and commits.
   (`HasLinearCorrectorGradients`, a property of the construction of Lemma 3.16 by projection), and
   from the finite energy of the corrected coordinates against the masks
   (`HasGaussianCorrectorEnergy`, from Lemma 3.17). The exponent is lowered to `1` by
-  `OsBound.mono_exponent`, with the constant `(2e - 1) d C`.
+  `OsBound.mono_exponent`, with the constant `(2e - 1) d C`. For arbitrary homogenization data the
+  linearity is obtained by replacing the correctors by the combinations `∑ᵢ eᵢ φ_{eᵢ}` of the
+  coordinate correctors (`HomogenizationData.linearize`, `Corrector.linearCombination`, which
+  proves that a finite linear combination of correctors is a corrector, including the sublinearity
+  of Definition 3.15); this gives `averagedCorrectorGradient_of_coordinate`.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
