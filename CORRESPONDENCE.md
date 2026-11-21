@@ -122,3 +122,64 @@ of each module names the source files and commits.
   distance larger than one, which needs a family that is jointly measurable in the coefficients
   and the center. `LocFieldEstimate` states localization by such a family and implies
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
+
+## Section 4.5: Proposition 4.12
+
+Lean: `QSH.fluctuationEstimatesFor_locFieldEstimate`
+(`QuantitativeStochasticHomogenization/Ch04/Sec05/Proposition412.lean`), with (4.117) as
+`QSH.exists_blockBound` and (4.115) as `QSH.exists_centeredOsBound_field`.
+
+- **Localization by a measurable family.** The proof integrates the localized quantities
+  `x ↦ J₁^{(δ)}(x, r)` over cubes and uses that the integrals over cubes at distance larger than
+  one are independent. Definition 4.9 provides one `F(B_{r^{1+δ}}(z))`-measurable random variable
+  for each center `z`; the proof needs a family that is jointly measurable in the coefficients and
+  the center, with the restriction to a set of centers measurable for the coefficients in its
+  neighbourhood. The proposition is stated with this localization (`LocFieldEstimate`, Section
+  4.2), which implies Definition 4.9 (`LocFieldEstimate.locEstimate`). Integrals over the `2^d`
+  large cubes, at mutual distance larger than one after thickening, are independent; the cells of
+  the frame are handled by the colouring of Lemma A.12, as in the book.
+- **The inner scale of Step 1.** The book takes `r₁ = R^{η₁}/2` in (4.120). The induction hypothesis
+  at the side `R/2` only covers scales `r ≥ (R/2)^{η₁}`, and `R^{η₁}/2 < (R/2)^{η₁}` since `η₁ < 1`.
+  The Lean proof takes `r₁ = (R/2)^{η₁}`; the constraints of Step 2 (`r₁ ∈ [R'^{η₁}, R'^{η₂}]` for
+  the cells of side `R' = R^{1-2ε}`, the separation `R' - 2 r₁^{1+δ} > 1`, and `r₁^{-α} ≤ C R^{-β-ε}`)
+  hold for `R` large with this choice.
+- **The decomposition in Step 2.** The book partitions the cube of side `R + R^{1-2ε}` minus the
+  `2^d` cubes of side `R/2` into cubes of side `R^{1-2ε}`. The Lean proof uses the lattice cells
+  of side `R' = R^{1-2ε}` around the center, restricts the weight to the cells that meet the
+  complement of the large cubes (the frame cells, at most `5 d (2N+1)^{d-1}` of them for
+  `N = ⌊R/(2R')⌋ + 2`), and bounds the rest of space by the Gaussian tail; the exponents are those
+  of the book.
+- **Hypotheses made explicit.** The field `J` is jointly measurable and bounded on the unit balls of
+  `p, q`, the local σ-algebras have a unit range of dependence, are monotone and are contained in
+  the σ-algebra of the coefficients; the book uses `0 ≤ J₁ ≤ C` and the corresponding facts for
+  `J₁`.
+- **Constants.** Lemma A.11 is used with equal scales and constant one
+  (`centeredOsBound_sum_of_eq_scale`), which is the form needed at `β = d/2`.
+
+## Section 5.4: Lemma 5.29
+
+Lean: (i) `QSH.exists_blockBound_all_scales`
+(`QuantitativeStochasticHomogenization/Ch05/Sec04/Lemma529Clt.lean`), (ii)
+`QSH.exists_blockBound_layer` (`Lemma529Boundary.lean`), (iii) `QSH.exists_blockBound_change`
+(`Lemma529Change.lean`), for centered local additive fields; for the localized energy
+`QSH.blockCLT_of_inputs`, `QSH.blockBoundary_of_inputs` and `QSH.blockChange_of_inputs`
+(`BlockEstimates.lean`, `BlockEstimatesBoundary.lean`).
+
+- **Hypotheses made explicit.** The three parts are proved for any family with the properties used
+  in the proof of Proposition 4.12 (`CenteredLocalFields`): boundedness, joint locality, centering
+  and the additivity (5.88). For the localized energy these properties are the two explicit
+  hypotheses `LocalizedFieldInput` (boundedness and joint locality of `J₁^{(δ)}`) and
+  `LocalizedAdditivityInput` ((5.88) with the exponent `γ`).
+- **Part (i).** (5.89) at `β = d/2` is (4.117) for these fields; the statement at every scale
+  `r ∈ [R^{η₁}, R]` follows by the decomposition of Step 2 of Proposition 4.12 at the scale of the
+  block, with the Gaussian tail of the heat kernel summed over the lattice.
+- **Part (ii).** The boundary layer is covered by the cells of side `R^β` around the center that
+  meet it, at most `8 d (2N+1)^{d-1}` of them for `N = ⌈R/(2R^β)⌉ + 1`; the cells are coloured by
+  their residues modulo `8` (`8^d` colours) for Lemma A.12.
+- **Part (iii).** The book takes the layers of width `R^{(1+β)/2}`. Part (ii) at the scale `R^{η₁}`
+  needs `R^{η₁(1+δ)}` at most the width of the layer, that is `η₁(1+δ) ≤ (1+β)/2`, which holds
+  for every `β ≥ η₁` only when `η₁(1+2δ) ≤ 1`; the Lean proof takes the width `R^b` with
+  `b = max((1+β)/2, (1+η₁(1+δ))/2)` and the gain `ε = min(η₁ α - d/2, (1-b)/2)`
+  (`changeGain`). The difference `g - 1_{□_R}` is split into the inner cube `□_{R-R^b}` (where it
+  is bounded by a Gaussian tail), the layers inside and outside `□_R` (part (ii) at the sides `R`
+  and `R + R^b`), and the outside of `□_{R+R^b}` (the far block of Proposition 4.12).
