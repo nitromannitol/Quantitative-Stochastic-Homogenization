@@ -164,21 +164,34 @@ of each module names the source files and commits.
 
 ## Section 4.6: (4.126) and Appendix D (`Ch04/Sec06/`, `AppD/`)
 
-- **(4.126), `p = 2`, integer `m > d/2`, `s = 1`** (`negativeSobolevCorrector_of_heatBracket`).
+- **(4.126), `p = 2`, integer `m > d/2`, `s = 1`** (`negativeSobolevCorrector_of_averages`).
   The book bounds negative Sobolev norms through the fractional heat-flow characterization of
   Appendix D and the full family of norms of Theorem 4.24. Here only integer orders on the unit
-  ball are needed, and the bound is pathwise and elementary: for a test `ψ` of the unit ball of
-  `H^{n+1}(B_1)` the Taylor formula of the heat semigroup
-  `ψ = ∑_{k ≤ n} (-1)^k/k! Φ(1) ∗ Δ^k ψ - ∫₀¹ (-s)^n/n! Φ(s) ∗ Δ^{n+1} ψ ds` (`heatTaylor`) is paired
-  with the field (`integral_mul_heatTaylor`, Fubini's theorem with the uniform Gaussian bound
-  `abs_heatSmooth_le`), half of the derivatives of each `Δ^k = ∑_w ∂_w² ` are moved onto the kernel
-  (`heatSmooth_iterLaplacian`, `integral_mul_heatSmooth_iterLaplacian_eq`), and Cauchy–Schwarz on
-  `B_1` gives `‖F‖_{H^{-(n+1)}(B_1)} ≤ C heatBracket n F` (`negativeIntegerSobolevNorm_le_heatBracket`),
-  where the heat bracket collects the `L²(B_1)` norms of `Y_{β,s} = ∫ F(x) ∂^β Φ(s)(x - ·) dx` for
-  `|β| ≤ n` at `s = 1` and for `|β| = n + 1` integrated against `s^n ds` on `(0, 1]`. The frozen
-  statement is then deduced from measurable majorants `O_1(C ε^{d/2})` of the heat brackets of the
-  `2d` components (`HeatBracketEstimate`), which is the form in which the estimates (4.2), (4.3)
-  at all scales and centers and the energy bound enter.
+  ball are needed, and the argument has three steps.
+  1. *Pathwise bound.* For a test `ψ` of the unit ball of `H^{n+1}(B_1)` the Taylor formula of the
+     heat semigroup `ψ = ∑_{k ≤ n} (-1)^k/k! Φ(1) ∗ Δ^k ψ - ∫₀¹ (-s)^n/n! Φ(s) ∗ Δ^{n+1} ψ ds`
+     (`heatTaylor`) is paired with the field (`integral_mul_heatTaylor`, Fubini's theorem with the
+     uniform Gaussian bound `abs_heatSmooth_le`), half of the derivatives of `Δ^k = ∑_w ∂_w²` are
+     moved onto the kernel (`heatSmooth_iterLaplacian`, `integral_mul_heatSmooth_iterLaplacian_eq`),
+     and Cauchy–Schwarz on `B_1` gives `‖F‖_{H^{-(n+1)}(B_1)} ≤ C heatBracket n F`
+     (`negativeIntegerSobolevNorm_le_heatBracket`), where the heat bracket collects the `L²(B_1)`
+     norms of `Y_{β,s} = ∫ F(x) ∂^β Φ(s)(x - ·) dx` for `|β| ≤ n` at `s = 1` and for `|β| = n + 1`
+     integrated against `s^n ds` on `(0, 1]`.
+  2. *Summation of the scales.* Per-scale majorants `O_1(c s^{-|β|/2 - d/4} ε^{d/2})` of these norms
+     (`HeatScaleEstimate`) are summed by the averaging property of `O_1`; the weight `s^n` makes
+     `s^{n - (n+1)/2 - d/4}` integrable exactly when `n + 1 > d/2` (`HeatScaleEstimate.osBound_heatBracket`,
+     `negativeSobolevCorrector_of_heatScale`).
+  3. *Per-scale estimates.* For `s ≤ 2ε²`, Young's inequality with a Gaussian weight
+     (`eLpNorm_heatDerivativeAverage_le`) bounds `Y_{β,s}` by the Gaussian `L²` norm of the field,
+     which is `O_1(C₁)`; for `s > 2ε²`, the heat time is split, `Y_{β,s}(F) = Y_{β,s/2}(A_{s/2} F)`
+     (`heatDerivativeAverage_add`), and the Gaussian averages `A_t F(u)` are `O_1(C ε^{d/2} t^{-d/4})`
+     at every center by (4.2) (respectively (4.3)) at the center `u/ε` and the radius `√t/ε ≥ 1`
+     (`osBound_abs_heatAverage_rescaled`), their Gaussian square average being `O_1` by
+     `osBound_rpow_integral_sq` (`heatScaleEstimate_of_gaussian`).
+  The frozen statement is thus deduced from (4.2) for the correctors in the form of the frozen
+  statement of Theorem 4.1, (4.3) in the same form for a jointly measurable version of the flux, and
+  the Gaussian moments and Gaussian energy estimate (`GaussianEnergyEstimate`) of the `2d` rescaled
+  components.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
