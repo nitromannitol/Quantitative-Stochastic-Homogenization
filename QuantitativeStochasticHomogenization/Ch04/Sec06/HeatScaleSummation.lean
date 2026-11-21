@@ -96,7 +96,7 @@ theorem HeatScaleEstimate.osBound_heatBracket {Ω : Type*} [MeasurableSpace Ω] 
             {q : ℝ × Ω | eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
               (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} := by
         ext q
-        simp only [mem_setOf_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter]
+        simp only [mem_ofPred_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter]
         tauto
       rw [heq]
       exact (measurableSet_Ioc.preimage measurable_fst).compl.union
