@@ -6,8 +6,8 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.AverageMeasurability
 If the energy density of a measurable field `G` is integrable against `Φ_{z,r}`, so are `G` and its
 flux `aG`, since `|G| ≤ (1 + G·aG)/2` and `|aG| ≤ Λ|G|` (`integrable_averages_of_energy`).
 Consequently the energy bound below the scale gives the almost sure integrability of the three
-averages (`averagesIntegrable_of_energyBound`), and (5.58) holds without that hypothesis
-(`estimate558_of_heatIdentityBound`).
+averages (`averagesIntegrable_of_energyBound`) and of the trial (`trialIntegrable_of_energyBound`),
+and (5.58) holds without these hypotheses (`estimate558_of_heatIdentityBound`).
 -/
 
 open MeasureTheory Filter
@@ -92,8 +92,29 @@ theorem averagesIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
     hGm.aestronglyMeasurable hE
   exact ⟨h1, h2, hE⟩
 
+/-- **The trial is integrable** under the energy bound below the scale. -/
+theorem trialIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
+    (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) :
+    TrialIntegrable P S := by
+  filter_upwards [averagesIntegrable_of_energyBound S hΛ hN] with a ha
+  intro z R hR p q
+  obtain ⟨h1, h2, h3⟩ := ha z R hR (homogenizedSlope S.homogenized p q)
+  have hfun : (fun x => heatKernel z R x *
+      j1Integrand a p q (correctedField S a (homogenizedSlope S.homogenized p q)) x) = fun x =>
+        -(1 / 2 : ℝ) * (heatKernel z R x *
+          dot (correctedField S a (homogenizedSlope S.homogenized p q) x)
+            ((a x).mulVec (correctedField S a (homogenizedSlope S.homogenized p q) x))) -
+        dot p (heatKernel z R x •
+          (a x).mulVec (correctedField S a (homogenizedSlope S.homogenized p q) x)) +
+        dot q (heatKernel z R x • correctedField S a (homogenizedSlope S.homogenized p q) x) := by
+    funext x
+    simp only [j1Integrand, dot_eq_dotProduct, dotProduct_smul, smul_eq_mul]
+    ring
+  rw [hfun]
+  exact ((h3.const_mul _).sub (integrable_dot_left p h2)).add (integrable_dot_left q h1)
+
 /-- **(5.58) and Theorem 4.6 (ii)** as in `estimate558_of_heat`, without the integrability of the
-averages (a consequence of the energy bound). -/
+averages and of the trial (consequences of the energy bound). -/
 theorem estimate558_of_heatIdentityBound {P : Measure (CoefficientField d Λ)}
     [IsProbabilityMeasure P] (hd : 2 ≤ d) (S : HomogenizationData P) (hΛ : 0 < Λ)
     (hμ : ∀ (n : ℕ) (ξ : Vec d),
@@ -103,7 +124,6 @@ theorem estimate558_of_heatIdentityBound {P : Measure (CoefficientField d Λ)}
       GaussianCorrectorRate P S τ C μ)
     (hN : ∀ τ : ℝ, 0 < τ → τ < d → ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN)
     (hexp : ∀ β : ℝ, 0 < β → β ≤ d → ExpectedAveragesEstimate P S β)
-    (htrial : TrialIntegrable P S)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
       Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
     (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
@@ -122,7 +142,7 @@ theorem estimate558_of_heatIdentityBound {P : Measure (CoefficientField d Λ)}
     have : (2 : ℝ) ≤ d := by exact_mod_cast hd
     linarith)
   exact estimate558_of_heat hd S hΛ hμ hspan hrate hN hexp
-    (averagesIntegrable_of_energyBound S hΛ.le hN1) htrial hmeasJ hmeasL hmeasF hheat h411 h412
-    hs0 hs2
+    (averagesIntegrable_of_energyBound S hΛ.le hN1) (trialIntegrable_of_energyBound S hΛ.le hN1)
+    hmeasJ hmeasL hmeasF hheat h411 h412 hs0 hs2
 
 end QSH

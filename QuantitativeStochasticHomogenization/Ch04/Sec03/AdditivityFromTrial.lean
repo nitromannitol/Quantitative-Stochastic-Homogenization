@@ -115,9 +115,10 @@ def trialGap (S : HomogenizationData P) (a : CoefficientField d Λ) (y : Vec d) 
   J1Heat a y r p q -
     j1Functional a (heatKernel y r) p q (correctedField S a (homogenizedSlope S.homogenized p q))
 
-/-- Almost surely the integrand of (4.8) at the trial field is integrable against every mask. -/
+/-- Almost surely the integrand of (4.8) at the trial field is integrable against the masks
+`Φ_{z,R}`, `R ≥ 1`. -/
 def TrialIntegrable (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P) : Prop :=
-  ∀ᵐ a ∂P, ∀ (z : Vec d) (R : ℝ), 0 < R → ∀ p q : Vec d,
+  ∀ᵐ a ∂P, ∀ (z : Vec d) (R : ℝ), 1 ≤ R → ∀ p q : Vec d,
     Integrable fun x => heatKernel z R x *
       j1Integrand a p q (correctedField S a (homogenizedSlope S.homogenized p q)) x
 
@@ -287,7 +288,7 @@ theorem addJ1_of_trialGapEstimate [IsProbabilityMeasure P] (S : HomogenizationDa
   refine hA4.of_le_ae hmY ?_
   filter_upwards [hspan, htrial] with a hsa hta
   obtain ⟨h0, h1⟩ := additivityDefect_le_trialGap S a hsa z hr0 hrR p q
-    (hJy a).aestronglyMeasurable (hta z R hR p q)
+    (hJy a).aestronglyMeasurable (hta z R (hr.trans hrR.le) p q)
   rw [abs_sub_comm, abs_of_nonneg h0]
   exact h1
 
