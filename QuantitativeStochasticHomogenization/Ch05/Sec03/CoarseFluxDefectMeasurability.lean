@@ -396,4 +396,133 @@ theorem defectAt_nonneg (ξ : Vec d) : 0 ≤ defectAt S z r A a ξ :=
 
 end Supremum
 
+/-! ## The supremum over a dense sequence -/
+
+section Dense
+
+variable {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P) (A : Mat d) (z : Vec d)
+  (r : ℝ)
+
+/-- The supremum of the defect over the points of a dense sequence of `ℝ^d` in the open
+ellipsoid of the Gram energy. -/
+def defectSup (a : CoefficientField d Λ) : ℝ :=
+  ⨆ n : ℕ, if gramEnergyAt S z r a (TopologicalSpace.denseSeq (Vec d) n) < 1 then
+    defectAt S z r A a (TopologicalSpace.denseSeq (Vec d) n) else 0
+
+theorem aemeasurable_defectSup
+    (hJm : ∀ p q : Vec d, AEMeasurable (fun a => J1Heat a z r p q) P) :
+    AEMeasurable (defectSup S A z r) P := by
+  refine AEMeasurable.iSup fun n => ?_
+  have hset : MeasurableSet {a : CoefficientField d Λ |
+      gramEnergyAt S z r a (TopologicalSpace.denseSeq (Vec d) n) < 1} :=
+    measurableSet_lt (measurable_gramEnergyAt S z r _) measurable_const
+  refine ((aemeasurable_defectAt S z r A hJm (TopologicalSpace.denseSeq (Vec d) n)).indicator
+    hset).congr
+    (Eventually.of_forall fun a => ?_)
+  simp only [Set.indicator_apply, Set.mem_ofPred_eq]
+
+theorem sSup_image_eq_defectSup {a : CoefficientField d Λ} (hr : 0 < r)
+    (hint : ∀ i : Fin d, Integrable (fun x => heatKernel z r x *
+      euclideanSq (unitVector i + (S.corrector (unitVector i)).grad a x))) :
+    sSup (defectAt S z r A a '' {ξ | gramEnergyAt S z r a ξ ≤ 1}) = defectSup S A z r a := by
+  unfold defectSup
+  set f := defectAt S z r A a with hf
+  set E := gramEnergyAt S z r a with hE
+  set s := TopologicalSpace.denseSeq (Vec d) with hs
+  set B := |Λ| + ‖Matrix.toEuclideanCLM (𝕜 := ℝ) (A + coarsenedCoefficient a A z r)‖ with hB
+  have hfB : ∀ ξ, E ξ ≤ 1 → f ξ ≤ B := fun ξ hξ =>
+    defectAt_le_of_gramEnergyAt_le S A z hr hint ξ hξ
+  have hf0 : f 0 = 0 := defectAt_zero S A z
+  have hE0 : E 0 = 0 := gramEnergyAt_zero S z
+  have hB0 : 0 ≤ B := by
+    have := hfB 0 (by rw [hE0]; norm_num)
+    rwa [hf0] at this
+  have hgB : ∀ n, (if E (s n) < 1 then f (s n) else 0) ≤ B := fun n => by
+    split_ifs with h
+    · exact hfB _ h.le
+    · exact hB0
+  have bddImg : BddAbove (f '' {ξ | E ξ ≤ 1}) := ⟨B, by rintro _ ⟨ξ, hξ, rfl⟩; exact hfB ξ hξ⟩
+  have bddRng : BddAbove (Set.range fun n => if E (s n) < 1 then f (s n) else 0) :=
+    ⟨B, by rintro _ ⟨n, rfl⟩; exact hgB n⟩
+  have mem0 : (0 : ℝ) ∈ f '' {ξ | E ξ ≤ 1} := ⟨0, by simp [hE0], hf0⟩
+  have hsup0 : (0 : ℝ) ≤ ⨆ n, if E (s n) < 1 then f (s n) else 0 := by
+    refine le_ciSup_of_le bddRng 0 ?_
+    split_ifs
+    · exact defectAt_nonneg S A z _
+    · exact le_rfl
+  refine le_antisymm (csSup_le ⟨0, mem0⟩ ?_) (ciSup_le fun n => ?_)
+  · rintro _ ⟨ξ, hξ, rfl⟩
+    refine le_of_forall_pos_lt_add fun δ hδ => ?_
+    have hfξ : 0 ≤ f ξ := defectAt_nonneg S A z ξ
+    set c := δ / (2 * (f ξ + δ)) with hc
+    have hc0 : 0 < c := by positivity
+    have hc1 : c ≤ 1 / 2 := by
+      rw [hc, div_le_iff₀ (by positivity)]
+      linarith
+    have hcf : c * f ξ < δ / 2 := by
+      rw [hc, div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+      nlinarith
+    set t := 1 - c with ht
+    have ht0 : 0 < t := by linarith
+    have ht1 : t < 1 := by linarith
+    have hEt : E (t • ξ) < 1 := by
+      rw [hE, gramEnergyAt_smul, ← hE]
+      have ht2 : t ^ 2 < 1 := by nlinarith
+      have hEξ : t ^ 2 * E ξ ≤ t ^ 2 * 1 := mul_le_mul_of_nonneg_left hξ (sq_nonneg t)
+      linarith
+    have hft : f (t • ξ) = t * f ξ := by
+      rw [hf, defectAt_smul, abs_of_pos ht0]
+    have hU : IsOpen ({η | E η < 1} ∩ {η | f (t • ξ) - δ / 2 < f η}) :=
+      (isOpen_lt (continuous_gramEnergyAt S z r a) continuous_const).inter
+        (isOpen_lt continuous_const (continuous_defectAt S z r A a))
+    have hmem : f (t • ξ) - δ / 2 < f (t • ξ) := by linarith
+    obtain ⟨n, hn1, hn2⟩ := (TopologicalSpace.denseRange_denseSeq (Vec d)).exists_mem_open hU
+      ⟨t • ξ, hEt, hmem⟩
+    have hn1' : E (s n) < 1 := hn1
+    have hg : (if E (s n) < 1 then f (s n) else 0) = f (s n) := by simp [hn1']
+    have hle := le_ciSup bddRng n
+    simp only [hg] at hle
+    have : f ξ - δ < f (s n) := by
+      have h1 : f (t • ξ) - δ / 2 < f (s n) := hn2
+      rw [hft] at h1
+      have h2 : t * f ξ = f ξ - c * f ξ := by rw [ht]; ring
+      linarith
+    linarith
+  · split_ifs with h
+    · exact le_csSup bddImg ⟨s n, h.le, rfl⟩
+    · exact le_csSup bddImg mem0
+
+end Dense
+
+/-- **The flux defect of (5.64) is almost surely measurable** on the event of (4.12) by the
+corrected fields with finite Gaussian energy. -/
+theorem aemeasurable_coarseFluxDefect {P : Measure (CoefficientField d Λ)}
+    (S : HomogenizationData P) (A : Mat d) (z : Vec d) {r : ℝ} (hr : 0 < r)
+    (hJm : ∀ p q : Vec d, AEMeasurable (fun a => J1Heat a z r p q) P)
+    (hcorr : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (hen : HasGaussianCorrectorEnergy S) :
+    AEMeasurable (fun a => coarseFluxDefect a A z r) P := by
+  refine (aemeasurable_defectSup S A z r hJm).congr ?_
+  filter_upwards [hcorr, hen] with a h1 h2
+  have hint := fun i => h2 i z r hr
+  rw [coarseFluxDefect_eq_sSup_image S A z hr hint h1, sSup_image_eq_defectSup S A z r hr hint]
+
+/-- **`QSH.Frozen.coarsenedCoefficientEstimates`** from (5.58) with a constant `C₀(d, Λ)`, the
+measurability of `J₁`, (4.12) by the corrected fields and the finite Gaussian energy of the
+corrected coordinates. -/
+theorem coarsenedCoefficientEstimates_of_corrected_energy
+    (h558 : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C₀ : ℝ, 0 < C₀ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ S : HomogenizationData P,
+        EnergyEstimate P S.homogenized C₀)
+    (hJm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        AEMeasurable (fun a => J1Heat a z r p q) P)
+    (hcorr : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ S : HomogenizationData P, ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hen : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ S : HomogenizationData P, HasGaussianCorrectorEnergy S) :
+    QSH.Frozen.coarsenedCoefficientEstimates :=
+  coarsenedCoefficientEstimates_of_corrected h558 hJm hcorr hen
+    fun d hd Λ hΛ P hP S z r hr => aemeasurable_coarseFluxDefect S S.homogenized z
+      (by linarith) (hJm d hd Λ hΛ P hP z r hr) (hcorr d hd Λ hΛ P hP S) (hen d hd Λ hΛ P hP S)
+
 end QSH

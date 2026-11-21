@@ -102,7 +102,7 @@ theorem coarsenedCoefficientEstimates_of_corrected
     (hen : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
       LawHypotheses P → ∀ S : HomogenizationData P, HasGaussianCorrectorEnergy S)
     (hDm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
-      LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ),
+      LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
         AEMeasurable (fun a => coarseFluxDefect a S.homogenized z r) P) :
     QSH.Frozen.coarsenedCoefficientEstimates := by
   refine coarsenedCoefficientEstimates_of h558 hJm ?_ hDm

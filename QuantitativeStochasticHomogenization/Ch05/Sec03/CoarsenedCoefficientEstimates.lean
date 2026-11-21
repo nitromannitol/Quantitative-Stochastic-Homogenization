@@ -202,7 +202,7 @@ theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
     (hJm : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
       AEMeasurable (fun a => J1Heat a z r p q) P)
     (hdim : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
-    (hDm : ∀ (z : Vec d) (r : ℝ), AEMeasurable (fun a => coarseFluxDefect a A z r) P)
+    (hDm : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → AEMeasurable (fun a => coarseFluxDefect a A z r) P)
     (z : Vec d) (r : ℝ) (hr : 1 ≤ r) :
     AEOsBound P (fun a => matrixSize (coarsenedCoefficient a A z r)) 1
         (lemma524Constant d Λ C₀ * r ^ (-(d : ℝ) / 2)) ∧
@@ -309,7 +309,7 @@ theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
       have : 0 < Real.sqrt Λ := Real.sqrt_pos.mpr (by linarith)
       have : 0 < lemma524Scale d Λ := ht0
       positivity
-    have h2 := ((hY.sq (Eventually.of_forall hY0)).const_mul hK0).of_le_ae (hDm z r)
+    have h2 := ((hY.sq (Eventually.of_forall hY0)).const_mul hK0).of_le_ae (hDm z r hr)
       (hdet.mono fun a ha => ha.2)
     refine h2.mono_scale ?_
     calc lemma524Quadratic d Λ * (5 * d ^ 2 * C₀ * r ^ (-(d : ℝ) / 2)) ^ 2
@@ -331,7 +331,7 @@ theorem coarsenedCoefficientEstimates_of
       LawHypotheses P → HomogenizationData P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
         ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
     (hDm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
-      LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ),
+      LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
         AEMeasurable (fun a => coarseFluxDefect a S.homogenized z r) P) :
     QSH.Frozen.coarsenedCoefficientEstimates := by
   intro d hd Λ hΛ
