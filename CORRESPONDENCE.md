@@ -129,8 +129,31 @@ of each module names the source files and commits.
   gradient and flux of `eⱼ + ∇φ_{eⱼ}` are combinations, with coefficients bounded by
   `2 √d (Λ + 1)`, of the averaged gradients and fluxes of the maximizers at the loads `(0, eᵢ/2)`,
   which are polarization vectors of `J₁` (`integral_maximizer_eq_polarizationVector`,
-  `integral_flux_maximizer_eq_fluxPolarizationVector`). The probabilistic step of Lemma 4.13 is
-  not formalized.
+  `integral_flux_maximizer_eq_fluxPolarizationVector`).
+- **Lemma 4.13.** `lemma413` (`Ch04/Sec03/Lemma413Statement.lean`) proves (4.34) for the corrected
+  coordinates with the Gaussian masks, `|∫ Φ_{z,r} (a - ā)(eⱼ + ∇φ_{eⱼ})| ≤ O_s(C r^{-α})`
+  (`CommutatorEstimate`), under `Fluc(s, α)` with `α ≤ d/2`, from Proposition 3.21 and the energy
+  bound below the scale at one exponent `τ ≥ s d/2`, the expectations of the averages at the rate
+  `r^{-α}` (`ExpectedAveragesEstimate`) and the measurability of the averages, which are
+  hypotheses. The proof is not the book's: the polarization vectors `Bᵢ = 2 m(0, eᵢ/2)` and
+  `Cᵢ = 2 f(0, eᵢ/2)` fluctuate by `O_s(C r^{-α})` (`polarization_pair_fluctuation`); the mean of
+  `Bᵢ` is close to `ā⁻¹eᵢ` at large scales (`mean_polarization_near_inverse`), so the matrix `D₀`
+  with `D₀ E[Bᵢ] = E[Cᵢ]` exists and is bounded (`exists_matching_matrix`); the commutator against
+  `D₀` is bounded pointwise by the fluctuations and, at bad scales, by the energy
+  (`commutator_matching_le`); the expectations of the averages give `|D₀ - ā| ≤ C r^{-α}`
+  (`matching_matrix_near`, `commutator_assembly`); below the threshold the energy bound suffices
+  (`commutator_small`). `commutatorEstimate_of_flucJ1` and `estimate558_of_commutator` insert it in
+  the proof of (5.58).
+- **The linear estimate (Step 1 of the route of Proposition 4.10).** `HeatIdentityBound` records,
+  as a hypothesis, the bound that the heat identity (H) of the route gives for `r ≥ 2`:
+  `|∫ Φ_{z,r} (eᵢ + ∇φ_{eᵢ}) - eᵢ| ≤ ∫_{u > r²/2} ∫ k_r(u, x) |commutator at (z - x, √u)| dx du`
+  almost surely, for a positive kernel with `∫ k_r(u, ·) ≤ C_k/u`. From it and Lemma 4.13,
+  Lemma A.4 on the product of the time and space measures gives
+  `|∫ Φ_{z,r} (eᵢ + ∇φ_{eᵢ}) - eᵢ| ≤ O_s(C r^{-α})` (`gradient_sub_osBound_of_heat`,
+  `gradient_sub_osBound`), and linearity in the slope gives `LinearAverageEstimate`
+  (`linearAverageEstimate_of_heat`). `estimate558_of_heatIdentity` proves (5.58) with this
+  hypothesis in place of the linear estimate. The identity (H) itself (anisotropic Gaussians,
+  integration by parts against the corrector, the limit `T → ∞`) is not formalized.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
