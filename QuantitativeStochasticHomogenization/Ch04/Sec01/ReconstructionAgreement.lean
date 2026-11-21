@@ -6,13 +6,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch04.Sec01.QuadraticEntryBounds
 
 /-!
-# Agreement of raw coefficients with their measurable reconstruction
+# Square integrability of coefficient entries
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Environment/AKMReconstructionAgreement.lean`.
 
-11). The common spatial-test
-argument applies to bounded coefficient entries, although raw point
-evaluation is not measurable in the coefficient parameter.
+The entries of a coefficient field satisfying (0.6) are square integrable on compact sets.
 -/
 
 open MeasureTheory

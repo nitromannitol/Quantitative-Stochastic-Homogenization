@@ -5,22 +5,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.EuclideanNormToLp
 import QuantitativeStochasticHomogenization.Ch04.Sec01.EuclideanLipschitz
 
 /-!
-# Pointwise drift bounds under the reduced reference law
+# Matrix entries from quadratic form bounds
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Mobility/DriftBoundPointwise.lean`.
 
-For a coefficient pair `w`, the column divergence
-`cdiv i w = ∑ⱼ ∂ⱼ (w.1 · )_{ji}(0)` is the classical divergence of the `i`-th column at the origin.
-For the reduced reference law `reducedReferenceLaw Q` this file proves:
-
-* `reduced_entry_bound_ae`: the entry `(w.1 0)_{p i}` is bounded by `sourceReducedBound Λ₀`;
-* `measurable_cdiv`: the column divergence is Borel measurable;
-* `ae_differentiableAt_zero_reducedLaw`: the coefficient is differentiable at the origin, almost
-  surely;
-* `ae_abs_cdiv_le_reduced`: `|cdiv i w| ≤ d · reducedLipschitzConstant Λ₀`, almost surely.
-
-Entries of a continuous matrix-valued field are read through `Continuous.matrix_elem`, and
-differentiability of a matrix-valued map through `differentiableAt_pi`.
+Polarization of `ξ ↦ ξ · M ξ` and the bound of the entries of a matrix by the bounds of its quadratic form on unit vectors.
 -/
 
 open MeasureTheory Filter

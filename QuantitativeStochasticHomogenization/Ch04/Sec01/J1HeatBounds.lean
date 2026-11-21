@@ -9,9 +9,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch03.Sec04.HeatKernelConvolution
 
 /-!
-# J1 Heat Bounds
+# Deterministic bounds for J₁ at the heat kernel masks
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Calculus/C1CoarseGaussianEnergyBounds.lean`.
+
+For every coefficient field, `0 ≤ J₁(Φ_{z,r}, p, q) ≤ Λ|p|² + |q|²`, (4.8), with the strict upper cuts of `J₁` described by the elements of `A₁`. The bounds hold for any nonnegative integrable mask, with the factor `∫ Ψ`; the heat kernel has mass one.
 -/
 
 open MeasureTheory Filter Set

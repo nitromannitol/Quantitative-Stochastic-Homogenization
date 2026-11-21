@@ -16,9 +16,11 @@ import QuantitativeStochasticHomogenization.Ch04.Sec01.AnalyticUpperCuts
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatBounds
 
 /-!
-# J1 Heat Measurability
+# Measurability of J₁ at the heat kernel masks
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Calculus/C1CoarseGaussianEnergyMeasurability.lean`.
+
+For every finite measure on coefficient fields, `a ↦ J₁(Φ_{z,r}, p, q)` is almost everywhere strongly measurable, (4.8). The coefficient field is encoded by its entries in `L²` of the closed balls of integer radius, a Polish space; the set of pairs of a coefficient field and an element of `A₁` whose objective exceeds `t` is the projection of a Borel set, so the strict upper cuts `{t < J₁}` are analytic, and analytic sets are universally measurable.
 -/
 
 open MeasureTheory Filter
@@ -1268,6 +1270,8 @@ private theorem coarseGaussian_hobjective {Ω : Type} [MeasurableSpace Ω] {d : 
         (hk.comp measurable_snd).mul (hF.measurable.comp (ha.prodMk hg))
       exact hm.stronglyMeasurable.integral_prod_right'.measurable
 
+/-- **Measurability of `J₁(Φ_{z,r}, p, q)`.** For every finite measure on coefficient fields,
+`a ↦ J₁(Φ_{z,r}, p, q)` is almost everywhere strongly measurable. -/
 theorem aestronglyMeasurable_J1Heat {d : ℕ} {K : ℝ} (hK : 0 ≤ K)
     (P : Measure (CoefficientField d K)) [IsFiniteMeasure P]
     (z : Vec d) (r : ℝ) (hr : 0 < r) (p q : Vec d) :
@@ -1397,7 +1401,7 @@ theorem aestronglyMeasurable_J1Heat {d : ℕ} {K : ℝ} (hK : 0 ≤ K)
       (le_of_not_gt fun h => (lt_irrefl _ ((hlt _).mp h)))
       (le_of_not_gt fun h => (lt_irrefl _ ((hlt _).mpr h)))
   have hVm : AEStronglyMeasurable V (Measure.map C P) :=
-    coarse_analytic_upperCuts_aestronglyMeasurable (Measure.map C P) V hVcuts
+    aestronglyMeasurable_of_analyticSet_upperCuts (Measure.map C P) V hVcuts
   have hcomp := hVm.comp_measurable hC
   exact hcomp.congr (Filter.Eventually.of_forall hVeq)
 

@@ -3,9 +3,11 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 
 /-!
-# Analytic Upper Cuts
+# Almost everywhere measurability from analytic upper cuts
 
 Moved from einstein-relation-lean c97689e `EinsteinFull/Calculus/C1CoarseAnalyticUpperCuts.lean`.
+
+A real function on a Polish space whose strict upper level sets `{t < J}` are analytic is almost everywhere strongly measurable for every finite Borel measure, since analytic sets are universally measurable.
 -/
 
 open MeasureTheory Filter Set
@@ -16,9 +18,9 @@ noncomputable section
 
 namespace QSH
 
-theorem coarse_analytic_upperCuts_aestronglyMeasurable :
-
-∀ {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+/-- A function with analytic strict upper level sets is almost everywhere strongly measurable. -/
+theorem aestronglyMeasurable_of_analyticSet_upperCuts :
+    ∀ {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) [IsFiniteMeasure μ] (J : X → ℝ),
     (∀ t : ℝ, AnalyticSet {x | t < J x}) → AEStronglyMeasurable J μ := by
   intro X _ _ _ μ _ J hJ

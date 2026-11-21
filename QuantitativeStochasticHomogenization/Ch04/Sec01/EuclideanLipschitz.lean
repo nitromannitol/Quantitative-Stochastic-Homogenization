@@ -2,20 +2,11 @@ import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 
 /-!
-# Euclidean Lipschitz fields and their actual almost-everywhere derivatives
+# The Euclidean norm and the sup norm
 
 Moved from einstein-relation-lean c97689e `vendor/EinsteinRelation/EinsteinRelation/Environment/EuclideanLipschitz.lean`.
 
-Source the application–80,194–207,240–252`. The source Lipschitz bounds use the
-explicit Euclidean norm. A proved dimension-dependent comparison transports those
-bounds to the ambient coordinate topology, solely to apply pinned Rademacher.
-The original matrix operator bound controls each actual entry. Differentiability
-of the literal physical and reduced fields is then proved Lebesgue-almost
-everywhere, and exercised under the actual environment law.
-
-No norm instance, coefficient symmetry or dimension assumption is changed.
-This is the classical almost-everywhere side of the generator bridge; the weak
-representative/occupation and horizontal-generator identifications remain separate.
+The Euclidean norm on `Vec d` is at most `√d` times the sup norm.
 -/
 
 open MeasureTheory
