@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "Lean 4 formalization of Quantitative Stochastic Homogenization and Large-Scale Regularity"
+type: software
+repository-code: "https://github.com/nitromannitol/Quantitative-Stochastic-Homogenization"
+abstract: >-
+  A Lean 4 and Mathlib formalization, in progress, of the book Quantitative Stochastic
+  Homogenization and Large-Scale Regularity by Armstrong, Kuusi and Mourrat: one module per section
+  of the book, and a roadmap listing every numbered result with its status.
+authors:
+  - family-names: Bou-Rabee
+    given-names: Ahmed
+keywords:
+  - Lean
+  - mathlib
+  - formal verification
+  - stochastic homogenization
+  - large-scale regularity
+references:
+  - type: book
+    title: "Quantitative Stochastic Homogenization and Large-Scale Regularity"
+    authors:
+      - family-names: Armstrong
+        given-names: Scott
+      - family-names: Kuusi
+        given-names: Tuomo
+      - family-names: Mourrat
+        given-names: Jean-Christophe
+    year: 2019
+    publisher:
+      name: Springer
+    collection-title: "Grundlehren der mathematischen Wissenschaften"
+    volume: 352
+    isbn: "978-3-030-15544-5"
+    doi: "10.1007/978-3-030-15545-2"
+    url: "https://arxiv.org/abs/1705.05300"
+    notes: "The book formalized by this repository (arXiv:1705.05300)."
