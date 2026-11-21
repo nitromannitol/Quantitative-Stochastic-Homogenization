@@ -233,7 +233,7 @@ theorem inv_sqrt_two_mul_pow_le {s : ℝ} (hs : 0 < s) (k : ℕ) :
 
 /-- **The per-scale estimate from the Gaussian energy and the Gaussian averages**: if the Gaussian
 `L²` norm of `F` is `O_1(C₁)` and the Gaussian averages `A_t(F)(u)` are `O_1(C₂ ε^{d/2} t^{-d/4})` at
-every center for `ε²/2 ≤ t ≤ 1/2`, then `F` satisfies the per-scale estimate. -/
+every center for `ε² ≤ t ≤ 1/2`, then `F` satisfies the per-scale estimate. -/
 theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
     [IsProbabilityMeasure P] (hd : 1 ≤ d) (n : ℕ) {F : Ω → Vec d → ℝ}
     (hFm : Measurable (Function.uncurry F)) {ε C₁ C₂ : ℝ} (hε : 0 < ε) (hC₁ : 0 < C₁)
@@ -243,10 +243,10 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
     {R : Ω → ℝ} (hRo : OsBound P R 1 C₁)
     (hR : ∀ᵐ a ∂P, (∫⁻ x, ‖F a x‖ₑ ^ (2 : ℝ) *
       ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a))
-    (hA : ∀ t : ℝ, ε ^ 2 / 2 ≤ t → t ≤ 1 / 2 → ∀ u,
+    (hA : ∀ t : ℝ, ε ^ 2 ≤ t → t ≤ 1 / 2 → ∀ u,
       OsBound P (fun a => |heatAverage t (F a) u|) 1 (C₂ * ε ^ ((d : ℝ) / 2) * t ^ (-(d : ℝ) / 4))) :
     HeatScaleEstimate P n F
-      (heatScaleCoefficient d n * (C₁ + gaussSquareConstant d * C₂ * 2 ^ ((d : ℝ) / 4))) ε := by
+      (heatScaleCoefficient d n * ((C₁ + gaussSquareConstant d * C₂) * 2 ^ ((d : ℝ) / 4))) ε := by
   set H := heatScaleCoefficient d n with hH
   set K := gaussSquareConstant d with hKdef
   have hlog : 0 < Real.log 2 := Real.log_pos one_lt_two
@@ -266,7 +266,7 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
         ((measurable_heatAverage_uncurry hFm).abs.pow_const _)
     exact h.measurable
   set Q : ∀ k : ℕ, (Fin k → Fin d) → ℝ → Ω → ℝ := fun k w s a =>
-    if s ≤ ε ^ 2 then (youngConstant (countIndex w) + 1) *
+    if s ≤ 2 * ε ^ 2 then (youngConstant (countIndex w) + 1) *
       (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val) * max (R a) 0
     else (youngConstant (countIndex w) + 1) *
       (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val) * V s a ^ (1 / 2 : ℝ) with hQdef
@@ -300,7 +300,7 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
       congr 1
       ring
     have hKC : 0 ≤ K * C₂ * 2 ^ ((d : ℝ) / 4) := by positivity
-    by_cases hsε : s ≤ ε ^ 2
+    by_cases hsε : s ≤ 2 * ε ^ 2
     · have hQs : Q k w s = fun a => ((youngConstant (countIndex w) + 1) *
           (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val)) * max (R a) 0 := by
         funext a
@@ -312,25 +312,33 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
       refine (hRo.max_zero.const_mul hq).mono_scale ?_
       rw [hk']
       have h1 : (Real.sqrt (2 * s))⁻¹ ^ k ≤ s ^ (-(k : ℝ) / 2) := inv_sqrt_two_mul_pow_le hs0 k
-      have h2 : 1 ≤ s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := by
+      have h2 : 1 ≤ 2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by
         have hd0 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
-        have h4 : (ε ^ 2) ^ (-(d : ℝ) / 4) ≤ s ^ (-(d : ℝ) / 4) :=
+        have h4 : (2 * ε ^ 2) ^ (-(d : ℝ) / 4) ≤ s ^ (-(d : ℝ) / 4) :=
           Real.rpow_le_rpow_of_nonpos hs0 hsε (by linarith)
-        have h3 : (ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) = 1 := by
-          rw [← Real.rpow_natCast, ← Real.rpow_mul hε.le, ← Real.rpow_add hε,
+        have h3 : 2 ^ ((d : ℝ) / 4) * ((2 * ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) = 1 := by
+          rw [Real.mul_rpow (by norm_num) (by positivity), ← Real.rpow_natCast ε 2,
+            ← Real.rpow_mul hε.le, ← mul_assoc, ← mul_assoc, ← Real.rpow_add (by norm_num),
+            mul_assoc, ← Real.rpow_add hε,
+            show (d : ℝ) / 4 + -(d : ℝ) / 4 = 0 by ring,
             show ((2 : ℕ) : ℝ) * (-(d : ℝ) / 4) + (d : ℝ) / 2 = 0 by push_cast; ring,
-            Real.rpow_zero]
-        calc (1 : ℝ) = (ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := h3.symm
-          _ ≤ s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := by gcongr
+            Real.rpow_zero, Real.rpow_zero, one_mul]
+        calc (1 : ℝ) = 2 ^ ((d : ℝ) / 4) * ((2 * ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) :=
+              h3.symm
+          _ ≤ 2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by gcongr
       have hq0 : 0 ≤ (Real.sqrt (2 * s))⁻¹ ^ k := by positivity
       calc (youngConstant (countIndex w) + 1) * (Real.sqrt (2 * s))⁻¹ ^ k * C₁
           ≤ H * s ^ (-(k : ℝ) / 2) * C₁ := by gcongr
-        _ ≤ H * s ^ (-(k : ℝ) / 2) * C₁ * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) :=
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * C₁ *
+            (2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) :=
           le_mul_of_one_le_right (by positivity) h2
-        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂ * 2 ^ ((d : ℝ) / 4)) *
-            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by gcongr; linarith
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂) *
+            (2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) := by
+            gcongr
+            have : 0 ≤ K * C₂ := by positivity
+            linarith
         _ = _ := by rw [hsplit]; ring
-    · have hsε' : ε ^ 2 < s := lt_of_not_ge hsε
+    · have hsε' : 2 * ε ^ 2 < s := lt_of_not_ge hsε
       have hQl : Q k w s = fun a => ((youngConstant (countIndex w) + 1) *
           (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val)) * V s a ^ (1 / 2 : ℝ) := by
         funext a
@@ -360,14 +368,16 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
           ≤ H * s ^ (-(k : ℝ) / 2) *
             (K * (C₂ * ε ^ ((d : ℝ) / 2) * (s ^ (-(d : ℝ) / 4) * 2 ^ ((d : ℝ) / 4)))) := by
             gcongr
-        _ = H * s ^ (-(k : ℝ) / 2) * (K * C₂ * 2 ^ ((d : ℝ) / 4)) *
-            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by ring
-        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂ * 2 ^ ((d : ℝ) / 4)) *
-            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by gcongr; linarith
+        _ = H * s ^ (-(k : ℝ) / 2) * (K * C₂) *
+            (2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) := by ring
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂) *
+            (2 ^ ((d : ℝ) / 4) * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) := by
+            gcongr
+            linarith
         _ = _ := by rw [hsplit]; ring
   · have hs0 : 0 < s := hs.1
     have hle : youngConstant (countIndex w) ≤ youngConstant (countIndex w) + 1 := by linarith
-    by_cases hsε : s ≤ ε ^ 2
+    by_cases hsε : s ≤ 2 * ε ^ 2
     · have h := ae_eLpNorm_heatDerivativeAverage_le_small (P := P) hFm (countIndex w)
         (youngConstant_nonneg _) (fun G hG => youngConstant_spec _ hs0 hs.2 G hG) hR
       filter_upwards [h] with a ha
@@ -375,7 +385,7 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
       simp only [hQdef, hsε, ↓reduceIte]
       have hq0 : 0 ≤ (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val) := by positivity
       exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hle hq0) (le_max_right _ _)
-    · have hsε' : ε ^ 2 < s := lt_of_not_ge hsε
+    · have hsε' : 2 * ε ^ 2 < s := lt_of_not_ge hsε
       have hs2 : s / 2 ≤ 1 := by linarith [hs.2]
       have hθA : 0 < C₂ * ε ^ ((d : ℝ) / 2) * (s / 2) ^ (-(d : ℝ) / 4) :=
         mul_pos (mul_pos hC₂ (Real.rpow_pos_of_pos hε _)) (Real.rpow_pos_of_pos (half_pos hs0) _)
