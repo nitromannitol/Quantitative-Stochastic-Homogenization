@@ -100,4 +100,79 @@ theorem gaussianEnergyEstimate_of_vector {Ω : Type*} [MeasurableSpace Ω] {P : 
           rw [ENNReal.ofReal_add (mul_nonneg (Real.sqrt_nonneg _) (le_max_right _ _)) hK₀pos.le,
             ENNReal.ofReal_mul (Real.sqrt_nonneg _)]
 
+theorem sq_apply_le_euclideanSq (v : Vec d) (j : Fin d) : v j ^ 2 ≤ euclideanSq v := by
+  have h := abs_apply_le_euclideanNorm v j
+  have h0 : 0 ≤ euclideanSq v := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq v)
+  calc v j ^ 2 = |v j| ^ 2 := (sq_abs _).symm
+    _ ≤ euclideanNorm v ^ 2 := pow_le_pow_left₀ (abs_nonneg _) h 2
+    _ = euclideanSq v := Real.sq_sqrt h0
+
+/-- **(4.126) from (4.2), (4.3), the bound of `|ā e|` and the Gaussian energy estimate of the
+corrected field** `e + ∇φ_e(·/ε)` at the unit scale. -/
+theorem negativeSobolevCorrector_of_corrector_energy
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C C₀ C₁ : ℝ, 0 < C ∧ 0 < C₀ ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, ∀ e : Vec d, euclideanNorm e < 1 →
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • (S.corrector e).grad a y)) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • (S.corrector e).grad a y))
+              1 (C * r ^ (-(d : ℝ) / 2))) ∧
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) 1
+                (C * r ^ (-(d : ℝ) / 2))) ∧
+          euclideanNorm (S.homogenized.mulVec e) ≤ C₀ ∧
+          ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∃ R : CoefficientField d Λ → ℝ, OsBound P R 1 C₁ ∧
+            ∀ᵐ a ∂P, vectorGaussianEnergy (fun x => e + (S.corrector e).grad a (ε⁻¹ • x)) ^
+              (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_flux_averages fun d hd Λ hΛ => ?_
+  obtain ⟨C, C₀, C₁, hC, hC₀, hC₁, hP⟩ := h d hd Λ hΛ
+  have hd1 : 1 ≤ d := by omega
+  set A : ℝ := 2 * Λ ^ 2 + 2 with hAdef
+  set c : ℝ := 2 + 2 * C₀ ^ 2 with hcdef
+  have hA : 0 < A := by positivity
+  have hc : 0 ≤ c := by positivity
+  have hlog : 0 < Real.log 2 := Real.log_pos one_lt_two
+  have hW0 : 0 ≤ ∫ x, gaussWeight (d := d) x := integral_nonneg fun x => (gaussWeight_pos x).le
+  refine ⟨C, Real.sqrt A * C₁ + (Real.sqrt c * Real.sqrt (∫ x, gaussWeight (d := d) x) + 1) /
+    Real.log 2 ^ (1 : ℝ)⁻¹, hC, by positivity, fun P hPl => ?_⟩
+  have := hPl.1
+  obtain ⟨S, hS⟩ := hP P hPl
+  refine ⟨S, fun e he => ?_⟩
+  obtain ⟨hE2, hE3, hā, hen⟩ := hS e he
+  refine ⟨hE2, hE3, fun ε hε hε2 j => ?_⟩
+  obtain ⟨R, hRo, hR⟩ := hen ε hε hε2
+  have he1 : euclideanSq e ≤ 1 := by
+    have h0 : 0 ≤ euclideanSq e := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq e)
+    have h1 : euclideanNorm e ^ 2 = euclideanSq e := Real.sq_sqrt h0
+    have h2 : 0 ≤ euclideanNorm e := Real.sqrt_nonneg _
+    nlinarith
+  constructor
+  · refine gaussianEnergyEstimate_of_vector hd1 hA hc (fun a x => ?_) hRo hR
+    set ξ := e + (S.corrector e).grad a (ε⁻¹ • x) with hξ
+    have h1 : (S.corrector e).grad a (ε⁻¹ • x) j = ξ j - e j := by
+      rw [hξ, Pi.add_apply]
+      ring
+    rw [h1]
+    have h2 := sq_apply_le_euclideanSq ξ j
+    have h3 := sq_apply_le_euclideanSq e j
+    have hξ0 : 0 ≤ euclideanSq ξ := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq ξ)
+    nlinarith [sq_nonneg (ξ j + e j), sq_nonneg Λ, sq_nonneg C₀]
+  · refine gaussianEnergyEstimate_of_vector hd1 hA hc (fun a x => ?_) hRo hR
+    set ξ := e + (S.corrector e).grad a (ε⁻¹ • x) with hξ
+    have h1 : ((a (ε⁻¹ • x)).mulVec ξ - S.homogenized.mulVec e) j =
+        (a (ε⁻¹ • x)).mulVec ξ j - S.homogenized.mulVec e j := rfl
+    rw [h1]
+    have h2 := sq_apply_le_euclideanSq ((a (ε⁻¹ • x)).mulVec ξ) j
+    have h3 := euclideanSq_mulVec_le a (ε⁻¹ • x) ξ
+    have h4 : (S.homogenized.mulVec e j) ^ 2 ≤ C₀ ^ 2 := by
+      have h5 := (abs_apply_le_euclideanNorm (S.homogenized.mulVec e) j).trans hā
+      rw [← sq_abs]
+      exact pow_le_pow_left₀ (abs_nonneg _) h5 2
+    have hξ0 : 0 ≤ euclideanSq ξ := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq ξ)
+    nlinarith [sq_nonneg ((a (ε⁻¹ • x)).mulVec ξ j + S.homogenized.mulVec e j)]
+
 end QSH
