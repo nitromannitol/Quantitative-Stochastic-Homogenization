@@ -294,4 +294,143 @@ def HarmonicA1.ballGrad {a : CoefficientField d Λ} (w : HarmonicA1 a) (z : Vec 
     (k : Fin d) : Lp ℝ 2 (ballMeasure z T) :=
   (w.memLp_grad_ball (z := z) (T := T) k).toLp _
 
+theorem ballGrad_zero (a : CoefficientField d Λ) (k : Fin d) :
+    (zeroHarmonicA1' a).ballGrad z T k = 0 := by
+  refine Lp.ext ?_
+  filter_upwards [((zeroHarmonicA1' a).memLp_grad_ball (z := z) (T := T) k).coeFn_toLp,
+    Lp.coeFn_zero ℝ 2 (ballMeasure z T)] with x h1 h2
+  rw [HarmonicA1.ballGrad, h1, h2]
+  rfl
+
+/-! ## Lemma 4.22 -/
+
+/-- Suprema of two pointwise `τ`-close real families differ by at most `τ`. -/
+theorem abs_sSup_range_sub_le {ι : Type*} [Nonempty ι] {f g : ι → ℝ}
+    (hg : BddAbove (Set.range g)) {τ : ℝ} (h : ∀ i, |f i - g i| ≤ τ) :
+    |sSup (Set.range f) - sSup (Set.range g)| ≤ τ := by
+  have hf : BddAbove (Set.range f) := by
+    obtain ⟨M, hM⟩ := hg
+    refine ⟨M + τ, ?_⟩
+    rintro _ ⟨i, rfl⟩
+    have := hM ⟨i, rfl⟩
+    linarith [(abs_le.1 (h i)).2]
+  rw [abs_sub_le_iff]
+  constructor
+  · rw [sub_le_iff_le_add]
+    refine csSup_le (Set.range_nonempty f) ?_
+    rintro _ ⟨i, rfl⟩
+    have := le_csSup hg ⟨i, rfl⟩
+    linarith [(abs_le.1 (h i)).2]
+  · rw [sub_le_iff_le_add]
+    refine csSup_le (Set.range_nonempty g) ?_
+    rintro _ ⟨i, rfl⟩
+    have := le_csSup hf ⟨i, rfl⟩
+    linarith [(abs_le.1 (h i)).1]
+
+/-- The energy `∫ Φ_{z,r} (-½ ∇w·a∇w - p·a∇w + q·∇w)` of an element of `A₁`. -/
+def a1Energy (a : CoefficientField d Λ) (z : Vec d) (r : ℝ) (p q : Vec d) (w : HarmonicA1 a) :
+    ℝ :=
+  ∫ x, heatKernel z r x * (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+    dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))
+
+/-- The same energy restricted to `B_T(z)`. -/
+def a1BallEnergy (a : CoefficientField d Λ) (z : Vec d) (T r : ℝ) (p q : Vec d)
+    (w : HarmonicA1 a) : ℝ :=
+  ∫ x in ball z T, heatKernel z r x * (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+    dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))
+
+theorem J1Heat_eq_sSup_range (a : CoefficientField d Λ) (z : Vec d) (r : ℝ) (p q : Vec d) :
+    J1Heat a z r p q = sSup (Set.range (a1Energy a z r p q)) := by
+  unfold J1Heat J1 a1Energy
+  congr 1
+  ext e
+  exact ⟨fun ⟨w, hw⟩ => ⟨w, hw.symm⟩, fun ⟨w, hw⟩ => ⟨w, hw.symm⟩⟩
+
+theorem a1BallEnergy_eq (a : CoefficientField d Λ) (hr : r ≠ 0) (p q : Vec d)
+    (w : HarmonicA1 a) :
+    a1BallEnergy a z T r p q w =
+      -(1 / 2 : ℝ) * tupleForm a (fun k => scaleLp hr (w.ballGrad z T k))
+        (fun k => scaleLp hr (w.ballGrad z T k)) +
+        tupleLinear a hr p q (fun k => scaleLp hr (w.ballGrad z T k)) := by
+  rw [← pairEnergy_eq_tuple a hr p q, a1BallEnergy]
+  refine integral_energy_eq_pairEnergy a hr p q _ ?_
+  have h := ae_all_iff.2 fun k => (w.memLp_grad_ball (z := z) (T := T) k).coeFn_toLp
+  filter_upwards [h] with x hx
+  funext k
+  exact (hx k).symm
+
+/-- **Lemma 4.22**: if every gradient of `A₁` is, after rescaling by `√Φ_{z,r}` on `B_T(z)`,
+`η`-close to the rescaled span of a localized basis and conversely (on the bounded parts), and
+the energies of `A₁` on `ℝ^d` and on `B_T(z)` differ by at most `τ`, then
+`|J₁(Φ_{z,r}, p, q) - J₁^{(δ)}(z, r, p, q)| ≤ τ + C η`. -/
+theorem abs_J1Heat_sub_localizedJ1_le {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0)
+    {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C) (p q : Vec d) {η τ : ℝ} (hη : 0 ≤ η)
+    (htail : ∀ w : HarmonicA1 a, |a1Energy a z r p q w - a1BallEnergy a z T r p q w| ≤ τ)
+    (hAV : ∀ w : HarmonicA1 a,
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      ∃ c : Vec d, ‖(fun k => scaleLp hr (w.ballGrad z T k)) -
+        (fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k))‖ ≤ η)
+    (hVA : ∀ c : Vec d,
+      ‖(fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      ∃ w : HarmonicA1 a,
+        ‖(fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k)) -
+          (fun k => scaleLp hr (w.ballGrad z T k))‖ ≤ η) :
+    |J1Heat a z r p q - localizedJ1 W r p q| ≤
+      τ + ((d : ℝ) ^ 2 * Λ * (2 * (2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) +
+        η) / 2 + tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖) * η := by
+  set L := tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖
+  set E : (Fin d → Lp ℝ 2 (ballMeasure z T)) → ℝ := fun h =>
+    -(1 / 2 : ℝ) * tupleForm a h h + tupleLinear a hr p q h
+  have hE := isConcaveEnergy_tuple (z := z) (T := T) a hΛ hr p q
+  set sg : HarmonicA1 a → Fin d → Lp ℝ 2 (ballMeasure z T) :=
+    fun w k => scaleLp hr (w.ballGrad z T k)
+  set sc : Vec d → Fin d → Lp ℝ 2 (ballMeasure z T) :=
+    fun c k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k)
+  set A := Set.range sg
+  set V := Set.range sc
+  have hA0 : (0 : Fin d → Lp ℝ 2 (ballMeasure z T)) ∈ A := by
+    refine ⟨zeroHarmonicA1' a, ?_⟩
+    funext k
+    simp only [sg, ballGrad_zero, scaleLp_zero, Pi.zero_apply]
+  have hV0 : (0 : Fin d → Lp ℝ 2 (ballMeasure z T)) ∈ V := by
+    refine ⟨0, ?_⟩
+    funext k
+    simp only [sc, pairCombination, Pi.zero_apply, zero_smul, Finset.sum_const_zero, scaleLp_zero]
+  have hAV' : ∀ g ∈ A, ‖g‖ ≤ 2 * L + 1 → ∃ h ∈ V, ‖g - h‖ ≤ η := by
+    rintro _ ⟨w, rfl⟩ hw
+    obtain ⟨c, hc⟩ := hAV w hw
+    exact ⟨sc c, ⟨c, rfl⟩, hc⟩
+  have hVA' : ∀ h ∈ V, ‖h‖ ≤ 2 * L + 1 → ∃ g ∈ A, ‖h - g‖ ≤ η := by
+    rintro _ ⟨c, rfl⟩ hc
+    obtain ⟨w, hw⟩ := hVA c hc
+    exact ⟨sg w, ⟨w, rfl⟩, hw⟩
+  have habs := hE.abs_sSup_sub_sSup_le hA0 hV0 hη hAV' hVA'
+  have hrangeA : Set.range (a1BallEnergy a z T r p q) = E '' A := by
+    show Set.range _ = E '' Set.range sg
+    rw [← Set.range_comp]
+    congr 1
+    funext w
+    exact a1BallEnergy_eq a hr p q w
+  have hrangeV : localizedJ1 W r p q = sSup (E '' V) := by
+    rw [localizedJ1_eq_sSup W hr p q]
+    show sSup _ = sSup (E '' Set.range sc)
+    rw [← Set.range_comp]
+    congr 1
+    congr 1
+    funext c
+    exact pairEnergy_eq_tuple a hr p q _
+  have hbdd : BddAbove (Set.range (a1BallEnergy a z T r p q)) := by
+    rw [hrangeA]
+    exact ⟨L ^ 2 / 2, by rintro _ ⟨g, -, rfl⟩; exact hE.energy_le g⟩
+  have : Nonempty (HarmonicA1 a) := ⟨zeroHarmonicA1' a⟩
+  have htailsup := abs_sSup_range_sub_le hbdd htail
+  rw [J1Heat_eq_sSup_range, hrangeV]
+  rw [hrangeA] at htailsup
+  calc |sSup (Set.range (a1Energy a z r p q)) - sSup (E '' V)|
+      ≤ |sSup (Set.range (a1Energy a z r p q)) - sSup (E '' A)| +
+        |sSup (E '' A) - sSup (E '' V)| := abs_sub_le _ _ _
+    _ ≤ _ := add_le_add htailsup habs
+
 end QSH
