@@ -134,6 +134,15 @@ of each module names the source files and commits.
   (`LinearA1Gradients`), and the almost sure measurability of `J₁(Φ_{z,r}, p, q)` and of the flux
   defect, which the book does not discuss. The bound `|ā| ≤ 2Λd²` used for the rescaling is
   deduced from (5.58) and `0 ≤ J₁(Φ, p, 0) ≤ Λ|p|²` (`norm_toEuclideanCLM_le_of_energyEstimate`).
+- **Measurability of the flux defect of (5.64)** (`aemeasurable_coarseFluxDefect`), which the book
+  does not discuss. On the event of (4.12) by the corrected fields `G ξ = ∑ᵢ ξᵢ Wᵢ` with finite
+  Gaussian energy, the supremum in (5.64) is the supremum over the ellipsoid
+  `{∑ ξᵢξⱼ ∫ Φ Wᵢ·Wⱼ ≤ 1}` of `|∑ ξᵢ ∫ Φ a Wᵢ - (ā + b) ∑ ξᵢ ∫ Φ Wᵢ|`; the flux averages are
+  computed with a jointly measurable version of the coefficient field (the `liminf` of its
+  mollifications, `coefficientVersion`, `Front/Assumptions/MeasurableVersion.lean`), and by
+  continuity the supremum equals a supremum over a dense sequence. With it, Lemma 5.24 follows from
+  (5.58), the measurability of `J₁`, (4.12) and the Gaussian energy of the corrected coordinates
+  (`coarsenedCoefficientEstimates_of_corrected_energy`).
 - Appendix A for almost surely measurable random variables (`AppA/AlmostSureOsBound.lean`):
   `AEOsBound P X s θ` holds if and only if `X` agrees almost surely with a measurable `Y ≤ O_s(θ)`.
 
