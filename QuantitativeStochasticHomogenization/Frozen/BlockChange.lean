@@ -10,7 +10,10 @@ Lemma 5.29 (iii), in the form used by the formalization of the Einstein relation
 open MeasureTheory QSH
 open scoped ENNReal
 
-/-- **AKM Lemma 5.29 (iii)** (einstein input E3): the positive gain `ε` precedes `Λ`. -/
+/-- **AKM Lemma 5.29 (iii)**, for the localized energy of any family satisfying (5.85) with
+admissible structural constants and with the exponents (5.82)-(5.83): for `β ∈ [η, 1)` and
+`R^η ≤ r ≤ R^β` with `R^η ≥ 2`, the blocks at the scales `r` and `R^η` differ by
+`O_s(C R^{-d/2-ε})`. The positive gain `ε` precedes `Λ`. -/
 -- FROZEN-STATEMENT-BEGIN
 def QSH.Frozen.blockChange : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∀ s δ γ η : ℝ, BlockWindow d s δ γ η →

@@ -10,7 +10,10 @@ Lemma 5.29 (ii), (5.91)-(5.92), in the form used by the formalization of the Ein
 open MeasureTheory QSH
 open scoped ENNReal
 
-/-- **AKM Lemma 5.29 (ii), (5.91)-(5.92)** (einstein input E2). -/
+/-- **AKM Lemma 5.29 (ii), (5.91)-(5.92)**, for the localized energy of any family satisfying
+(5.85) with admissible structural constants, with the exponents (5.82)-(5.83) and at scales
+`r ≥ 2`: for `β ∈ [0, 1]`, `R^{βη} ≤ r ≤ R^{β/(1+δ)}` and `f` with `|f| ≤ 1` supported in the frame
+`□_R(z) \ □_{R-R^β}(z)`, the block is `O_s(C R^{-d/2-(1-β)/2})`. -/
 -- FROZEN-STATEMENT-BEGIN
 def QSH.Frozen.blockBoundary : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∀ Λ s δ γ η : ℝ, 1 < Λ → BlockWindow d s δ γ η →
