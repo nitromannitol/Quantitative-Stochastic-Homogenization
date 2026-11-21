@@ -440,6 +440,260 @@ def commutatorScale (d : ℕ) (Λ s α CF CM CN τ η r : ℝ) : ℝ :=
     (2 * Real.exp 1 - 1) ^ s⁻¹ * CM ^ ((d : ℝ) / 2)))
   cs * (cs * (θY + θB) + Real.sqrt d * (η + Real.sqrt d * (mY + mB) + K₀ * η) * θN)
 
+/-- The fluctuation part of the commutator bound: the sum over `i` of the fluctuations of
+`Cᵢ = 2 f(0, eᵢ/2)` and `K₀`-times those of `Bᵢ = 2 m(0, eᵢ/2)`, under `Fluc(s, α)`. -/
+theorem polarization_sum_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+    (hCF : 0 < CF)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      Integrable (fun a => J1Heat a z r p q) P ∧
+      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+    (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {K₀ Kq : ℝ} (hK₀ : 0 < K₀) (hKq : 0 < Kq) :
+    let σh := ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d *
+      (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ)
+    let Y := fun a : CoefficientField d Λ => Kq * ∑ i,
+      (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P))
+    OsBound P Y s (Kq * ((2 * (2 : ℝ) ^ s⁻¹) ^ d * (2 * (2 : ℝ) ^ s⁻¹ * (σh + K₀ * σh)))) ∧
+      Integrable Y P ∧
+      ∫ a, Y a ∂P ≤ Kq * (d * (momentConstant s * σh + K₀ * (momentConstant s * σh))) ∧
+      ∀ a, 0 ≤ Y a := by
+  intro σh Y
+  have hσh : 0 < σh := Real.rpow_pos_of_pos (by positivity) _
+  have hterm : ∀ i ∈ (Finset.univ : Finset (Fin d)), OsBound P (fun a =>
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P)) s (2 * (2 : ℝ) ^ s⁻¹ * (σh + K₀ * σh)) := by
+    intro i _
+    obtain ⟨⟨hBo, -, -⟩, ⟨hCo, -, -⟩⟩ :=
+      polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+    exact osBound_add_le_sum hCo (hBo.const_mul hK₀)
+  have hsum := osBound_finset_sum_of_pos Finset.univ hs0 (by positivity) hterm
+  rw [Finset.card_univ, Fintype.card_fin] at hsum
+  have hint : ∀ i : Fin d, Integrable (fun a =>
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P)) P := by
+    intro i
+    obtain ⟨⟨-, hBi, -⟩, ⟨-, hCi, -⟩⟩ :=
+      polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+    exact hCi.add (hBi.const_mul K₀)
+  have hsi : Integrable (fun a => ∑ i, (
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P))) P :=
+    integrable_finset_sum _ fun i _ => hint i
+  refine ⟨hsum.const_mul hKq, hsi.const_mul Kq, ?_, fun a => ?_⟩
+  · simp only [Y]
+    rw [integral_const_mul, integral_finset_sum _ fun i _ => hint i]
+    refine mul_le_mul_of_nonneg_left ?_ hKq.le
+    have hle : ∀ i ∈ (Finset.univ : Finset (Fin d)), (∫ a,
+        (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+            ((1 / 2 : ℝ) • unitVector i)) k ∂P)) ∂P) ≤
+        momentConstant s * σh + K₀ * (momentConstant s * σh) := by
+      intro i _
+      obtain ⟨⟨-, hBi, hBm⟩, ⟨-, hCi, hCm⟩⟩ :=
+        polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+      rw [integral_add hCi (hBi.const_mul K₀), integral_const_mul]
+      exact add_le_add hCm (mul_le_mul_of_nonneg_left hBm hK₀.le)
+    refine (Finset.sum_le_sum hle).trans (le_of_eq ?_)
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+  · exact mul_nonneg hKq.le (Finset.sum_nonneg fun i _ =>
+      add_nonneg (euclideanNorm_nonneg _) (mul_nonneg hK₀.le (euclideanNorm_nonneg _)))
+
+/-- The bad part of the commutator bound: on the bad set `{r ≤ X_g}`, where `r ≤ M`, the energy
+bound `(Λ + K₀) √C_N (1 + (X_N/r)^{d/2})` is at most `2 (Λ + K₀) √C_N (M/r)^{d/2}`, which is
+`O_s` of order `(C_M/r)^{d/2}` when `M ≤ O_τ(C_M)` and `s ≤ 2τ/d`. -/
+theorem bad_part_bound [IsProbabilityMeasure P] (hd : 1 ≤ d) {s τ CM CN r K₀ : ℝ} (hs0 : 0 < s)
+    (hr : 1 ≤ r) (hCN : 0 < CN) (hΛ : 0 < Λ) (hK₀ : 0 ≤ K₀) (Xg XN M : CoefficientField d Λ → ℝ)
+    (hXgm : Measurable Xg) (hXNm : Measurable XN) (hXN0 : ∀ a, 0 ≤ XN a) (hM1 : ∀ a, 1 ≤ M a)
+    (hXNM : ∀ a, XN a ≤ M a) (hXgM : ∀ a, r ≤ Xg a → r ≤ M a)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) (hMos : OsBound P M τ CM) :
+    let Bp := fun a => {a | r ≤ Xg a}.indicator
+      (fun a => (Λ + K₀) * (Real.sqrt CN * (1 + (XN a / r) ^ ((d : ℝ) / 2)))) a
+    OsBound P Bp s ((Λ + K₀) * Real.sqrt CN * 2 *
+        ((2 * Real.exp 1 - 1) ^ s⁻¹ * (CM / r) ^ ((d : ℝ) / 2))) ∧
+      Integrable Bp P ∧
+      ∫ a, Bp a ∂P ≤ (Λ + K₀) * Real.sqrt CN * 2 *
+        (momentConstant (τ / ((d : ℝ) / 2)) * (CM / r) ^ ((d : ℝ) / 2)) ∧
+      ∀ a, 0 ≤ Bp a := by
+  intro Bp
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  have hd2 : (0 : ℝ) < (d : ℝ) / 2 := by
+    have : (1 : ℝ) ≤ d := by exact_mod_cast hd
+    linarith
+  have hBad : MeasurableSet {a : CoefficientField d Λ | r ≤ Xg a} :=
+    measurableSet_le measurable_const hXgm
+  have hM0 : ∀ a, 0 ≤ M a := fun a => zero_le_one.trans (hM1 a)
+  set c : ℝ := (Λ + K₀) * Real.sqrt CN * 2 with hc
+  have hc0 : 0 < c := by
+    have : 0 < Real.sqrt CN := Real.sqrt_pos.mpr hCN
+    rw [hc]; have : 0 < Λ + K₀ := by linarith
+    positivity
+  have hfac : 0 ≤ (Λ + K₀) * Real.sqrt CN := mul_nonneg (by linarith) (Real.sqrt_nonneg _)
+  have hB0 : ∀ a, 0 ≤ Bp a := fun a => Set.indicator_nonneg (fun a _ =>
+    mul_nonneg (by linarith) (mul_nonneg (Real.sqrt_nonneg _)
+      (add_nonneg zero_le_one (Real.rpow_nonneg (div_nonneg (hXN0 a) hr0.le) _)))) a
+  have hle : ∀ a, Bp a ≤ c * (M a / r) ^ ((d : ℝ) / 2) := by
+    intro a
+    by_cases ha : a ∈ {a : CoefficientField d Λ | r ≤ Xg a}
+    · simp only [Bp]
+      rw [Set.indicator_of_mem ha]
+      have h1 : 1 ≤ M a / r := (one_le_div hr0).mpr (hXgM a ha)
+      have h2 : 1 ≤ (M a / r) ^ ((d : ℝ) / 2) := Real.one_le_rpow h1 hd2.le
+      have h3 : (XN a / r) ^ ((d : ℝ) / 2) ≤ (M a / r) ^ ((d : ℝ) / 2) :=
+        Real.rpow_le_rpow (div_nonneg (hXN0 a) hr0.le)
+          (div_le_div_of_nonneg_right (hXNM a) hr0.le) hd2.le
+      calc (Λ + K₀) * (Real.sqrt CN * (1 + (XN a / r) ^ ((d : ℝ) / 2)))
+          = ((Λ + K₀) * Real.sqrt CN) * (1 + (XN a / r) ^ ((d : ℝ) / 2)) := by ring
+        _ ≤ ((Λ + K₀) * Real.sqrt CN) * (2 * (M a / r) ^ ((d : ℝ) / 2)) :=
+          mul_le_mul_of_nonneg_left (by linarith) hfac
+        _ = c * (M a / r) ^ ((d : ℝ) / 2) := by rw [hc]; ring
+    · simp only [Bp]
+      rw [Set.indicator_of_notMem ha]
+      exact mul_nonneg hc0.le (Real.rpow_nonneg (div_nonneg (hM0 a) hr0.le) _)
+  have hBm : Measurable Bp := by
+    refine Measurable.indicator ?_ hBad
+    exact (((hXNm.div_const r).pow_const _).const_add 1 |>.const_mul _).const_mul _
+  have hMr := osBound_rpow_div hMos hM0 hr0 hd2
+  obtain ⟨hMri, hMrm⟩ := hMr.integral_le_factorial_mul fun a =>
+    Real.rpow_nonneg (div_nonneg (hM0 a) hr0.le) _
+  have hBi : Integrable Bp P := (hMri.const_mul c).mono' hBm.aestronglyMeasurable
+    (Filter.Eventually.of_forall fun a => by
+      rw [Real.norm_eq_abs, abs_of_nonneg (hB0 a)]; exact hle a)
+  refine ⟨((hMr.mono_exponent hs0 hτs).const_mul hc0).of_le hBm hle, hBi, ?_, hB0⟩
+  calc ∫ a, Bp a ∂P ≤ ∫ a, c * (M a / r) ^ ((d : ℝ) / 2) ∂P :=
+        integral_mono hBi (hMri.const_mul c) hle
+    _ = c * ∫ a, (M a / r) ^ ((d : ℝ) / 2) ∂P := integral_const_mul _ _
+    _ ≤ c * (momentConstant (τ / ((d : ℝ) / 2)) * (CM / r) ^ ((d : ℝ) / 2)) :=
+        mul_le_mul_of_nonneg_left hMrm hc0.le
+
+/-- The size of the averaged gradient: `√C_N (1 + M^{d/2}) ≤ O_s(√C_N c (1/(log 2)^{1/s} +
+κ^{1/s} C_M^{d/2}))` when `M ≤ O_τ(C_M)` and `s ≤ 2τ/d`. -/
+theorem size_bound [IsProbabilityMeasure P] (hd : 1 ≤ d) {s τ CM CN : ℝ} (hs0 : 0 < s)
+    (hCN : 0 < CN) (M : CoefficientField d Λ → ℝ) (hM1 : ∀ a, 1 ≤ M a)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) (hMos : OsBound P M τ CM) :
+    OsBound P (fun a => Real.sqrt CN * (1 + M a ^ ((d : ℝ) / 2))) s
+      (Real.sqrt CN * (2 * (2 : ℝ) ^ s⁻¹ * (1 / Real.log 2 ^ s⁻¹ +
+        (2 * Real.exp 1 - 1) ^ s⁻¹ * CM ^ ((d : ℝ) / 2)))) := by
+  have hd2 : (0 : ℝ) < (d : ℝ) / 2 := by
+    have : (1 : ℝ) ≤ d := by exact_mod_cast hd
+    linarith
+  have h1 : OsBound P (fun _ : CoefficientField d Λ => (1 : ℝ)) s (1 / Real.log 2 ^ s⁻¹) :=
+    osBound_of_le_const measurable_const hs0 one_pos (Filter.Eventually.of_forall fun _ => le_rfl)
+  have h2 := (hMos.rpow (fun a => zero_le_one.trans (hM1 a)) hd2).mono_exponent hs0 hτs
+  exact (osBound_add_le_sum h1 h2).const_mul (Real.sqrt_pos.mpr hCN)
+
+/-- **Lemma 4.13 at one center and one large scale.** -/
+theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
+    (S : HomogenizationData P) (hΛ : 0 < Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    {s α CF : ℝ} (hs0 : 0 < s) (hCF : 0 < CF)
+    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      Integrable (fun a => J1Heat a z r p q) P ∧
+      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+    (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
+    (hεd : Real.sqrt d * ε ≤ 1 / 2) (Xg XN M : CoefficientField d Λ → ℝ)
+    (hXgm : Measurable Xg) (hXNm : Measurable XN) (hXN0 : ∀ a, 0 ≤ XN a) (hM1 : ∀ a, 1 ≤ M a)
+    (hXNM : ∀ a, XN a ≤ M a) (hXgM : ∀ a, r ≤ Xg a → r ≤ M a) {τ CM CN : ℝ} (hCN : 0 < CN)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) (hMos : OsBound P M τ CM)
+    (hgood : ∀ᵐ a ∂P, ¬ r ≤ Xg a →
+      GaussianAverageBounds a S.homogenized (correctedField S a) y r ε)
+    (hδ : Λ * (Real.sqrt d * (Real.sqrt d * ((9 + Real.sqrt d) * ε +
+      (16 * (Λ + 1) + 1) * P.real {a | r ≤ Xg a}))) ≤ 1 / 2)
+    (havg : ∀ᵐ a ∂P, ∀ l : Fin d,
+      (Integrable (fun x => heatKernel y r x • correctedField S a (unitVector l) x) ∧
+        Integrable (fun x => heatKernel y r x • (a x).mulVec (correctedField S a (unitVector l) x)) ∧
+        Integrable (fun x => heatKernel y r x * dot (correctedField S a (unitVector l) x)
+          ((a x).mulVec (correctedField S a (unitVector l) x)))) ∧
+      (∫ x, heatKernel y r x * dot (correctedField S a (unitVector l) x)
+          ((a x).mulVec (correctedField S a (unitVector l) x))) ≤
+        CN * (1 + (XN a / r) ^ d) * euclideanSq (unitVector l : Vec d))
+    (hPm : ∀ l, Measurable fun a => gradientAverage S a y r (unitVector l))
+    (hFm : ∀ l, Measurable fun a => fluxAverage S a y r (unitVector l))
+    {η : ℝ} (hη : 0 < η)
+    (hPi : ∀ l k, Integrable (fun a => gradientAverage S a y r (unitVector l) k) P)
+    (hFi : ∀ l k, Integrable (fun a => fluxAverage S a y r (unitVector l) k) P)
+    (hEP : ∀ l, euclideanNorm ((fun k => ∫ a, gradientAverage S a y r (unitVector l) k ∂P) -
+      unitVector l) ≤ η)
+    (hEF : ∀ l, euclideanNorm ((fun k => ∫ a, fluxAverage S a y r (unitVector l) k ∂P) -
+      S.homogenized.mulVec (unitVector l)) ≤ η) (j : Fin d) :
+    OsBound P (fun a => euclideanNorm (fluxAverage S a y r (unitVector j) -
+      S.homogenized.mulVec (gradientAverage S a y r (unitVector j)))) s
+      (commutatorScale d Λ s α CF CM CN τ η r) := by
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  have hsd : 0 < Real.sqrt d := Real.sqrt_pos.mpr (by
+    have : (1 : ℝ) ≤ d := by exact_mod_cast hd
+    linarith)
+  have hBad : MeasurableSet {a : CoefficientField d Λ | r ≤ Xg a} :=
+    measurableSet_le measurable_const hXgm
+  have hgood' : ∀ᵐ a ∂P, a ∉ {a : CoefficientField d Λ | r ≤ Xg a} →
+      GaussianAverageBounds a S.homogenized (correctedField S a) y r ε := hgood
+  have hmB := fun i => mean_polarization_near_inverse S hΛ.le hA hspan hmeasJ y hr0 hε0 hε hεd
+    hBad hgood' i
+  have h00 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
+  have hmC : ∀ i, euclideanNorm (fun k => ∫ a, ((2 : ℝ) • fluxPolarizationVector a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P) ≤ Real.sqrt d * (16 * (Λ + 1)) := by
+    intro i
+    have hl : euclideanNorm ((1 / 2 : ℝ) • (unitVector i : Vec d)) < 1 := by
+      rw [euclideanNorm_smul, euclideanNorm_unitVector]; norm_num
+    refine euclideanNorm_le_of_abs_le (by positivity) fun k => ?_
+    have hb : ∀ a, |((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)) k| ≤
+        16 * (Λ + 1) := fun a => by
+      have := abs_fluxPolarizationVector_le a hΛ.le y hr0 h00 hl k
+      simp only [Pi.smul_apply, smul_eq_mul, abs_mul, abs_two]
+      linarith
+    refine (abs_integral_le_integral_abs).trans ?_
+    calc ∫ a, |((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)) k| ∂P
+        ≤ ∫ _a, 16 * (Λ + 1) ∂P :=
+          integral_mono_of_nonneg (Filter.Eventually.of_forall fun _ => abs_nonneg _)
+            (integrable_const _) (Filter.Eventually.of_forall hb)
+      _ = 16 * (Λ + 1) := by simp
+  obtain ⟨D₀, hD₀m, hD₀op⟩ := exists_matching_matrix S hΛ hA _ _ (by positivity) (by positivity)
+    hmB hδ hmC
+  have hK₀ : 0 < 2 * Λ * Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1))) := by positivity
+  have hpt := commutator_matching_le S hΛ.le hA hspan y hr0 hε0 hε hεd hgood' hCN.le XN hXN0 havg
+    D₀ hK₀.le hD₀op _ _ hD₀m
+  obtain ⟨hYo, hYi, hYm, hY0⟩ := polarization_sum_fluctuation (P := P) hs0 hCF hmeasJ hF y hr hK₀
+    (Kq := 2 * (Real.sqrt d * (Λ + 1))) (by positivity)
+  obtain ⟨hBo, hBi, hBm, hB0⟩ := bad_part_bound (P := P) hd hs0 hr hCN hΛ hK₀.le Xg XN M hXgm hXNm
+    hXN0 hM1 hXNM hXgM hτs hMos
+  have hN := size_bound (P := P) hd hs0 hCN M hM1 hτs hMos
+  have hPN : ∀ᵐ a ∂P, euclideanNorm (gradientAverage S a y r (unitVector j)) ≤
+      Real.sqrt CN * (1 + M a ^ ((d : ℝ) / 2)) := by
+    filter_upwards [havg] with a ha
+    refine (averages_le_of_energy S a hΛ.le y hr0 hCN.le (hXN0 a) j (ha j).1 (ha j).2).1.trans ?_
+    have h3 : (XN a / r) ^ ((d : ℝ) / 2) ≤ M a ^ ((d : ℝ) / 2) := Real.rpow_le_rpow
+      (div_nonneg (hXN0 a) hr0.le) ((div_le_self (hXN0 a) hr).trans (hXNM a)) (by positivity)
+    exact mul_le_mul_of_nonneg_left (by linarith) (Real.sqrt_nonneg _)
+  have := commutator_assembly hd hK₀.le hη hD₀op (fun l a => gradientAverage S a y r (unitVector l))
+    (fun l a => fluxAverage S a y r (unitVector l)) hPm hFm hPi hFi hEP hEF hYo hYi hYm hY0
+    hBo hBi hBm hB0 hN hpt j hPN
+  simp only [commutatorScale]
+  exact this
+
 end Large
 
 end QSH
