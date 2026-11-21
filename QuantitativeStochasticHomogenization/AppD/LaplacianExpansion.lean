@@ -65,6 +65,6 @@ theorem foldr_doubled_eq {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ) {k : �
   | cons a l ih =>
     simp only [List.map_cons, List.sum_cons, Function.comp, List.count_cons]
     rw [ih]
-    split_ifs <;> simp_all <;> omega
+    split_ifs <;> (simp_all; try omega)
 
 end QSH
