@@ -171,6 +171,7 @@ variable {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P) (A : M
 
 include hr hint
 
+omit hr hint in
 theorem aemeasurable_correctedCoordinate (i : Fin d) :
     AEMeasurable (correctedCoordinate S a i) volume :=
   ((measurable_correctedCoordinate_uncurry S i).comp measurable_prodMk_left).aemeasurable
@@ -178,20 +179,20 @@ theorem aemeasurable_correctedCoordinate (i : Fin d) :
 theorem integrable_heatKernel_smul_correctedCoordinate (i : Fin d) :
     Integrable (fun x => heatKernel z r x • correctedCoordinate S a i x) :=
   integrable_mask_smul (heatKernel_nonneg z r) (integrable_heatKernel z hr)
-    (aemeasurable_correctedCoordinate S z hr hint i) (hint i)
+    (aemeasurable_correctedCoordinate S (a := a) i) (hint i)
 
 theorem integrable_heatKernel_smul_flux_correctedCoordinate (i : Fin d) :
     Integrable (fun x => heatKernel z r x • (a x).mulVec (correctedCoordinate S a i x)) :=
   integrable_mask_smul (heatKernel_nonneg z r) (integrable_heatKernel z hr)
-    (aemeasurable_mulVec a (aemeasurable_correctedCoordinate S z hr hint i))
+    (aemeasurable_mulVec a (aemeasurable_correctedCoordinate S (a := a) i))
     (integrable_mask_mul_euclideanSq_mulVec a (heatKernel_nonneg z r) (integrable_heatKernel z hr)
-      (aemeasurable_correctedCoordinate S z hr hint i) (hint i))
+      (aemeasurable_correctedCoordinate S (a := a) i) (hint i))
 
 theorem integrable_heatKernel_mul_dot_correctedCoordinate (i j : Fin d) :
     Integrable (fun x => heatKernel z r x *
       dot (correctedCoordinate S a i x) (correctedCoordinate S a j x)) := by
-  have hmi := aemeasurable_correctedCoordinate S z hr hint i
-  have hmj := aemeasurable_correctedCoordinate S z hr hint j
+  have hmi := aemeasurable_correctedCoordinate S (a := a) i
+  have hmj := aemeasurable_correctedCoordinate S (a := a) j
   refine Integrable.mono' (((hint i).add (hint j)).div_const 2)
     (((integrable_heatKernel z hr).aestronglyMeasurable.aemeasurable.mul
       (aemeasurable_dot hmi hmj)).aestronglyMeasurable) (Eventually.of_forall fun x => ?_)
@@ -284,5 +285,115 @@ theorem integral_heatKernel_mul_euclideanSq_correctedField (ξ : Vec d) :
   exact Finset.sum_congr rfl fun j _ => by rw [integral_const_mul]; rfl
 
 end GoodEvent
+
+/-! ## The supremum over the ellipsoid -/
+
+section Supremum
+
+variable {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P) (A : Mat d) (z : Vec d)
+  {r : ℝ} (hr : 0 < r) {a : CoefficientField d Λ}
+  (hint : ∀ i : Fin d, Integrable (fun x => heatKernel z r x *
+    euclideanSq (unitVector i + (S.corrector (unitVector i)).grad a x)))
+
+include hr hint
+
+theorem coarseFluxDefect_eq_sSup_image (hcorr : GradientsOfA1AreCorrected S a) :
+    coarseFluxDefect a A z r =
+      sSup (defectAt S z r A a '' {ξ | gramEnergyAt S z r a ξ ≤ 1}) := by
+  have hval : ∀ (w : HarmonicA1 a) (ξ : Vec d), w.grad =ᵐ[volume] correctedField S a ξ →
+      euclideanNorm ((∫ x, heatKernel z r x • (a x).mulVec (w.grad x)) -
+        (A + coarsenedCoefficient a A z r).mulVec (∫ x, heatKernel z r x • w.grad x)) =
+      defectAt S z r A a ξ := fun w ξ hξ => by
+    unfold defectAt
+    rw [← integral_heatKernel_smul_correctedField S z hr hint ξ,
+      ← integral_heatKernel_smul_flux_correctedField S z hr hint ξ]
+    have h1 : (∫ x, heatKernel z r x • (a x).mulVec (w.grad x)) =
+        ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x) :=
+      integral_congr_ae (hξ.mono fun x hx => by simp only; rw [hx])
+    have h2 : (∫ x, heatKernel z r x • w.grad x) =
+        ∫ x, heatKernel z r x • correctedField S a ξ x :=
+      integral_congr_ae (hξ.mono fun x hx => by simp only; rw [hx])
+    rw [h1, h2]
+  have hen : ∀ (w : HarmonicA1 a) (ξ : Vec d), w.grad =ᵐ[volume] correctedField S a ξ →
+      (fun x => heatKernel z r x * euclideanNorm (w.grad x) ^ 2) =ᵐ[volume]
+        fun x => heatKernel z r x * euclideanSq (correctedField S a ξ x) := fun w ξ hξ =>
+    hξ.mono fun x hx => by simp only; rw [hx, euclideanNorm_sq]
+  unfold coarseFluxDefect
+  congr 1
+  ext e
+  constructor
+  · rintro ⟨w, -, hwnorm, rfl⟩
+    obtain ⟨ξ, hξ⟩ := hcorr.1 w
+    refine ⟨ξ, ?_, (hval w ξ hξ).symm⟩
+    show gramEnergyAt S z r a ξ ≤ 1
+    rw [← integral_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ,
+      ← integral_congr_ae (hen w ξ hξ)]
+    exact Real.sqrt_le_one.mp hwnorm
+  · rintro ⟨ξ, hξK, rfl⟩
+    obtain ⟨w, hw⟩ := hcorr.2 ξ
+    refine ⟨w, (integrable_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ).congr
+      (hen w ξ hw).symm, ?_, (hval w ξ hw).symm⟩
+    rw [integral_congr_ae (hen w ξ hw), integral_heatKernel_mul_euclideanSq_correctedField
+      S z hr hint ξ]
+    exact Real.sqrt_le_one.mpr hξK
+
+theorem defectAt_le_of_gramEnergyAt_le (ξ : Vec d) (hξ : gramEnergyAt S z r a ξ ≤ 1) :
+    defectAt S z r A a ξ ≤
+      |Λ| + ‖Matrix.toEuclideanCLM (𝕜 := ℝ) (A + coarsenedCoefficient a A z r)‖ := by
+  have hm : AEMeasurable (correctedField S a ξ) volume :=
+    (measurable_correctedField S a ξ).aemeasurable
+  have hG2 := integrable_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ
+  have hE := integral_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ
+  have hu : euclideanSq (∑ i, ξ i • columnAverage S z r a i) ≤ 1 := by
+    rw [← integral_heatKernel_smul_correctedField S z hr hint ξ]
+    refine (euclideanSq_integral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+      (integral_heatKernel z hr).le hm hG2).trans ?_
+    rw [hE]; exact hξ
+  have hv : euclideanSq (∑ i, ξ i • columnFlux S z r a i) ≤ Λ ^ 2 := by
+    rw [← integral_heatKernel_smul_flux_correctedField S z hr hint ξ]
+    refine (euclideanSq_integral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+      (integral_heatKernel z hr).le (aemeasurable_mulVec a hm)
+      (integrable_mask_mul_euclideanSq_mulVec a (heatKernel_nonneg z r)
+        (integrable_heatKernel z hr) hm hG2)).trans ?_
+    calc ∫ x, heatKernel z r x * euclideanSq ((a x).mulVec (correctedField S a ξ x))
+        ≤ ∫ x, Λ ^ 2 * (heatKernel z r x * euclideanSq (correctedField S a ξ x)) :=
+          integral_mono (integrable_mask_mul_euclideanSq_mulVec a (heatKernel_nonneg z r)
+            (integrable_heatKernel z hr) hm hG2) (hG2.const_mul _) fun x => by
+            have := mul_le_mul_of_nonneg_left (euclideanSq_mulVec_le a x
+              (correctedField S a ξ x)) (heatKernel_nonneg z r x)
+            linarith
+      _ = Λ ^ 2 * gramEnergyAt S z r a ξ := by rw [integral_const_mul, hE]
+      _ ≤ Λ ^ 2 * 1 := mul_le_mul_of_nonneg_left hξ (sq_nonneg Λ)
+      _ = Λ ^ 2 := mul_one _
+  have hun : euclideanNorm (∑ i, ξ i • columnAverage S z r a i) ≤ 1 := by
+    rw [euclideanNorm, ← Real.sqrt_one]; exact Real.sqrt_le_sqrt hu
+  have hvn : euclideanNorm (∑ i, ξ i • columnFlux S z r a i) ≤ |Λ| := by
+    rw [euclideanNorm, ← Real.sqrt_sq_eq_abs]; exact Real.sqrt_le_sqrt hv
+  set M := A + coarsenedCoefficient a A z r
+  set u := ∑ i, ξ i • columnAverage S z r a i
+  have hMu : euclideanNorm (M.mulVec u) ≤ ‖Matrix.toEuclideanCLM (𝕜 := ℝ) M‖ := by
+    rw [← norm_toLp, ← Matrix.toEuclideanCLM_toLp]
+    calc ‖Matrix.toEuclideanCLM (𝕜 := ℝ) M (WithLp.toLp 2 u)‖
+        ≤ ‖Matrix.toEuclideanCLM (𝕜 := ℝ) M‖ * ‖(WithLp.toLp 2 u : EuclideanSpace ℝ (Fin d))‖ :=
+          ContinuousLinearMap.le_opNorm _ _
+      _ ≤ ‖Matrix.toEuclideanCLM (𝕜 := ℝ) M‖ * 1 := by
+          rw [norm_toLp]; exact mul_le_mul_of_nonneg_left hun (norm_nonneg _)
+      _ = _ := mul_one _
+  unfold defectAt
+  exact (euclideanNorm_sub_le _ _).trans (add_le_add hvn hMu)
+
+omit hr hint in
+theorem defectAt_zero : defectAt S z r A a 0 = 0 := by
+  simp [defectAt, euclideanNorm, euclideanSq, dot]
+
+omit hr hint in
+theorem gramEnergyAt_zero : gramEnergyAt S z r a 0 = 0 := by
+  simp [gramEnergyAt]
+
+omit hr hint in
+theorem defectAt_nonneg (ξ : Vec d) : 0 ≤ defectAt S z r A a ξ :=
+  euclideanNorm_nonneg _
+
+end Supremum
 
 end QSH
