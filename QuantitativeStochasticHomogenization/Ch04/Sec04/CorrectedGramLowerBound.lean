@@ -394,4 +394,48 @@ theorem heatGram_lower_bound {T r : ℝ} (hr : 0 < r) (hrT : r ≤ T) (u : Fin d
     _ ≤ ∫ x in ball z T, heatKernel z r x * euclideanSq (∑ i, ξ i • W i x) :=
         setIntegral_mono_set hint (Eventually.of_forall h0) hsubset.eventuallyLE
 
+/-- **The almost sure hypotheses of Lemma 4.22 from corrected coordinates**: when the gradients of
+`A₁` are combinations of the weak gradients `W_i` of functions `u_i` close to the coordinates on
+`B_r(z)` (`r ≤ T`), the Gaussian energies of the `W_i` at scale `√2 r` are at most `E`, and
+`κ ≥ 2^{d/2} exp(-T²/(8r²)) d E / heatGramConstant d`, it remains to give the approximation
+property of Lemma 4.21 with error `η`, the smallness of the Gaussian mass outside the ball and the
+bound `Z`. -/
+theorem LocalizationApproximationAtUniform.of_corrected {Λ : ℝ} {a : CoefficientField d Λ}
+    (hΛ : 0 ≤ Λ) {T r : ℝ} (hr : 0 < r) (hrT : r ≤ T) {S σ θ C : ℝ}
+    {B : LocalizedBasis a z T S σ θ C} {p q : Vec d} {η κ Zv E ε : ℝ} (hη : 0 ≤ η)
+    (hsmall : linearCoefficient d Λ p q ^ 2 / 2 *
+      ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2))) ≤ 1 / 4)
+    (u : Fin d → Vec d → ℝ) (W : Fin d → Vec d → Vec d)
+    (hu : ∀ i, MemLp (u i) 2 (ballMeasure z r))
+    (hWT : ∀ i j, MemLp (fun x => W i x j) 2 (ballMeasure z T))
+    (hgrad : ∀ i, HasWeakGradient (ball z r) (u i) (W i)) (c : Fin d → ℝ)
+    (hsub : ∀ i, ∫ x in ball z r, (u i x - (x - z) i - c i) ^ 2 ≤
+      ε ^ 2 * r ^ 2 * volume.real (ball z r))
+    (hε : (d : ℝ) * ε ^ 2 ≤ (1 / 4 : ℝ) ^ d / 16) (hE0 : 0 ≤ E)
+    (hW : ∀ i, Integrable (fun x => heatKernel z (Real.sqrt 2 * r) x * euclideanSq (W i x)))
+    (hE : ∀ i, ∫ x, heatKernel z (Real.sqrt 2 * r) x * euclideanSq (W i x) ≤ E)
+    (hκ : (2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2)) *
+      (d * E / heatGramConstant d) ≤ κ)
+    (hrep : ∀ w : HarmonicA1 a, ∃ ξ : Vec d, ∀ᵐ x, w.grad x = ∑ i, ξ i • W i x)
+    (hAV : ∀ w : HarmonicA1 a,
+      ‖(fun k => scaleLp hr.ne' (w.ballGrad z T k))‖ ≤ 2 * linearCoefficient d Λ p q + 1 →
+      ∃ c : Vec d, ‖(fun k => scaleLp hr.ne' (w.ballGrad z T k)) -
+        (fun k => scaleLp hr.ne' (pairCombination (fun i => (B.coordinate i).toPair) c k))‖ ≤ η)
+    (hVA : ∀ c : Vec d,
+      ‖(fun k => scaleLp hr.ne' (pairCombination (fun i => (B.coordinate i).toPair) c k))‖ ≤
+        2 * linearCoefficient d Λ p q + 1 →
+      ∃ w : HarmonicA1 a,
+        ‖(fun k => scaleLp hr.ne' (pairCombination (fun i => (B.coordinate i).toPair) c k)) -
+          (fun k => scaleLp hr.ne' (w.ballGrad z T k))‖ ≤ η)
+    (hZ : (((d : ℝ) * Λ / 2 + linearCoefficient d Λ p q / 2) *
+          (κ * (d * (2 * linearCoefficient d Λ p q + 1) ^ 2)) +
+        linearCoefficient d Λ p q / 2 *
+          ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2)))) +
+      ((d : ℝ) ^ 2 * Λ * (2 * (2 * linearCoefficient d Λ p q + 1) + η) / 2 +
+        linearCoefficient d Λ p q) * η ≤ Zv) :
+    LocalizationApproximationAtUniform a z T r hr.ne' B p q η κ Zv :=
+  LocalizationApproximationAtUniform.of_gaussianGram hΛ hr.ne' (hr.le.trans hrT) hη hsmall W
+    (heatGramConstant_pos d) hE0 hW hE
+    (heatGram_lower_bound hr hrT u W hu hWT hgrad c hsub hε) hκ hrep hAV hVA hZ
+
 end QSH
