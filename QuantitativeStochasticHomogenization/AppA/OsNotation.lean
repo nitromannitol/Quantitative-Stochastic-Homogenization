@@ -1619,6 +1619,98 @@ theorem OsBound.mul {X₁ X₂ : Ω → ℝ} {s₁ s₂ θ₁ θ₂ : ℝ} (h₁
     _ = 2 := by
         rw [← ENNReal.rpow_add _ _ two_ne_zero ENNReal.ofNat_ne_top, hw, ENNReal.rpow_one]
 
+/-- **Lemma A.5 (Laplace transform)**, (A.4): for `s > 1` there is `C(s)` such that, if
+`X ≤ O_s(1)`, then for every `λ ≥ 1` the variable `exp(λ X)` is integrable and
+`log E[exp(λ X)] ≤ C λ^{s/(s-1)}`. The moment generating function of `X₊` is bounded by the
+large-parameter estimate of the library CoarseGraining. -/
+theorem exists_log_integral_exp_le_of_osBound {s : ℝ} (hs1 : 1 < s) :
+    ∃ C : ℝ, 0 < C ∧ ∀ {Ω : Type u} [MeasurableSpace Ω] (P : Measure Ω) [IsProbabilityMeasure P]
+      (X : Ω → ℝ), OsBound P X s 1 → ∀ t : ℝ, 1 ≤ t →
+        Integrable (fun ω => Real.exp (t * X ω)) P ∧
+          Real.log (∫ ω, Real.exp (t * X ω) ∂P) ≤ C * t ^ (s / (s - 1)) := by
+  have hs0 : 0 < s := by linarith
+  have hl2 : 0 < Real.log 2 := Real.log_pos one_lt_two
+  set K : ℝ := (1 + Real.log 2) ^ s⁻¹ * 1 with hKdef
+  have hK : 0 < K := mul_pos (Real.rpow_pos_of_pos (by linarith) _) one_pos
+  set Cg : ℝ := _root_.Homogenization.IndependentSums.gammaSigmaLargeMgfConst s with hCgdef
+  have hCg : 0 < Cg := _root_.Homogenization.IndependentSums.gammaSigmaLargeMgfConst_pos hs1
+  set p : ℝ := s / (s - 1) with hpdef
+  have hp0 : 0 ≤ p := div_nonneg hs0.le (by linarith)
+  refine ⟨Real.log 2 + Cg * K ^ p, by positivity, ?_⟩
+  intro Ω _ P _ X hX t ht
+  have ht0 : 0 ≤ t := by linarith
+  set Y : Ω → ℝ := fun ω => max (X ω) 0 with hYdef
+  have hYm : Measurable Y := hX.1.max measurable_const
+  have hY0 : ∀ ω, 0 ≤ Y ω := fun ω => le_max_right _ _
+  have hYos : OsBound P Y s 1 := by
+    obtain ⟨-, hs, hθ, hint⟩ := hX
+    refine ⟨hYm, hs, hθ, ?_⟩
+    simpa only [hYdef, max_assoc, max_self] using hint
+  obtain ⟨-, -, -, hOG⟩ := osBound_iff_ogammaLE.1 hYos
+  have hB := SubdiffusiveProcess.OGammaBridge.isBigO_gammaSigma_of_ogammaLE hs0 one_pos hY0 hOG
+  have hYi := _root_.Homogenization.IndependentSums.integrable_exp_mul_of_isBigO_gammaSigma_of_one_lt
+    hYm.aemeasurable hs1 hK ht0 hB
+  have hmgf := _root_.Homogenization.IndependentSums.mgf_le_two_mul_exp_of_isBigO_gammaSigma_of_one_lt
+    hYm.aemeasurable hs1 hK ht0 hB
+  have hconj : _root_.Homogenization.IndependentSums.gammaExpConjExponent s = p := rfl
+  rw [hconj, ← hCgdef] at hmgf
+  have hle : ∀ ω, Real.exp (t * X ω) ≤ Real.exp (t * Y ω) := fun ω =>
+    Real.exp_le_exp.2 (mul_le_mul_of_nonneg_left (le_max_left _ _) ht0)
+  have hXi : Integrable (fun ω => Real.exp (t * X ω)) P :=
+    hYi.mono' (measurable_const.mul hX.1).exp.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun ω => by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        exact hle ω)
+  refine ⟨hXi, ?_⟩
+  have hpos : 0 < mgf X P t := mgf_pos hXi
+  have h1 : mgf X P t ≤ 2 * Real.exp (Cg * (K * t) ^ p) :=
+    (integral_mono hXi hYi hle).trans hmgf
+  have htp : 1 ≤ t ^ p := Real.one_le_rpow ht hp0
+  change Real.log (mgf X P t) ≤ _
+  calc Real.log (mgf X P t) ≤ Real.log (2 * Real.exp (Cg * (K * t) ^ p)) :=
+        Real.log_le_log hpos h1
+    _ = Real.log 2 + Cg * K ^ p * t ^ p := by
+        rw [Real.log_mul two_ne_zero (Real.exp_pos _).ne', Real.log_exp,
+          Real.mul_rpow hK.le ht0, mul_assoc]
+    _ ≤ (Real.log 2 + Cg * K ^ p) * t ^ p := by
+        nlinarith
+
+/-- **Lemma A.5 (Laplace transform)**, (A.5): for `s > 1`, if `exp(λ X)` is integrable and
+`log E[exp(λ X)] ≤ λ^{s/(s-1)}` for every `λ ≥ 1`, then `X ≤ O_s(C)` with `C = 2 · 8^{1/s}`. The
+proof is the Chernoff bound at `λ = (x/2)^{s-1}`, as in the book, and `osBound_of_tail` in place
+of Lemma A.1 and Remark A.2. -/
+theorem osBound_of_log_integral_exp_le [IsProbabilityMeasure P] {X : Ω → ℝ} {s : ℝ}
+    (hX : Measurable X) (hs1 : 1 < s)
+    (h : ∀ t : ℝ, 1 ≤ t → Integrable (fun ω => Real.exp (t * X ω)) P ∧
+      Real.log (∫ ω, Real.exp (t * X ω) ∂P) ≤ t ^ (s / (s - 1))) :
+    OsBound P X s ((8 : ℝ) ^ s⁻¹ * 2) := by
+  have hs0 : 0 < s := by linarith
+  refine osBound_of_tail hX hs0 le_rfl two_pos fun u hu => ?_
+  have hu0 : 0 < u := by linarith
+  set l : ℝ := u ^ (s - 1) with hldef
+  have hl1 : 1 ≤ l := Real.one_le_rpow hu (by linarith)
+  obtain ⟨hi, hlog⟩ := h l hl1
+  have hpos : 0 < mgf X P l := mgf_pos hi
+  have hlp : l ^ (s / (s - 1)) = u ^ s := by
+    rw [hldef, ← Real.rpow_mul hu0.le]
+    congr 1
+    have : s - 1 ≠ 0 := by linarith
+    field_simp
+  have hm : mgf X P l ≤ Real.exp (u ^ s) := by
+    calc mgf X P l = Real.exp (Real.log (mgf X P l)) := (Real.exp_log hpos).symm
+      _ ≤ Real.exp (u ^ s) := Real.exp_le_exp.2 (hlp ▸ hlog)
+  have hlu : l * (u * 2) = 2 * u ^ s := by
+    rw [hldef, Real.rpow_sub_one hu0.ne']
+    field_simp
+  have hch := measure_ge_le_exp_mul_mgf (μ := P) (X := X) (u * 2) (zero_le_one.trans hl1) hi
+  rw [← ofReal_measureReal (measure_ne_top P _)]
+  refine ENNReal.ofReal_le_ofReal (hch.trans ?_)
+  calc Real.exp (-l * (u * 2)) * mgf X P l ≤ Real.exp (-l * (u * 2)) * Real.exp (u ^ s) :=
+        mul_le_mul_of_nonneg_left hm (Real.exp_pos _).le
+    _ = Real.exp (-(u ^ s)) := by
+        rw [← Real.exp_add, neg_mul, hlu]
+        ring_nf
+
 /-- A bound `|X| ≤ O_s(θ)` gives `X ≤ O_s(θ)` and `-X ≤ O_s(θ)`, that is, `X = O_s(θ)` in the
 notation following (A.2). -/
 theorem OsBound.of_abs {X : Ω → ℝ} {s θ : ℝ} (h : OsBound P (fun ω => |X ω|) s θ)
