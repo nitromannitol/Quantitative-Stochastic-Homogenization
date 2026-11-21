@@ -37,6 +37,19 @@ No result of the book is formalized in this repository yet, so there is no entry
   norm from such a sequence (`QSH.measurable_lexicographic_minimizer_param`); (v) `J₁^{(δ)}` as a
   supremum over a countable dense set of coefficient vectors of a polynomial whose coefficients
   are weighted pairings, measurable in `a` and continuous in the gradients.
+- **Joint measurability in the coefficients and the center** (used in the proof of Proposition
+  4.12, Section 4.5, where `x ↦ J₁^{(δ)}(x, r, p, q)` is integrated over boxes; the book does not
+  discuss it). `QSH.measurable_indicator_localizedJ1`, from the translation covariance of the
+  construction (`QSH.localizedJ1_eq_translate`) and the measurability of the translation of the
+  coefficients for the local σ-algebra of a neighbourhood of the centers.
+- **Lemma 4.22** is formalized in deterministic form (`QSH.abs_J1Heat_sub_localizedJ1_le`): the
+  hypotheses are the approximation property of Lemma 4.21, stated for the gradients rescaled by
+  `Φ_{z,r}^{1/2}` on `B_{r^{1+δ}}(z)` and restricted to gradients of bounded weighted norm, and the
+  bound (4.104) on the energies outside the ball; the conclusion is a bound on
+  `|J₁(Φ_{z,r}, p, q) - J₁^{(δ)}(z, r, p, q)|`. The book's proof uses maximizers; the Lean proof
+  uses near maximizers, whose weighted norm is bounded by the concavity of the energy
+  (`QSH.IsConcaveEnergy.abs_sSup_sub_sSup_le`), so it needs neither the existence of maximizers nor
+  the finite dimension of `A₁`.
 - **(5.85)** is reduced to the stochastic estimate for the localized families
-  (`QSH.localizedEnergy_of_localizationEstimate`); the estimate itself (Proposition 4.11 with
-  Lemmas 4.19-4.22) is not formalized yet.
+  (`QSH.localizedEnergy_of_localizationEstimate`); Lemma 4.21 and the stochastic form of Lemma 4.22
+  are not formalized yet.
