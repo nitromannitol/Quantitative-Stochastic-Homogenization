@@ -190,4 +190,64 @@ theorem exists_centeredLocalFields_familyJ1 (hloc : LocalizedFieldInput)
   rw [truncatedField_of_one_le hr, clampAt_of_abs_le (hJb a x r)]
   simp only [hJδdef, clampAt_of_abs_le (hJb _ x r)]
 
+theorem centeredBlock_eq_integral_indicator {d : ℕ} {Λ : ℝ} (P : Measure (CoefficientField d Λ))
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) (a : CoefficientField d Λ)
+    (z : Vec d) (R r : ℝ) (f : Vec d → ℝ) (p q : Vec d) :
+    centeredBlock P J a z R r f p q = R ^ (-(d : ℝ)) *
+      ∫ x, (cube z R).indicator f x * (J a x r p q - ∫ a', J a' x r p q ∂P) := by
+  unfold centeredBlock
+  congr 1
+  rw [← integral_indicator (measurableSet_cube z R)]
+  congr 1
+  funext x
+  by_cases hx : x ∈ cube z R
+  · simp only [Set.indicator_of_mem hx]
+  · simp only [Set.indicator_of_notMem hx, zero_mul]
+
+theorem BlockWindow.exists_eta₂ {d : ℕ} {s δ γ η : ℝ} (hw : BlockWindow d s δ γ η) :
+    ∃ η₂ : ℝ, η < η₂ ∧ η₂ * (1 + δ) < 1 := by
+  obtain ⟨-, -, hδ, -, -, -, -, hη2⟩ := hw
+  refine ⟨(η + (1 + δ)⁻¹) / 2, by linarith, ?_⟩
+  have h := mul_lt_mul_of_pos_right (show (η + (1 + δ)⁻¹) / 2 < (1 + δ)⁻¹ by linarith)
+    (show (0 : ℝ) < 1 + δ by linarith)
+  rwa [inv_mul_cancel₀ (by linarith)] at h
+
+/-- **Lemma 5.29 (i)** for the localized energy (`QSH.Frozen.blockCLT`), from the two properties
+`LocalizedFieldInput` and `LocalizedAdditivityInput` of the localization. -/
+theorem blockCLT_of_inputs (hloc : LocalizedFieldInput) (hadd : LocalizedAdditivityInput) :
+    QSH.Frozen.blockCLT := by
+  intro d hd Λ s δ γ η hΛ hw α σ θ C₀ C' hc
+  obtain ⟨M, A, hM, hA, hX⟩ := exists_centeredLocalFields_familyJ1 hloc hadd hd hΛ hw hc
+  obtain ⟨η₂, hηη₂, hη₂⟩ := hw.exists_eta₂
+  obtain ⟨hs1, hs2, hδ, hγ1, -, hη1, hηγ, -⟩ := hw
+  have hd1 : 1 ≤ d := by omega
+  have hη0 : 0 < η := by linarith
+  obtain ⟨Cb, hCb, hblk⟩ := exists_blockBound_all_scales (Ω := CoefficientField d Λ)
+    (F := localSigma) (δ := δ) (α := γ) (B := 2 * M) (A := A) hd1 localSigma_mono hs1 hs2.le
+    (by positivity) hA (β := (d : ℝ) / 2) (by positivity) le_rfl hδ hη0 hηη₂ hη₂ hηγ
+  refine ⟨(8 : ℝ) ^ s⁻¹ * (4 * Cb), by positivity,
+    fun P hP W hW R r hR hr2 hRr hrR z p q hp hq f hf hf1 => ?_⟩
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨X, hXeq⟩ := hX P hP W hW p q hp hq
+  have hf' : Measurable ((cube z R).indicator f) := hf.indicator (measurableSet_cube z R)
+  have hf1' : ∀ x, |(cube z R).indicator f x| ≤ 1 := by
+    intro x
+    by_cases hx : x ∈ cube z R
+    · rw [Set.indicator_of_mem hx]; exact hf1 x
+    · rw [Set.indicator_of_notMem hx, abs_zero]; exact zero_le_one
+  have hfz : ∀ x ∉ closedCube z R, (cube z R).indicator f x = 0 := fun x hx =>
+    Set.indicator_of_notMem (fun h => hx (cube_subset_closedCube z R h)) _
+  have h := (hblk P (hasUnitRange_of_lawHypotheses hP) X R hR r hRr hrR z _ hf' hf1' hfz).osBound_abs
+  have e : (fun a => |centeredBlock P (familyJ1 W) a z R r f p q|) = fun a =>
+      |R ^ (-(d : ℝ)) * ∫ x, (cube z R).indicator f x * X.field r a x| := by
+    funext a
+    rw [centeredBlock_eq_integral_indicator]
+    congr 3
+    funext x
+    rw [hXeq r (by linarith) a x]
+  rw [e]
+  refine h.mono_scale (le_of_eq ?_)
+  rw [neg_div]
+  ring
+
 end QSH
