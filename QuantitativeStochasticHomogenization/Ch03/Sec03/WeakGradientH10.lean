@@ -101,4 +101,83 @@ theorem sum_integral_grad_mul_skew_test {U : Set (Vec d)} {v : Vec d → ℝ} {g
     sum_coordinateDerivative_skew_eq_zero (fun j k => (hΞ j k).1.of_le (by simp)) hskew
   simp only [hz, mul_zero, integral_zero]
 
+/-- **The skew identity for `H¹₀` families**: if `Θ_{jk} ∈ H¹₀(U)` with `∇Θ_{kj} = -∇Θ_{jk}`, then
+`∑_{j,k} ∫_U gⱼ ∂ₖ Θ_{jk} = 0`. -/
+theorem sum_integral_grad_mul_skew_h10 {U : Set (Vec d)} {v : Vec d → ℝ} {g : Vec d → Vec d}
+    (hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict U)) (hw : HasWeakGradient U v g)
+    (Θ : Fin d → Fin d → PDE.H10Function U)
+    (hskew : ∀ j k x, (Θ k j).toH1Function.grad x = -(Θ j k).toH1Function.grad x) :
+    ∑ j, ∑ k, ∫ x in U, g x j * (Θ j k).toH1Function.grad x k = 0 := by
+  set a : ℕ → Fin d → Fin d → Vec d → ℝ := fun n j k => (Θ j k).approx n with ha
+  have hsm : ∀ n j k, ContDiff ℝ (⊤ : ℕ∞) (a n j k) := fun n j k => (Θ j k).approx_smooth n
+  have hcs : ∀ n j k, HasCompactSupport (a n j k) := fun n j k => (Θ j k).approx_hasCompactSupport n
+  have hts : ∀ n j k, tsupport (a n j k) ⊆ U := fun n j k => (Θ j k).approx_support_subset n
+  set Ξ : ℕ → Fin d → Fin d → Vec d → ℝ := fun n j k x => 2⁻¹ * (a n j k x - a n k j x) with hΞ
+  have hΞt : ∀ n j k, IsSpatialTest U (Ξ n j k) := by
+    intro n j k
+    refine ⟨contDiff_const.mul ((hsm n j k).sub (hsm n k j)), ?_, ?_⟩
+    · exact ((hcs n j k).sub (hcs n k j)).mul_left
+    · refine (tsupport_mul_subset_right).trans ?_
+      refine (tsupport_sub _ _).trans ?_
+      exact Set.union_subset (hts n j k) (hts n k j)
+  have hΞs : ∀ n j k, Ξ n k j = fun x => -Ξ n j k x := by
+    intro n j k
+    funext x
+    simp only [hΞ]
+    ring
+  have hzero : ∀ n, ∑ j, ∑ k, ∫ x in U, g x j * coordinateDerivative k (Ξ n j k) x = 0 :=
+    fun n => sum_integral_grad_mul_skew_test hw (hΞt n) (hΞs n)
+  have hder : ∀ n j k x, coordinateDerivative k (Ξ n j k) x =
+      2⁻¹ * coordinateDerivative k (a n j k) x - 2⁻¹ * coordinateDerivative k (a n k j) x := by
+    intro n j k x
+    have h1 := ((hsm n j k).differentiable (by simp)) x
+    have h2 := ((hsm n k j).differentiable (by simp)) x
+    unfold coordinateDerivative
+    have hfd : fderiv ℝ (Ξ n j k) x =
+        (2⁻¹ : ℝ) • (fderiv ℝ (a n j k) x - fderiv ℝ (a n k j) x) := by
+      have h := ((h1.hasFDerivAt.sub h2.hasFDerivAt).const_mul (2⁻¹ : ℝ)).fderiv
+      exact h
+    rw [hfd]
+    simp only [_root_.smul_apply, _root_.sub_apply, smul_eq_mul]
+    ring
+  have hdm : ∀ n j k i, MemLp (fun x => coordinateDerivative i (a n j k) x) 2
+      (volume.restrict U) :=
+    fun n j k i => (((hsm n j k).continuous_fderiv (by simp)).clm_apply continuous_const
+      |>.memLp_of_hasCompactSupport
+        ((hcs n j k).fderiv_apply (𝕜 := ℝ) (unitVector i))).restrict U
+  have hlim : ∀ j k, Tendsto (fun n => ∫ x in U, g x j * coordinateDerivative k (Ξ n j k) x) atTop
+      (𝓝 (∫ x in U, g x j * (Θ j k).toH1Function.grad x k)) := by
+    intro j k
+    have t1 := tendsto_integral_mul_of_eLpNorm_sub (hg j) ((Θ j k).toH1Function.gradMemL2 k)
+      (fun n => hdm n j k k) ((Θ j k).tendsto_approx_grad k)
+    have t2 := tendsto_integral_mul_of_eLpNorm_sub (hg j) ((Θ k j).toH1Function.gradMemL2 k)
+      (fun n => hdm n k j k) ((Θ k j).tendsto_approx_grad k)
+    have hneg : ∫ x in U, g x j * (Θ k j).toH1Function.grad x k =
+        -∫ x in U, g x j * (Θ j k).toH1Function.grad x k := by
+      rw [← integral_neg]
+      refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+      simp only [hskew j k x, Pi.neg_apply]
+      ring
+    rw [hneg] at t2
+    have t3 := (t1.const_mul (2⁻¹ : ℝ)).sub (t2.const_mul (2⁻¹ : ℝ))
+    have e : 2⁻¹ * (∫ x in U, g x j * (Θ j k).toH1Function.grad x k) -
+        2⁻¹ * (-∫ x in U, g x j * (Θ j k).toH1Function.grad x k) =
+        ∫ x in U, g x j * (Θ j k).toH1Function.grad x k := by ring
+    rw [e] at t3
+    refine t3.congr fun n => ?_
+    have i1 : Integrable (fun x => g x j * coordinateDerivative k (a n j k) x)
+        (volume.restrict U) := (hg j).integrable_mul (hdm n j k k)
+    have i2 : Integrable (fun x => g x j * coordinateDerivative k (a n k j) x)
+        (volume.restrict U) := (hg j).integrable_mul (hdm n k j k)
+    rw [← integral_const_mul, ← integral_const_mul, ← integral_sub (i1.const_mul _)
+      (i2.const_mul _)]
+    refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+    simp only [hder]
+    ring
+  have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin d)) fun j _ =>
+    tendsto_finsetSum (Finset.univ : Finset (Fin d)) fun k _ => hlim j k
+  exact tendsto_nhds_unique (hsum.congr fun n => rfl) (by
+    simp only [hzero]
+    exact tendsto_const_nhds)
+
 end QSH
