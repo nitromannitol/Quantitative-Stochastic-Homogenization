@@ -31,14 +31,18 @@ theorem osBound_zero {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProba
 
 /-- **The per-scale estimate** of order `n + 1` for a random field `F`: measurable majorants
 `Q k w s` of `‖Y_{β_w,s}(F)‖_{L²(B_1)}` for the words `w` of length `k ≤ n + 1`, which are
-`O_1(c s^{-k/2 - d/4} ε^{d/2})` at every scale `s ∈ (0, 1]`. -/
+`O_1(c s^{-k/2 - d/4} ε^{d/2})` at every scale `s ∈ (0, 1]`, the majorization holding almost surely
+at each scale. The norms are jointly measurable in the scale and the sample. -/
 def HeatScaleEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (n : ℕ)
     (F : Ω → Vec d → ℝ) (c ε : ℝ) : Prop :=
   ∃ Q : ∀ k : ℕ, (Fin k → Fin d) → ℝ → Ω → ℝ,
     (∀ k w, Measurable (Function.uncurry (Q k w))) ∧ (∀ k w s a, 0 ≤ Q k w s a) ∧
+    (∀ k (w : Fin k → Fin d), Measurable (fun p : ℝ × Ω =>
+      eLpNorm (heatDerivativeAverage (countIndex w) p.1 (F p.2)) 2
+        (volume.restrict (originBall d 1)))) ∧
     (∀ k (w : Fin k → Fin d), k ≤ n + 1 → ∀ s ∈ Ioc (0 : ℝ) 1,
       OsBound P (Q k w s) 1 (c * s ^ (-(k : ℝ) / 2 - (d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) ∧
-    ∀ᵐ a ∂P, ∀ k (w : Fin k → Fin d), k ≤ n + 1 → ∀ s ∈ Ioc (0 : ℝ) 1,
+    ∀ k (w : Fin k → Fin d), k ≤ n + 1 → ∀ s ∈ Ioc (0 : ℝ) 1, ∀ᵐ a ∂P,
       eLpNorm (heatDerivativeAverage (countIndex w) s (F a)) 2
         (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q k w s a)
 
@@ -67,7 +71,44 @@ theorem HeatScaleEstimate.osBound_heatBracket {Ω : Type*} [MeasurableSpace Ω] 
     {F : Ω → Vec d → ℝ} {c ε : ℝ} (hc : 0 < c) (hε : 0 < ε) (h : HeatScaleEstimate P n F c ε) :
     ∃ Z : Ω → ℝ, OsBound P Z 1 (heatScaleConstant d n c * ε ^ ((d : ℝ) / 2)) ∧
       ∀ᵐ a ∂P, heatBracket n (F a) ≤ ENNReal.ofReal (Z a) := by
-  obtain ⟨Q, hQm, hQ0, hQ, hY⟩ := h
+  obtain ⟨Q, hQm, hQ0, hYm, hQ, hY⟩ := h
+  have hY1 : ∀ᵐ a ∂P, ∀ k (w : Fin k → Fin d), k ≤ n + 1 →
+      eLpNorm (heatDerivativeAverage (countIndex w) 1 (F a)) 2
+        (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q k w 1 a) := by
+    rw [ae_all_iff]
+    intro k
+    rw [ae_all_iff]
+    intro w
+    by_cases hk : k ≤ n + 1
+    · filter_upwards [hY k w hk 1 ⟨one_pos, le_rfl⟩] with a ha
+      exact fun _ => ha
+    · exact Eventually.of_forall fun a h => absurd h hk
+  have hY2 : ∀ᵐ a ∂P, ∀ᵐ s ∂(volume.restrict (Ioc (0 : ℝ) 1)), s ∈ Ioc (0 : ℝ) 1 →
+      ∀ w : Fin (n + 1) → Fin d, eLpNorm (heatDerivativeAverage (countIndex w) s (F a)) 2
+        (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w s a) := by
+    have hset : MeasurableSet {q : ℝ × Ω | q.1 ∈ Ioc (0 : ℝ) 1 →
+        ∀ w : Fin (n + 1) → Fin d, eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
+          (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} := by
+      have heq : {q : ℝ × Ω | q.1 ∈ Ioc (0 : ℝ) 1 →
+          ∀ w : Fin (n + 1) → Fin d, eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
+            (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} =
+          (Prod.fst ⁻¹' Ioc (0 : ℝ) 1)ᶜ ∪ ⋂ w : Fin (n + 1) → Fin d,
+            {q : ℝ × Ω | eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
+              (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} := by
+        ext q
+        simp only [mem_setOf_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter]
+        tauto
+      rw [heq]
+      exact (measurableSet_Ioc.preimage measurable_fst).compl.union
+        (MeasurableSet.iInter fun w => measurableSet_le (hYm (n + 1) w)
+          (ENNReal.measurable_ofReal.comp (hQm (n + 1) w)))
+    refine (Measure.ae_ae_comm (μ := volume.restrict (Ioc (0 : ℝ) 1)) (ν := P) hset).mp ?_
+    refine Eventually.of_forall fun s => ?_
+    by_cases hs : s ∈ Ioc (0 : ℝ) 1
+    · have h := ae_all_iff.mpr fun w : Fin (n + 1) → Fin d => hY (n + 1) w le_rfl s hs
+      filter_upwards [h] with a ha
+      exact fun _ => ha
+    · exact Eventually.of_forall fun a h => absurd h hs
   set e := ε ^ ((d : ℝ) / 2) with he
   have he0 : 0 < e := Real.rpow_pos_of_pos hε _
   set α : ℝ := (n : ℝ) - ((n : ℝ) + 1) / 2 - (d : ℝ) / 4 with hα
@@ -140,7 +181,7 @@ theorem HeatScaleEstimate.osBound_heatBracket {Ω : Type*} [MeasurableSpace Ω] 
     push_cast
     rw [← Finset.sum_mul, div_eq_mul_inv]
     ring
-  · filter_upwards [hY, hXint] with a ha hai
+  · filter_upwards [hY1, hY2, hXint] with a ha ha2 hai
     unfold heatBracket
     have hT1 : (∑ k ∈ Finset.range (n + 1), ∑ w : Fin k → Fin d,
         eLpNorm (heatDerivativeAverage (countIndex w) 1 (F a)) 2
@@ -150,18 +191,19 @@ theorem HeatScaleEstimate.osBound_heatBracket {Ω : Type*} [MeasurableSpace Ω] 
       refine Finset.sum_le_sum fun k hk => ?_
       rw [ENNReal.ofReal_sum_of_nonneg fun w _ => hQ0 _ _ _ _]
       exact Finset.sum_le_sum fun w _ =>
-        ha k w (by rw [Finset.mem_range] at hk; omega) 1 ⟨one_pos, le_rfl⟩
+        ha k w (by rw [Finset.mem_range] at hk; omega)
     have hT2 : ∫⁻ s in Ioc (0 : ℝ) 1, ENNReal.ofReal (s ^ n) * ∑ w : Fin (n + 1) → Fin d,
         eLpNorm (heatDerivativeAverage (countIndex w) s (F a)) 2
           (volume.restrict (originBall d 1)) ≤
         ENNReal.ofReal (∫ s, X s a ∂(volume.restrict (Ioc (0 : ℝ) 1))) := by
       rw [ofReal_integral_eq_lintegral_ofReal hai (Eventually.of_forall fun s => hX0 s a)]
-      refine setLIntegral_mono' measurableSet_Ioc fun s hs => ?_
+      refine lintegral_mono_ae ?_
+      filter_upwards [ha2, ae_restrict_mem measurableSet_Ioc] with s hs2 hs
       simp only [hXdef, hs, ↓reduceIte]
       rw [ENNReal.ofReal_mul (pow_nonneg hs.1.le n),
         ENNReal.ofReal_sum_of_nonneg fun w _ => hQ0 _ _ _ _]
       gcongr with w
-      exact ha (n + 1) w le_rfl s hs
+      exact hs2 hs w
     have hZ₁0 : 0 ≤ Z₁ a := Finset.sum_nonneg fun k _ => Finset.sum_nonneg fun w _ => hQ0 _ _ _ _
     calc _ ≤ ENNReal.ofReal (Z₁ a) +
           ENNReal.ofReal (∫ s, X s a ∂(volume.restrict (Ioc (0 : ℝ) 1))) := add_le_add hT1 hT2
