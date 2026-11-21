@@ -139,4 +139,130 @@ def LocalHarmonic.shift (w : LocalHarmonic a z T) (hb : ∀ y, b.field y = a.fie
     (hb : ∀ y, b.field y = a.field (c + y)) (hz : c + z' = z) (y : Vec d) :
     (w.shift hb hz).grad y = w.grad (c + y) := rfl
 
+/-! ## Invariance of the objective, the norm, the admissible class and the energy -/
+
+theorem heatKernel_add_add (c y : Vec d) (t : ℝ) (y' : Vec d) :
+    heatKernel (c + y) t (c + y') = heatKernel y t y' := by
+  unfold heatKernel
+  rw [add_sub_add_left_eq_sub]
+
+theorem localizationObjective_shift (hz : c + z' = z) (S σ θ : ℝ) (i : Fin d)
+    (f : Vec d → ℝ) :
+    localizationObjective z' T S σ θ (fun y => f (c + y) - (y - z') i) =
+      localizationObjective z T S σ θ (fun y => f y - (y - z) i) := by
+  unfold localizationObjective
+  have hinner : ∀ y, (∫ y' in ball z' T, heatKernel y (σ * S) y' * (f (c + y') - (y' - z') i)) =
+      ∫ x in ball z T, heatKernel (c + y) (σ * S) x * (f x - (x - z) i) := by
+    intro y
+    rw [← setIntegral_ball_add hz T]
+    refine integral_congr_ae (Eventually.of_forall fun y' => ?_)
+    have e : (c + y' - z) i = (y' - z') i := by rw [← hz, add_sub_add_left_eq_sub]
+    simp only [heatKernel_add_add, e]
+  simp_rw [hinner]
+  exact setAverage_ball_add hz (S / θ)
+    (fun u => (∫ x in ball z T, heatKernel u (σ * S) x * (f x - (x - z) i)) ^ 2)
+
+theorem integral_sq_shift (hz : c + z' = z) (f : Vec d → ℝ) :
+    ∫ y in ball z' T, f (c + y) ^ 2 = ∫ y in ball z T, f y ^ 2 :=
+  setIntegral_ball_add hz T (fun y => f y ^ 2)
+
+theorem vectorRms_shift (hz : c + z' = z) (g : Vec d → Vec d) :
+    vectorRms volume (ball z' T) (fun y => g (c + y)) = vectorRms volume (ball z T) g := by
+  unfold vectorRms
+  rw [setAverage_ball_add hz T (fun y => euclideanSq (g y))]
+
+theorem LocalHarmonic.isLocalizationAdmissible_shift_iff (w : LocalHarmonic a z T)
+    (hb : ∀ y, b.field y = a.field (c + y)) (hz : c + z' = z) (C : ℝ) :
+    IsLocalizationAdmissible C (w.shift hb hz) ↔ IsLocalizationAdmissible C w := by
+  unfold IsLocalizationAdmissible
+  rw [show (w.shift hb hz).grad = fun y => w.grad (c + y) from rfl, vectorRms_shift hz]
+
+theorem neg_add_shift_eq (hz : c + z' = z) : -c + z = z' := by
+  rw [← hz, neg_add_cancel_left]
+
+theorem field_unshift (hb : ∀ y, b.field y = a.field (c + y)) (y : Vec d) :
+    a.field y = b.field (-c + y) := by
+  rw [hb, add_neg_cancel_left]
+
+/-- The shift maps least-norm coordinate minimizers to least-norm coordinate minimizers. -/
+theorem IsLeastNormCoordinateMinimizer.shift {S σ θ C : ℝ} {i : Fin d} {w : LocalHarmonic a z T}
+    (hw : IsLeastNormCoordinateMinimizer S σ θ C i w) (hb : ∀ y, b.field y = a.field (c + y))
+    (hz : c + z' = z) : IsLeastNormCoordinateMinimizer S σ θ C i (w.shift hb hz) := by
+  have hb' := field_unshift hb
+  have hz' := neg_add_shift_eq hz
+  have hobj : ∀ v : LocalHarmonic b z' T,
+      localizationObjective z T S σ θ (fun y => (v.shift hb' hz').potential y - (y - z) i) =
+        localizationObjective z' T S σ θ (fun y => v.potential y - (y - z') i) := by
+    intro v
+    have h := localizationObjective_shift (T := T) hz S σ θ i (v.shift hb' hz').potential
+    rw [← h]
+    congr 1
+    funext y
+    simp
+  have hnorm : ∀ v : LocalHarmonic b z' T,
+      ∫ y in ball z T, (v.shift hb' hz').potential y ^ 2 = ∫ y in ball z' T, v.potential y ^ 2 := by
+    intro v
+    have h := integral_sq_shift (T := T) hz (v.shift hb' hz').potential
+    rw [← h]
+    congr 1
+    funext y
+    simp
+  have hadm : ∀ v : LocalHarmonic b z' T,
+      IsLocalizationAdmissible C (v.shift hb' hz') ↔ IsLocalizationAdmissible C v :=
+    fun v => v.isLocalizationAdmissible_shift_iff hb' hz' C
+  have hobj_w : localizationObjective z' T S σ θ
+      (fun y => (w.shift hb hz).potential y - (y - z') i) =
+        localizationObjective z T S σ θ (fun y => w.potential y - (y - z) i) :=
+    localizationObjective_shift hz S σ θ i w.potential
+  have hmin : IsCoordinateMinimizer S σ θ C i (w.shift hb hz) := by
+    refine ⟨(w.isLocalizationAdmissible_shift_iff hb hz C).2 hw.1.1, fun v hv => ?_⟩
+    rw [hobj_w, ← hobj v]
+    exact hw.1.2 _ ((hadm v).2 hv)
+  refine ⟨hmin, fun v hv => ?_⟩
+  have hvm : IsCoordinateMinimizer S σ θ C i (v.shift hb' hz') := by
+    refine ⟨(hadm v).2 hv.1, fun u hu => ?_⟩
+    rw [hobj v]
+    have h1 := hv.2 (u.shift hb hz) ((u.isLocalizationAdmissible_shift_iff hb hz C).2 hu)
+    rw [show (fun x => (u.shift hb hz).potential x - (x - z') i) =
+      fun y => u.potential (c + y) - (y - z') i from rfl,
+      localizationObjective_shift hz S σ θ i u.potential] at h1
+    exact h1
+  have h2 := hw.2 _ hvm
+  rw [hnorm v] at h2
+  rw [show (w.shift hb hz).potential = fun y => w.potential (c + y) from rfl,
+    integral_sq_shift hz]
+  exact h2
+
+/-- The shift of a localized basis. -/
+def LocalizedBasis.shift {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C)
+    (hb : ∀ y, b.field y = a.field (c + y)) (hz : c + z' = z) : LocalizedBasis b z' T S σ θ C where
+  coordinate i := (W.coordinate i).shift hb hz
+  selected i := (W.selected i).shift hb hz
+
+/-- **The localized energy is invariant under the shift.** -/
+theorem localizedJ1_shift {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C)
+    (hb : ∀ y, b.field y = a.field (c + y)) (hz : c + z' = z) (r : ℝ) (p q : Vec d) :
+    localizedJ1 (W.shift hb hz) r p q = localizedJ1 W r p q := by
+  unfold localizedJ1
+  congr 1
+  ext e
+  refine exists_congr fun cc => ?_
+  have hint : (∫ x in ball z' T, heatKernel z' r x *
+      (-(1 / 2 : ℝ) * dot (localizedGradient (W.shift hb hz) cc x)
+        ((b x).mulVec (localizedGradient (W.shift hb hz) cc x)) -
+        dot p ((b x).mulVec (localizedGradient (W.shift hb hz) cc x)) +
+        dot q (localizedGradient (W.shift hb hz) cc x))) =
+      ∫ x in ball z T, heatKernel z r x *
+        (-(1 / 2 : ℝ) * dot (localizedGradient W cc x) ((a x).mulVec (localizedGradient W cc x)) -
+          dot p ((a x).mulVec (localizedGradient W cc x)) + dot q (localizedGradient W cc x)) := by
+    rw [← setIntegral_ball_add hz T]
+    refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+    have hk : heatKernel z' r x = heatKernel z r (c + x) := by
+      unfold heatKernel
+      rw [← hz, add_sub_add_left_eq_sub]
+    have hg : localizedGradient (W.shift hb hz) cc x = localizedGradient W cc (c + x) := rfl
+    have hbx : b x = a (c + x) := hb x
+    simp only [hk, hg, hbx]
+  rw [hint]
+
 end QSH
