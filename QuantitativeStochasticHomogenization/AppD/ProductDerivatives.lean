@@ -35,7 +35,7 @@ theorem coordinateDerivative_prodFun {h : Fin d → ℝ → ℝ} (hh : ∀ i, Di
   have hprod := HasFDerivAt.finsetProd hd
   unfold coordinateDerivative prodFun
   rw [hprod.fderiv]
-  simp only [ContinuousLinearMap.coe_sum', Finset.sum_apply, ContinuousLinearMap.coe_smul',
+  simp only [FunLike.coe_sum, Finset.sum_apply, FunLike.coe_smul,
     Pi.smul_apply, ContinuousLinearMap.proj_apply, unitVector, smul_eq_mul]
   rw [Finset.sum_eq_single j]
   · rw [Pi.single_eq_same, mul_one, ← Finset.mul_prod_erase Finset.univ
@@ -53,7 +53,7 @@ theorem foldr_coordinateDerivative_prodFun {h : Fin d → ℝ → ℝ} (hh : ∀
     l.foldr coordinateDerivative (prodFun h) =
       prodFun (fun i => iteratedDeriv (l.count i) (h i)) := by
   induction l with
-  | nil => simp [prodFun]
+  | nil => simp
   | cons j l ih =>
     rw [List.foldr_cons, ih]
     funext x
