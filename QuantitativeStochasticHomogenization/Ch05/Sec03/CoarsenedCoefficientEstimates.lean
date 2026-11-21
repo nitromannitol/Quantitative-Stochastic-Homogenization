@@ -36,20 +36,20 @@ def EnergyEstimate (P : Measure (CoefficientField d Λ)) (A : Mat d) (C₀ : ℝ
 
 /-! ## Euclidean facts -/
 
-theorem euclideanNorm_smul (c : ℝ) (v : Vec d) :
+theorem euclideanNorm_smul_eq_abs_mul (c : ℝ) (v : Vec d) :
     euclideanNorm (c • v) = |c| * euclideanNorm v := by
   have h : euclideanSq (c • v) = c ^ 2 * euclideanSq v := by
     simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
     exact Finset.sum_congr rfl fun i _ => by ring
   rw [euclideanNorm, h, Real.sqrt_mul (sq_nonneg c), Real.sqrt_sq_eq_abs, euclideanNorm]
 
-theorem euclideanSq_unitVector (j : Fin d) : euclideanSq (unitVector j) = 1 := by
+theorem euclideanSq_unitVector_eq_one (j : Fin d) : euclideanSq (unitVector j) = 1 := by
   have h := dot_unitVector_mulVec (1 : Mat d) j j
   rw [Matrix.one_mulVec, Matrix.one_apply_eq] at h
   exact h
 
 theorem euclideanNorm_unitVector (j : Fin d) : euclideanNorm (unitVector j) = 1 := by
-  rw [euclideanNorm, euclideanSq_unitVector, Real.sqrt_one]
+  rw [euclideanNorm, euclideanSq_unitVector_eq_one, Real.sqrt_one]
 
 theorem euclideanNorm_mulVec_unitVector_le (A : Mat d) {δ : ℝ}
     (hδ : ‖Matrix.toEuclideanCLM (𝕜 := ℝ) A‖ ≤ δ) (j : Fin d) :
@@ -126,13 +126,13 @@ theorem norm_toEuclideanCLM_le_of_energyEstimate {P : Measure (CoefficientField 
     set vp := (1 / 4 : ℝ) • (unitVector j + unitVector k) with hvp
     set vm := (1 / 4 : ℝ) • (unitVector j - unitVector k) with hvm
     have hnp : euclideanNorm vp ≤ 1 / 2 := by
-      rw [hvp, euclideanNorm_smul]
+      rw [hvp, euclideanNorm_smul_eq_abs_mul]
       have := euclideanNorm_add_le (unitVector j) (unitVector k)
       rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
       rw [abs_of_pos (by norm_num : (0 : ℝ) < 1 / 4)]
       linarith
     have hnm : euclideanNorm vm ≤ 1 / 2 := by
-      rw [hvm, euclideanNorm_smul]
+      rw [hvm, euclideanNorm_smul_eq_abs_mul]
       have := euclideanNorm_sub_le (unitVector j) (unitVector k)
       rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
       rw [abs_of_pos (by norm_num : (0 : ℝ) < 1 / 4)]
@@ -228,7 +228,7 @@ theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
   -- the loads of the polarization lie in the unit ball
   have hball : ∀ c : ℝ, 0 ≤ c → ∀ v : Vec d, c * euclideanNorm v < 1 →
       euclideanNorm (c • v) < 1 := fun c hc v hv => by
-    rwa [euclideanNorm_smul, abs_of_nonneg hc]
+    rwa [euclideanNorm_smul_eq_abs_mul, abs_of_nonneg hc]
   have hsum2 : ∀ j k : Fin d, t * euclideanNorm (unitVector j + unitVector k) < 1 := fun j k => by
     have := euclideanNorm_add_le (unitVector j) (unitVector k)
     rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this

@@ -88,7 +88,7 @@ theorem euclideanSq_mulVec_le (a : CoefficientField d Λ) (x g : Vec d) :
       nlinarith
     exact le_of_mul_le_mul_left h2 hpos
 
-theorem norm_le_euclideanNorm (v : Vec d) : ‖v‖ ≤ euclideanNorm v :=
+theorem pi_norm_le_euclideanNorm (v : Vec d) : ‖v‖ ≤ euclideanNorm v :=
   (pi_norm_le_iff_of_nonneg (euclideanNorm_nonneg v)).mpr fun i => by
     rw [Real.norm_eq_abs]
     unfold euclideanNorm euclideanSq dot
@@ -117,7 +117,7 @@ theorem integrable_mask_smul (hmask0 : ∀ x, 0 ≤ mask x) (hmask : Integrable 
   refine Filter.Eventually.of_forall fun x => ?_
   rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (hmask0 x)]
   calc mask x * ‖F x‖ ≤ mask x * ((1 + euclideanSq (F x)) / 2) :=
-        mul_le_mul_of_nonneg_left ((norm_le_euclideanNorm _).trans
+        mul_le_mul_of_nonneg_left ((pi_norm_le_euclideanNorm _).trans
           (euclideanNorm_le_one_add_sq _)) (hmask0 x)
     _ = (mask x + mask x * euclideanSq (F x)) / 2 := by ring
 
