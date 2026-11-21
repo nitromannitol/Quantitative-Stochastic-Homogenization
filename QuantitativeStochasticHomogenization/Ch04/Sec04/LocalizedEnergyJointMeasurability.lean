@@ -152,4 +152,29 @@ theorem measurable_indicator_localizedJ1 (hΛ : 0 ≤ Λ) {δ γ α σ θ C₀ :
   rw [heq]
   exact hcomp.indicator hmeasU
 
+/-- **Joint measurability of the extended localized energy** `familyJ1` (zero below `r = 2`), in
+the form used by the proof of Proposition 4.12. -/
+theorem measurable_indicator_familyJ1 (hΛ : 0 ≤ Λ) {δ γ α σ θ C₀ : ℝ} (hσ : 0 < σ)
+    (hθ : 0 < θ) (hC₀ : 0 < C₀) (W : LocalizedFamily d Λ δ γ α σ θ C₀) (r : ℝ)
+    (p q : Vec d) {U V : Set (Vec d)} (hU : MeasurableSet U)
+    (hV : ∀ x ∈ U, ball x (localizationOuterRadius δ r) ⊆ V) :
+    @Measurable (CoefficientField d Λ × Vec d) ℝ
+      (@Prod.instMeasurableSpace _ _ (localSigma V) _) _
+      (fun w => U.indicator (fun x => familyJ1 W w.1 x r p q) w.2) := by
+  by_cases hr : 2 ≤ r
+  · have h := measurable_indicator_localizedJ1 hΛ hσ hθ hC₀ W r hr p q hU hV
+    have heq : (fun w : CoefficientField d Λ × Vec d =>
+        U.indicator (fun x => familyJ1 W w.1 x r p q) w.2) =
+        fun w => U.indicator (fun x => localizedJ1 (W w.1 x r hr) r p q) w.2 := by
+      funext w
+      simp [familyJ1, hr]
+    rw [heq]
+    exact h
+  · have : (fun w : CoefficientField d Λ × Vec d =>
+        U.indicator (fun x => familyJ1 W w.1 x r p q) w.2) = fun _ => 0 := by
+      funext w
+      simp [familyJ1, hr]
+    rw [this]
+    exact @measurable_const _ _ _ (@Prod.instMeasurableSpace _ _ (localSigma V) _) _
+
 end QSH
