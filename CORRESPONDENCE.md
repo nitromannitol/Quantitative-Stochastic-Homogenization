@@ -164,7 +164,7 @@ of each module names the source files and commits.
 
 ## Section 4.6: (4.126) and Appendix D (`Ch04/Sec06/`, `AppD/`)
 
-- **(4.126), `p = 2`, integer `m > d/2`, `s = 1`** (`negativeSobolevCorrector_of_averages`).
+- **(4.126), `p = 2`, integer `m > d/2`, `s = 1`** (`negativeSobolevCorrector_of_corrector_energy_bounds`).
   The book bounds negative Sobolev norms through the fractional heat-flow characterization of
   Appendix D and the full family of norms of Theorem 4.24. Here only integer orders on the unit
   ball are needed, and the argument has three steps.
@@ -189,9 +189,10 @@ of each module names the source files and commits.
      (`osBound_abs_heatAverage_rescaled`), their Gaussian square average being `O_1` by
      `osBound_rpow_integral_sq` (`heatScaleEstimate_of_gaussian`).
   The frozen statement is thus deduced from (4.2) for the correctors in the form of the frozen
-  statement of Theorem 4.1, (4.3) in the same form for a jointly measurable version of the flux, and
-  the Gaussian moments and Gaussian energy estimate (`GaussianEnergyEstimate`) of the `2d` rescaled
-  components.
+  statement of Theorem 4.1, (4.3) in the same form for the flux (made jointly measurable through
+  `coefficientVersion`), the bounds `1 ≤ ā ≤ Λ`, and the Gaussian energy estimate of the corrected
+  field `e + ∇φ_e(·/ε)` at the unit scale, which dominates the components of both fields
+  (`gaussianEnergyEstimate_of_vector`) and gives their Gaussian moments (`GaussianMoments`).
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
