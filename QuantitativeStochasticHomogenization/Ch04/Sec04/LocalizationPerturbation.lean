@@ -577,4 +577,159 @@ theorem norm_scaled_ballGrad_le_of_near {a : CoefficientField d Λ} (hΛ : 0 ≤
   rw [a1BallEnergy_eq a hr p q w] at hball
   exact hE.norm_le_of_energy_ge hball
 
+/-! ## The tail outside the ball for the bounded part -/
+
+theorem abs_energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p q : Vec d)
+    (x : Vec d) (g : Vec d) :
+    |-(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g) + dot q g| ≤
+      ((d : ℝ) * Λ / 2 + linearCoefficient d Λ p q / 2) * euclideanSq g +
+        linearCoefficient d Λ p q / 2 := by
+  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_apply_le_euclideanNorm g k
+  have hn := euclideanNorm_nonneg g
+  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (euclideanNorm_sq g).symm
+  have hAg : ∀ u : Vec d, |dot u ((a x).mulVec g)| ≤
+      (∑ k, |u k|) * d * Λ * euclideanNorm g := by
+    intro u
+    simp only [dot, Matrix.mulVec, dotProduct]
+    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+    calc ∑ k, |u k * ∑ l, a x k l * g l| ≤ ∑ k, |u k| * (d * (Λ * euclideanNorm g)) := by
+          refine Finset.sum_le_sum fun k _ => ?_
+          rw [abs_mul]
+          refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+          refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+          calc ∑ l, |a x k l * g l| ≤ ∑ _l : Fin d, Λ * euclideanNorm g := by
+                refine Finset.sum_le_sum fun l _ => ?_
+                rw [abs_mul]
+                exact mul_le_mul (a.abs_apply_le x k l) (hgk l) (abs_nonneg _) hΛ
+            _ = d * (Λ * euclideanNorm g) := by simp
+      _ = (∑ k, |u k|) * d * Λ * euclideanNorm g := by rw [← Finset.sum_mul]; ring
+  have hgg : |dot g ((a x).mulVec g)| ≤ d * Λ * euclideanSq g := by
+    have h1 : dot g ((a x).mulVec g) ≤ Λ * euclideanSq g := (a.elliptic x g).2
+    have h2 : 0 ≤ dot g ((a x).mulVec g) := (euclideanSq_nonneg g).trans (a.elliptic x g).1
+    rw [abs_of_nonneg h2]
+    have hd : (1 : ℝ) ≤ d ∨ d = 0 := by
+      rcases Nat.eq_zero_or_pos d with h | h
+      · right; exact h
+      · left; exact_mod_cast h
+    rcases hd with hd | hd
+    · nlinarith [euclideanSq_nonneg g]
+    · subst hd
+      have : euclideanSq g = 0 := by simp [euclideanSq, dot]
+      have h3 : dot g ((a x).mulVec g) = 0 := by simp [dot]
+      rw [h3]; simp
+  have hp := hAg p
+  have hq : |dot q g| ≤ (∑ k, |q k|) * euclideanNorm g := by
+    simp only [dot]
+    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+    calc ∑ k, |q k * g k| ≤ ∑ k, |q k| * euclideanNorm g := by
+          refine Finset.sum_le_sum fun k _ => ?_
+          rw [abs_mul]
+          exact mul_le_mul_of_nonneg_left (hgk k) (abs_nonneg _)
+      _ = (∑ k, |q k|) * euclideanNorm g := by rw [← Finset.sum_mul]
+  have hc0 : 0 ≤ linearCoefficient d Λ p q := by
+    unfold linearCoefficient
+    exact add_nonneg (mul_nonneg (mul_nonneg (Finset.sum_nonneg fun k _ => abs_nonneg _)
+      (Nat.cast_nonneg d)) hΛ) (Finset.sum_nonneg fun k _ => abs_nonneg _)
+  have hlin : |dot p ((a x).mulVec g)| + |dot q g| ≤ linearCoefficient d Λ p q * euclideanNorm g := by
+    unfold linearCoefficient; nlinarith
+  have hamgm : linearCoefficient d Λ p q * euclideanNorm g ≤
+      linearCoefficient d Λ p q / 2 * euclideanSq g + linearCoefficient d Λ p q / 2 := by
+    rw [hsq]; nlinarith [sq_nonneg (euclideanNorm g - 1)]
+  calc |-(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g) + dot q g|
+      ≤ (1 / 2 : ℝ) * |dot g ((a x).mulVec g)| + |dot p ((a x).mulVec g)| + |dot q g| := by
+        have := abs_add_le (-(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g))
+          (dot q g)
+        have h2 := abs_sub (-(1 / 2 : ℝ) * dot g ((a x).mulVec g)) (dot p ((a x).mulVec g))
+        rw [abs_mul, show |(-(1 / 2 : ℝ))| = 1 / 2 by norm_num] at h2
+        linarith
+    _ ≤ _ := by nlinarith
+
+/-- **The tail (4.104) for the bounded part**: if the Gaussian energy of `∇w` outside `B_T(z)` is
+at most `κ` times its energy inside, the energies of the bounded part of `A₁` on `ℝ^d` and on
+`B_T(z)` differ by an explicit multiple of `κ` and of the Gaussian mass outside the ball. -/
+theorem abs_a1Energy_sub_a1BallEnergy_le {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0)
+    (p q : Vec d) {ε₀ κ : ℝ} (hκ : 0 ≤ κ)
+    (hΦ : IntegrableOn (heatKernel z r) (ball z T)ᶜ volume)
+    (hmass : ∫ x in (ball z T)ᶜ, heatKernel z r x ≤ ε₀)
+    (w : HarmonicA1 a)
+    (hint : Integrable (fun x => heatKernel z r x *
+      (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+        dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))))
+    (hint2 : IntegrableOn (fun x => heatKernel z r x * euclideanSq (w.grad x)) (ball z T)ᶜ volume)
+    (houter : ∫ x in (ball z T)ᶜ, heatKernel z r x * euclideanSq (w.grad x) ≤
+      κ * ∫ x in ball z T, heatKernel z r x * euclideanSq (w.grad x))
+    (hw : ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+      2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) :
+    |a1Energy a z r p q w - a1BallEnergy a z T r p q w| ≤
+      ((d : ℝ) * Λ / 2 + linearCoefficient d Λ p q / 2) *
+          (κ * (d * (2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) ^ 2)) +
+        linearCoefficient d Λ p q / 2 * ε₀ := by
+  set L := tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖
+  set c0 := linearCoefficient d Λ p q
+  have hc0 : 0 ≤ c0 := by
+    simp only [c0, linearCoefficient]
+    exact add_nonneg (mul_nonneg (mul_nonneg (Finset.sum_nonneg fun k _ => abs_nonneg _)
+      (Nat.cast_nonneg d)) hΛ) (Finset.sum_nonneg fun k _ => abs_nonneg _)
+  have hsplit := integral_add_compl (measurableSet_ball z T) hint
+  have hdiff : a1Energy a z r p q w - a1BallEnergy a z T r p q w =
+      ∫ x in (ball z T)ᶜ, heatKernel z r x *
+        (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+          dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x)) := by
+    unfold a1Energy a1BallEnergy
+    linarith
+  -- the energy inside the ball
+  have hin : ∫ x in ball z T, heatKernel z r x * euclideanSq (w.grad x) ≤
+      d * (2 * L + 1) ^ 2 := by
+    have hk : ∀ k, ‖scaleLp hr (w.ballGrad z T k)‖ ^ 2 =
+        ∫ x in ball z T, heatKernel z r x * w.grad x k ^ 2 := by
+      intro k
+      rw [norm_sq_eq_integral]
+      refine integral_congr_ae ?_
+      filter_upwards [scaleLp_ae (z := z) (T := T) hr (w.ballGrad z T k),
+        (w.memLp_grad_ball (z := z) (T := T) k).coeFn_toLp] with x h1 h2
+      rw [h1, HarmonicA1.ballGrad, h2, mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+    have hsum : ∫ x in ball z T, heatKernel z r x * euclideanSq (w.grad x) =
+        ∑ k, ‖scaleLp hr (w.ballGrad z T k)‖ ^ 2 := by
+      simp_rw [hk]
+      rw [← integral_finsetSum _ fun k _ => ?_]
+      · refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+        simp only [euclideanSq, dot, Finset.mul_sum, sq]
+      · have := (memLp_sqrtHeat_mul (z := z) (T := T) hr
+          (w.memLp_grad_ball (z := z) (T := T) k)).integrable_sq
+        refine this.congr (Eventually.of_forall fun x => ?_)
+        simp only
+        rw [mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+    rw [hsum]
+    calc ∑ k, ‖scaleLp hr (w.ballGrad z T k)‖ ^ 2 ≤ ∑ _k : Fin d, (2 * L + 1) ^ 2 :=
+          Finset.sum_le_sum fun k _ => pow_le_pow_left₀ (norm_nonneg _)
+            ((norm_le_pi_norm _ k).trans hw) 2
+      _ = d * (2 * L + 1) ^ 2 := by simp
+  have hout : ∫ x in (ball z T)ᶜ, heatKernel z r x * euclideanSq (w.grad x) ≤
+      κ * (d * (2 * L + 1) ^ 2) := houter.trans (mul_le_mul_of_nonneg_left hin hκ)
+  rw [hdiff]
+  calc |∫ x in (ball z T)ᶜ, heatKernel z r x *
+        (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+          dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))|
+      ≤ ∫ x in (ball z T)ᶜ, |heatKernel z r x *
+        (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+          dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))| := abs_integral_le_integral_abs
+    _ ≤ ∫ x in (ball z T)ᶜ, ((d * Λ / 2 + c0 / 2) * (heatKernel z r x * euclideanSq (w.grad x)) +
+          c0 / 2 * heatKernel z r x) := by
+        refine setIntegral_mono_on hint.integrableOn.abs
+          ((hint2.const_mul _).add (hΦ.const_mul _)) (measurableSet_ball z T).compl
+          fun x _ => ?_
+        rw [abs_mul, abs_of_pos (heatKernel_pos z hr x)]
+        have := abs_energy_integrand_le a hΛ p q x (w.grad x)
+        have hk := (heatKernel_pos z hr x).le
+        nlinarith [mul_le_mul_of_nonneg_left this hk]
+    _ = (d * Λ / 2 + c0 / 2) * (∫ x in (ball z T)ᶜ, heatKernel z r x * euclideanSq (w.grad x)) +
+          c0 / 2 * ∫ x in (ball z T)ᶜ, heatKernel z r x := by
+        rw [integral_add (hint2.const_mul _) (hΦ.const_mul _), integral_const_mul,
+          integral_const_mul]
+    _ ≤ _ := by
+        have h1 : 0 ≤ (d : ℝ) * Λ / 2 + c0 / 2 := by
+          have := mul_nonneg (Nat.cast_nonneg d) hΛ; linarith
+        exact add_le_add (mul_le_mul_of_nonneg_left hout h1)
+          (mul_le_mul_of_nonneg_left hmass (by linarith))
+
 end QSH
