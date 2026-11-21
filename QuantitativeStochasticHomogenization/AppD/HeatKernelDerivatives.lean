@@ -184,4 +184,50 @@ theorem integral_abs_multiIndexDerivative_euclideanHeatKernel {m : ℕ} {t : ℝ
   exact integral_fintype_prod_eq_prod (μ := fun _ => volume)
     (fun i y => |iteratedDeriv (β i).val (heatKernel1 t) y|)
 
+/-- The constant `cₖ = (4π)^{-1/2} √2 (√2)^{-k} ∫ |γ^{(k)}|` of `‖∂ᵏ Φ₁(t, ·)‖_{L¹} = cₖ t^{-k/2}`. -/
+def heatDerivConst (k : ℕ) : ℝ :=
+  (4 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.sqrt 2 * (Real.sqrt 2)⁻¹ ^ k *
+    ∫ u, |iteratedDeriv k stdGaussian1 u|
+
+theorem heatDerivConst_nonneg (k : ℕ) : 0 ≤ heatDerivConst k := by
+  unfold heatDerivConst
+  have : 0 ≤ ∫ u, |iteratedDeriv k stdGaussian1 u| :=
+    integral_nonneg fun u => abs_nonneg (iteratedDeriv k stdGaussian1 u)
+  positivity
+
+/-- **`‖∂ᵏ Φ₁(t, ·)‖_{L¹} = cₖ t^{-k/2}`.** -/
+theorem integral_abs_iteratedDeriv_heatKernel1_eq {t : ℝ} (ht : 0 < t) (k : ℕ) :
+    ∫ y, |iteratedDeriv k (heatKernel1 t) y| = heatDerivConst k * t ^ (-(k : ℝ) / 2) := by
+  rw [integral_abs_iteratedDeriv_heatKernel1 ht, heatDerivConst]
+  have h1 : (4 * Real.pi * t) ^ (-(1 : ℝ) / 2) =
+      (4 * Real.pi) ^ (-(1 : ℝ) / 2) * t ^ (-(1 : ℝ) / 2) :=
+    Real.mul_rpow (by positivity) ht.le
+  have h2 : Real.sqrt (2 * t) = Real.sqrt 2 * Real.sqrt t := Real.sqrt_mul (by norm_num) t
+  have hst : Real.sqrt t = t ^ (1 / 2 : ℝ) := Real.sqrt_eq_rpow t
+  have h3 : t ^ (-(1 : ℝ) / 2) * Real.sqrt t * (Real.sqrt t)⁻¹ ^ k = t ^ (-(k : ℝ) / 2) := by
+    rw [hst, ← Real.rpow_add ht, ← Real.rpow_neg ht.le, ← Real.rpow_natCast,
+      ← Real.rpow_mul ht.le, ← Real.rpow_add ht]
+    congr 1
+    ring
+  rw [h1, h2, mul_inv, mul_pow]
+  calc (4 * Real.pi) ^ (-(1 : ℝ) / 2) * t ^ (-(1 : ℝ) / 2) * (Real.sqrt 2 * Real.sqrt t) *
+        ((Real.sqrt 2)⁻¹ ^ k * (Real.sqrt t)⁻¹ ^ k) * ∫ u, |iteratedDeriv k stdGaussian1 u|
+      = (4 * Real.pi) ^ (-(1 : ℝ) / 2) * Real.sqrt 2 * (Real.sqrt 2)⁻¹ ^ k *
+          (∫ u, |iteratedDeriv k stdGaussian1 u|) *
+          (t ^ (-(1 : ℝ) / 2) * Real.sqrt t * (Real.sqrt t)⁻¹ ^ k) := by ring
+    _ = _ := by rw [h3]
+
+/-- **`‖∂^β Φ(t, ·)‖_{L¹} = C_β t^{-|β|/2}`**, with `C_β = ∏ᵢ c_{βᵢ}`. -/
+theorem integral_abs_multiIndexDerivative_euclideanHeatKernel_eq {m : ℕ} {t : ℝ} (ht : 0 < t)
+    (β : Fin d → Fin (m + 1)) :
+    ∫ x, |multiIndexDerivative β (euclideanHeatKernel (d := d) t) x| =
+      (∏ i, heatDerivConst (β i).val) *
+        t ^ (-(((∑ i, (β i).val : ℕ) : ℝ)) / 2) := by
+  rw [integral_abs_multiIndexDerivative_euclideanHeatKernel ht]
+  simp only [integral_abs_iteratedDeriv_heatKernel1_eq ht]
+  rw [Finset.prod_mul_distrib, ← Real.rpow_sum_of_pos ht]
+  congr 2
+  push_cast
+  rw [← Finset.sum_div, ← Finset.sum_neg_distrib]
+
 end QSH
