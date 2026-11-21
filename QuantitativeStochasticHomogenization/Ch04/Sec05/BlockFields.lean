@@ -35,6 +35,7 @@ theorem measurable_integral_mul {α : Type*} [m : MeasurableSpace α] {f : Vec d
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
 
+omit [MeasurableSpace Ω] in
 /-- **Local measurability of block integrals.** If `f` vanishes off `U` and
 `(a, x) ↦ 1_U(x) X(a, x)` is measurable for `F(V) ⊗ Borel`, the block integral `∫ f X(a, ·)` is
 `F(V)`-measurable. -/
@@ -79,6 +80,7 @@ theorem integral_integral_mul_eq_zero [IsProbabilityMeasure P] {X : Ω → Vec d
   have : ∀ x, ∫ a, f x * X a x ∂P = 0 := fun x => by rw [integral_const_mul, hX0 x, mul_zero]
   simp only [this, integral_zero]
 
+omit [MeasurableSpace Ω] in
 theorem abs_integral_mul_le {X : Ω → Vec d → ℝ} {B : ℝ} (hXb : ∀ a x, |X a x| ≤ B)
     {f : Vec d → ℝ} (hf : Integrable f) (a : Ω) :
     |∫ x, f x * X a x| ≤ B * ∫ x, |f x| := by
@@ -96,7 +98,7 @@ theorem closedCube_eq_closedBall (z : Vec d) {R : ℝ} (hR : 0 ≤ R) :
     closedCube z R = Metric.closedBall z (R / 2) := by
   ext x
   rw [Metric.mem_closedBall, dist_pi_le_iff (by positivity)]
-  simp only [closedCube, Set.mem_setOf_eq, Real.dist_eq]
+  simp only [closedCube, Set.mem_ofPred_eq, Real.dist_eq]
 
 theorem volume_closedCube (z : Vec d) {R : ℝ} (hR : 0 ≤ R) :
     volume (closedCube z R) = ENNReal.ofReal (R ^ d) := by
@@ -117,7 +119,7 @@ theorem integrable_of_abs_le_one_of_closedCube {f : Vec d → ℝ} (hf : Measura
     · rw [Set.indicator_of_mem hx]
     · rw [Set.indicator_of_notMem hx, hfz x hx]
   rw [he, integrable_indicator_iff (measurableSet_closedCube z R)]
-  haveI : IsFiniteMeasure (volume.restrict (closedCube z R)) :=
+  have : IsFiniteMeasure (volume.restrict (closedCube z R)) :=
     ⟨by rw [Measure.restrict_apply_univ, volume_closedCube z hR]; exact ENNReal.ofReal_lt_top⟩
   exact Integrable.of_bound hf.aestronglyMeasurable 1
     (Filter.Eventually.of_forall fun x => by rw [Real.norm_eq_abs]; exact hf1 x)
