@@ -95,4 +95,53 @@ theorem le_euclideanNorm_of_mem_cellAt {z : Vec d} {R : ℝ} (hR : 0 < R) {k : L
     _ ≤ |(y - x) i| ^ 2 := pow_le_pow_left₀ h0 (by simpa using h) 2
     _ = (y - x) i ^ 2 := sq_abs _
 
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
+  {s δ α B A : ℝ}
+
+/-- The heat average of a block weight is at most `2^{d/2} ∏ᵢ exp(-(|kᵢ| - 1)₊²/8)` on the cell
+`k` of side `R ≥ ρ`. -/
+theorem abs_heatSmooth_le_of_mem_cellAt {f : Vec d → ℝ} (hf1 : ∀ x, |f x| ≤ 1) {z : Vec d}
+    {R ρ : ℝ} (hR : 0 < R) (hρ : 0 < ρ) (hρR : ρ ≤ R) (hfz : ∀ x ∉ closedCube z R, f x = 0)
+    {k : LatticeIndex d} {y : Vec d} (hy : y ∈ cellAt z R k) :
+    |heatSmooth f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * ∏ i, shiftedGaussian (k i) := by
+  set S : ℝ := ∑ i, (max (|(k i : ℝ)| - 1) 0) ^ 2 with hSdef
+  have hS : 0 ≤ S := Finset.sum_nonneg fun i _ => sq_nonneg _
+  set t : ℝ := R * Real.sqrt S with htdef
+  have ht : 0 ≤ t := by positivity
+  have h1 : |heatSmooth f ρ y| ≤ ∫ x, (closedCube z R).indicator (fun x => heatKernel x ρ y) x := by
+    unfold heatSmooth
+    refine (abs_integral_le_integral_abs).trans (integral_mono_of_nonneg
+      (Filter.Eventually.of_forall fun x => abs_nonneg _)
+      ((integrable_heatKernel_center y hρ).indicator (measurableSet_closedCube z R))
+      (Filter.Eventually.of_forall fun x => ?_))
+    by_cases hx : x ∈ closedCube z R
+    · show |f x * heatKernel x ρ y| ≤ (closedCube z R).indicator (fun x => heatKernel x ρ y) x
+      rw [Set.indicator_of_mem hx, abs_mul, abs_of_nonneg (heatKernel_nonneg _ _ _)]
+      exact mul_le_of_le_one_left (heatKernel_nonneg _ _ _) (hf1 x)
+    · show |f x * heatKernel x ρ y| ≤ (closedCube z R).indicator (fun x => heatKernel x ρ y) x
+      rw [Set.indicator_of_notMem hx, hfz x hx, zero_mul, abs_zero]
+  have h2 : ∫ x, (closedCube z R).indicator (fun x => heatKernel x ρ y) x =
+      ∫ x in closedCube z R, heatKernel y ρ x := by
+    rw [integral_indicator (measurableSet_closedCube z R)]
+    simp_rw [heatKernel_comm _ ρ y]
+  have h3 := setIntegral_heatKernel_le_of_far y hρ ht (measurableSet_closedCube z R)
+    (fun x hx => by
+      rw [euclideanNorm_sub_comm']
+      exact le_euclideanNorm_of_mem_cellAt hR hy hx)
+  have h4 : Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) ≤ ∏ i, shiftedGaussian (k i) := by
+    unfold shiftedGaussian
+    rw [← Real.exp_sum]
+    refine Real.exp_le_exp.mpr ?_
+    have et : t ^ 2 = R ^ 2 * S := by rw [htdef, mul_pow, Real.sq_sqrt hS]
+    have hsum : ∑ i, -((max (|(k i : ℝ)| - 1) 0) ^ 2) / 8 = -(S / 8) := by
+      rw [hSdef, Finset.sum_div, ← Finset.sum_neg_distrib]
+      exact Finset.sum_congr rfl fun i _ => by ring
+    rw [hsum, et, neg_le_neg_iff, div_le_div_iff₀ (by norm_num) (by positivity)]
+    have hρ2 : ρ ^ 2 ≤ R ^ 2 := pow_le_pow_left₀ hρ.le hρR 2
+    nlinarith
+  calc |heatSmooth f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) :=
+        (h1.trans_eq h2).trans h3
+    _ ≤ 2 ^ ((d : ℝ) / 2) * ∏ i, shiftedGaussian (k i) :=
+        mul_le_mul_of_nonneg_left h4 (by positivity)
+
 end QSH
