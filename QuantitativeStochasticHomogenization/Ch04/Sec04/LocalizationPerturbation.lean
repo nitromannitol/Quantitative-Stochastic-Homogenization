@@ -190,4 +190,108 @@ theorem isConcaveEnergy_tuple (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (hr :
       abs_nonneg _) (Nat.cast_nonneg d)) hΛ) (Finset.sum_nonneg fun k _ => abs_nonneg _))
       (norm_nonneg _)
 
+/-! ## The energy identity -/
+
+theorem weightedPairing_heat_eq (a : CoefficientField d Λ) (hr : r ≠ 0) (k l : Fin d)
+    (u v : Lp ℝ 2 (ballMeasure z T)) :
+    weightedPairing (ballMeasure z T) (heatCoefficient a z r k l) u v =
+      weightedPairing (ballMeasure z T) (fun x => a x k l) (scaleLp hr v) (scaleLp hr u) := by
+  unfold weightedPairing
+  refine integral_congr_ae ?_
+  filter_upwards [scaleLp_ae (z := z) (T := T) hr u, scaleLp_ae (z := z) (T := T) hr v] with x hu hv
+  rw [hu, hv, heatCoefficient, ← sqrtHeat_mul_self hr x]
+  ring
+
+theorem weightedPairing_heat_one_eq (a : CoefficientField d Λ) (hr : r ≠ 0) (k l : Fin d)
+    (u : Lp ℝ 2 (ballMeasure z T)) :
+    weightedPairing (ballMeasure z T) (heatCoefficient a z r k l) u (oneLp z T) =
+      weightedPairing (ballMeasure z T) (fun x => a x k l) (scaleLp hr u) (sqrtHeatLp z T hr) := by
+  unfold weightedPairing
+  refine integral_congr_ae ?_
+  filter_upwards [scaleLp_ae (z := z) (T := T) hr u, sqrtHeatLp_ae (z := z) (T := T) hr,
+    (memLp_const (μ := ballMeasure z T) (p := 2) (1 : ℝ)).coeFn_toLp] with x hu hs h1
+  rw [hu, hs, oneLp, h1, heatCoefficient, ← sqrtHeat_mul_self hr x]
+  ring
+
+theorem weightedPairing_heatKernel_one_eq (hr : r ≠ 0) (u : Lp ℝ 2 (ballMeasure z T)) :
+    weightedPairing (ballMeasure z T) (heatKernel z r) u (oneLp z T) =
+      weightedPairing (ballMeasure z T) (fun _ => 1) (scaleLp hr u) (sqrtHeatLp z T hr) := by
+  unfold weightedPairing
+  refine integral_congr_ae ?_
+  filter_upwards [scaleLp_ae (z := z) (T := T) hr u, sqrtHeatLp_ae (z := z) (T := T) hr,
+    (memLp_const (μ := ballMeasure z T) (p := 2) (1 : ℝ)).coeFn_toLp] with x hu hs h1
+  rw [hu, hs, oneLp, h1, ← sqrtHeat_mul_self hr x]
+  ring
+
+/-- **The energy identity**: the weighted energy of a gradient tuple is the concave energy of its
+rescaling by `√Φ_{z,r}`. -/
+theorem pairEnergy_eq_tuple (a : CoefficientField d Λ) (hr : r ≠ 0) (p q : Vec d)
+    (G : Fin d → Lp ℝ 2 (ballMeasure z T)) :
+    pairEnergy a z T r p q G =
+      -(1 / 2 : ℝ) * tupleForm a (fun k => scaleLp hr (G k)) (fun k => scaleLp hr (G k)) +
+        tupleLinear a hr p q (fun k => scaleLp hr (G k)) := by
+  unfold pairEnergy tupleForm tupleLinear energyForm
+  dsimp only
+  simp only [weightedPairing_heat_one_eq a hr]
+  simp only [weightedPairing_heat_eq a hr, weightedPairing_heatKernel_one_eq hr]
+  have e : ∀ (X Y : Fin d → Fin d → ℝ) (Z : Fin d → ℝ),
+      (∑ k, ∑ l, (-(1 / 2 : ℝ) * X k l - p k * Y k l)) + ∑ k, q k * Z k =
+        -(1 / 2 : ℝ) * (∑ k, ∑ l, X k l) + ((∑ k, ∑ l, -p k * Y k l) + ∑ k, q k * Z k) := by
+    intro X Y Z
+    have h : (∑ k, ∑ l, (-(1 / 2 : ℝ) * X k l - p k * Y k l)) =
+        -(1 / 2 : ℝ) * (∑ k, ∑ l, X k l) + ∑ k, ∑ l, -p k * Y k l := by
+      simp only [Finset.mul_sum, ← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
+    rw [h]
+    ring
+  exact e _ _ _
+
+theorem scaleLp_zero (hr : r ≠ 0) : scaleLp (z := z) (T := T) hr 0 = 0 := by
+  refine Lp.ext ?_
+  filter_upwards [scaleLp_ae (z := z) (T := T) hr 0, Lp.coeFn_zero ℝ 2 (ballMeasure z T)] with
+    x h1 h2
+  rw [h1, h2]
+  simp
+
+/-! ## The zero element of `A₁` and the gradients of `A₁` on the ball -/
+
+/-- The zero `a`-harmonic function. -/
+def zeroHarmonicA1' (a : CoefficientField d Λ) : HarmonicA1 a where
+  potential := fun _ => 0
+  grad := fun _ => 0
+  weak_gradient := fun i => ⟨locallyIntegrableOn_const 0, locallyIntegrableOn_const 0,
+    fun φ _ => by simp⟩
+  local_energy := fun R _ => ⟨memLp_const 0, by simp [euclideanNorm, euclideanSq, dot]⟩
+  harmonic := ⟨fun k => by simpa using locallyIntegrableOn_const (0 : ℝ),
+    locallyIntegrableOn_const 0, fun φ _ => by simp [dot]⟩
+  growth := by simp
+
+theorem ball_subset_originBall (z : Vec d) (T : ℝ) :
+    ball z T ⊆ ball 0 (euclideanNorm z + |T| + 1) := by
+  intro y hy
+  show euclideanNorm (y - 0) < _
+  rw [sub_zero]
+  have h1 := euclideanNorm_add_le (y - z) z
+  rw [sub_add_cancel] at h1
+  have h2 : euclideanNorm (y - z) < T := hy
+  have h3 : T ≤ |T| := le_abs_self T
+  linarith
+
+theorem HarmonicA1.memLp_grad_ball {a : CoefficientField d Λ} (w : HarmonicA1 a) (k : Fin d) :
+    MemLp (fun x => w.grad x k) 2 (ballMeasure z T) := by
+  have hR : 0 < euclideanNorm z + |T| + 1 := by
+    have := euclideanNorm_nonneg z; have := abs_nonneg T; linarith
+  have hball := (w.local_energy _ hR).2.mono_measure
+    (Measure.restrict_mono (ball_subset_originBall z T) le_rfl)
+  refine hball.of_le ?_ (Eventually.of_forall fun x => ?_)
+  · exact ((w.weak_gradient k).2.1.aestronglyMeasurable.mono_measure
+      (Measure.restrict_mono (Set.subset_univ _) le_rfl))
+  · rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (euclideanNorm_nonneg _)]
+    exact abs_apply_le_euclideanNorm (w.grad x) k
+
+/-- The `L²(B_T(z))` classes of the gradient components of an element of `A₁`. -/
+def HarmonicA1.ballGrad {a : CoefficientField d Λ} (w : HarmonicA1 a) (z : Vec d) (T : ℝ)
+    (k : Fin d) : Lp ℝ 2 (ballMeasure z T) :=
+  (w.memLp_grad_ball (z := z) (T := T) k).toLp _
+
 end QSH
