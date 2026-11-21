@@ -154,6 +154,13 @@ of each module names the source files and commits.
   (`linearAverageEstimate_of_heat`). `estimate558_of_heatIdentity` proves (5.58) with this
   hypothesis in place of the linear estimate. The identity (H) itself (anisotropic Gaussians,
   integration by parts against the corrector, the limit `T → ∞`) is not formalized.
+- **Integrability and measurability of the averages.** The gradient averages are jointly
+  measurable in the center, the radius and the coefficient field (`measurable_gradientAverage_uncurry`,
+  from the joint measurability of the corrector gradients); the flux averages involve `a(x)`, and
+  their joint measurability is a hypothesis. The averages and the trial are integrable at the
+  scales `r ≥ 1` under the energy bound (`averagesIntegrable_of_energyBound`,
+  `trialIntegrable_of_energyBound`), and `estimate558_of_heatIdentityBound` is (5.58) without these
+  hypotheses.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
