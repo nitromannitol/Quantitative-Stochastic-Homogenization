@@ -164,4 +164,86 @@ theorem matching_matrix_near [IsProbabilityMeasure P] {D D₀ : Mat d} {K₀ η 
 
 end EStep
 
+section Polarizations
+
+/-- From a stochastic bound on `|V|²` to one on `|V|`, with its mean. -/
+theorem osBound_euclideanNorm_of_sq {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
+    [IsProbabilityMeasure P] {V : Ω → Vec d} {s σ : ℝ}
+    (h : OsBound P (fun ω => euclideanSq (V ω)) (s / 2) σ) :
+    OsBound P (fun ω => euclideanNorm (V ω)) s (σ ^ (1 / 2 : ℝ)) ∧
+      Integrable (fun ω => euclideanNorm (V ω)) P ∧
+      ∫ ω, euclideanNorm (V ω) ∂P ≤ momentConstant s * σ ^ (1 / 2 : ℝ) := by
+  have h1 := h.rpow (fun ω => euclideanSq_nonneg _) (by norm_num : (0 : ℝ) < 1 / 2)
+  rw [show s / 2 / (1 / 2) = s by ring] at h1
+  have h2 : OsBound P (fun ω => euclideanNorm (V ω)) s (σ ^ (1 / 2 : ℝ)) := by
+    simpa only [euclideanNorm, Real.sqrt_eq_rpow] using h1
+  obtain ⟨hi, hm⟩ := h2.integral_le_factorial_mul fun ω => euclideanNorm_nonneg _
+  exact ⟨h2, hi, hm⟩
+
+variable {P : Measure (CoefficientField d Λ)}
+
+theorem half_loads_norm (i k : Fin d) :
+    euclideanNorm ((1 / 2 : ℝ) • (0 : Vec d)) < 1 ∧
+      euclideanNorm ((1 / 2 : ℝ) • ((1 / 2 : ℝ) • unitVector i + unitVector k)) < 1 ∧
+      euclideanNorm ((1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))) < 1 ∧
+      euclideanNorm ((1 / 2 : ℝ) • (unitVector k : Vec d)) < 1 ∧
+      euclideanNorm ((1 / 2 : ℝ) • ((0 : Vec d) + unitVector k)) < 1 ∧
+      euclideanNorm (0 : Vec d) < 1 := by
+  have h0 : euclideanNorm (0 : Vec d) = 0 := by simp [euclideanNorm, euclideanSq, dot]
+  have hk := euclideanNorm_unitVector (d := d) k
+  have hi := euclideanNorm_unitVector (d := d) i
+  refine ⟨by rw [smul_zero, h0]; norm_num, ?_, ?_, ?_, ?_, by rw [h0]; norm_num⟩
+  · rw [euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+    have := euclideanNorm_add_le ((1 / 2 : ℝ) • (unitVector i : Vec d)) (unitVector k)
+    rw [euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hi, hk] at this
+    linarith
+  · rw [euclideanNorm_smul, euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hi]
+    norm_num
+  · rw [euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hk]; norm_num
+  · rw [zero_add, euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hk]; norm_num
+
+/-- **Fluctuations of `Bᵢ = 2 m(0, eᵢ/2)` and `Cᵢ = 2 f(0, eᵢ/2)`** under `Fluc(s, α)`. -/
+theorem polarization_pair_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+    (hCF : 0 < CF)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      Integrable (fun a => J1Heat a z r p q) P ∧
+      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+    (y : Vec d) {r : ℝ} (hr : 1 ≤ r) (i : Fin d) :
+    let σ := (2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)
+    let B := fun a => (2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
+    let C := fun a => (2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
+    (OsBound P (fun a => euclideanNorm (B a - fun k => ∫ a', B a' k ∂P)) s (σ ^ (1 / 2 : ℝ)) ∧
+      Integrable (fun a => euclideanNorm (B a - fun k => ∫ a', B a' k ∂P)) P ∧
+      ∫ a, euclideanNorm (B a - fun k => ∫ a', B a' k ∂P) ∂P ≤
+        momentConstant s * σ ^ (1 / 2 : ℝ)) ∧
+    (OsBound P (fun a => euclideanNorm (C a - fun k => ∫ a', C a' k ∂P)) s (σ ^ (1 / 2 : ℝ)) ∧
+      Integrable (fun a => euclideanNorm (C a - fun k => ∫ a', C a' k ∂P)) P ∧
+      ∫ a, euclideanNorm (C a - fun k => ∫ a', C a' k ∂P) ∂P ≤
+        momentConstant s * σ ^ (1 / 2 : ℝ)) := by
+  intro σ B C
+  have hl := half_loads_norm (d := d) i
+  have hB := threeLoad_fluctuation hs0 hCF hmeasJ hF y hr
+    (fun k => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • unitVector i + unitVector k)))
+    (fun _ => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
+    (fun k => (0, (1 / 2 : ℝ) • unitVector k))
+    (fun k => ⟨(hl k).1, (hl k).2.1⟩) (fun k => ⟨(hl k).1, (hl k).2.2.1⟩)
+    (fun k => ⟨(hl k).2.2.2.2.2, (hl k).2.2.2.1⟩) (c := 8) (by norm_num) B (fun a k => by
+      simp only [B, polarizationVector, Pi.smul_apply, smul_eq_mul]
+      ring)
+  have hC := threeLoad_fluctuation hs0 hCF hmeasJ hF y hr
+    (fun k => ((1 / 2 : ℝ) • ((0 : Vec d) + unitVector k), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
+    (fun _ => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
+    (fun k => ((1 / 2 : ℝ) • (unitVector k : Vec d), 0))
+    (fun k => ⟨(hl k).2.2.2.2.1, (hl k).2.2.1⟩) (fun k => ⟨(hl k).1, (hl k).2.2.1⟩)
+    (fun k => ⟨(hl k).2.2.2.1, (hl k).2.2.2.2.2⟩) (c := -8) (by norm_num) C (fun a k => by
+      simp only [C, fluxPolarizationVector, Pi.smul_apply, smul_eq_mul]
+      ring)
+  rw [show ((-8 : ℝ)) ^ 2 = 8 ^ 2 by norm_num] at hC
+  exact ⟨osBound_euclideanNorm_of_sq hB.1, osBound_euclideanNorm_of_sq hC.1⟩
+
+end Polarizations
+
 end QSH
