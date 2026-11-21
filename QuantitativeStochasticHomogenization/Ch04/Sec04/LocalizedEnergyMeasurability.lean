@@ -188,4 +188,89 @@ theorem measurable_weightedPairing_coefficient (hΛ0 : 0 ≤ Λ) {r : ℝ} (hr :
       exact measurable_setIntegral_mul_coefficient z T hg k l
   exact hjoint.comp ((hu.prodMk hv).prodMk measurable_id)
 
+/-! ## The energy of a combination as a polynomial in the pairings -/
+
+/-- The weight `Φ_{z,r} a_{kl}`. -/
+def heatCoefficient (a : CoefficientField d Λ) (z : Vec d) (r : ℝ) (k l : Fin d) (x : Vec d) :
+    ℝ :=
+  heatKernel z r x * a x k l
+
+/-- The energy `∫_{B_T(z)} Φ_{z,r} (-½ G·aG - p·aG + q·G)` of a gradient field with `L²` classes
+`G_k`, written with the weighted pairings. -/
+def pairEnergy (a : CoefficientField d Λ) (z : Vec d) (T r : ℝ) (p q : Vec d)
+    (G : Fin d → Lp ℝ 2 (ballMeasure z T)) : ℝ :=
+  (∑ k, ∑ l, (-(1 / 2 : ℝ) * weightedPairing (ballMeasure z T) (heatCoefficient a z r k l) (G k) (G l) -
+      p k * weightedPairing (ballMeasure z T) (heatCoefficient a z r k l) (G l) (oneLp z T))) +
+    ∑ k, q k * weightedPairing (ballMeasure z T) (heatKernel z r) (G k) (oneLp z T)
+
+theorem energy_integrand_eq (Φ : ℝ) (A : Mat d) (g p q : Vec d) (o : ℝ) (ho : o = 1) :
+    Φ * (-(1 / 2 : ℝ) * dot g (A.mulVec g) - dot p (A.mulVec g) + dot q g) =
+      (∑ k, ∑ l, (-(1 / 2 : ℝ) * (Φ * A k l * g k * g l) - p k * (Φ * A k l * g l * o))) +
+        ∑ k, q k * (Φ * g k * o) := by
+  subst ho
+  have e1 : dot g (A.mulVec g) = ∑ k, ∑ l, A k l * g k * g l := by
+    simp only [dot, Matrix.mulVec, dotProduct, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
+  have e2 : dot p (A.mulVec g) = ∑ k, ∑ l, p k * A k l * g l := by
+    simp only [dot, Matrix.mulVec, dotProduct, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
+  have e3 : dot q g = ∑ k, q k * g k := rfl
+  rw [e1, e2, e3]
+  simp only [Finset.sum_sub_distrib, mul_add, mul_sub, Finset.mul_sum]
+  congr 1
+  congr 1
+  · exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
+  · exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
+  · exact Finset.sum_congr rfl fun k _ => by ring
+
+theorem aestronglyMeasurable_heatCoefficient (a : CoefficientField d Λ) (r : ℝ) (k l : Fin d) :
+    AEStronglyMeasurable (heatCoefficient a z r k l) (ballMeasure z T) :=
+  aestronglyMeasurable_heat_coefficient a r k l
+
+theorem integral_energy_eq_pairEnergy (a : CoefficientField d Λ) {r : ℝ} (hr : r ≠ 0)
+    (p q : Vec d) (G : Fin d → Lp ℝ 2 (ballMeasure z T)) {g : Vec d → Vec d}
+    (hg : ∀ᵐ x ∂ballMeasure z T, g x = fun k => G k x) :
+    ∫ x in ball z T, heatKernel z r x * (-(1 / 2 : ℝ) * dot (g x) ((a x).mulVec (g x)) -
+      dot p ((a x).mulVec (g x)) + dot q (g x)) = pairEnergy a z T r p q G := by
+  have hρ := fun k l => aestronglyMeasurable_heatCoefficient (z := z) (T := T) a r k l
+  have hM := fun k l => (Eventually.of_forall fun x => abs_heat_coefficient_le a hr k l x :
+    ∀ᵐ x ∂ballMeasure z T, |heatCoefficient a z r k l x| ≤ heatKernelPeak d r * Λ)
+  have hΦ : AEStronglyMeasurable (heatKernel z r) (ballMeasure z T) :=
+    (continuous_heatKernel_right z r).aestronglyMeasurable
+  have hΦM : ∀ᵐ x ∂ballMeasure z T, |heatKernel z r x| ≤ heatKernelPeak d r :=
+    Eventually.of_forall fun x => abs_heatKernel_le z hr x
+  have hone : ∀ᵐ x ∂ballMeasure z T, (oneLp z T : Vec d → ℝ) x = 1 := by
+    filter_upwards [(memLp_const (μ := ballMeasure z T) (p := 2) (1 : ℝ)).coeFn_toLp] with x hx
+    rw [oneLp, hx]
+  have hpt : (fun x => heatKernel z r x * (-(1 / 2 : ℝ) * dot (g x) ((a x).mulVec (g x)) -
+      dot p ((a x).mulVec (g x)) + dot q (g x))) =ᵐ[ballMeasure z T] fun x =>
+      (∑ k, ∑ l, (-(1 / 2 : ℝ) * (heatCoefficient a z r k l x * G k x * G l x) -
+        p k * (heatCoefficient a z r k l x * G l x * oneLp z T x))) +
+      ∑ k, q k * (heatKernel z r x * G k x * oneLp z T x) := by
+    filter_upwards [hg, hone] with x hx ho
+    rw [hx, energy_integrand_eq _ _ _ _ _ _ ho]
+    simp only [heatCoefficient]
+  rw [integral_congr_ae hpt]
+  have hI1 : ∀ k l, Integrable (fun x => -(1 / 2 : ℝ) * (heatCoefficient a z r k l x * G k x * G l x) -
+      p k * (heatCoefficient a z r k l x * G l x * oneLp z T x)) (ballMeasure z T) := fun k l =>
+    ((integrable_weighted (hρ k l) (hM k l) _ _).const_mul _).sub
+      ((integrable_weighted (hρ k l) (hM k l) _ _).const_mul _)
+  have hI2 : ∀ k, Integrable (fun x => q k * (heatKernel z r x * G k x * oneLp z T x))
+      (ballMeasure z T) := fun k => (integrable_weighted hΦ hΦM _ _).const_mul _
+  rw [integral_add (integrable_finsetSum _ fun k _ => integrable_finsetSum _ fun l _ => hI1 k l)
+    (integrable_finsetSum _ fun k _ => hI2 k), integral_finsetSum _ fun k _ =>
+      integrable_finsetSum _ fun l _ => hI1 k l, integral_finsetSum _ fun k _ => hI2 k]
+  unfold pairEnergy
+  congr 1
+  · refine Finset.sum_congr rfl fun k _ => ?_
+    rw [integral_finsetSum _ fun l _ => hI1 k l]
+    refine Finset.sum_congr rfl fun l _ => ?_
+    rw [integral_sub ((integrable_weighted (hρ k l) (hM k l) _ _).const_mul _)
+      ((integrable_weighted (hρ k l) (hM k l) _ _).const_mul _), integral_const_mul,
+      integral_const_mul]
+    rfl
+  · refine Finset.sum_congr rfl fun k _ => ?_
+    rw [integral_const_mul]
+    rfl
+
 end QSH
