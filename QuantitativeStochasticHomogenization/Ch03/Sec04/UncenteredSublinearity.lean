@@ -3,7 +3,8 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.BallMeanSquareComparison
 import QuantitativeStochasticHomogenization.Ch03.Sec04.DyadicMeanIncrement
 import QuantitativeStochasticHomogenization.Ch03.Sec04.DyadicMonotoneEnergy
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
-import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
+import QuantitativeStochasticHomogenization.Ch04.Sec01.EuclideanLipschitz
 
 /-!
 # Centered and uncentered sublinearity of correctors

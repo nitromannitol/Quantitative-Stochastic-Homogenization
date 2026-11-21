@@ -4,6 +4,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.HighContrastCarrier
 import QuantitativeStochasticHomogenization.Ch03.Sec04.HighContrastLocalSobolev
 import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakGradientDilation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import Homogenization.Sobolev.H1.Definitions
 

@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 
 /-!
 # The heat formula for the flux corrector

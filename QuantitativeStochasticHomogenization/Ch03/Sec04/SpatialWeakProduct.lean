@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Notation
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 
 /-!

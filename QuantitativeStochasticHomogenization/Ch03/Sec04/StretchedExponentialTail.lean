@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.AppA.OsNotation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 
 /-!

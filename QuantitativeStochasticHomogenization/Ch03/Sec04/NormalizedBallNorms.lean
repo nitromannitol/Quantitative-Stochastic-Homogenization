@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import HCPoly.Provider.Regularity.CorrectorNormalizedL2Bridge
 import HCPoly.Provider.PolynomialHomogenization.Root.Corrector.AffineLiouvilleGrowth

@@ -2,6 +2,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04FirstOrderCorrectors
 import QuantitativeStochasticHomogenization.Front.Assumptions
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatSelectedFluxGradient
 

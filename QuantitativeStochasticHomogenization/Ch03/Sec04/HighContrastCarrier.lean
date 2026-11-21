@@ -3,6 +3,7 @@ import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientEllipticity
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientCarrier
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch03.Sec04.WeakDivergenceZero
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MatrixBorel
 import Homogenization.Probability.Source.AKL.RegQuotientAdapter
 import HCPoly.Frozen.Stationarity
