@@ -34,7 +34,7 @@ theorem ball_eq_euclideanBall (z : Vec d) {T : ℝ} (hT : 0 < T) :
 
 theorem sq_toReal_eLpNorm_two {μ : Measure (Vec d)} {f : Vec d → ℝ} (hf : MemLp f 2 μ) :
     (eLpNorm f 2 μ).toReal ^ 2 = ∫ x, f x ^ 2 ∂μ := by
-  rw [← Lp.norm_toLp f hf, norm_toLp_sq]
+  rw [← Lp.norm_toLp f hf, norm_toLp_sq_eq_integral]
 
 /-- **Poincaré inequality for harmonic pairs** on `B_T(z)`, from the mean-zero Poincaré
 inequality on Euclidean balls of the elliptic regularity library. -/
@@ -95,7 +95,7 @@ theorem integral_sub_average_sq_le (F : PairSpace d z T) (hF : IsHarmonicPair a 
     rw [← toPair_ofPair F hF, ← w.integral_euclideanSq_grad]
     refine integral_congr_ae (Eventually.of_forall fun x => ?_)
     show Real.sqrt (euclideanSq (w.grad x)) ^ 2 = euclideanSq (w.grad x)
-    rw [Real.sq_sqrt (euclideanSq_nonneg (w.grad x))]
+    rw [Real.sq_sqrt (zero_le_euclideanSq (w.grad x))]
   rw [hB] at hsq
   exact hsq
 
@@ -105,7 +105,7 @@ theorem integral_sub_average_sq_le (F : PairSpace d z T) (hF : IsHarmonicPair a 
 def oneLp (z : Vec d) (T : ℝ) : Lp ℝ 2 (ballMeasure z T) := (memLp_const (1 : ℝ)).toLp _
 
 theorem norm_oneLp_sq (z : Vec d) (T : ℝ) : ‖oneLp z T‖ ^ 2 = volume.real (ball z T) := by
-  rw [oneLp, norm_toLp_sq]
+  rw [oneLp, norm_toLp_sq_eq_integral]
   simp
 
 /-- The Gaussian observation of `1` is bounded below on the observation ball. -/
@@ -127,7 +127,7 @@ theorem inner_heatLp_oneLp_ge {S σ θ : ℝ} (hσS : σ * S ≠ 0) {y : Vec d}
     (by
       filter_upwards [ae_restrict_mem (measurableSet_ball z T)] with x hx
       refine heatKernel_ge y hσS ?_
-      have h2 := euclideanNorm_sub_le x y z
+      have h2 := euclideanNorm_sub_le_sub_add x y z
       rw [euclideanNorm_sub_comm z y] at h2
       have h3 : euclideanNorm (y - z) < S / θ := hy
       have h4 : euclideanNorm (x - z) < T := hx

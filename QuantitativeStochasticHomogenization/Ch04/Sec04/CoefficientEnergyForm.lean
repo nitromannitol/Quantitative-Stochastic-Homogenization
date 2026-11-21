@@ -148,7 +148,7 @@ theorem abs_energyForm_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (F H : Pa
           (Finset.sum_le_sum fun l _ => hterm k l)
     _ = (d : ℝ) ^ 2 * Λ * (‖F‖ * ‖H‖) := by simp; ring
 
-theorem dot_mulVec_eq_sum (A : Mat d) (g h : Vec d) :
+theorem dot_mulVec_eq_double_sum (A : Mat d) (g h : Vec d) :
     dot h (A.mulVec g) = ∑ k, ∑ l, A k l * g l * h k := by
   simp only [dot, Matrix.mulVec, dotProduct, Finset.mul_sum]
   exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun l _ => by ring
@@ -156,7 +156,7 @@ theorem dot_mulVec_eq_sum (A : Mat d) (g h : Vec d) :
 theorem integrable_energy_integrand (a : CoefficientField d Λ) (F H : PairSpace d z T) :
     Integrable (fun x => dot (fun k => H.2 k x) ((a x).mulVec fun k => F.2 k x))
       (ballMeasure z T) := by
-  simp_rw [dot_mulVec_eq_sum]
+  simp_rw [dot_mulVec_eq_double_sum]
   exact integrable_finsetSum _ fun k _ => integrable_finsetSum _ fun l _ =>
     integrable_weighted (aestronglyMeasurable_coefficient_ball a k l) (coefficient_bound a k l) _ _
 
@@ -166,7 +166,7 @@ theorem energyForm_eq_integral (a : CoefficientField d Λ) (F H : PairSpace d z 
   have hint : ∀ k l, Integrable (fun x => a x k l * F.2 l x * H.2 k x) (ballMeasure z T) :=
     fun k l => integrable_weighted (aestronglyMeasurable_coefficient_ball a k l)
       (coefficient_bound a k l) _ _
-  simp_rw [dot_mulVec_eq_sum]
+  simp_rw [dot_mulVec_eq_double_sum]
   rw [integral_finsetSum _ fun k _ => integrable_finsetSum _ fun l _ => hint k l]
   exact Finset.sum_congr rfl fun k _ => (integral_finsetSum _ fun l _ => hint k l).symm
 

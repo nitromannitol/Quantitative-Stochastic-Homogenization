@@ -59,7 +59,7 @@ theorem LocalizationApproximationAt'.toAt {a : CoefficientField d Λ} {z : Vec d
     LocalizationApproximationAt a z T r hr W p q η
       ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2))) κ Z := by
   obtain ⟨hT, hη, hκ, hsmall, hint, hint2, houter, hAV, hVA, hZ⟩ := h
-  exact ⟨hη, hκ, (integrable_heatKernel z hr).integrableOn,
+  exact ⟨hη, hκ, (integrable_heatKernel_mask z hr).integrableOn,
     setIntegral_compl_ball_heatKernel_le z hr T hT, hsmall, hint, hint2, houter, hAV, hVA, hZ⟩
 
 /-- **The stochastic form of Lemmas 4.21-4.22 with the Gaussian mass computed.** -/

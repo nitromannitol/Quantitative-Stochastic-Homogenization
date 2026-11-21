@@ -19,9 +19,9 @@ namespace QSH
 
 variable {d : ℕ}
 
-theorem euclideanSq_eq_norm_sq (x : Vec d) :
+theorem euclideanSq_eq_norm_toLp_sq (x : Vec d) :
     euclideanSq x = ‖(WithLp.toLp 2 x : EuclideanSpace ℝ (Fin d))‖ ^ 2 := by
-  rw [← euclideanNorm_eq_norm, euclideanNorm_sq]
+  rw [← euclideanNorm_eq_euclideanSpace_norm, sq_euclideanNorm]
 
 /-- The Gaussian integral `∫ exp(-b |x|²) dx = (π/b)^{d/2}`. -/
 theorem integral_exp_neg_mul_euclideanSq {b : ℝ} (hb : 0 < b) :
@@ -34,7 +34,7 @@ theorem integral_exp_neg_mul_euclideanSq {b : ℝ} (hb : 0 < b) :
     (MeasurableEquiv.toLp 2 (Fin d → ℝ)).measurableEmbedding
   rw [← hmp.integral_comp hemb]
   exact integral_congr_ae (Eventually.of_forall fun x => by
-    simp only [euclideanSq_eq_norm_sq])
+    simp only [euclideanSq_eq_norm_toLp_sq])
 
 theorem integrable_exp_neg_mul_euclideanSq {b : ℝ} (hb : 0 < b) :
     Integrable (fun x : Vec d => Real.exp (-b * euclideanSq x)) := by
@@ -50,7 +50,7 @@ theorem heatKernel_eq_exp (z : Vec d) (r : ℝ) (x : Vec d) :
   ring
 
 /-- **The mask has mass one.** -/
-theorem integral_heatKernel (z : Vec d) {r : ℝ} (hr : r ≠ 0) :
+theorem integral_heatKernel_mask (z : Vec d) {r : ℝ} (hr : r ≠ 0) :
     ∫ x, heatKernel z r x = 1 := by
   have hb : 0 < 1 / (4 * r ^ 2) := by positivity
   simp_rw [heatKernel_eq_exp]
@@ -63,21 +63,21 @@ theorem integral_heatKernel (z : Vec d) {r : ℝ} (hr : r ≠ 0) :
   rw [show Real.pi / (1 / (4 * r ^ 2)) = 4 * Real.pi * r ^ 2 by field_simp,
     neg_div, Real.rpow_neg hpos.le, inv_mul_cancel₀ (Real.rpow_pos_of_pos hpos _).ne']
 
-theorem integrable_heatKernel (z : Vec d) {r : ℝ} (hr : r ≠ 0) :
+theorem integrable_heatKernel_mask (z : Vec d) {r : ℝ} (hr : r ≠ 0) :
     Integrable (heatKernel z r) := by
   refine Integrable.of_integral_ne_zero ?_
-  rw [integral_heatKernel z hr]
+  rw [integral_heatKernel_mask z hr]
   exact one_ne_zero
 
 theorem norm_sqrtHeatLp_le_one (z : Vec d) (T : ℝ) {r : ℝ} (hr : r ≠ 0) :
     ‖sqrtHeatLp z T hr‖ ≤ 1 := by
   have h : ‖sqrtHeatLp z T hr‖ ^ 2 ≤ 1 := by
-    rw [sqrtHeatLp, norm_toLp_sq]
+    rw [sqrtHeatLp, norm_toLp_sq_eq_integral]
     have e : (fun x => sqrtHeat z r x ^ 2) = heatKernel z r := by
       funext x; rw [sq, sqrtHeat_mul_self hr]
-    rw [e, ← integral_heatKernel z hr]
-    exact setIntegral_le_integral (integrable_heatKernel z hr)
-      (Eventually.of_forall fun x => (heatKernel_pos z hr x).le)
+    rw [e, ← integral_heatKernel_mask z hr]
+    exact setIntegral_le_integral (integrable_heatKernel_mask z hr)
+      (Eventually.of_forall fun x => (heatKernel_pos_of_ne z hr x).le)
   nlinarith [norm_nonneg (sqrtHeatLp z T hr)]
 
 /-- **The mass of the mask outside `B_T(z)`** is at most `2^{d/2} exp(-T²/(8r²))`. -/
@@ -92,7 +92,7 @@ theorem setIntegral_compl_ball_heatKernel_le (z : Vec d) {r : ℝ} (hr : r ≠ 0
     intro x hx
     have hxT : T ≤ euclideanNorm (x - z) := not_lt.1 hx
     have hsq : T ^ 2 ≤ euclideanSq (x - z) := by
-      rw [← euclideanNorm_sq]; exact pow_le_pow_left₀ hT hxT 2
+      rw [← sq_euclideanNorm]; exact pow_le_pow_left₀ hT hxT 2
     rw [heatKernel_eq_exp]
     have hpk := (heatKernelPeak_pos (d := d) hr).le
     calc heatKernelPeak d r * Real.exp (-(1 / (4 * r ^ 2)) * euclideanSq (x - z))
@@ -115,7 +115,7 @@ theorem setIntegral_compl_ball_heatKernel_le (z : Vec d) {r : ℝ} (hr : r ≠ 0
   calc ∫ x in (ball z T)ᶜ, heatKernel z r x
       ≤ ∫ x in (ball z T)ᶜ, Real.exp (-(T ^ 2) / (8 * r ^ 2)) *
           (heatKernelPeak d r * Real.exp (-(1 / (8 * r ^ 2)) * euclideanSq (x - z))) :=
-        setIntegral_mono_on (integrable_heatKernel z hr).integrableOn hint.integrableOn
+        setIntegral_mono_on (integrable_heatKernel_mask z hr).integrableOn hint.integrableOn
           (measurableSet_ball z T).compl hmajor
     _ ≤ ∫ x, Real.exp (-(T ^ 2) / (8 * r ^ 2)) *
           (heatKernelPeak d r * Real.exp (-(1 / (8 * r ^ 2)) * euclideanSq (x - z))) :=
@@ -178,7 +178,7 @@ theorem abs_J1Heat_sub_localizedJ1_le_of_tail' {a : CoefficientField d Λ} (hΛ 
       ((d : ℝ) ^ 2 * Λ * (2 * (2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) +
         η) / 2 + tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖) * η :=
   abs_J1Heat_sub_localizedJ1_le_of_tail hΛ hr W p q hη hκ
-    (integrable_heatKernel z hr).integrableOn (setIntegral_compl_ball_heatKernel_le z hr T hT)
+    (integrable_heatKernel_mask z hr).integrableOn (setIntegral_compl_ball_heatKernel_le z hr T hT)
     hsmall hint hint2 houter hAV hVA
 
 end QSH

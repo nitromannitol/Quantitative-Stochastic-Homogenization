@@ -24,7 +24,7 @@ theorem ball_subset_originBall' (z : Vec d) (T : ℝ) :
   intro y hy
   show euclideanNorm (y - 0) < _
   rw [sub_zero]
-  have h1 := euclideanNorm_add_le (y - z) z
+  have h1 := euclideanNorm_add_le_add (y - z) z
   rw [sub_add_cancel] at h1
   have h2 : euclideanNorm (y - z) < T := hy
   have h3 : T ≤ |T| := le_abs_self T
@@ -41,7 +41,7 @@ theorem fderiv_coordinate_sub (z : Vec d) (i : Fin d) (c : ℝ) (x : Vec d) (k :
 /-- **The corrected coordinate** `(x - z)_i + φ(x) - c` as a local `a`-harmonic function on
 `B_T(z)`, for a whole-space solution `φ` of `-∇·a(e_i + ∇φ) = 0` with locally square integrable
 potential and gradient. -/
-def correctedCoordinate (a : CoefficientField d Λ) (z : Vec d) (T : ℝ) (i : Fin d) (c : ℝ)
+def localCorrectedCoordinate (a : CoefficientField d Λ) (z : Vec d) (T : ℝ) (i : Fin d) (c : ℝ)
     (φ : Vec d → ℝ) (g : Vec d → Vec d) (hφg : HasWeakGradient Set.univ φ g)
     (hloc : ∀ R : ℝ, 0 < R → MemLp φ 2 (volume.restrict (ball 0 R)) ∧
       MemLp g 2 (volume.restrict (ball 0 R)))
@@ -51,27 +51,27 @@ def correctedCoordinate (a : CoefficientField d Λ) (z : Vec d) (T : ℝ) (i : F
   grad := fun x => unitVector i + g x
   square_integrable := by
     have hR : 0 < euclideanNorm z + |T| + 1 := by
-      have := euclideanNorm_nonneg z; have := abs_nonneg T; linarith
+      have := zero_le_euclideanNorm z; have := abs_nonneg T; linarith
     have hφ := (hloc _ hR).1.mono_measure
       (Measure.restrict_mono (ball_subset_originBall' z T) le_rfl)
     have hℓ := memLp_coordinate z T i
     exact (hℓ.add hφ).sub (memLp_const c)
   gradient_square_integrable := by
     have hR : 0 < euclideanNorm z + |T| + 1 := by
-      have := euclideanNorm_nonneg z; have := abs_nonneg T; linarith
+      have := zero_le_euclideanNorm z; have := abs_nonneg T; linarith
     have hg := (hloc _ hR).2.mono_measure
       (Measure.restrict_mono (ball_subset_originBall' z T) le_rfl)
     have hsum := (memLp_const (μ := ballMeasure z T) (p := 2) (unitVector i)).add hg
     have hmeas : AEStronglyMeasurable (fun x => euclideanNorm (unitVector i + g x))
         (ballMeasure z T) :=
-      continuous_euclideanNorm.comp_aestronglyMeasurable hsum.aestronglyMeasurable
+      euclideanNorm_continuous.comp_aestronglyMeasurable hsum.aestronglyMeasurable
     refine (hsum.norm.const_mul (d : ℝ)).of_le hmeas (Eventually.of_forall fun x => ?_)
-    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (euclideanNorm_nonneg _),
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (zero_le_euclideanNorm _),
       abs_mul, abs_of_nonneg (Nat.cast_nonneg d), abs_of_nonneg (norm_nonneg _)]
     exact euclideanNorm_le_mul_norm _
   weak_gradient := fun k => by
     have hR : 0 < euclideanNorm z + |T| + 1 := by
-      have := euclideanNorm_nonneg z; have := abs_nonneg T; linarith
+      have := zero_le_euclideanNorm z; have := abs_nonneg T; linarith
     have hφB := (hloc _ hR).1.mono_measure
       (Measure.restrict_mono (ball_subset_originBall' z T) le_rfl)
     have hgB := (hloc _ hR).2.mono_measure
@@ -173,13 +173,13 @@ def correctedCoordinate (a : CoefficientField d Λ) (z : Vec d) (T : ℝ) (i : F
       simp [dot])]
     simpa [Measure.restrict_univ] using h
 
-@[simp] theorem correctedCoordinate_potential (a : CoefficientField d Λ) (z : Vec d) (T : ℝ)
+@[simp] theorem localCorrectedCoordinate_potential (a : CoefficientField d Λ) (z : Vec d) (T : ℝ)
     (i : Fin d) (c : ℝ) (φ : Vec d → ℝ) (g : Vec d → Vec d) (hφg hloc harm) (x : Vec d) :
-    (correctedCoordinate a z T i c φ g hφg hloc harm).potential x = (x - z) i + φ x - c := rfl
+    (localCorrectedCoordinate a z T i c φ g hφg hloc harm).potential x = (x - z) i + φ x - c := rfl
 
-@[simp] theorem correctedCoordinate_grad (a : CoefficientField d Λ) (z : Vec d) (T : ℝ)
+@[simp] theorem localCorrectedCoordinate_grad (a : CoefficientField d Λ) (z : Vec d) (T : ℝ)
     (i : Fin d) (c : ℝ) (φ : Vec d → ℝ) (g : Vec d → Vec d) (hφg hloc harm) (x : Vec d) :
-    (correctedCoordinate a z T i c φ g hφg hloc harm).grad x = unitVector i + g x := rfl
+    (localCorrectedCoordinate a z T i c φ g hφg hloc harm).grad x = unitVector i + g x := rfl
 
 /-- **The selected coordinate is close to every admissible corrected coordinate**:
 `I[w_i - h] ≤ 4 I[φ - c]`. -/
@@ -196,10 +196,10 @@ theorem IsCoordinateMinimizer.localizationObjective_sub_corrected_le {a : Coeffi
         (fun x => w.potential x - ((x - z) i + φ x - c)) ≤
       4 * localizationObjective z T S σ θ (fun x => φ x - c) := by
   have h := hw.localizationObjective_sub_le hσS
-    (h := correctedCoordinate a z T i c φ g hφg hloc harm) hadm
-  have e : (fun x => (correctedCoordinate a z T i c φ g hφg hloc harm).potential x - (x - z) i) =
+    (h := localCorrectedCoordinate a z T i c φ g hφg hloc harm) hadm
+  have e : (fun x => (localCorrectedCoordinate a z T i c φ g hφg hloc harm).potential x - (x - z) i) =
       fun x => φ x - c := by
-    funext x; simp only [correctedCoordinate_potential]; ring
+    funext x; simp only [localCorrectedCoordinate_potential]; ring
   rw [e] at h
   exact h
 

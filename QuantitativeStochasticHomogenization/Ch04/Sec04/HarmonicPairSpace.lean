@@ -27,30 +27,30 @@ variable {d : ℕ}
 
 /-! ## Euclidean balls -/
 
-theorem euclideanSq_nonneg (x : Vec d) : 0 ≤ euclideanSq x := by
+theorem zero_le_euclideanSq (x : Vec d) : 0 ≤ euclideanSq x := by
   show 0 ≤ ∑ i, x i * x i
   exact Finset.sum_nonneg fun i _ => mul_self_nonneg (x i)
 
-theorem euclideanNorm_nonneg (x : Vec d) : 0 ≤ euclideanNorm x := Real.sqrt_nonneg _
+theorem zero_le_euclideanNorm (x : Vec d) : 0 ≤ euclideanNorm x := Real.sqrt_nonneg _
 
-theorem euclideanNorm_sq (x : Vec d) : euclideanNorm x ^ 2 = euclideanSq x :=
-  Real.sq_sqrt (euclideanSq_nonneg x)
+theorem sq_euclideanNorm (x : Vec d) : euclideanNorm x ^ 2 = euclideanSq x :=
+  Real.sq_sqrt (zero_le_euclideanSq x)
 
 theorem continuous_euclideanSq : Continuous (euclideanSq : Vec d → ℝ) := by
   show Continuous fun x : Vec d => ∑ i, x i * x i
   fun_prop
 
-theorem continuous_euclideanNorm : Continuous (euclideanNorm : Vec d → ℝ) :=
+theorem euclideanNorm_continuous : Continuous (euclideanNorm : Vec d → ℝ) :=
   Real.continuous_sqrt.comp continuous_euclideanSq
 
-theorem abs_apply_le_euclideanNorm (x : Vec d) (i : Fin d) : |x i| ≤ euclideanNorm x := by
+theorem abs_coord_le_euclideanNorm (x : Vec d) (i : Fin d) : |x i| ≤ euclideanNorm x := by
   refine Real.abs_le_sqrt ?_
   rw [sq]
   exact Finset.single_le_sum (f := fun j => x j * x j) (fun j _ => mul_self_nonneg (x j))
     (Finset.mem_univ i)
 
 /-- The Euclidean norm is the norm of `EuclideanSpace`. -/
-theorem euclideanNorm_eq_norm (x : Vec d) :
+theorem euclideanNorm_eq_euclideanSpace_norm (x : Vec d) :
     euclideanNorm x = ‖(WithLp.toLp 2 x : EuclideanSpace ℝ (Fin d))‖ := by
   rw [EuclideanSpace.norm_eq]
   unfold euclideanNorm euclideanSq dot
@@ -58,32 +58,32 @@ theorem euclideanNorm_eq_norm (x : Vec d) :
   refine Finset.sum_congr rfl fun i _ => ?_
   simp [Real.norm_eq_abs, sq]
 
-theorem euclideanNorm_add_le (x y : Vec d) :
+theorem euclideanNorm_add_le_add (x y : Vec d) :
     euclideanNorm (x + y) ≤ euclideanNorm x + euclideanNorm y := by
-  rw [euclideanNorm_eq_norm, euclideanNorm_eq_norm, euclideanNorm_eq_norm, WithLp.toLp_add]
+  rw [euclideanNorm_eq_euclideanSpace_norm, euclideanNorm_eq_euclideanSpace_norm, euclideanNorm_eq_euclideanSpace_norm, WithLp.toLp_add]
   exact norm_add_le _ _
 
-theorem euclideanNorm_sub_le (x y z : Vec d) :
+theorem euclideanNorm_sub_le_sub_add (x y z : Vec d) :
     euclideanNorm (x - y) ≤ euclideanNorm (x - z) + euclideanNorm (z - y) := by
-  have h := euclideanNorm_add_le (x - z) (z - y)
+  have h := euclideanNorm_add_le_add (x - z) (z - y)
   rwa [sub_add_sub_cancel] at h
 
 theorem euclideanNorm_sub_comm (x y : Vec d) : euclideanNorm (x - y) = euclideanNorm (y - x) := by
-  rw [euclideanNorm_eq_norm, euclideanNorm_eq_norm, ← norm_neg, ← WithLp.toLp_neg, neg_sub]
+  rw [euclideanNorm_eq_euclideanSpace_norm, euclideanNorm_eq_euclideanSpace_norm, ← norm_neg, ← WithLp.toLp_neg, neg_sub]
 
 theorem isOpen_ball (z : Vec d) (T : ℝ) : IsOpen (ball z T) :=
-  isOpen_lt (continuous_euclideanNorm.comp (continuous_id.sub continuous_const)) continuous_const
+  isOpen_lt (euclideanNorm_continuous.comp (continuous_id.sub continuous_const)) continuous_const
 
 theorem measurableSet_ball (z : Vec d) (T : ℝ) : MeasurableSet (ball z T) :=
   (isOpen_ball z T).measurableSet
 
 theorem ball_subset_closedBall (z : Vec d) (T : ℝ) : ball z T ⊆ Metric.closedBall z T := by
   intro y hy
-  have hT : 0 ≤ T := (euclideanNorm_nonneg _).trans hy.le
+  have hT : 0 ≤ T := (zero_le_euclideanNorm _).trans hy.le
   rw [Metric.mem_closedBall, dist_pi_le_iff hT]
   intro i
   rw [Real.dist_eq]
-  have := abs_apply_le_euclideanNorm (y - z) i
+  have := abs_coord_le_euclideanNorm (y - z) i
   simp only [Pi.sub_apply] at this
   exact this.trans hy.le
 
@@ -102,13 +102,13 @@ theorem volume_ball_pos (z : Vec d) {T : ℝ} (hT : 0 < T) : 0 < volume (ball z 
 theorem volume_real_ball_pos (z : Vec d) {T : ℝ} (hT : 0 < T) : 0 < volume.real (ball z T) :=
   ENNReal.toReal_pos (volume_ball_pos z hT).ne' (volume_ball_lt_top z T).ne
 
-instance isFiniteMeasure_restrict_ball (z : Vec d) (T : ℝ) :
+instance isFiniteMeasure_ballMeasure (z : Vec d) (T : ℝ) :
     IsFiniteMeasure (volume.restrict (ball z T)) :=
   isFiniteMeasure_restrict.2 (volume_ball_lt_top z T).ne
 
 /-! ## Bounds on the coefficients -/
 
-theorem dot_eq_dotProduct (x y : Vec d) : dot x y = x ⬝ᵥ y := rfl
+theorem dot_def_dotProduct (x y : Vec d) : dot x y = x ⬝ᵥ y := rfl
 
 /-- The entries of a coefficient field are bounded by `Λ`. -/
 theorem CoefficientField.abs_apply_le {Λ : ℝ} (a : CoefficientField d Λ) (x : Vec d)
@@ -154,9 +154,9 @@ theorem CoefficientField.abs_apply_le {Λ : ℝ} (a : CoefficientField d Λ) (x 
   rw [abs_le]
   constructor
   · nlinarith [hplus.1, hplus.2, hminus.1, hminus.2, abs_le.1 hkj_le,
-      euclideanSq_nonneg (ek + ej), euclideanSq_nonneg (ek - ej)]
+      zero_le_euclideanSq (ek + ej), zero_le_euclideanSq (ek - ej)]
   · nlinarith [hplus.1, hplus.2, hminus.1, hminus.2, abs_le.1 hkj_le,
-      euclideanSq_nonneg (ek + ej), euclideanSq_nonneg (ek - ej)]
+      zero_le_euclideanSq (ek + ej), zero_le_euclideanSq (ek - ej)]
 
 theorem CoefficientField.aestronglyMeasurable_apply {Λ : ℝ} (a : CoefficientField d Λ)
     (k j : Fin d) (μ : Measure (Vec d)) (hμ : μ ≪ volume) :
@@ -261,7 +261,7 @@ theorem norm_sq_eq_integral {μ : Measure (Vec d)} (u : Lp ℝ 2 μ) :
   refine integral_congr_ae (Eventually.of_forall fun x => ?_)
   simp [sq]
 
-theorem norm_toLp_sq {μ : Measure (Vec d)} {u : Vec d → ℝ} (hu : MemLp u 2 μ) :
+theorem norm_toLp_sq_eq_integral {μ : Measure (Vec d)} {u : Vec d → ℝ} (hu : MemLp u 2 μ) :
     ‖hu.toLp u‖ ^ 2 = ∫ x, u x ^ 2 ∂μ := by
   rw [norm_sq_eq_integral]
   refine integral_congr_ae ?_
@@ -455,8 +455,8 @@ theorem LocalHarmonic.memLp_grad (w : LocalHarmonic a z T) (i : Fin d) :
     MemLp (fun x => w.grad x i) 2 (ballMeasure z T) :=
   w.gradient_square_integrable.of_le ((w.weak_gradient i).2.1.aestronglyMeasurable)
     (Eventually.of_forall fun x => by
-      rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (euclideanNorm_nonneg _)]
-      exact abs_apply_le_euclideanNorm (w.grad x) i)
+      rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (zero_le_euclideanNorm _)]
+      exact abs_coord_le_euclideanNorm (w.grad x) i)
 
 /-- The pair of `L²(B_T(z))` classes of a local harmonic function. -/
 def LocalHarmonic.toPair (w : LocalHarmonic a z T) : PairSpace d z T :=
@@ -472,7 +472,7 @@ theorem LocalHarmonic.toPair_snd_ae (w : LocalHarmonic a z T) (i : Fin d) :
 
 theorem LocalHarmonic.integral_euclideanSq_grad (w : LocalHarmonic a z T) :
     ∫ x in ball z T, euclideanSq (w.grad x) = pairGradEnergy w.toPair := by
-  simp only [pairGradEnergy, LocalHarmonic.toPair, norm_toLp_sq]
+  simp only [pairGradEnergy, LocalHarmonic.toPair, norm_toLp_sq_eq_integral]
   rw [← integral_finsetSum _ fun i _ => (w.memLp_grad i).integrable_sq]
   refine integral_congr_ae (Eventually.of_forall fun x => ?_)
   simp [euclideanSq, dot, sq]
@@ -540,7 +540,7 @@ def ofPair (a : CoefficientField d Λ) (F : PairSpace d z T) (hF : IsHarmonicPai
       integrable_finsetSum _ fun i _ => (Lp.memLp (F.2 i)).integrable_sq
     refine hsum.congr (Eventually.of_forall fun x => ?_)
     dsimp only
-    rw [euclideanNorm_sq]
+    rw [sq_euclideanNorm]
     simp only [euclideanSq, dot, sq]
   weak_gradient := fun i => by
     refine ⟨(integrableOn_ball_of_Lp F.1).locallyIntegrableOn,

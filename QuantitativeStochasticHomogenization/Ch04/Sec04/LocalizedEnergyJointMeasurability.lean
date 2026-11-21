@@ -40,7 +40,7 @@ theorem tsupport_shiftTest_subset {u : SmoothCompactTest d} {T : ℝ}
   rw [e]
   exact hx'
 
-theorem testIntegral_translate (a : CoefficientField d Λ) (u : SmoothCompactTest d) (y : Vec d)
+theorem testIntegral_translate_eq_shiftTest (a : CoefficientField d Λ) (u : SmoothCompactTest d) (y : Vec d)
     (i j : Fin d) : testIntegral (translate y a) u i j = testIntegral a (shiftTest u y) i j := by
   unfold testIntegral
   have h := integral_add_left_eq_self (μ := (volume : Measure (Vec d)))
@@ -92,7 +92,7 @@ theorem measurable_translate_comp {U V : Set (Vec d)} {T : ℝ}
         testIntegral a (shiftTest u.1 y) i j) ∘ fun w => ((π ∘ Prod.snd) w, w.1) := by
     funext w
     simp only [Function.comp_apply, Function.uncurry_apply_pair]
-    exact testIntegral_translate w.1 u.1 (π w.2) i j
+    exact testIntegral_translate_eq_shiftTest w.1 u.1 (π w.2) i j
   rw [heq]
   exact hcomp
 

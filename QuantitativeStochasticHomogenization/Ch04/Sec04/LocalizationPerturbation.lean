@@ -33,7 +33,7 @@ def sqrtHeat (z : Vec d) (r : ℝ) (x : Vec d) : ℝ := Real.sqrt (heatKernel z 
 
 theorem sqrtHeat_mul_self (hr : r ≠ 0) (x : Vec d) :
     sqrtHeat z r x * sqrtHeat z r x = heatKernel z r x :=
-  Real.mul_self_sqrt (heatKernel_pos z hr x).le
+  Real.mul_self_sqrt (heatKernel_pos_of_ne z hr x).le
 
 theorem continuous_sqrtHeat (z : Vec d) (r : ℝ) : Continuous (sqrtHeat z r) :=
   Real.continuous_sqrt.comp (continuous_heatKernel_right z r)
@@ -42,7 +42,7 @@ theorem abs_sqrtHeat_le (hr : r ≠ 0) (x : Vec d) :
     |sqrtHeat z r x| ≤ Real.sqrt (heatKernelPeak d r) := by
   unfold sqrtHeat
   rw [abs_of_nonneg (Real.sqrt_nonneg _)]
-  exact Real.sqrt_le_sqrt (heatKernel_le z hr x)
+  exact Real.sqrt_le_sqrt (heatKernel_le_peak z hr x)
 
 theorem memLp_sqrtHeat_mul (hr : r ≠ 0) {f : Vec d → ℝ} (hf : MemLp f 2 (ballMeasure z T)) :
     MemLp (fun x => sqrtHeat z r x * f x) 2 (ballMeasure z T) := by
@@ -271,7 +271,7 @@ theorem ball_subset_originBall (z : Vec d) (T : ℝ) :
   intro y hy
   show euclideanNorm (y - 0) < _
   rw [sub_zero]
-  have h1 := euclideanNorm_add_le (y - z) z
+  have h1 := euclideanNorm_add_le_add (y - z) z
   rw [sub_add_cancel] at h1
   have h2 : euclideanNorm (y - z) < T := hy
   have h3 : T ≤ |T| := le_abs_self T
@@ -280,14 +280,14 @@ theorem ball_subset_originBall (z : Vec d) (T : ℝ) :
 theorem HarmonicA1.memLp_grad_ball {a : CoefficientField d Λ} (w : HarmonicA1 a) (k : Fin d) :
     MemLp (fun x => w.grad x k) 2 (ballMeasure z T) := by
   have hR : 0 < euclideanNorm z + |T| + 1 := by
-    have := euclideanNorm_nonneg z; have := abs_nonneg T; linarith
+    have := zero_le_euclideanNorm z; have := abs_nonneg T; linarith
   have hball := (w.local_energy _ hR).2.mono_measure
     (Measure.restrict_mono (ball_subset_originBall z T) le_rfl)
   refine hball.of_le ?_ (Eventually.of_forall fun x => ?_)
   · exact ((w.weak_gradient k).2.1.aestronglyMeasurable.mono_measure
       (Measure.restrict_mono (Set.subset_univ _) le_rfl))
-  · rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (euclideanNorm_nonneg _)]
-    exact abs_apply_le_euclideanNorm (w.grad x) k
+  · rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg (zero_le_euclideanNorm _)]
+    exact abs_coord_le_euclideanNorm (w.grad x) k
 
 /-- The `L²(B_T(z))` classes of the gradient components of an element of `A₁`. -/
 def HarmonicA1.ballGrad {a : CoefficientField d Λ} (w : HarmonicA1 a) (z : Vec d) (T : ℝ)
@@ -512,7 +512,7 @@ theorem energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p q : 
     -(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g) + dot q g ≤
       linearCoefficient d Λ p q ^ 2 / 2 := by
   have hquad : euclideanSq g ≤ dot g ((a x).mulVec g) := (a.elliptic x g).1
-  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_apply_le_euclideanNorm g k
+  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_coord_le_euclideanNorm g k
   have hp : |dot p ((a x).mulVec g)| ≤ (∑ k, |p k|) * d * Λ * euclideanNorm g := by
     simp only [dot, Matrix.mulVec, dotProduct]
     refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
@@ -535,8 +535,8 @@ theorem energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p q : 
           rw [abs_mul]
           exact mul_le_mul_of_nonneg_left (hgk k) (abs_nonneg _)
       _ = (∑ k, |q k|) * euclideanNorm g := by rw [← Finset.sum_mul]
-  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (euclideanNorm_sq g).symm
-  have hn := euclideanNorm_nonneg g
+  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (sq_euclideanNorm g).symm
+  have hn := zero_le_euclideanNorm g
   unfold linearCoefficient
   nlinarith [abs_le.1 hp, abs_le.1 hq,
     sq_nonneg (euclideanNorm g - ((∑ k, |p k|) * d * Λ + ∑ k, |q k|))]
@@ -565,7 +565,7 @@ theorem norm_scaled_ballGrad_le_of_near {a : CoefficientField d Λ} (hΛ : 0 ≤
           refine setIntegral_mono_on hint.integrableOn (hΦ.mul_const _)
             (measurableSet_ball z T).compl fun x _ => ?_
           exact mul_le_mul_of_nonneg_left (energy_integrand_le a hΛ p q x _)
-            (heatKernel_pos z hr x).le
+            (heatKernel_pos_of_ne z hr x).le
       _ = linearCoefficient d Λ p q ^ 2 / 2 * ∫ x in (ball z T)ᶜ, heatKernel z r x := by
           rw [integral_mul_const]; ring
       _ ≤ linearCoefficient d Λ p q ^ 2 / 2 * ε₀ :=
@@ -584,9 +584,9 @@ theorem abs_energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p 
     |-(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g) + dot q g| ≤
       ((d : ℝ) * Λ / 2 + linearCoefficient d Λ p q / 2) * euclideanSq g +
         linearCoefficient d Λ p q / 2 := by
-  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_apply_le_euclideanNorm g k
-  have hn := euclideanNorm_nonneg g
-  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (euclideanNorm_sq g).symm
+  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_coord_le_euclideanNorm g k
+  have hn := zero_le_euclideanNorm g
+  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (sq_euclideanNorm g).symm
   have hAg : ∀ u : Vec d, |dot u ((a x).mulVec g)| ≤
       (∑ k, |u k|) * d * Λ * euclideanNorm g := by
     intro u
@@ -605,14 +605,14 @@ theorem abs_energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p 
       _ = (∑ k, |u k|) * d * Λ * euclideanNorm g := by rw [← Finset.sum_mul]; ring
   have hgg : |dot g ((a x).mulVec g)| ≤ d * Λ * euclideanSq g := by
     have h1 : dot g ((a x).mulVec g) ≤ Λ * euclideanSq g := (a.elliptic x g).2
-    have h2 : 0 ≤ dot g ((a x).mulVec g) := (euclideanSq_nonneg g).trans (a.elliptic x g).1
+    have h2 : 0 ≤ dot g ((a x).mulVec g) := (zero_le_euclideanSq g).trans (a.elliptic x g).1
     rw [abs_of_nonneg h2]
     have hd : (1 : ℝ) ≤ d ∨ d = 0 := by
       rcases Nat.eq_zero_or_pos d with h | h
       · right; exact h
       · left; exact_mod_cast h
     rcases hd with hd | hd
-    · nlinarith [euclideanSq_nonneg g]
+    · nlinarith [zero_le_euclideanSq g]
     · subst hd
       have : euclideanSq g = 0 := by simp [euclideanSq, dot]
       have h3 : dot g ((a x).mulVec g) = 0 := by simp [dot]
@@ -718,9 +718,9 @@ theorem abs_a1Energy_sub_a1BallEnergy_le {a : CoefficientField d Λ} (hΛ : 0 �
         refine setIntegral_mono_on hint.integrableOn.abs
           ((hint2.const_mul _).add (hΦ.const_mul _)) (measurableSet_ball z T).compl
           fun x _ => ?_
-        rw [abs_mul, abs_of_pos (heatKernel_pos z hr x)]
+        rw [abs_mul, abs_of_pos (heatKernel_pos_of_ne z hr x)]
         have := abs_energy_integrand_le a hΛ p q x (w.grad x)
-        have hk := (heatKernel_pos z hr x).le
+        have hk := (heatKernel_pos_of_ne z hr x).le
         nlinarith [mul_le_mul_of_nonneg_left this hk]
     _ = (d * Λ / 2 + c0 / 2) * (∫ x in (ball z T)ᶜ, heatKernel z r x * euclideanSq (w.grad x)) +
           c0 / 2 * ∫ x in (ball z T)ᶜ, heatKernel z r x := by
@@ -802,7 +802,7 @@ theorem norm_scaleLp_sub_le (hr : r ≠ 0) (u v : Fin d → Lp ℝ 2 (ballMeasur
   · have := integrable_finsetSum Finset.univ fun j _ => hint j
     refine this.congr (Eventually.of_forall fun x => ?_)
     simp only [euclideanSq, dot, ← Finset.mul_sum, sq]
-  · have hΦ := (heatKernel_pos z hr x).le
+  · have hΦ := (heatKernel_pos_of_ne z hr x).le
     refine mul_le_mul_of_nonneg_left ?_ hΦ
     show ((u k : Vec d → ℝ) x - (v k : Vec d → ℝ) x) ^ 2 ≤
       ∑ j, ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x) * ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x)

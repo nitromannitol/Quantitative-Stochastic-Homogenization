@@ -58,12 +58,12 @@ theorem integral_abs_mul_abs_le (u v : Lp ℝ 2 μ) :
   rw [inner_toLp_toLp] at h1
   have hnu : ‖hu.toLp _‖ = ‖u‖ := by
     have : ‖hu.toLp _‖ ^ 2 = ‖u‖ ^ 2 := by
-      rw [norm_toLp_sq, norm_sq_eq_integral]
+      rw [norm_toLp_sq_eq_integral, norm_sq_eq_integral]
       exact integral_congr_ae (Eventually.of_forall fun x => by simp)
     exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 this
   have hnv : ‖hv.toLp _‖ = ‖v‖ := by
     have : ‖hv.toLp _‖ ^ 2 = ‖v‖ ^ 2 := by
-      rw [norm_toLp_sq, norm_sq_eq_integral]
+      rw [norm_toLp_sq_eq_integral, norm_sq_eq_integral]
       exact integral_congr_ae (Eventually.of_forall fun x => by simp)
     exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 this
   rw [hnu, hnv] at h1

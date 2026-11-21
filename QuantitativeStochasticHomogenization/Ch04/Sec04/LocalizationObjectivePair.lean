@@ -36,22 +36,22 @@ theorem heatKernelPeak_pos {t : ℝ} (ht : t ≠ 0) : 0 < heatKernelPeak d t := 
   unfold heatKernelPeak
   exact Real.rpow_pos_of_pos (by positivity) _
 
-theorem heatKernel_pos (y : Vec d) {t : ℝ} (ht : t ≠ 0) (x : Vec d) : 0 < heatKernel y t x := by
+theorem heatKernel_pos_of_ne (y : Vec d) {t : ℝ} (ht : t ≠ 0) (x : Vec d) : 0 < heatKernel y t x := by
   rw [heatKernel_eq]
   exact mul_pos (heatKernelPeak_pos ht) (Real.exp_pos _)
 
-theorem heatKernel_le (y : Vec d) {t : ℝ} (ht : t ≠ 0) (x : Vec d) :
+theorem heatKernel_le_peak (y : Vec d) {t : ℝ} (ht : t ≠ 0) (x : Vec d) :
     heatKernel y t x ≤ heatKernelPeak d t := by
   rw [heatKernel_eq]
   refine mul_le_of_le_one_right (heatKernelPeak_pos ht).le (Real.exp_le_one_iff.2 ?_)
-  have := euclideanSq_nonneg (x - y)
+  have := zero_le_euclideanSq (x - y)
   have : 0 < 4 * t ^ 2 := by positivity
   exact div_nonpos_of_nonpos_of_nonneg (by linarith) this.le
 
 theorem abs_heatKernel_le (y : Vec d) {t : ℝ} (ht : t ≠ 0) (x : Vec d) :
     |heatKernel y t x| ≤ heatKernelPeak d t := by
-  rw [abs_of_pos (heatKernel_pos y ht x)]
-  exact heatKernel_le y ht x
+  rw [abs_of_pos (heatKernel_pos_of_ne y ht x)]
+  exact heatKernel_le_peak y ht x
 
 theorem heatKernel_ge (y : Vec d) {t : ℝ} (ht : t ≠ 0) {x : Vec d} {R : ℝ}
     (hR : euclideanNorm (x - y) ≤ R) :
@@ -59,8 +59,8 @@ theorem heatKernel_ge (y : Vec d) {t : ℝ} (ht : t ≠ 0) {x : Vec d} {R : ℝ}
   rw [heatKernel_eq]
   refine mul_le_mul_of_nonneg_left (Real.exp_le_exp.2 ?_) (heatKernelPeak_pos ht).le
   have h4 : 0 < 4 * t ^ 2 := by positivity
-  rw [div_le_div_iff_of_pos_right h4, neg_le_neg_iff, ← euclideanNorm_sq]
-  exact pow_le_pow_left₀ (euclideanNorm_nonneg _) hR 2
+  rw [div_le_div_iff_of_pos_right h4, neg_le_neg_iff, ← sq_euclideanNorm]
+  exact pow_le_pow_left₀ (zero_le_euclideanNorm _) hR 2
 
 theorem continuous_heatKernel (t : ℝ) :
     Continuous fun p : Vec d × Vec d => heatKernel p.1 t p.2 := by
@@ -131,7 +131,7 @@ theorem memLp_coordinate (z : Vec d) (T : ℝ) (i : Fin d) :
     T ?_
   filter_upwards [ae_restrict_mem (measurableSet_ball z T)] with x hx
   rw [Real.norm_eq_abs]
-  exact (abs_apply_le_euclideanNorm (x - z) i).trans hx.le
+  exact (abs_coord_le_euclideanNorm (x - z) i).trans hx.le
 
 /-- The coordinate function `ℓ_i(x) = (x - z)_i` as an element of `L²(B_T(z))`. -/
 def coordinateLp (z : Vec d) (T : ℝ) (i : Fin d) : Lp ℝ 2 (ballMeasure z T) :=
@@ -183,7 +183,7 @@ theorem pairObjective_nonneg (i : Fin d) (F : PairSpace d z T) :
 
 theorem integrableOn_inner_heatLp_sq (hσS : σ * S ≠ 0) (R : ℝ) (v : Lp ℝ 2 (ballMeasure z T)) :
     IntegrableOn (fun y => ⟪heatLp z T y hσS, v⟫_ℝ ^ 2) (ball z R) volume := by
-  have : IsFiniteMeasure (volume.restrict (ball z R)) := isFiniteMeasure_restrict_ball z R
+  have : IsFiniteMeasure (volume.restrict (ball z R)) := isFiniteMeasure_ballMeasure z R
   refine Integrable.of_bound (((continuous_inner_heatLp hσS v).pow 2).aestronglyMeasurable)
     ((heatLpBound z T (σ * S) * ‖v‖) ^ 2) (Eventually.of_forall fun y => ?_)
   rw [Real.norm_eq_abs, abs_pow]
@@ -199,7 +199,7 @@ theorem continuous_pairObjective (hσS : σ * S ≠ 0) (i : Fin d) :
   rw [heq]
   refine continuous_const.mul (continuous_iff_continuousAt.2 fun F₀ => ?_)
   have : IsFiniteMeasure (volume.restrict (ball z (S / θ))) :=
-    isFiniteMeasure_restrict_ball z (S / θ)
+    isFiniteMeasure_ballMeasure z (S / θ)
   set M := heatLpBound z T (σ * S)
   refine continuousAt_of_dominated (bound := fun _ => (M * (‖F₀.1 - coordinateLp z T i‖ + 1)) ^ 2)
     (Eventually.of_forall fun F =>

@@ -116,7 +116,7 @@ theorem integral_sub_average_sq_le_of_isGradientPair (F : PairSpace d z T)
       integrable_finsetSum _ fun i _ => (Lp.memLp (F.2 i)).integrable_sq
     refine hsum.congr (Eventually.of_forall fun x => ?_)
     dsimp only
-    rw [euclideanNorm_sq]
+    rw [sq_euclideanNorm]
     simp only [euclideanSq, dot, sq]
   have hreal := ENNReal.toReal_mono (ENNReal.mul_ne_top ENNReal.ofReal_ne_top
     hmemB.eLpNorm_ne_top) hP
@@ -128,7 +128,7 @@ theorem integral_sub_average_sq_le_of_isGradientPair (F : PairSpace d z T)
     rw [pairGradEnergy_eq_integral]
     refine integral_congr_ae (Eventually.of_forall fun x => ?_)
     show Real.sqrt (euclideanSq _) ^ 2 = euclideanSq _
-    rw [Real.sq_sqrt (euclideanSq_nonneg _)]
+    rw [Real.sq_sqrt (zero_le_euclideanSq _)]
   rw [hB] at hsq
   exact hsq
 

@@ -98,7 +98,7 @@ def ballGate (z : Vec d) (T : ℝ) (n : ℕ) (x : Vec d) : ℝ :=
 
 theorem continuous_ballGate (z : Vec d) (T : ℝ) (n : ℕ) : Continuous (ballGate z T n) :=
   continuous_const.max (continuous_const.min
-    (((continuous_const.sub (continuous_euclideanNorm.comp
+    (((continuous_const.sub (euclideanNorm_continuous.comp
       (continuous_id.sub continuous_const))).sub continuous_const).mul continuous_const))
 
 theorem closedBall_subset_ball_of_ballGate_ne_zero {z : Vec d} {T : ℝ} {n : ℕ} {x : Vec d}
@@ -115,7 +115,7 @@ theorem closedBall_subset_ball_of_ballGate_ne_zero {z : Vec d} {T : ℝ} {n : �
   intro y hy
   rw [Metric.mem_closedBall, dist_eq_norm] at hy
   show euclideanNorm (y - z) < T
-  have h1 := euclideanNorm_sub_le y z x
+  have h1 := euclideanNorm_sub_le_sub_add y z x
   have h2 := euclideanNorm_le_mul_norm (y - x)
   have h3 : (d : ℝ) * ‖y - x‖ ≤ d * (1 / ((n : ℝ) + 1)) :=
     mul_le_mul_of_nonneg_left hy (Nat.cast_nonneg d)
