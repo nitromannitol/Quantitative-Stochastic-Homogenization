@@ -413,4 +413,33 @@ theorem commutator_assembly [IsProbabilityMeasure P] (hd : 1 ≤ d) {D D₀ : Ma
 
 end Assembly
 
+section Large
+
+variable {P : Measure (CoefficientField d Λ)}
+
+theorem rpow_half_mul_sq_rpow {X B r α : ℝ} (hX : 0 ≤ X) (hB : 0 ≤ B) (hr : 0 < r) :
+    (X * (B * r ^ (-α)) ^ 2) ^ (1 / 2 : ℝ) = X ^ (1 / 2 : ℝ) * B * r ^ (-α) := by
+  have h1 : 0 ≤ B * r ^ (-α) := mul_nonneg hB (Real.rpow_nonneg hr.le _)
+  rw [Real.mul_rpow hX (sq_nonneg _), show ((B * r ^ (-α)) ^ 2) ^ (1 / 2 : ℝ) = B * r ^ (-α) by
+    rw [← Real.sqrt_eq_rpow, Real.sqrt_sq h1]]
+  ring
+
+/-- The scale of the commutator bound of Lemma 4.13 at one large scale `r`. -/
+def commutatorScale (d : ℕ) (Λ s α CF CM CN τ η r : ℝ) : ℝ :=
+  let cs : ℝ := 2 * (2 : ℝ) ^ s⁻¹
+  let ct : ℝ := 2 * (2 : ℝ) ^ (s / 2)⁻¹
+  let σh : ℝ := (ct ^ d * (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ)
+  let K₀ : ℝ := 2 * Λ * Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1)))
+  let Kq : ℝ := 2 * (Real.sqrt d * (Λ + 1))
+  let θY : ℝ := Kq * ((2 * (2 : ℝ) ^ s⁻¹) ^ d * (cs * (σh + K₀ * σh)))
+  let mY : ℝ := Kq * (d * (momentConstant s * σh + K₀ * (momentConstant s * σh)))
+  let θB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * ((2 * Real.exp 1 - 1) ^ s⁻¹ * (CM / r) ^ ((d : ℝ) / 2))
+  let mB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * (momentConstant (τ / ((d : ℝ) / 2)) *
+    (CM / r) ^ ((d : ℝ) / 2))
+  let θN : ℝ := Real.sqrt CN * (cs * (1 / Real.log 2 ^ s⁻¹ +
+    (2 * Real.exp 1 - 1) ^ s⁻¹ * CM ^ ((d : ℝ) / 2)))
+  cs * (cs * (θY + θB) + Real.sqrt d * (η + Real.sqrt d * (mY + mB) + K₀ * η) * θN)
+
+end Large
+
 end QSH
