@@ -124,7 +124,7 @@ theorem measurable_heatAverage_uncurry {Ω : Type*} [MeasurableSpace Ω] {F : Ω
 /-- **Small scales**: Young's inequality against the Gaussian `L²` norm of the field. -/
 theorem ae_eLpNorm_heatDerivativeAverage_le_small {Ω : Type*} [MeasurableSpace Ω]
     {P : Measure Ω} {F : Ω → Vec d → ℝ} (hFm : Measurable (Function.uncurry F)) {k : ℕ}
-    (β : Fin d → Fin (k + 1)) {C : ℝ} (hC0 : 0 ≤ C) {s : ℝ} (hs : 0 < s) (hs1 : s ≤ 1)
+    (β : Fin d → Fin (k + 1)) {C : ℝ} (hC0 : 0 ≤ C) {s : ℝ}
     (hC : ∀ G : Vec d → ℝ, AEStronglyMeasurable G volume →
       eLpNorm (heatDerivativeAverage β s G) 2 (volume.restrict (originBall d 1)) ≤
         ENNReal.ofReal (C * (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (β i).val)) *
@@ -184,5 +184,219 @@ theorem ae_eLpNorm_heatDerivativeAverage_le_large {Ω : Type*} [MeasurableSpace 
   rw [ENNReal.ofReal_mul (gaussWeight_pos u).le, ← ENNReal.ofReal_rpow_of_nonneg (abs_nonneg _)
     (by norm_num), ← Real.enorm_eq_ofReal_abs, mul_comm]
   rfl
+
+/-! ## The per-scale estimate -/
+
+/-- The constant of Young's inequality `eLpNorm_heatDerivativeAverage_le`. -/
+def youngConstant {k : ℕ} (β : Fin d → Fin (k + 1)) : ℝ :=
+  (eLpNorm_heatDerivativeAverage_le β).choose
+
+theorem youngConstant_nonneg {k : ℕ} (β : Fin d → Fin (k + 1)) : 0 ≤ youngConstant β :=
+  (eLpNorm_heatDerivativeAverage_le β).choose_spec.1
+
+theorem youngConstant_spec {k : ℕ} (β : Fin d → Fin (k + 1)) {s : ℝ} (hs : 0 < s) (hs1 : s ≤ 1)
+    (G : Vec d → ℝ) (hG : AEStronglyMeasurable G volume) :
+    eLpNorm (heatDerivativeAverage β s G) 2 (volume.restrict (originBall d 1)) ≤
+      ENNReal.ofReal (youngConstant β * (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (β i).val)) *
+        (∫⁻ x, ‖G x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^
+          (1 / 2 : ℝ) :=
+  (eLpNorm_heatDerivativeAverage_le β).choose_spec.2 s hs hs1 G hG
+
+/-- The sum of the constants `youngConstant β_w + 1` over the words of length at most `n + 1`. -/
+def heatScaleCoefficient (d n : ℕ) : ℝ :=
+  ∑ k ∈ Finset.range (n + 2), ∑ w : Fin k → Fin d, (youngConstant (countIndex w) + 1)
+
+theorem youngConstant_add_one_le {n k : ℕ} (hk : k ≤ n + 1) (w : Fin k → Fin d) :
+    youngConstant (countIndex w) + 1 ≤ heatScaleCoefficient d n := by
+  unfold heatScaleCoefficient
+  have h0 : ∀ k' (w' : Fin k' → Fin d), 0 ≤ youngConstant (countIndex w') + 1 := fun k' w' => by
+    have := youngConstant_nonneg (countIndex w'); linarith
+  calc youngConstant (countIndex w) + 1 ≤ ∑ w' : Fin k → Fin d, (youngConstant (countIndex w') + 1) :=
+        Finset.single_le_sum (f := fun w' : Fin k → Fin d => youngConstant (countIndex w') + 1)
+          (fun w' _ => h0 k w') (Finset.mem_univ w)
+    _ ≤ _ := Finset.single_le_sum (f := fun k' => ∑ w' : Fin k' → Fin d,
+          (youngConstant (countIndex w') + 1)) (fun k' _ => Finset.sum_nonneg fun w' _ => h0 k' w')
+          (Finset.mem_range.mpr (by omega))
+
+theorem inv_sqrt_pow_eq {s : ℝ} (hs : 0 < s) (k : ℕ) :
+    (Real.sqrt s)⁻¹ ^ k = s ^ (-(k : ℝ) / 2) := by
+  rw [Real.sqrt_eq_rpow, ← Real.rpow_neg hs.le, ← Real.rpow_natCast, ← Real.rpow_mul hs.le]
+  congr 1
+  ring
+
+theorem inv_sqrt_two_mul_pow_le {s : ℝ} (hs : 0 < s) (k : ℕ) :
+    (Real.sqrt (2 * s))⁻¹ ^ k ≤ s ^ (-(k : ℝ) / 2) := by
+  rw [← inv_sqrt_pow_eq hs]
+  have h1 : Real.sqrt s ≤ Real.sqrt (2 * s) := Real.sqrt_le_sqrt (by linarith)
+  have h2 : 0 < Real.sqrt s := Real.sqrt_pos.mpr hs
+  exact pow_le_pow_left₀ (inv_nonneg.mpr (Real.sqrt_nonneg _)) (inv_anti₀ h2 h1) k
+
+/-- **The per-scale estimate from the Gaussian energy and the Gaussian averages**: if the Gaussian
+`L²` norm of `F` is `O_1(C₁)` and the Gaussian averages `A_t(F)(u)` are `O_1(C₂ ε^{d/2} t^{-d/4})` at
+every center for `ε²/2 ≤ t ≤ 1/2`, then `F` satisfies the per-scale estimate. -/
+theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
+    [IsProbabilityMeasure P] (hd : 1 ≤ d) (n : ℕ) {F : Ω → Vec d → ℝ}
+    (hFm : Measurable (Function.uncurry F)) {ε C₁ C₂ : ℝ} (hε : 0 < ε) (hC₁ : 0 < C₁)
+    (hC₂ : 0 < C₂)
+    (hFg : ∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → ∀ y,
+      Integrable (fun x => F a x * euclideanHeatKernel τ (x - y)))
+    {R : Ω → ℝ} (hRo : OsBound P R 1 C₁)
+    (hR : ∀ᵐ a ∂P, (∫⁻ x, ‖F a x‖ₑ ^ (2 : ℝ) *
+      ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a))
+    (hA : ∀ t : ℝ, ε ^ 2 / 2 ≤ t → t ≤ 1 / 2 → ∀ u,
+      OsBound P (fun a => |heatAverage t (F a) u|) 1 (C₂ * ε ^ ((d : ℝ) / 2) * t ^ (-(d : ℝ) / 4))) :
+    HeatScaleEstimate P n F
+      (heatScaleCoefficient d n * (C₁ + gaussSquareConstant d * C₂ * 2 ^ ((d : ℝ) / 4))) ε := by
+  set H := heatScaleCoefficient d n with hH
+  set K := gaussSquareConstant d with hKdef
+  have hlog : 0 < Real.log 2 := Real.log_pos one_lt_two
+  have hK0 : 0 ≤ K := Real.rpow_nonneg (mul_nonneg (Real.rpow_nonneg (by positivity) _)
+    (integral_nonneg fun u => (gaussWeight_pos u).le)) _
+  have hRm : Measurable R := hRo.1
+  set V : ℝ → Ω → ℝ := fun s a => ∫ u, gaussWeight u * |heatAverage (s / 2) (F a) u| ^ (2 : ℝ)
+    with hVdef
+  have hVm : Measurable (Function.uncurry V) := by
+    have h : StronglyMeasurable (fun p : ℝ × Ω =>
+        ∫ u, gaussWeight u * |heatAverage (p.1 / 2) (F p.2) u| ^ (2 : ℝ)) := by
+      refine StronglyMeasurable.integral_prod_right
+        (f := fun (p : ℝ × Ω) (u : Vec d) =>
+          gaussWeight u * |heatAverage (p.1 / 2) (F p.2) u| ^ (2 : ℝ)) ?_
+      refine Measurable.stronglyMeasurable ?_
+      exact (measurable_gaussWeight.comp measurable_snd).mul
+        ((measurable_heatAverage_uncurry hFm).abs.pow_const _)
+    exact h.measurable
+  set Q : ∀ k : ℕ, (Fin k → Fin d) → ℝ → Ω → ℝ := fun k w s a =>
+    if s ≤ ε ^ 2 then (youngConstant (countIndex w) + 1) *
+      (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val) * max (R a) 0
+    else (youngConstant (countIndex w) + 1) *
+      (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val) * V s a ^ (1 / 2 : ℝ) with hQdef
+  have hV0 : ∀ s a, 0 ≤ V s a := fun s a => integral_nonneg fun u =>
+    mul_nonneg (gaussWeight_pos u).le (Real.rpow_nonneg (abs_nonneg _) _)
+  have hC' : ∀ k (w : Fin k → Fin d), 0 < youngConstant (countIndex w) + 1 := fun k w => by
+    have := youngConstant_nonneg (countIndex w); linarith
+  refine ⟨Q, fun k w => ?_, fun k w s a => ?_, fun k w =>
+    measurable_eLpNorm_heatDerivativeAverage hFm (countIndex w), fun k w hk s hs => ?_,
+    fun k w hk s hs => ?_⟩
+  · refine Measurable.ite (measurableSet_le measurable_fst measurable_const) ?_ ?_
+    · exact (measurable_const.mul ((measurable_const.mul measurable_fst).sqrt.inv.pow_const _)).mul
+        ((hRm.comp measurable_snd).max measurable_const)
+    · exact (measurable_const.mul (((measurable_const.mul (measurable_fst.div_const 2)).sqrt.inv).pow_const
+        _)).mul (hVm.pow_const _)
+  · simp only [hQdef]
+    have := hC' k w
+    split_ifs
+    · exact mul_nonneg (mul_nonneg this.le (by positivity)) (le_max_right _ _)
+    · exact mul_nonneg (mul_nonneg this.le (by positivity)) (Real.rpow_nonneg (hV0 s a) _)
+  · have hk' : (∑ i, (countIndex w i).val) = k := sum_countIndex w
+    have hs0 : 0 < s := hs.1
+    have hεd : 0 < ε ^ ((d : ℝ) / 2) := Real.rpow_pos_of_pos hε _
+    have hCH : youngConstant (countIndex w) + 1 ≤ H := youngConstant_add_one_le hk w
+    have hH0 : 0 < H := (hC' k w).trans_le hCH
+    have hspow : 0 < s ^ (-(k : ℝ) / 2) := Real.rpow_pos_of_pos hs0 _
+    have hsd : 0 < s ^ (-(d : ℝ) / 4) := Real.rpow_pos_of_pos hs0 _
+    have h2d : 0 < (2 : ℝ) ^ ((d : ℝ) / 4) := by positivity
+    have hsplit : s ^ (-(k : ℝ) / 2 - (d : ℝ) / 4) = s ^ (-(k : ℝ) / 2) * s ^ (-(d : ℝ) / 4) := by
+      rw [← Real.rpow_add hs0]
+      congr 1
+      ring
+    have hKC : 0 ≤ K * C₂ * 2 ^ ((d : ℝ) / 4) := by positivity
+    by_cases hsε : s ≤ ε ^ 2
+    · have hQs : Q k w s = fun a => ((youngConstant (countIndex w) + 1) *
+          (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val)) * max (R a) 0 := by
+        funext a
+        simp only [hQdef, hsε, ↓reduceIte]
+      rw [hQs]
+      have hq : 0 < (youngConstant (countIndex w) + 1) *
+          (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val) :=
+        mul_pos (hC' k w) (pow_pos (inv_pos.mpr (Real.sqrt_pos.mpr (by positivity))) _)
+      refine (hRo.max_zero.const_mul hq).mono_scale ?_
+      rw [hk']
+      have h1 : (Real.sqrt (2 * s))⁻¹ ^ k ≤ s ^ (-(k : ℝ) / 2) := inv_sqrt_two_mul_pow_le hs0 k
+      have h2 : 1 ≤ s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := by
+        have hd0 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
+        have h4 : (ε ^ 2) ^ (-(d : ℝ) / 4) ≤ s ^ (-(d : ℝ) / 4) :=
+          Real.rpow_le_rpow_of_nonpos hs0 hsε (by linarith)
+        have h3 : (ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) = 1 := by
+          rw [← Real.rpow_natCast, ← Real.rpow_mul hε.le, ← Real.rpow_add hε,
+            show ((2 : ℕ) : ℝ) * (-(d : ℝ) / 4) + (d : ℝ) / 2 = 0 by push_cast; ring,
+            Real.rpow_zero]
+        calc (1 : ℝ) = (ε ^ 2) ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := h3.symm
+          _ ≤ s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2) := by gcongr
+      have hq0 : 0 ≤ (Real.sqrt (2 * s))⁻¹ ^ k := by positivity
+      calc (youngConstant (countIndex w) + 1) * (Real.sqrt (2 * s))⁻¹ ^ k * C₁
+          ≤ H * s ^ (-(k : ℝ) / 2) * C₁ := by gcongr
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * C₁ * (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) :=
+          le_mul_of_one_le_right (by positivity) h2
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂ * 2 ^ ((d : ℝ) / 4)) *
+            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by gcongr; linarith
+        _ = _ := by rw [hsplit]; ring
+    · have hsε' : ε ^ 2 < s := lt_of_not_ge hsε
+      have hQl : Q k w s = fun a => ((youngConstant (countIndex w) + 1) *
+          (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val)) * V s a ^ (1 / 2 : ℝ) := by
+        funext a
+        simp only [hQdef, hsε, ↓reduceIte]
+      rw [hQl]
+      have h2s : 2 * (s / 2) = s := by ring
+      have hq : 0 < (youngConstant (countIndex w) + 1) *
+          (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val) :=
+        mul_pos (hC' k w) (pow_pos (inv_pos.mpr (Real.sqrt_pos.mpr (by positivity))) _)
+      have hθA : 0 < C₂ * ε ^ ((d : ℝ) / 2) * (s / 2) ^ (-(d : ℝ) / 4) :=
+        mul_pos (mul_pos hC₂ hεd) (Real.rpow_pos_of_pos (half_pos hs0) _)
+      have hX : Measurable (Function.uncurry fun (u : Vec d) (a : Ω) =>
+          heatAverage (s / 2) (F a) u) :=
+        (measurable_heatAverage_uncurry hFm).comp
+          ((measurable_const.prodMk measurable_snd).prodMk measurable_fst)
+      obtain ⟨-, hVo⟩ := osBound_rpow_integral_sq hd hX hθA
+        (hA (s / 2) (by linarith) (by linarith [hs.2]))
+      refine (hVo.const_mul hq).mono_scale ?_
+      rw [hk', h2s, inv_sqrt_pow_eq hs0 k]
+      have hs2d : (s / 2) ^ (-(d : ℝ) / 4) = s ^ (-(d : ℝ) / 4) * 2 ^ ((d : ℝ) / 4) := by
+        rw [Real.div_rpow hs0.le (by norm_num), div_eq_mul_inv, ← Real.rpow_neg (by norm_num)]
+        congr 2
+        ring
+      rw [hs2d]
+      calc (youngConstant (countIndex w) + 1) * s ^ (-(k : ℝ) / 2) *
+            (K * (C₂ * ε ^ ((d : ℝ) / 2) * (s ^ (-(d : ℝ) / 4) * 2 ^ ((d : ℝ) / 4))))
+          ≤ H * s ^ (-(k : ℝ) / 2) *
+            (K * (C₂ * ε ^ ((d : ℝ) / 2) * (s ^ (-(d : ℝ) / 4) * 2 ^ ((d : ℝ) / 4)))) := by
+            gcongr
+        _ = H * s ^ (-(k : ℝ) / 2) * (K * C₂ * 2 ^ ((d : ℝ) / 4)) *
+            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by ring
+        _ ≤ H * s ^ (-(k : ℝ) / 2) * (C₁ + K * C₂ * 2 ^ ((d : ℝ) / 4)) *
+            (s ^ (-(d : ℝ) / 4) * ε ^ ((d : ℝ) / 2)) := by gcongr; linarith
+        _ = _ := by rw [hsplit]; ring
+  · have hs0 : 0 < s := hs.1
+    have hle : youngConstant (countIndex w) ≤ youngConstant (countIndex w) + 1 := by linarith
+    by_cases hsε : s ≤ ε ^ 2
+    · have h := ae_eLpNorm_heatDerivativeAverage_le_small (P := P) hFm (countIndex w)
+        (youngConstant_nonneg _) (fun G hG => youngConstant_spec _ hs0 hs.2 G hG) hR
+      filter_upwards [h] with a ha
+      refine ha.trans (ENNReal.ofReal_le_ofReal ?_)
+      simp only [hQdef, hsε, ↓reduceIte]
+      have hq0 : 0 ≤ (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (countIndex w i).val) := by positivity
+      exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hle hq0) (le_max_right _ _)
+    · have hsε' : ε ^ 2 < s := lt_of_not_ge hsε
+      have hs2 : s / 2 ≤ 1 := by linarith [hs.2]
+      have hθA : 0 < C₂ * ε ^ ((d : ℝ) / 2) * (s / 2) ^ (-(d : ℝ) / 4) :=
+        mul_pos (mul_pos hC₂ (Real.rpow_pos_of_pos hε _)) (Real.rpow_pos_of_pos (half_pos hs0) _)
+      have hX : Measurable (Function.uncurry fun (u : Vec d) (a : Ω) =>
+          heatAverage (s / 2) (F a) u) :=
+        (measurable_heatAverage_uncurry hFm).comp
+          ((measurable_const.prodMk measurable_snd).prodMk measurable_fst)
+      obtain ⟨hint, -⟩ := osBound_rpow_integral_sq hd hX hθA
+        (hA (s / 2) (by linarith) (by linarith [hs.2]))
+      have hFg' : ∀ᵐ a ∂P, ∀ y, Integrable (fun x => F a x *
+          euclideanHeatKernel (s / 2 + 2 * (s / 2)) (x - y)) := by
+        filter_upwards [hFg] with a ha y
+        exact ha _ (by positivity) y
+      have h := ae_eLpNorm_heatDerivativeAverage_le_large hFm (countIndex w)
+        (youngConstant_nonneg _) hs0 (fun G hG => youngConstant_spec _ (half_pos hs0) hs2 G hG)
+        hFg' hint
+      filter_upwards [h] with a ha
+      refine ha.trans (ENNReal.ofReal_le_ofReal ?_)
+      simp only [hQdef, hsε, ↓reduceIte]
+      have hq0 : 0 ≤ (Real.sqrt (2 * (s / 2)))⁻¹ ^ (∑ i, (countIndex w i).val) := by positivity
+      exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hle hq0)
+        (Real.rpow_nonneg (hV0 s a) _)
 
 end QSH
