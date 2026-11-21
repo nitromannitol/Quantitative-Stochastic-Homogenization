@@ -9,7 +9,9 @@ form `|∫ Φ_{z,r} G| ≤ O_1(C r^{-d/2})` at every center `z` and radius `r �
 frozen statement of Theorem 4.1), then the Gaussian averages of the components of `G(·/ε)` satisfy
 `|A_t(G(·/ε)_j)(u)| ≤ O_1(C ε^{d/2} t^{-d/4})` for `t ≥ ε²` (`osBound_abs_heatAverage_rescaled`):
 `A_t(G(·/ε)_j)(u)` is the `j`-th component of the average of `G` at the center `u/ε` and the radius
-`√t/ε ≥ 1`.
+`√t/ε ≥ 1`. With the Gaussian moments and the Gaussian energy estimate of the rescaled fields
+(`GaussianEnergyEstimate`), this gives the frozen statement (4.126) from (4.2) and (4.3) in the form
+of the frozen statement of Theorem 4.1 (`negativeSobolevCorrector_of_averages`).
 -/
 
 open MeasureTheory Filter Set
@@ -82,5 +84,58 @@ theorem osBound_abs_heatAverage_rescaled {Ω : Type*} [MeasurableSpace Ω] {P : 
       show -(-(d : ℝ) / 2) = (d : ℝ) / 2 by ring,
       show (1 : ℝ) / 2 * (-(d : ℝ) / 2) = -(d : ℝ) / 4 by ring]
     ring
+
+/-- **The Gaussian energy estimate** of a random field: Gaussian moments at every center and a
+Gaussian `L²` norm `O_1(C₁)` at the unit scale. -/
+def GaussianEnergyEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (F : Ω → Vec d → ℝ)
+    (C₁ : ℝ) : Prop :=
+  (∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → ∀ y,
+    Integrable (fun x => F a x * euclideanHeatKernel τ (x - y))) ∧
+  ∃ R : Ω → ℝ, OsBound P R 1 C₁ ∧ ∀ᵐ a ∂P, (∫⁻ x, ‖F a x‖ₑ ^ (2 : ℝ) *
+    ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)
+
+/-- **(4.126) from (4.2), (4.3) and the Gaussian energy estimates** of the rescaled corrector
+gradient and flux, (4.3) being stated for a jointly measurable version of the flux. -/
+theorem negativeSobolevCorrector_of_averages
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C C₁ : ℝ, 0 < C ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, ∀ e : Vec d, euclideanNorm e < 1 →
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • (S.corrector e).grad a y)) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • (S.corrector e).grad a y))
+              1 (C * r ^ (-(d : ℝ) / 2))) ∧
+          ∃ Fl : CoefficientField d Λ → Vec d → Vec d,
+            Measurable (fun p : CoefficientField d Λ × Vec d => Fl p.1 p.2) ∧
+            (∀ a, ∀ᵐ y ∂volume,
+              Fl a y = (a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e) ∧
+            (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+              (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • Fl a y)) ∧
+              OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • Fl a y)) 1
+                (C * r ^ (-(d : ℝ) / 2))) ∧
+            ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∀ j : Fin d,
+              GaussianEnergyEstimate P (fun a x => (S.corrector e).grad a (ε⁻¹ • x) j) C₁ ∧
+              GaussianEnergyEstimate P (fun a x => Fl a (ε⁻¹ • x) j) C₁) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_gaussian fun d hd Λ hΛ => ?_
+  obtain ⟨C, C₁, hC, hC₁, hP⟩ := h d hd Λ hΛ
+  refine ⟨C₁, C, hC₁, hC, fun P hPl => ?_⟩
+  obtain ⟨S, hS⟩ := hP P hPl
+  refine ⟨S, fun e he ε hε hε2 j => ?_⟩
+  obtain ⟨hE1, Fl, hFlm, hFl, hE3, hen⟩ := hS e he
+  obtain ⟨⟨hGg, hGe⟩, ⟨hFg, hFe⟩⟩ := hen ε hε hε2 j
+  have hεi : ε⁻¹ ≠ 0 := inv_ne_zero hε.ne'
+  constructor
+  · refine ⟨fun a x => (S.corrector e).grad a (ε⁻¹ • x) j, ?_, fun a => ae_eq_refl _, hGg, hGe,
+      fun t ht _ u => osBound_abs_heatAverage_rescaled (S.corrector e).measurable_grad hE1 hε j ht u⟩
+    exact (measurable_pi_apply j).comp ((S.corrector e).measurable_grad.comp
+      (measurable_fst.prodMk (measurable_snd.const_smul ε⁻¹)))
+  · refine ⟨fun a x => Fl a (ε⁻¹ • x) j, ?_, fun a => ?_, hFg, hFe,
+      fun t ht _ u => osBound_abs_heatAverage_rescaled hFlm hE3 hε j ht u⟩
+    · exact (measurable_pi_apply j).comp (hFlm.comp
+        (measurable_fst.prodMk (measurable_snd.const_smul ε⁻¹)))
+    · have h1 := (Measure.quasiMeasurePreserving_smul (μ := (volume : Measure (Vec d))) hεi).ae
+        (hFl a)
+      filter_upwards [h1] with x hx
+      simp only [hx]
 
 end QSH
