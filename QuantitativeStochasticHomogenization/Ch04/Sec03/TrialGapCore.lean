@@ -379,4 +379,46 @@ theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} 
 
 end Fluctuation
 
+/-! ## The trial gap estimate -/
+
+theorem euclideanNorm_sub_sq_le_two (x u w : Vec d) :
+    euclideanNorm (x - w) ^ 2 ≤ 2 * (euclideanNorm (x - u) ^ 2 + euclideanNorm (u - w) ^ 2) := by
+  have h := euclideanNorm_add_le (x - u) (u - w)
+  rw [show x - u + (u - w) = x - w by abel] at h
+  have h0 := euclideanNorm_nonneg (x - w)
+  have h1 := euclideanNorm_nonneg (x - u)
+  have h2 := euclideanNorm_nonneg (u - w)
+  nlinarith [sq_nonneg (euclideanNorm (x - u) - euclideanNorm (u - w))]
+
+theorem euclideanNorm_sub_sq_le_three (x u v w : Vec d) :
+    euclideanNorm (x - w) ^ 2 ≤
+      3 * (euclideanNorm (x - u) ^ 2 + euclideanNorm (u - v) ^ 2 + euclideanNorm (v - w) ^ 2) := by
+  have h := euclideanNorm_add_le (x - u) (u - v + (v - w))
+  have h' := euclideanNorm_add_le (u - v) (v - w)
+  rw [show x - u + (u - v + (v - w)) = x - w by abel] at h
+  rw [show u - v + (v - w) = u - w by abel] at h'
+  have h0 := euclideanNorm_nonneg (x - w)
+  have h1 := euclideanNorm_nonneg (x - u)
+  have h2 := euclideanNorm_nonneg (u - v)
+  have h3 := euclideanNorm_nonneg (v - w)
+  have h4 : euclideanNorm (x - w) ≤ euclideanNorm (x - u) + euclideanNorm (u - v) +
+      euclideanNorm (v - w) := by
+    rw [show x - w = x - u + (u - w) by abel]
+    exact (euclideanNorm_add_le _ _).trans (by linarith)
+  nlinarith [sq_nonneg (euclideanNorm (x - u) - euclideanNorm (u - v)),
+    sq_nonneg (euclideanNorm (u - v) - euclideanNorm (v - w)),
+    sq_nonneg (euclideanNorm (x - u) - euclideanNorm (v - w))]
+
+theorem euclideanSq_homogenizedSlope_le {A : Mat d}
+    (hA : ∀ ξ : Vec d, euclideanSq ξ ≤ dot ξ (A.mulVec ξ)) {p q : Vec d}
+    (hp : euclideanNorm p ≤ 1) (hq : euclideanNorm q ≤ 1) :
+    euclideanSq (homogenizedSlope A p q) ≤ 4 := by
+  have h1 := euclideanNorm_sub_le (A⁻¹.mulVec q) p
+  have h2 := euclideanNorm_inv_mulVec_le hA q
+  have h0 := euclideanNorm_nonneg (homogenizedSlope A p q)
+  rw [← euclideanNorm_sq]
+  have : euclideanNorm (homogenizedSlope A p q) ≤ 2 := by
+    unfold homogenizedSlope; linarith
+  nlinarith
+
 end QSH
