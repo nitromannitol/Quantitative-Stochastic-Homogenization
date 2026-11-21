@@ -129,4 +129,160 @@ theorem euclideanSq_integral_le {Ω : Type*} [MeasurableSpace Ω] {P : Measure �
   rw [hsum, hsum2]
   exact Finset.sum_le_sum fun k _ => sq_integral_le_integral_sq (hc k) (hc2 k)
 
+/-- **`I ≤ ā ≤ Λ I` from the expectations of the averages.** -/
+theorem homogenizedMatrixBounds_of_expectedAverages {P : Measure (CoefficientField d Λ)}
+    [IsProbabilityMeasure P] (S : HomogenizationData P) (hΛ : 0 ≤ Λ)
+    (hint : AveragesIntegrable P S) {β : ℝ} (hβ : 0 < β) (hexp : ExpectedAveragesEstimate P S β) :
+    HomogenizedMatrixBounds S.homogenized Λ := by
+  obtain ⟨C, hC, hE⟩ := hexp
+  intro ξ
+  have hn0 : 0 ≤ euclideanNorm ξ := euclideanNorm_nonneg ξ
+  have hCn : 0 ≤ C * euclideanNorm ξ := mul_nonneg hC.le hn0
+  have hcont : Continuous fun v : Vec d => euclideanSq v := by
+    unfold euclideanSq dot; fun_prop
+  have key : ∀ r : ℝ, 1 ≤ r →
+      euclideanSq ξ ≤ dot ξ (S.homogenized.mulVec ξ) +
+        (C * euclideanSq ξ + 2 * (C * euclideanNorm ξ) * (euclideanNorm ξ + C * euclideanNorm ξ) +
+          (C * euclideanNorm ξ) ^ 2) * r ^ (-β) ∧
+      euclideanNorm (S.homogenized.mulVec ξ) ^ 2 ≤ Λ * dot ξ (S.homogenized.mulVec ξ) +
+        (Λ * (C * euclideanSq ξ) + 2 * (C * euclideanNorm ξ) *
+          (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) +
+          (C * euclideanNorm ξ) ^ 2) * r ^ (-β) := by
+    intro r hr
+    have hr0 : 0 < r := zero_lt_one.trans_le hr
+    obtain ⟨hi1, hi2, hi3, hb1, hb2, hb3⟩ := hE 0 r hr ξ
+    have hρ0 : 0 ≤ r ^ (-β) := Real.rpow_nonneg hr0.le _
+    have hρ1 : r ^ (-β) ≤ 1 := Real.rpow_le_one_of_one_le_of_nonpos hr (by linarith)
+    have hP : ∀ᵐ a ∂P, euclideanSq (∫ x, heatKernel 0 r x • correctedField S a ξ x) ≤
+        ∫ x, heatKernel 0 r x *
+          dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x)) := by
+      filter_upwards [hint 0] with a ha
+      obtain ⟨h1, h2, h3⟩ := ha r hr ξ
+      exact (euclideanSq_averages_le_energy a hΛ 0 hr0 h1 h2 h3).1
+    have hF : ∀ᵐ a ∂P,
+        euclideanSq (∫ x, heatKernel 0 r x • (a x).mulVec (correctedField S a ξ x)) ≤
+        Λ * ∫ x, heatKernel 0 r x *
+          dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x)) := by
+      filter_upwards [hint 0] with a ha
+      obtain ⟨-, h2, h3⟩ := ha r hr ξ
+      exact euclideanSq_fluxAverage_le_energy a hΛ 0 hr0 h2 h3
+    have hPsq : Integrable
+        (fun a => euclideanSq (∫ x, heatKernel 0 r x • correctedField S a ξ x)) P :=
+      hi3.mono' (hcont.comp_aestronglyMeasurable hi1.aestronglyMeasurable) (by
+        filter_upwards [hP] with a ha
+        rw [Real.norm_eq_abs, abs_of_nonneg (euclideanSq_nonneg _)]
+        exact ha)
+    have hFsq : Integrable (fun a =>
+        euclideanSq (∫ x, heatKernel 0 r x • (a x).mulVec (correctedField S a ξ x))) P :=
+      (hi3.const_mul Λ).mono' (hcont.comp_aestronglyMeasurable hi2.aestronglyMeasurable) (by
+        filter_upwards [hF] with a ha
+        rw [Real.norm_eq_abs, abs_of_nonneg (euclideanSq_nonneg _)]
+        exact ha)
+    have hPm2 := (euclideanSq_integral_le hi1 hPsq).trans (integral_mono_ae hPsq hi3 hP)
+    have hFm2 := (euclideanSq_integral_le hi2 hFsq).trans
+      ((integral_mono_ae hFsq (hi3.const_mul Λ) hF).trans (le_of_eq (integral_const_mul _ _)))
+    set Pm := ∫ a, (∫ x, heatKernel 0 r x • correctedField S a ξ x) ∂P with hPm
+    set Fm := ∫ a, (∫ x, heatKernel 0 r x • (a x).mulVec (correctedField S a ξ x)) ∂P with hFm
+    set Em := ∫ a, (∫ x, heatKernel 0 r x *
+      dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P with hEm
+    set ρ := r ^ (-β) with hρ
+    have hEle : Em ≤ dot ξ (S.homogenized.mulVec ξ) + C * euclideanSq ξ * ρ := by
+      linarith [(abs_le.mp hb3).2]
+    have e1 : (C * euclideanNorm ξ * ρ) ^ 2 ≤ (C * euclideanNorm ξ) ^ 2 * ρ := by
+      have : ρ ^ 2 ≤ ρ := by nlinarith
+      calc (C * euclideanNorm ξ * ρ) ^ 2 = (C * euclideanNorm ξ) ^ 2 * ρ ^ 2 := by ring
+        _ ≤ (C * euclideanNorm ξ) ^ 2 * ρ := mul_le_mul_of_nonneg_left this (sq_nonneg _)
+    have hδ1 : C * euclideanNorm ξ * ρ ≤ C * euclideanNorm ξ := mul_le_of_le_one_right hCn hρ1
+    have hδ0 : 0 ≤ C * euclideanNorm ξ * ρ := mul_nonneg hCn hρ0
+    constructor
+    · have hn_le : euclideanNorm ξ ≤ euclideanNorm Pm + C * euclideanNorm ξ * ρ := by
+        have h := euclideanNorm_sub_le Pm (Pm - ξ)
+        rw [sub_sub_cancel] at h
+        linarith
+      have hp_le : euclideanNorm Pm ≤ euclideanNorm ξ + C * euclideanNorm ξ * ρ := by
+        have h := euclideanNorm_add_le (Pm - ξ) ξ
+        rw [sub_add_cancel] at h
+        linarith
+      have e2 : 2 * euclideanNorm Pm * (C * euclideanNorm ξ * ρ) ≤
+          2 * (C * euclideanNorm ξ) * (euclideanNorm ξ + C * euclideanNorm ξ) * ρ := by
+        have h : euclideanNorm Pm ≤ euclideanNorm ξ + C * euclideanNorm ξ := by linarith
+        have h2 : 0 ≤ 2 * (C * euclideanNorm ξ) * ρ := by positivity
+        calc 2 * euclideanNorm Pm * (C * euclideanNorm ξ * ρ)
+            = 2 * (C * euclideanNorm ξ) * ρ * euclideanNorm Pm := by ring
+          _ ≤ 2 * (C * euclideanNorm ξ) * ρ * (euclideanNorm ξ + C * euclideanNorm ξ) :=
+            mul_le_mul_of_nonneg_left h h2
+          _ = 2 * (C * euclideanNorm ξ) * (euclideanNorm ξ + C * euclideanNorm ξ) * ρ := by ring
+      calc euclideanSq ξ = euclideanNorm ξ ^ 2 := (euclideanNorm_sq ξ).symm
+        _ ≤ (euclideanNorm Pm + C * euclideanNorm ξ * ρ) ^ 2 := pow_le_pow_left₀ hn0 hn_le 2
+        _ = euclideanSq Pm + 2 * euclideanNorm Pm * (C * euclideanNorm ξ * ρ) +
+            (C * euclideanNorm ξ * ρ) ^ 2 := by rw [← euclideanNorm_sq Pm]; ring
+        _ ≤ (dot ξ (S.homogenized.mulVec ξ) + C * euclideanSq ξ * ρ) +
+            2 * (C * euclideanNorm ξ) * (euclideanNorm ξ + C * euclideanNorm ξ) * ρ +
+            (C * euclideanNorm ξ) ^ 2 * ρ := by linarith
+        _ = dot ξ (S.homogenized.mulVec ξ) + (C * euclideanSq ξ + 2 * (C * euclideanNorm ξ) *
+            (euclideanNorm ξ + C * euclideanNorm ξ) + (C * euclideanNorm ξ) ^ 2) * ρ := by ring
+    · have hq_le : euclideanNorm (S.homogenized.mulVec ξ) ≤
+          euclideanNorm Fm + C * euclideanNorm ξ * ρ := by
+        have h := euclideanNorm_sub_le Fm (Fm - S.homogenized.mulVec ξ)
+        rw [sub_sub_cancel] at h
+        linarith
+      have hf_le : euclideanNorm Fm ≤
+          euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ * ρ := by
+        have h := euclideanNorm_add_le (Fm - S.homogenized.mulVec ξ) (S.homogenized.mulVec ξ)
+        rw [sub_add_cancel] at h
+        linarith
+      have e2 : 2 * euclideanNorm Fm * (C * euclideanNorm ξ * ρ) ≤
+          2 * (C * euclideanNorm ξ) *
+            (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) * ρ := by
+        have h : euclideanNorm Fm ≤
+            euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ := by linarith
+        have h2 : 0 ≤ 2 * (C * euclideanNorm ξ) * ρ := by positivity
+        calc 2 * euclideanNorm Fm * (C * euclideanNorm ξ * ρ)
+            = 2 * (C * euclideanNorm ξ) * ρ * euclideanNorm Fm := by ring
+          _ ≤ 2 * (C * euclideanNorm ξ) * ρ *
+              (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) :=
+            mul_le_mul_of_nonneg_left h h2
+          _ = 2 * (C * euclideanNorm ξ) *
+              (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) * ρ := by ring
+      have hΛE := mul_le_mul_of_nonneg_left hEle hΛ
+      calc euclideanNorm (S.homogenized.mulVec ξ) ^ 2
+          ≤ (euclideanNorm Fm + C * euclideanNorm ξ * ρ) ^ 2 :=
+            pow_le_pow_left₀ (euclideanNorm_nonneg _) hq_le 2
+        _ = euclideanSq Fm + 2 * euclideanNorm Fm * (C * euclideanNorm ξ * ρ) +
+            (C * euclideanNorm ξ * ρ) ^ 2 := by rw [← euclideanNorm_sq Fm]; ring
+        _ ≤ Λ * (dot ξ (S.homogenized.mulVec ξ) + C * euclideanSq ξ * ρ) +
+            2 * (C * euclideanNorm ξ) *
+              (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) * ρ +
+            (C * euclideanNorm ξ) ^ 2 * ρ := by linarith
+        _ = Λ * dot ξ (S.homogenized.mulVec ξ) + (Λ * (C * euclideanSq ξ) +
+            2 * (C * euclideanNorm ξ) *
+              (euclideanNorm (S.homogenized.mulVec ξ) + C * euclideanNorm ξ) +
+            (C * euclideanNorm ξ) ^ 2) * ρ := by ring
+  -- the limits `r → ∞`
+  have hlim : ∀ c K : ℝ, Tendsto (fun r : ℝ => c + K * r ^ (-β)) atTop (𝓝 c) := fun c K => by
+    have h1 : Tendsto (fun _ : ℝ => c) atTop (𝓝 c) := tendsto_const_nhds
+    have := h1.add ((tendsto_rpow_neg_atTop hβ).const_mul K)
+    simpa using this
+  have hlow : euclideanSq ξ ≤ dot ξ (S.homogenized.mulVec ξ) :=
+    ge_of_tendsto (hlim _ _) (eventually_atTop.2 ⟨1, fun r hr => (key r hr).1⟩)
+  have hq2 : euclideanNorm (S.homogenized.mulVec ξ) ^ 2 ≤ Λ * dot ξ (S.homogenized.mulVec ξ) :=
+    ge_of_tendsto (hlim _ _) (eventually_atTop.2 ⟨1, fun r hr => (key r hr).2⟩)
+  refine ⟨hlow, ?_⟩
+  have hdq : dot ξ (S.homogenized.mulVec ξ) ≤
+      euclideanNorm ξ * euclideanNorm (S.homogenized.mulVec ξ) :=
+    (le_abs_self _).trans (abs_dot_le ξ _)
+  have hq0 := euclideanNorm_nonneg (S.homogenized.mulVec ξ)
+  have hqΛ : euclideanNorm (S.homogenized.mulVec ξ) ≤ Λ * euclideanNorm ξ := by
+    by_cases hq : euclideanNorm (S.homogenized.mulVec ξ) = 0
+    · rw [hq]; exact mul_nonneg hΛ hn0
+    · have hqp : 0 < euclideanNorm (S.homogenized.mulVec ξ) := lt_of_le_of_ne hq0 (Ne.symm hq)
+      have h1 := mul_le_mul_of_nonneg_left hdq hΛ
+      have h2 : euclideanNorm (S.homogenized.mulVec ξ) * euclideanNorm (S.homogenized.mulVec ξ) ≤
+          euclideanNorm (S.homogenized.mulVec ξ) * (Λ * euclideanNorm ξ) := by nlinarith
+      exact le_of_mul_le_mul_left h2 hqp
+  calc dot ξ (S.homogenized.mulVec ξ) ≤
+        euclideanNorm ξ * euclideanNorm (S.homogenized.mulVec ξ) := hdq
+    _ ≤ euclideanNorm ξ * (Λ * euclideanNorm ξ) := mul_le_mul_of_nonneg_left hqΛ hn0
+    _ = Λ * euclideanSq ξ := by rw [← euclideanNorm_sq]; ring
+
 end QSH
