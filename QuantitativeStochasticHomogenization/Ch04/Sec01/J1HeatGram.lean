@@ -43,6 +43,54 @@ theorem euclideanSq_le_card_mul_norm_sq (v : Vec d) : euclideanSq v ≤ d * ‖v
         nlinarith [abs_nonneg (v k), abs_mul_abs_self (v k)]
     _ = d * ‖v‖ ^ 2 := by simp
 
+/-- **Gaussian integrability from polynomial growth on balls.** If `f ≥ 0` is measurable and
+`∫_{B_R} f ≤ M R^d` for every `R ≥ R₀`, then `Φ_{z,r} f` is integrable for every center `z` and
+radius `r > 0`. -/
+theorem integrable_heatKernel_mul_of_lintegral_ball_le {f : Vec d → ℝ} (hfm : Measurable f)
+    (hf0 : ∀ x, 0 ≤ f x) {M R₀ : ℝ} (hM0 : 0 ≤ M) (hR₀ : 0 < R₀)
+    (hball : ∀ R : ℝ, R₀ ≤ R → ∫⁻ y in ball 0 R, ENNReal.ofReal (f y) ≤ ENNReal.ofReal (M * R ^ d))
+    (z : Vec d) {r : ℝ} (hr : 0 < r) :
+    Integrable (fun x => heatKernel z r x * f x) := by
+  set s : ℝ := max (r ^ 2) (max (R₀ ^ 2) (euclideanNorm z ^ 2)) with hs
+  have hrs : r ^ 2 ≤ s := le_max_left _ _
+  have hR₀s : R₀ ^ 2 ≤ s := (le_max_left _ _).trans (le_max_right _ _)
+  have hzs : euclideanNorm z ≤ Real.sqrt s := by
+    have hz0 : 0 ≤ euclideanNorm z := Real.sqrt_nonneg _
+    calc euclideanNorm z = Real.sqrt (euclideanNorm z ^ 2) := (Real.sqrt_sq hz0).symm
+      _ ≤ Real.sqrt s := Real.sqrt_le_sqrt ((le_max_right _ _).trans (le_max_right _ _))
+  have hr2 : 0 < r ^ 2 := by positivity
+  have hlint := lintegral_mul_heatKernel_le (f := fun y =>
+    ENNReal.ofReal (f y)) (ENNReal.measurable_ofReal.comp hfm)
+    hM0 hR₀ hball hR₀s hzs
+  have hnonneg : ∀ x, 0 ≤ heatKernel z r x * f x := fun x =>
+    mul_nonneg (euclideanHeatKernel_nonneg (sq_nonneg r) _) (hf0 x)
+  have hmeas : AEStronglyMeasurable
+      (fun x => heatKernel z r x * f x) volume := by
+    refine (Measurable.mul ?_ hfm).aestronglyMeasurable
+    exact ((continuous_euclideanHeatKernel (r ^ 2)).comp
+      (continuous_id.sub continuous_const)).measurable
+  refine ⟨hmeas, (hasFiniteIntegral_iff_ofReal (Filter.Eventually.of_forall hnonneg)).mpr ?_⟩
+  set c₀ : ℝ := (s / r ^ 2) ^ ((d : ℝ) / 2) with hc₀
+  calc ∫⁻ x, ENNReal.ofReal (heatKernel z r x * f x)
+      ≤ ∫⁻ x, ENNReal.ofReal c₀ * (ENNReal.ofReal (f x) *
+          ENNReal.ofReal (euclideanHeatKernel s (x - z))) := by
+        refine lintegral_mono fun x => ?_
+        have hk := euclideanHeatKernel_le_mul (d := d) hr2 hrs (x - z)
+        have hsq : 0 ≤ f x := hf0 x
+        have hks : 0 ≤ euclideanHeatKernel s (x - z) :=
+          euclideanHeatKernel_nonneg (le_trans hr2.le hrs) _
+        rw [← ENNReal.ofReal_mul hsq, ← ENNReal.ofReal_mul (by positivity)]
+        refine ENNReal.ofReal_le_ofReal ?_
+        calc heatKernel z r x * f x
+            ≤ (c₀ * euclideanHeatKernel s (x - z)) * f x :=
+              mul_le_mul_of_nonneg_right hk hsq
+          _ = c₀ * (f x * euclideanHeatKernel s (x - z)) := by
+              ring
+    _ = ENNReal.ofReal c₀ * ∫⁻ x, ENNReal.ofReal (f x) *
+          ENNReal.ofReal (euclideanHeatKernel s (x - z)) :=
+        lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
+    _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top (lt_of_le_of_lt hlint ENNReal.ofReal_lt_top)
+
 /-- **Finite Gaussian energy of the corrector columns.** Almost surely, for every `i`, every
 center `z` and every radius `r > 0`, `Φ_{z,r} |eᵢ + ∇φ_{eᵢ}|²` is integrable. -/
 theorem ae_integrable_heatKernel_mul_euclideanSq_correctorColumn (hd : 2 ≤ d) {Λ : ℝ}
@@ -138,48 +186,8 @@ theorem ae_integrable_heatKernel_mul_euclideanSq_correctorColumn (hd : 2 ≤ d) 
               ≤ volume.real (ball (0 : Vec d) R) * 2 +
                 2 * (volume.real (ball (0 : Vec d) R) * C ^ 2) := by gcongr
             _ = M * R ^ d := by rw [hV, hM]; ring
-  set s : ℝ := max (r ^ 2) (max (R₀ ^ 2) (euclideanNorm z ^ 2)) with hs
-  have hrs : r ^ 2 ≤ s := le_max_left _ _
-  have hR₀s : R₀ ^ 2 ≤ s := (le_max_left _ _).trans (le_max_right _ _)
-  have hzs : euclideanNorm z ≤ Real.sqrt s := by
-    have hz0 : 0 ≤ euclideanNorm z := Real.sqrt_nonneg _
-    calc euclideanNorm z = Real.sqrt (euclideanNorm z ^ 2) := (Real.sqrt_sq hz0).symm
-      _ ≤ Real.sqrt s := Real.sqrt_le_sqrt ((le_max_right _ _).trans (le_max_right _ _))
-  have hr2 : 0 < r ^ 2 := by positivity
-  have hlint := lintegral_mul_heatKernel_le (f := fun y =>
-    ENNReal.ofReal (euclideanSq (correctorColumn S a i y))) (ENNReal.measurable_ofReal.comp hWm)
-    hM0 hR₀ hball hR₀s hzs
-  have hnonneg : ∀ x, 0 ≤ heatKernel z r x * euclideanSq (correctorColumn S a i x) := fun x =>
-    mul_nonneg (euclideanHeatKernel_nonneg (sq_nonneg r) _) (by
-      unfold euclideanSq dot
-      exact Finset.sum_nonneg fun l _ => mul_self_nonneg _)
-  have hmeas : AEStronglyMeasurable
-      (fun x => heatKernel z r x * euclideanSq (correctorColumn S a i x)) volume := by
-    refine (Measurable.mul ?_ hWm).aestronglyMeasurable
-    exact ((continuous_euclideanHeatKernel (r ^ 2)).comp
-      (continuous_id.sub continuous_const)).measurable
-  refine ⟨hmeas, (hasFiniteIntegral_iff_ofReal (Filter.Eventually.of_forall hnonneg)).mpr ?_⟩
-  set c₀ : ℝ := (s / r ^ 2) ^ ((d : ℝ) / 2) with hc₀
-  calc ∫⁻ x, ENNReal.ofReal (heatKernel z r x * euclideanSq (correctorColumn S a i x))
-      ≤ ∫⁻ x, ENNReal.ofReal c₀ * (ENNReal.ofReal (euclideanSq (correctorColumn S a i x)) *
-          ENNReal.ofReal (euclideanHeatKernel s (x - z))) := by
-        refine lintegral_mono fun x => ?_
-        have hk := euclideanHeatKernel_le_mul (d := d) hr2 hrs (x - z)
-        have hsq : 0 ≤ euclideanSq (correctorColumn S a i x) := by
-          unfold euclideanSq dot
-          exact Finset.sum_nonneg fun l _ => mul_self_nonneg _
-        have hks : 0 ≤ euclideanHeatKernel s (x - z) :=
-          euclideanHeatKernel_nonneg (le_trans hr2.le hrs) _
-        rw [← ENNReal.ofReal_mul hsq, ← ENNReal.ofReal_mul (by positivity)]
-        refine ENNReal.ofReal_le_ofReal ?_
-        calc heatKernel z r x * euclideanSq (correctorColumn S a i x)
-            ≤ (c₀ * euclideanHeatKernel s (x - z)) * euclideanSq (correctorColumn S a i x) :=
-              mul_le_mul_of_nonneg_right hk hsq
-          _ = c₀ * (euclideanSq (correctorColumn S a i x) * euclideanHeatKernel s (x - z)) := by
-              ring
-    _ = ENNReal.ofReal c₀ * ∫⁻ x, ENNReal.ofReal (euclideanSq (correctorColumn S a i x)) *
-          ENNReal.ofReal (euclideanHeatKernel s (x - z)) :=
-        lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
-    _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top (lt_of_le_of_lt hlint ENNReal.ofReal_lt_top)
+  exact integrable_heatKernel_mul_of_lintegral_ball_le hWm
+    (fun x => by unfold euclideanSq dot; exact Finset.sum_nonneg fun l _ => mul_self_nonneg _)
+    hM0 hR₀ hball z hr
 
 end QSH

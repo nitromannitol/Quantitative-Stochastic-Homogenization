@@ -35,7 +35,8 @@ private theorem euclideanSq_add_add_sub (u v : Vec d) :
   ring
 
 /-- The bilinear form of a coefficient field is bounded by `Λ (|u|² + |v|²)`. -/
-theorem abs_dot_mulVec_le {Λ : ℝ} (a : CoefficientField d Λ) (x u v : Vec d) :
+theorem abs_dot_mulVec_le_mul_euclideanSq_add {Λ : ℝ} (a : CoefficientField d Λ)
+    (x u v : Vec d) :
     |dot u ((a x).mulVec v)| ≤ Λ * (euclideanSq u + euclideanSq v) := by
   have hpol := polarization_mulVec (a x) u v
   have hsym := dot_mulVec_comm_of_coefficientField a x v u
@@ -124,7 +125,7 @@ theorem integrable_heatKernel_gram_load {Λ : ℝ} {P : Measure (CoefficientFiel
     calc heatKernel z r x * |dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x))|
         ≤ heatKernel z r x * (Λ * (euclideanSq (correctorColumn S a i x) +
             euclideanSq (correctorColumn S a j x))) :=
-          mul_le_mul_of_nonneg_left (abs_dot_mulVec_le a x _ _) (hk0 x)
+          mul_le_mul_of_nonneg_left (abs_dot_mulVec_le_mul_euclideanSq_add a x _ _) (hk0 x)
       _ = Λ * (heatKernel z r x * euclideanSq (correctorColumn S a i x) +
             heatKernel z r x * euclideanSq (correctorColumn S a j x)) := by ring
   · have hconst : Integrable (fun x => heatKernel z r x *
@@ -137,7 +138,7 @@ theorem integrable_heatKernel_gram_load {Λ : ℝ} {P : Measure (CoefficientFiel
       (hkm.aestronglyMeasurable.mul (hdotp.neg.add hdotq))
       (Filter.Eventually.of_forall fun x => ?_)
     rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (hk0 x)]
-    have h1 := abs_dot_mulVec_le a x p (correctorColumn S a i x)
+    have h1 := abs_dot_mulVec_le_mul_euclideanSq_add a x p (correctorColumn S a i x)
     have h2 := abs_dot_le_euclideanSq_add q (correctorColumn S a i x)
     have h3 : |(-dot p ((a x).mulVec (correctorColumn S a i x)) +
         dot q (correctorColumn S a i x))| ≤
