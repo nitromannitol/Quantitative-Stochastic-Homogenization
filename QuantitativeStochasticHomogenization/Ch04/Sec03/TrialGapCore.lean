@@ -116,6 +116,25 @@ theorem osBound_finset_sum_of_pos [IsProbabilityMeasure P] {ι : Type*} (I : Fin
     rw [max_eq_right hpow, pow_succ]
     ring
 
+/-- The triangle inequality at every exponent with the sum of the scales. -/
+theorem osBound_add_le_sum {X Y : Ω → ℝ} {s θ₁ θ₂ : ℝ} (hX : OsBound P X s θ₁)
+    (hY : OsBound P Y s θ₂) :
+    OsBound P (fun ω => X ω + Y ω) s (2 * (2 : ℝ) ^ s⁻¹ * (θ₁ + θ₂)) := by
+  refine (osBound_add_of_pos hX hY).mono_scale ?_
+  have h1 := hX.scale_pos
+  have h2 := hY.scale_pos
+  have h3 : 0 ≤ (2 : ℝ) ^ s⁻¹ := Real.rpow_nonneg (by norm_num) _
+  have h4 : max θ₁ θ₂ ≤ θ₁ + θ₂ := max_le (by linarith) (by linarith)
+  nlinarith [mul_le_mul_of_nonneg_left h4 h3]
+
+/-- Powers of a scaled variable: `0 ≤ X ≤ O_τ(θ)` gives `(X/r)^n ≤ O_{τ/n}((θ/r)^n)`. -/
+theorem OsBound.div_pow {X : Ω → ℝ} {τ θ r : ℝ} (h : OsBound P X τ θ) (hX0 : ∀ ω, 0 ≤ X ω)
+    (hr : 0 < r) {n : ℕ} (hn : 0 < n) :
+    OsBound P (fun ω => (X ω / r) ^ n) (τ / n) ((θ / r) ^ n) := by
+  have h1 := (h.const_mul (inv_pos.mpr hr)).rpow
+    (fun ω => mul_nonneg (inv_nonneg.mpr hr.le) (hX0 ω)) (by exact_mod_cast hn : (0 : ℝ) < n)
+  simpa only [Real.rpow_natCast, div_eq_inv_mul] using h1
+
 end Rules
 
 /-! ## The inputs -/
