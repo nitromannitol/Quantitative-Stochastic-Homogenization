@@ -91,15 +91,14 @@ instance (x : Vec d) (ρ : ℝ) [Fact (0 < ρ)] : IsProbabilityMeasure (heatMeas
 /-- **Centered heat averages of stochastic bounds** (Lemmas A.9 and A.10 for `Φ_{x,ρ}(y) dy`): for
 `s ∈ (1, 2]` there is `C(s)` such that for a bounded jointly measurable family `V(y)` with
 `|V(y)| ≤ O_s(θ)`, `∫ Φ_{x,ρ} V - E[∫ Φ_{x,ρ} V] = 𝒪_s(C θ)`. -/
-theorem exists_centeredOsBound_heatAverage_sub [IsProbabilityMeasure P] {s : ℝ} (hs1 : 1 < s)
-    (hs2 : s ≤ 2) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (V : Vec d → Ω → ℝ) (θ B : ℝ) (x : Vec d) (ρ : ℝ), 0 < ρ →
+theorem exists_centeredOsBound_heatAverage_sub {s : ℝ} (hs1 : 1 < s) (hs2 : s ≤ 2) :
+    ∃ C : ℝ, 0 < C ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P] (V : Vec d → Ω → ℝ) (θ B : ℝ) (x : Vec d) (ρ : ℝ), 0 < ρ →
       Measurable (Function.uncurry V) → (∀ y a, |V y a| ≤ B) →
       (∀ y, OsBound P (fun a => |V y a|) s θ) →
       CenteredOsBound P (fun a => (∫ y, heatKernel x ρ y * V y a) -
         ∫ a', (∫ y, heatKernel x ρ y * V y a') ∂P) s (C * θ) := by
   obtain ⟨C, hC, h⟩ := exists_centeredOsBound_integral_sub hs1 hs2
-  refine ⟨C, hC, fun V θ B x ρ hρ hV hVB hVθ => ?_⟩
+  refine ⟨C, hC, fun P _ V θ B x ρ hρ hV hVB hVθ => ?_⟩
   have : Fact (0 < ρ) := ⟨hρ⟩
   have hne : heatMeasure x ρ ≠ 0 := by
     intro h0

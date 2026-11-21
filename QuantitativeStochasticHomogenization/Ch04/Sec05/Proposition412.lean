@@ -136,10 +136,9 @@ theorem integrable_of_abs_le_of_measurable [IsProbabilityMeasure P] {G : Ω → 
 
 /-- **The additivity (4.116) of the truncated localized fields**, from `Add(s, α)`, the closeness
 of the localized fields and Lemmas A.9 and A.10. -/
-theorem exists_additive_truncatedField [IsProbabilityMeasure P] {s : ℝ} (hs1 : 1 < s)
-    (hs2 : s ≤ 2) :
-    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧
-      ∀ (J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ) {M : ℝ}, 0 ≤ M → ∀ (p q : Vec d)
+theorem exists_additive_truncatedField {s : ℝ} (hs1 : 1 < s) (hs2 : s ≤ 2) :
+    ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P]
+      (J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ) {M : ℝ}, 0 ≤ M → ∀ (p q : Vec d)
         (Jδ : ℝ → Ω → Vec d → ℝ) {α CA CL : ℝ}, 0 ≤ α → 0 < CL → 0 < CA →
       (∀ a z r, |J a z r p q| ≤ M) →
       (∀ r, Measurable fun w : Ω × Vec d => J w.1 w.2 r p q) →
@@ -152,9 +151,9 @@ theorem exists_additive_truncatedField [IsProbabilityMeasure P] {s : ℝ} (hs1 :
           ∫ y, heatKernel x (Real.sqrt (r ^ 2 - r₁ ^ 2)) y * truncatedField P M Jδ r₁ a y) s
           ((C₁ * (CL + CA) + C₂ * CL) * r₁ ^ (-α)) := by
   obtain ⟨C₁, hC₁, hcen1⟩ := exists_centeredOsBound_sub_integral hs1 hs2
-  obtain ⟨C₂, hC₂, hcen2⟩ := exists_centeredOsBound_heatAverage_sub (P := P) (d := d) hs1 hs2
+  obtain ⟨C₂, hC₂, hcen2⟩ := exists_centeredOsBound_heatAverage_sub (Ω := Ω) (d := d) hs1 hs2
   refine ⟨C₁, C₂, hC₁, hC₂, ?_⟩
-  intro J M hM p q Jδ α CA CL hα hCL hCA hJb hJm hJδm hloc hadd r₁ r hr₁ hr x
+  intro P _ J M hM p q Jδ α CA CL hα hCL hCA hJb hJm hJδm hloc hadd r₁ r hr₁ hr x
   have hr1 : 1 ≤ r := hr₁.trans hr.le
   have hr₁0 : 0 < r₁ := zero_lt_one.trans_le hr₁
   have hr₁sq : r₁ ^ 2 < r ^ 2 := pow_lt_pow_left₀ hr hr₁0.le two_ne_zero
@@ -209,7 +208,7 @@ theorem exists_additive_truncatedField [IsProbabilityMeasure P] {s : ℝ} (hs1 :
     have hc := abs_clampAt_sub_le (v := Jδ r₁ a y) (hJb a y r₁)
     rw [abs_sub_comm (clampAt M _), abs_sub_comm (Jδ r₁ a y)] at hc
     exact hc
-  have hT3 := hcen2 V (CL * r₁ ^ (-α)) (2 * M) x ρ hρ hVm hVB hVθ
+  have hT3 := hcen2 P V (CL * r₁ ^ (-α)) (2 * M) x ρ hρ hVm hVB hVθ
   have hsum := hT.add hT3
   refine (hsum.mono_scale (le_of_eq (by ring))).congr_ae ?_
     (Filter.Eventually.of_forall fun a => ?_)
@@ -321,7 +320,7 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
   have hβη : β < η₁ * α := by
     have h1 : β / α < η₁ := by linarith
     rwa [div_lt_iff₀ hα0] at h1
-  obtain ⟨C₁, C₂, hC₁, hC₂, hadd⟩ := exists_additive_truncatedField (P := P) (d := d) hs1 hs2
+  obtain ⟨C₁, C₂, hC₁, hC₂, hadd⟩ := exists_additive_truncatedField (Ω := Ω) (d := d) hs1 hs2
   set A : ℝ := C₁ * (CL + CA) + C₂ * CL with hAdef
   have hA0 : 0 < A := by positivity
   obtain ⟨Cf, hCf, hfield⟩ := exists_centeredOsBound_field (Ω := Ω) (F := F) (δ := δ) (α := α)
@@ -353,7 +352,7 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
       measurable := measurable_truncatedField hJδm
       isLocal := isLocal_truncatedField hM'.le (fun r hr => (hJδ r hr).1) hJδm
       centered := integral_truncatedField hM'.le hJδm
-      additive := hadd J hM'.le p q Jδ hα0.le hCL hCA (fun a z r => hJb' a z r p q hp hq)
+      additive := hadd P J hM'.le p q Jδ hα0.le hCL hCA (fun a z r => hJb' a z r p q hp hq)
         (fun r => hJm r p q) hJδm (fun r hr z => (hJδ r hr).2 z)
         (fun z r₁ r hr₁ hr => (hA z r₁ r hr₁ hr p q hp hq).2) }
   have hX := hfield P hF X R hR z
