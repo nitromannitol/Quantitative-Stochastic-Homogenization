@@ -18,6 +18,7 @@ through the file `StretchedExponentialTail.lean` above, from subdiffusive-proces
 `ogammaLE_of_all_level_tail`), licensed under the Apache License 2.0.
 -/
 import QuantitativeStochasticHomogenization.Front.Notation
+import QuantitativeStochasticHomogenization.Front.Assumptions
 import SubdiffusiveProcess.Paper.app_a_orlicz_tail_bound
 import SubdiffusiveProcess.Paper.app_a_orlicz_tail_converse
 import SubdiffusiveProcess.Probability.Orlicz.FiniteTriangle
@@ -1678,5 +1679,39 @@ theorem centeredOsBound_sum_of_measurable_cube [IsProbabilityMeasure P] {d : ℕ
   rwa [show 2 * R / 2 = R by ring] at h
 
 end BookStatements
+
+/-! ## The local σ-algebras of the coefficient fields -/
+
+section CoefficientFields
+
+/-- The local σ-algebras `F(U)` of (0.9) increase with `U`. -/
+theorem monotone_localSigma {d : ℕ} {Λ : ℝ} : Monotone (localSigma (d := d) (Λ := Λ)) := by
+  intro U W hUW
+  unfold localSigma
+  exact iSup_le fun u => iSup_le fun i => iSup_le fun j =>
+    le_iSup_of_le (⟨u.1, u.2.trans hUW⟩ : {u : SmoothCompactTest d // tsupport u.toFun ⊆ W})
+      (le_iSup_of_le i (le_iSup_of_le j le_rfl))
+
+/-- Under the assumptions (P1)-(P2), the local σ-algebras have a unit range of dependence. -/
+theorem LawHypotheses.hasUnitRange {d : ℕ} {Λ : ℝ} {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) : HasUnitRange P (localSigma (d := d) (Λ := Λ)) :=
+  fun U W hU hW hsep => hP.2.2 U W hU hW hsep
+
+/-- **Lemma A.12** for the coefficient fields under the assumptions (P1)-(P2): let `R ≥ 1` and let
+`I` be a finite nonempty set of lattice indices; if, for each `k ∈ I`, `X k` is
+`F(□_{2R}(R k))`-measurable and `X k = 𝒪_s(θ k)`, then
+`∑_{k ∈ I} X k = 𝒪_s(C (∑_{k ∈ I} θ_k²)^{1/2})` with `C = (2 · 4^d)^{1/2}`. -/
+theorem centeredOsBound_sum_of_localSigma_cube {d : ℕ} {Λ : ℝ}
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) {R : ℝ} (hR : 1 ≤ R)
+    (I : Finset (LatticeIndex d)) (hI : I.Nonempty) {X : LatticeIndex d → CoefficientField d Λ → ℝ}
+    {s : ℝ} {θ : LatticeIndex d → ℝ}
+    (hXloc : ∀ k ∈ I, Measurable[localSigma (cube (R • latticeShift k) (2 * R))] (X k))
+    (hX : ∀ k ∈ I, CenteredOsBound P (X k) s (θ k)) :
+    CenteredOsBound P (fun a => ∑ k ∈ I, X k a) s
+      (Real.sqrt (2 * 4 ^ d) * Real.sqrt (∑ k ∈ I, θ k ^ 2)) :=
+  haveI := hP.1
+  centeredOsBound_sum_of_measurable_cube hP.hasUnitRange monotone_localSigma hR I hI hXloc hX
+
+end CoefficientFields
 
 end QSH

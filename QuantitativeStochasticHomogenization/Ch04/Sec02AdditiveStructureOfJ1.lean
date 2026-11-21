@@ -7,7 +7,7 @@ Changes: the namespace is `QSH`, the docstrings cite the book directly, and the 
 of `Front/Notation.lean`, `Ch04/Opening.lean` and `AppA/OsNotation.lean`.
 -/
 import QuantitativeStochasticHomogenization.AppA.OsNotation
-import QuantitativeStochasticHomogenization.Ch04.Opening
+import QuantitativeStochasticHomogenization.Ch04.Sec01EnergyQuantityJ1
 
 /-!
 # Section 4.2: The Additive Structure of J₁
@@ -409,5 +409,40 @@ theorem LocFieldEstimate.locEstimate {s δ α : ℝ} (h : LocFieldEstimate P F J
   simpa [Function.comp_def, Set.indicator_of_mem (Set.mem_singleton z)] using this
 
 end LocalizedFields
+
+/-! ## Definitions 4.7–4.9 and Theorem 4.6 for `J₁` -/
+
+section EnergyQuantity
+
+variable {d : ℕ} {Λ : ℝ}
+
+/-- **Definition 4.7**, `Add(s, α)`, for `J₁(Φ_{z,r}, p, q)`. -/
+abbrev AddJ1 (P : Measure (CoefficientField d Λ)) (s α : ℝ) : Prop :=
+  AddEstimate P J1Heat s α
+
+/-- **Definition 4.8**, `Fluc(s, α)`, for `J₁(Φ_{z,r}, p, q)`. -/
+abbrev FlucJ1 (P : Measure (CoefficientField d Λ)) (s α : ℝ) : Prop :=
+  FlucEstimate P J1Heat s α
+
+/-- **Definition 4.9**, `Loc(s, δ, α)`, for `J₁(Φ_{z,r}, p, q)` and the local σ-algebras `F(U)`
+of (0.9). -/
+abbrev LocJ1 (P : Measure (CoefficientField d Λ)) (s δ α : ℝ) : Prop :=
+  LocEstimate P localSigma J1Heat s δ α
+
+/-- **Theorem 4.6 (i), (iii), (iv)** for `J₁`, from Propositions 4.10, 4.11 and 4.12 and an
+initial exponent (Proposition 4.3): for every `s ∈ (0, 2)`, `Fluc(s, d/2)`, `Add(s/2, d)` and
+`Loc(s, δ, (d/2 (1+δ) + δ) ∧ d/s - η)` for all `δ, η > 0`. -/
+theorem additiveStructure_J1 {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P]
+    (hd : 1 ≤ d) (h410 : ImprovementOfAdditivity P J1Heat)
+    (h411 : LocalizationEstimates P localSigma J1Heat)
+    (h412 : FluctuationEstimates P localSigma J1Heat)
+    (hbase : ∀ s : ℝ, 1 < s → s < 2 → ∃ α₀ : ℝ, 0 < α₀ ∧ FlucJ1 P s α₀)
+    {s : ℝ} (hs0 : 0 < s) (hs2 : s < 2) :
+    FlucJ1 P s ((d : ℝ) / 2) ∧ AddJ1 P (s / 2) d ∧
+      ∀ δ η : ℝ, 0 < δ → 0 < η →
+        LocJ1 P s δ (min ((d : ℝ) / 2 * (1 + δ) + δ) ((d : ℝ) / s) - η) :=
+  additiveStructure_of_bootstrap hd h410 h411 h412 hbase hs0 hs2
+
+end EnergyQuantity
 
 end QSH
