@@ -142,10 +142,12 @@ private theorem exists_support_bound {ψ : Vec d → ℝ} (hψ : IsSmoothCompact
   exact (euclideanNorm_le_card_mul_norm'' x).trans
     (mul_le_mul_of_nonneg_left hxR (Nat.cast_nonneg d))
 
-/-- **Duality on a time window.** -/
-theorem integral_mul_heatHessianWindow_comm {f ψ : Vec d → ℝ} (hfm : Measurable f)
+/-- **Duality on a time window**, with the integrability of both pairings. -/
+theorem heatHessianWindow_duality {f ψ : Vec d → ℝ} (hfm : Measurable f)
     (hmom : HasGaussianMoments f) (hψ : IsSmoothCompact ψ) {ε₁ ε₂ : ℝ} (hε₁ : 0 < ε₁)
     (hε : ε₁ ≤ ε₂) (i j : Fin d) :
+    Integrable (fun x => ψ x * heatHessianWindow ε₁ ε₂ i j f x) ∧
+    Integrable (fun y => f y * heatHessianWindow ε₁ ε₂ i j ψ y) ∧
     ∫ x, ψ x * heatHessianWindow ε₁ ε₂ i j f x = ∫ y, f y * heatHessianWindow ε₁ ε₂ i j ψ y := by
   have hψc : Continuous ψ := hψ.1.continuous
   have hψm : Measurable ψ := hψc.measurable
@@ -294,6 +296,40 @@ theorem integral_mul_heatHessianWindow_comm {f ψ : Vec d → ℝ} (hfm : Measur
     have h1 := integral_mul_heatHessianConv_comm hfm hmom hψ ht0 i j
     simp only [heatHessianConv_eq_kernel ht0] at h1
     exact h1
-  rw [hL, hR, hswap1, hmid, hswap2]
+  refine ⟨?_, ?_, by rw [hL, hR, hswap1, hmid, hswap2]⟩
+  · refine hGint.integral_prod_left.congr (Eventually.of_forall fun x => ?_)
+    simp only [hG]
+    rw [integral_const_mul, hwin f x]
+  · refine hHint.integral_prod_right.congr (Eventually.of_forall fun y => ?_)
+    simp only [hHf]
+    rw [integral_const_mul, hwin ψ y]
+
+/-- **Duality on a time window.** -/
+theorem integral_mul_heatHessianWindow_comm {f ψ : Vec d → ℝ} (hfm : Measurable f)
+    (hmom : HasGaussianMoments f) (hψ : IsSmoothCompact ψ) {ε₁ ε₂ : ℝ} (hε₁ : 0 < ε₁)
+    (hε : ε₁ ≤ ε₂) (i j : Fin d) :
+    ∫ x, ψ x * heatHessianWindow ε₁ ε₂ i j f x = ∫ y, f y * heatHessianWindow ε₁ ε₂ i j ψ y :=
+  (heatHessianWindow_duality hfm hmom hψ hε₁ hε i j).2.2
+
+/-- **The trace of the heat Hessian window, tested.** For a field with Gaussian moments and a
+smooth compactly supported test `ψ`, `∫ ψ ∑ₖ ∫_{ε₁}^{ε₂} ∂ₖ∂ₖΦ_t * f dt = ∫ f (Φ_{ε₂} * ψ - Φ_{ε₁} * ψ)`. -/
+theorem integral_mul_sum_heatHessianWindow {f ψ : Vec d → ℝ} (hfm : Measurable f)
+    (hmom : HasGaussianMoments f) (hψ : IsSmoothCompact ψ) {ε₁ ε₂ : ℝ} (hε₁ : 0 < ε₁)
+    (hε : ε₁ ≤ ε₂) :
+    ∫ x, ψ x * ∑ k, heatHessianWindow ε₁ ε₂ k k f x =
+      ∫ y, f y * (heatConv ε₂ ψ y - heatConv ε₁ ψ y) := by
+  have hD := fun k => heatHessianWindow_duality hfm hmom hψ hε₁ hε k k
+  simp only [Finset.mul_sum]
+  rw [integral_finsetSum _ fun k _ => (hD k).1]
+  simp only [fun k => (hD k).2.2]
+  rw [← integral_finsetSum _ fun k _ => (hD k).2.1]
+  congr 1
+  funext y
+  rw [← Finset.mul_sum]
+  congr 1
+  have h := sum_kconv_laplacian hε₁ hε hψ y
+  rw [← h]
+  refine Finset.sum_congr rfl fun k _ => ?_
+  rw [heatHessianWindow_eq_kconv hε₁ k k hψ]
 
 end QSH
