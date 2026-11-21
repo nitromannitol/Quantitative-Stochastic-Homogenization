@@ -116,3 +116,21 @@ of each module names the source files and commits.
   deduced from (5.58) and `0 ≤ J₁(Φ, p, 0) ≤ Λ|p|²` (`norm_toEuclideanCLM_le_of_energyEstimate`).
 - Appendix A for almost surely measurable random variables (`AppA/AlmostSureOsBound.lean`):
   `AEOsBound P X s θ` holds if and only if `X` agrees almost surely with a measurable `Y ≤ O_s(θ)`.
+
+## Lemma 3.17, Lemma 6.1 and Proposition 6.2: sublinearity of the correctors
+
+- Lean: `QSH.sublinearCorrectors : QSH.sublinearCorrectorsStatement`
+  (`Ch06/Sec01/CorrectorSublinear.lean`), flux corrector `QSH.FluxCorrector` (`Ch06/Sec01/FluxCorrector.lean`).
+- Route. The book proves Lemma 3.17 from the regularity theory of Chapter 3 and Proposition 6.2
+  from the estimates of Chapter 4. Here both come from the homogenization theorem at a polynomial
+  scale of Armstrong, Kuusi and Loher (*Homogenization at a polynomial scale in high contrast*,
+  formalized in HighContrastHomogenization, `HCPoly.uniform_homogenization`), applied to the law of
+  the dilated coefficient field `a(2·)`: above a multiple of its homogenization scale `X`, the
+  corrector has bounded energy and oscillation `r^(1-θ) X^θ`, and the flux corrector, selected by
+  the heat formula (6.7), has oscillation `r (r/X)^(-ϑ)`. The random radius is `(B X)^p` with
+  `p = 2d/(d+s)`; its tail gives the stretched-exponential bound of order `s ∈ (0, d)`.
+- Statement. Only the oscillation part of (3.85) is stated, with the exponent `1 - β(d - s)` in
+  place of the exponents of the book, and the slope is a unit vector. The flux corrector is the
+  selection (6.7) of Lemma 6.1, with its local Sobolev regularity and measurability explicit.
+- The modules of `Ch03/Sec04/` and `Ch06/Sec01/` other than the section files were moved from
+  einstein-relation-lean, commit `c97689e`; each names its source file.
