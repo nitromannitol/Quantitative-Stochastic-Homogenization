@@ -121,4 +121,34 @@ theorem hasDerivAt_heatTaylorSum {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ
     convert this using 1
     ring
 
+/-- **The Taylor formula of the heat semigroup**:
+`χ(x) = ∑_{k≤m} (-1)^k/k! Φ(1) ∗ Δ^k χ (x) - ∫₀¹ (-s)^m/m! Φ(s) ∗ Δ^{m+1} χ (x) ds`. -/
+theorem heatTaylor {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ) (hcχ : HasCompactSupport χ)
+    (x : Vec d) (m : ℕ) :
+    χ x = heatTaylorSum (m + 1) χ x 1 -
+      ∫ s in (0 : ℝ)..1, (-s) ^ m / (m ! : ℝ) * heatPath (iterLaplacian (m + 1) χ) x s := by
+  have hcont : ∀ k, ContinuousOn (heatPath (iterLaplacian k χ) x) (Icc 0 1) := fun k =>
+    (continuousOn_heatPath (iterLaplacian_smooth hχ hcχ k).1 (iterLaplacian_smooth hχ hcχ k).2
+      x).mono Icc_subset_Ici_self
+  have hQ : ContinuousOn (heatTaylorSum (m + 1) χ x) (Icc 0 1) := by
+    unfold heatTaylorSum
+    exact continuousOn_finset_sum _ fun k _ =>
+      ((continuous_neg.pow k).div_const _).continuousOn.mul (hcont k)
+  have hQ' : IntervalIntegrable (fun s : ℝ => (-s) ^ m / (m ! : ℝ) *
+      heatPath (iterLaplacian (m + 1) χ) x s) volume 0 1 := by
+    refine ContinuousOn.intervalIntegrable ?_
+    rw [uIcc_of_le zero_le_one]
+    exact ((continuous_neg.pow m).div_const _).continuousOn.mul (hcont (m + 1))
+  have hftc := intervalIntegral.integral_eq_sub_of_hasDerivAt_of_le zero_le_one hQ
+    (fun s hs => hasDerivAt_heatTaylorSum hχ hcχ x hs.1 m) hQ'
+  have h0 : heatTaylorSum (m + 1) χ x 0 = χ x := by
+    unfold heatTaylorSum
+    rw [Finset.sum_eq_single 0]
+    · simp [heatPath, iterLaplacian]
+    · intro k _ hk
+      simp [zero_pow hk]
+    · simp
+  rw [hftc, h0]
+  ring
+
 end QSH
