@@ -282,4 +282,21 @@ theorem coordinateGradientEstimate_of_linearAverage {P : Measure (CoefficientFie
     abel
   simp only [heq]
 
+/-- **`QSH.Frozen.averagedCorrectorGradient`** from the linear estimate
+`|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-d/2})` of the Gaussian averages of the corrected fields
+(the body of `LinearAverageEstimate` at the exponent `d/2`, with `C` uniform over the laws) and the
+finite Gaussian energy of the corrected coordinates. -/
+theorem averagedCorrectorGradient_of_linearAverage
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ s C : ℝ, 1 ≤ s ∧ 0 < C ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∃ S : HomogenizationData P,
+        HasGaussianCorrectorEnergy S ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+          OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) - ξ))
+            s (C * (1 + euclideanNorm ξ) * r ^ (-((d : ℝ) / 2)))) :
+    QSH.Frozen.averagedCorrectorGradient := by
+  refine averagedCorrectorGradient_of_coordinate fun d hd Λ hΛ => ?_
+  obtain ⟨s, C, hs, hC, hP⟩ := h d hd Λ hΛ
+  refine ⟨s, 2 * C, hs, by positivity, fun P hPl => ?_⟩
+  obtain ⟨S, hen, hlin⟩ := hP P hPl
+  exact ⟨S, hen, coordinateGradientEstimate_of_linearAverage hen hlin⟩
+
 end QSH
