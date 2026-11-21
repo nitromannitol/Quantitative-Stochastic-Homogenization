@@ -20,7 +20,7 @@ namespace QSH
 
 variable {d : ℕ}
 
-theorem euclideanSq_sum_le {ι : Type*} (s : Finset ι) (v : ι → Vec d) :
+theorem euclideanSq_finsetSum_le {ι : Type*} (s : Finset ι) (v : ι → Vec d) :
     euclideanSq (∑ i ∈ s, v i) ≤ s.card * ∑ i ∈ s, euclideanSq (v i) := by
   unfold euclideanSq dot
   simp only [Finset.sum_apply]
@@ -63,7 +63,7 @@ theorem ae_integrable_heatKernel_mul_euclideanSq_grad (hL : firstOrderLiouvilleS
       exact (hK.mul (hsq.comp hmeasG)).aestronglyMeasurable
     · rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (hKnn x) (euclideanSq_nonneg _)),
         correctedAffineGrad_eq_sum]
-      have h1 := euclideanSq_sum_le Finset.univ (fun i => p i • correctorColumn S a i x)
+      have h1 := euclideanSq_finsetSum_le Finset.univ (fun i => p i • correctorColumn S a i x)
       simp only [Finset.card_univ, Fintype.card_fin, euclideanSq_smul] at h1
       calc heatKernel z r x * euclideanSq (∑ i, p i • correctorColumn S a i x)
           ≤ heatKernel z r x * ((d : ℝ) * ∑ i, p i ^ 2 * euclideanSq (correctorColumn S a i x)) :=

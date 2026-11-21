@@ -32,7 +32,7 @@ namespace QSH
 variable {d : ℕ}
 
 /-- The integral of a partial derivative of a smooth compactly supported test vanishes. -/
-theorem integral_coordinateDerivative_eq_zero {ψ : Vec d → ℝ}
+theorem integral_coordinateDerivative_univ_eq_zero {ψ : Vec d → ℝ}
     (hψ : IsSpatialTest Set.univ ψ) (k : Fin d) : ∫ x, coordinateDerivative k ψ x = 0 := by
   have hψd : Differentiable ℝ ψ := hψ.1.differentiable (by simp)
   have hdint : Integrable (coordinateDerivative k ψ) :=
@@ -52,7 +52,7 @@ theorem hasWeakGradient_const (c : ℝ) :
   intro i
   refine ⟨locallyIntegrableOn_const _, locallyIntegrableOn_zero, fun ψ hψ => ?_⟩
   simp only [Measure.restrict_univ, Pi.zero_apply, zero_mul, integral_zero, neg_zero]
-  rw [integral_const_mul, integral_coordinateDerivative_eq_zero hψ i, mul_zero]
+  rw [integral_const_mul, integral_coordinateDerivative_univ_eq_zero hψ i, mul_zero]
 
 /-- **Uniqueness of weak gradients.** -/
 theorem hasWeakGradient_ae_eq {f f' : Vec d → ℝ} {g g' : Vec d → Vec d}

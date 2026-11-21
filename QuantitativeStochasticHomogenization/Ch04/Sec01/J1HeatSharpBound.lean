@@ -38,7 +38,7 @@ theorem dot_sq_le_euclideanSq_mul (u v : Vec d) :
   nlinarith [h]
 
 /-- Cauchy–Schwarz for the bilinear form of a coefficient field. -/
-theorem dot_mulVec_sq_le {Λ : ℝ} (a : CoefficientField d Λ) (x u v : Vec d) :
+theorem dot_mulVec_sq_le_of_coefficientField {Λ : ℝ} (a : CoefficientField d Λ) (x u v : Vec d) :
     dot u ((a x).mulVec v) ^ 2 ≤ dot u ((a x).mulVec u) * dot v ((a x).mulVec v) := by
   have hpos : ∀ t : ℝ, 0 ≤ dot v ((a x).mulVec v) * (t * t) +
       2 * dot u ((a x).mulVec v) * t + dot u ((a x).mulVec u) := by
@@ -72,7 +72,7 @@ theorem J1_integrand_le_half_sq {Λ : ℝ} (a : CoefficientField d Λ) (x p q g 
     rw [← Real.sqrt_sq_eq_abs]
     calc Real.sqrt (dot p ((a x).mulVec g) ^ 2)
         ≤ Real.sqrt (dot p ((a x).mulVec p) * dot g ((a x).mulVec g)) :=
-          Real.sqrt_le_sqrt (dot_mulVec_sq_le a x p g)
+          Real.sqrt_le_sqrt (dot_mulVec_sq_le_of_coefficientField a x p g)
       _ = Real.sqrt (dot p ((a x).mulVec p)) * N := Real.sqrt_mul hpp0 _
       _ ≤ Real.sqrt Λ * euclideanNorm p * N := by
           refine mul_le_mul_of_nonneg_right ?_ hN
