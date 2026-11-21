@@ -2,6 +2,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatGram
 import QuantitativeStochasticHomogenization.Ch04.Sec01.QuadraticEntryBounds
 import QuantitativeStochasticHomogenization.Ch03.Sec04.MeasurableRepresentative
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastFluxPairing
+import QuantitativeStochasticHomogenization.Ch03.Sec03.CorrectorIndependence
 
 /-!
 # The formula for `J₁` at the heat kernel masks
@@ -171,5 +172,107 @@ theorem ae_J1Heat_eq_half_dot_load (hL : firstOrderLiouvilleStatement) (hd : 2 �
     euclideanHeatKernel_nonneg (sq_nonneg r) (x - z)
   exact hJ (heatKernel z r) p q c₀ hM hb (J1Gram_transpose S a _)
     (J1Gram_nonneg S a _ hk0 hM) hc₀
+
+private theorem dot_sum_mulVec_sum' (A : Mat d) (c : Vec d) (W : Fin d → Vec d) :
+    dot (∑ i, c i • W i) (A.mulVec (∑ j, c j • W j)) =
+      ∑ i, ∑ j, c i * c j * dot (W i) (A.mulVec (W j)) := by
+  change dotProduct (∑ i, c i • W i) _ = _
+  rw [sum_dotProduct]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [smul_dotProduct, smul_eq_mul]
+  change c i * dotProduct (W i) (A.mulVec (∑ j, c j • W j)) = _
+  rw [Matrix.mulVec_sum]
+  simp only [Matrix.mulVec_smul, dotProduct_sum, dotProduct_smul, smul_eq_mul, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun j _ => by
+    rw [show dot (W i) (A.mulVec (W j)) = dotProduct (W i) (A.mulVec (W j)) from rfl]
+    ring
+
+/-- The quadratic form of the Gram matrix is the weighted energy of the corrected affine
+gradient. -/
+theorem dot_J1Gram_mulVec_eq_integral {Λ : ℝ} {P : Measure (CoefficientField d Λ)}
+    (S : HomogenizationData P) (a : CoefficientField d Λ) (mask : Vec d → ℝ)
+    (hM : ∀ i j, Integrable (fun x => mask x *
+      dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x)))) (c : Vec d) :
+    Integrable (fun x => mask x * dot (correctedAffineGrad S a c x)
+      ((a x).mulVec (correctedAffineGrad S a c x))) ∧
+    dot c ((J1Gram S a mask).mulVec c) = ∫ x, mask x * dot (correctedAffineGrad S a c x)
+      ((a x).mulVec (correctedAffineGrad S a c x)) := by
+  have hpt : ∀ x, mask x * dot (correctedAffineGrad S a c x)
+      ((a x).mulVec (correctedAffineGrad S a c x)) =
+      ∑ i, ∑ j, c i * c j * (mask x *
+        dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x))) := by
+    intro x
+    rw [correctedAffineGrad_eq_sum, dot_sum_mulVec_sum', Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun j _ => by ring
+  have hint : Integrable (fun x => ∑ i, ∑ j, c i * c j * (mask x *
+      dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x)))) :=
+    integrable_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ => (hM i j).const_mul _
+  refine ⟨by simpa only [hpt] using hint, ?_⟩
+  simp only [hpt]
+  rw [integral_finsetSum _ fun i _ => integrable_finsetSum _ fun j _ => (hM i j).const_mul _]
+  change ∑ i, c i * ∑ j, J1Gram S a mask i j * c j = _
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [integral_finsetSum _ fun j _ => (hM i j).const_mul _, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  rw [integral_const_mul]
+  simp only [J1Gram]
+  ring
+
+/-- **`J₁(Φ_{z,r}, p, q) = ½ b·M⁻¹ b`, (4.8).** Under the first-order Liouville theorem, almost
+surely, for every center, radius `r > 0` and loads `p, q`, the Gram matrix `M` of the heat kernel
+mask is invertible and `J₁(Φ_{z,r}, p, q) = ½ b·M⁻¹ b` with the load `b`; this is
+`J₁ = ½‖-V*p + U*q‖²` for the inner product `⟨v, w⟩ = ∫ Φ_{z,r} v·a w` on the corrected affine
+gradients. -/
+theorem ae_J1Heat_eq_half_dot_inv (hL : firstOrderLiouvilleStatement) (hd : 2 ≤ d) {Λ : ℝ}
+    (hΛ : 1 < Λ) {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P)
+    (S : HomogenizationData P) :
+    ∀ᵐ a ∂P, ∀ (z : Vec d) (r : ℝ), 0 < r → ∀ p q : Vec d,
+      IsUnit (J1Gram S a (heatKernel z r)) ∧
+      J1Heat a z r p q = (1 / 2 : ℝ) * dot (J1Load S a (heatKernel z r) p q)
+        ((J1Gram S a (heatKernel z r))⁻¹.mulVec (J1Load S a (heatKernel z r) p q)) := by
+  filter_upwards [ae_J1Heat_eq_half_dot_load hL hd hΛ hP S,
+    ae_integrable_heatKernel_mul_euclideanSq_correctorColumn hd hΛ hP S,
+    ae_eq_zero_of_correctedAffineGrad_ae_eq_zero S] with a hJ hW hind
+  intro z r hr p q
+  obtain ⟨hM, -⟩ := integrable_heatKernel_gram_load S a z hr (fun i => hW i z r hr) p q
+  have hk0 : ∀ x, 0 < heatKernel z r x := fun x => by
+    unfold heatKernel euclideanHeatKernel
+    positivity
+  have hinj : Function.Injective (J1Gram S a (heatKernel z r)).mulVec := by
+    intro c₁ c₂ h12
+    have hc : (J1Gram S a (heatKernel z r)).mulVec (c₁ - c₂) = 0 := by
+      rw [Matrix.mulVec_sub, h12, sub_self]
+    obtain ⟨hint, heq⟩ := dot_J1Gram_mulVec_eq_integral S a (heatKernel z r) hM (c₁ - c₂)
+    rw [hc] at heq
+    have hzero : ∫ x, heatKernel z r x * dot (correctedAffineGrad S a (c₁ - c₂) x)
+        ((a x).mulVec (correctedAffineGrad S a (c₁ - c₂) x)) = 0 := by
+      rw [← heq]
+      simp [dot]
+    have hnn : ∀ x, 0 ≤ heatKernel z r x * dot (correctedAffineGrad S a (c₁ - c₂) x)
+        ((a x).mulVec (correctedAffineGrad S a (c₁ - c₂) x)) := fun x =>
+      mul_nonneg (hk0 x).le ((euclideanSq_nonneg' _).trans (a.elliptic x _).1)
+    have hae := (integral_eq_zero_iff_of_nonneg hnn hint).mp hzero
+    have hG : ∀ᵐ x ∂(volume : Measure (Vec d)), correctedAffineGrad S a (c₁ - c₂) x = 0 := by
+      filter_upwards [hae] with x hx
+      have h1 : dot (correctedAffineGrad S a (c₁ - c₂) x)
+          ((a x).mulVec (correctedAffineGrad S a (c₁ - c₂) x)) = 0 := by
+        rcases mul_eq_zero.mp hx with h | h
+        · exact absurd h (hk0 x).ne'
+        · exact h
+      have h2 : euclideanSq (correctedAffineGrad S a (c₁ - c₂) x) = 0 :=
+        le_antisymm ((a.elliptic x _).1.trans h1.le) (euclideanSq_nonneg' _)
+      funext k
+      have h2' : ∑ l, correctedAffineGrad S a (c₁ - c₂) x l *
+          correctedAffineGrad S a (c₁ - c₂) x l = 0 := h2
+      have h3 := (Finset.sum_eq_zero_iff_of_nonneg (fun l _ => mul_self_nonneg
+        (correctedAffineGrad S a (c₁ - c₂) x l))).mp h2' k (Finset.mem_univ k)
+      simpa using mul_self_eq_zero.mp h3
+    exact sub_eq_zero.mp (hind (c₁ - c₂) hG)
+  have hunit : IsUnit (J1Gram S a (heatKernel z r)) := Matrix.mulVec_injective_iff_isUnit.mp hinj
+  refine ⟨hunit, hJ z r hr p q _ ?_⟩
+  rw [Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ ((Matrix.isUnit_iff_isUnit_det _).mp hunit),
+    Matrix.one_mulVec]
 
 end QSH
