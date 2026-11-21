@@ -96,7 +96,7 @@ theorem threeLoad_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 
     (hL₁ : ∀ k, euclideanNorm (L₁ k).1 < 1 ∧ euclideanNorm (L₁ k).2 < 1)
     (hL₂ : ∀ k, euclideanNorm (L₂ k).1 < 1 ∧ euclideanNorm (L₂ k).2 < 1)
     (hL₃ : ∀ k, euclideanNorm (L₃ k).1 < 1 ∧ euclideanNorm (L₃ k).2 < 1)
-    {c : ℝ} (hc : 0 < c) (V : CoefficientField d Λ → Vec d)
+    {c : ℝ} (hc : c ≠ 0) (V : CoefficientField d Λ → Vec d)
     (hV : ∀ a k, V a k = c * (J1Heat a y r (L₁ k).1 (L₁ k).2 - J1Heat a y r (L₂ k).1 (L₂ k).2 -
       J1Heat a y r (L₃ k).1 (L₃ k).2)) :
     OsBound P (fun a => euclideanSq (V a - fun k => ∫ a', V a' k ∂P)) (s / 2)
@@ -138,7 +138,7 @@ theorem threeLoad_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 
       funext fun a' => hV a' k
     rw [e, integral_const_mul, integral_sub i12 (hFL _ (hL₃ k)).1,
       integral_sub (hFL _ (hL₁ k)).1 (hFL _ (hL₂ k)).1]
-  have hle : ∀ k a, |V a k - ∫ a', V a' k ∂P| ≤ c * T k a := by
+  have hle : ∀ k a, |V a k - ∫ a', V a' k ∂P| ≤ |c| * T k a := by
     intro k a
     rw [hmean k, hV a k]
     have e : c * (J1Heat a y r (L₁ k).1 (L₁ k).2 - J1Heat a y r (L₂ k).1 (L₂ k).2 -
@@ -147,8 +147,8 @@ theorem threeLoad_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 
         c * ((J (L₁ k) a - ∫ a', J (L₁ k) a' ∂P) - (J (L₂ k) a - ∫ a', J (L₂ k) a' ∂P) -
           (J (L₃ k) a - ∫ a', J (L₃ k) a' ∂P)) := by
       simp only [hJ]; ring
-    rw [e, abs_mul, abs_of_pos hc]
-    refine mul_le_mul_of_nonneg_left ?_ hc.le
+    rw [e, abs_mul]
+    refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg c)
     have h1 := abs_sub (J (L₁ k) a - ∫ a', J (L₁ k) a' ∂P - (J (L₂ k) a - ∫ a', J (L₂ k) a' ∂P))
       (J (L₃ k) a - ∫ a', J (L₃ k) a' ∂P)
     have h2 := abs_sub (J (L₁ k) a - ∫ a', J (L₁ k) a' ∂P) (J (L₂ k) a - ∫ a', J (L₂ k) a' ∂P)
@@ -159,7 +159,8 @@ theorem threeLoad_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 
         J1Heat a y r (L₂ k).1 (L₂ k).2 - J1Heat a y r (L₃ k).1 (L₃ k).2) := funext fun a => hV a k
     rw [this]
     exact measurable_const.mul (((hJm _ _).sub (hJm _ _)).sub (hJm _ _))
-  exact fluctuation_of_components hs0 (by positivity) hc hVm hTos hT0 hle
+  have h := fluctuation_of_components hs0 (by positivity) (abs_pos.mpr hc) hVm hTos hT0 hle
+  simpa only [sq_abs] using h
 
 end ThreeLoads
 
