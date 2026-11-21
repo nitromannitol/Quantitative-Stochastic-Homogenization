@@ -4,6 +4,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientCarrier
 import EllipticRegularity.Energy.CoefficientEnergyCaccioppoli
 import Homogenization.Probability.RegCoeffField.EllipticSet
 import HCPoly.Setup.CoefficientSpace
+import PDEFoundation.Sobolev.H1.ZeroBoundaryCutoff
 
 /-!
 # Weak solutions of the elliptic regularity library from coefficient fields
@@ -172,5 +173,38 @@ theorem caccioppoli_matrixEllipsoid {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : Coefficient
     rw [one_mul] at h1
     exact h1
   exact hle.trans h
+
+/-- **The equation tested with `ψ w`** for `w ∈ H¹(E_R)` and a smooth test `ψ`:
+`∫_{E_R} a∇v · (ψ ∇w + w ∇ψ) = 0`. -/
+theorem integral_flux_dot_mul_test_eq_zero {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : CoefficientField d Λ)
+    {M : Mat d} (hdet : M.det ≠ 0) {R : ℝ} (hR : 0 < R) {v w : Vec d → ℝ}
+    {gv gw : Vec d → Vec d} (hv : MemLp v 2 (volume.restrict (matrixEllipsoid M R)))
+    (hgv : ∀ i, MemLp (fun x => gv x i) 2 (volume.restrict (matrixEllipsoid M R)))
+    (hwv : HasWeakGradient (matrixEllipsoid M R) v gv)
+    (hdiv : HasWeakDivergence (matrixEllipsoid M R) (fun x => (a x).mulVec (gv x)) (fun _ => 0))
+    (hw : MemLp w 2 (volume.restrict (matrixEllipsoid M R)))
+    (hgw : ∀ i, MemLp (fun x => gw x i) 2 (volume.restrict (matrixEllipsoid M R)))
+    (hww : HasWeakGradient (matrixEllipsoid M R) w gw) {ψ : Vec d → ℝ}
+    (hψ : IsSpatialTest (matrixEllipsoid M R) ψ) :
+    ∫ x in matrixEllipsoid M R, dot ((a x).mulVec (gv x)) (ψ x • gw x + w x • gradient ψ x) = 0 := by
+  have hU := isOpenBoundedConvexDomain_matrixEllipsoid hdet hR
+  have hUm : MeasurableSet (matrixEllipsoid M R) := hU.1.measurableSet
+  have hsol := isWeakDivergenceFormHarmonicOn_toH1FunctionOn hΛ a hUm hv hgv hwv hdiv
+  have hEll := isEllipticFieldOn_ellipticFieldOf hΛ a hUm
+  obtain ⟨-, heq⟩ := (hsol.toH10SolutionOn hEll)
+    ((toH1FunctionOn hw hgw hww).mulContDiffHasCompactSupportToH10 hU hψ.1 hψ.2.1 hψ.2.2)
+  rw [PDE.H1Function.mulContDiffHasCompactSupportToH10_grad] at heq
+  simp only [Pi.zero_apply, zero_mul, integral_zero] at heq
+  have e : ∫ x in matrixEllipsoid M R, dot ((a x).mulVec (gv x)) (ψ x • gw x + w x • gradient ψ x) =
+      ∫ x in matrixEllipsoid M R, PDE.vecDot (PDE.matVecMul (ellipticFieldOf a x)
+        ((toH1FunctionOn hv hgv hwv).grad x))
+        (ψ x • (toH1FunctionOn hw hgw hww).grad x +
+          (toH1FunctionOn hw hgw hww) x • PDE.classicalGradient ψ x) := by
+    refine integral_congr_ae ?_
+    filter_upwards [ae_restrict_of_ae (ellipticFieldOf_ae_eq hΛ a)] with x hx
+    change _ = dot ((ellipticFieldOf a x).mulVec (gv x)) (ψ x • gw x + w x • gradient ψ x)
+    rw [hx]
+  rw [e]
+  simpa [PDE.vecDot] using heq
 
 end QSH
