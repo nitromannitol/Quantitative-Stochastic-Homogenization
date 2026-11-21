@@ -32,13 +32,14 @@ theorem osBound_zero {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProba
 /-- **The per-scale estimate** of order `n + 1` for a random field `F`: measurable majorants
 `Q k w s` of `‖Y_{β_w,s}(F)‖_{L²(B_1)}` for the words `w` of length `k ≤ n + 1`, which are
 `O_1(c s^{-k/2 - d/4} ε^{d/2})` at every scale `s ∈ (0, 1]`, the majorization holding almost surely
-at each scale. The norms are jointly measurable in the scale and the sample. -/
+at each scale. The norms are jointly measurable in the scale and the sample (the scales `s ≤ 0` being
+replaced by `1`). -/
 def HeatScaleEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (n : ℕ)
     (F : Ω → Vec d → ℝ) (c ε : ℝ) : Prop :=
   ∃ Q : ∀ k : ℕ, (Fin k → Fin d) → ℝ → Ω → ℝ,
     (∀ k w, Measurable (Function.uncurry (Q k w))) ∧ (∀ k w s a, 0 ≤ Q k w s a) ∧
     (∀ k (w : Fin k → Fin d), Measurable (fun p : ℝ × Ω =>
-      eLpNorm (heatDerivativeAverage (countIndex w) p.1 (F p.2)) 2
+      eLpNorm (heatDerivativeAverage (countIndex w) (if p.1 ≤ 0 then 1 else p.1) (F p.2)) 2
         (volume.restrict (originBall d 1)))) ∧
     (∀ k (w : Fin k → Fin d), k ≤ n + 1 → ∀ s ∈ Ioc (0 : ℝ) 1,
       OsBound P (Q k w s) 1 (c * s ^ (-(k : ℝ) / 2 - (d : ℝ) / 4) * ε ^ ((d : ℝ) / 2))) ∧
@@ -93,11 +94,17 @@ theorem HeatScaleEstimate.osBound_heatBracket {Ω : Type*} [MeasurableSpace Ω] 
           ∀ w : Fin (n + 1) → Fin d, eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
             (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} =
           (Prod.fst ⁻¹' Ioc (0 : ℝ) 1)ᶜ ∪ ⋂ w : Fin (n + 1) → Fin d,
-            {q : ℝ × Ω | eLpNorm (heatDerivativeAverage (countIndex w) q.1 (F q.2)) 2
+            {q : ℝ × Ω | eLpNorm (heatDerivativeAverage (countIndex w)
+              (if q.1 ≤ 0 then 1 else q.1) (F q.2)) 2
               (volume.restrict (originBall d 1)) ≤ ENNReal.ofReal (Q (n + 1) w q.1 q.2)} := by
         ext q
-        simp only [mem_ofPred_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter]
-        tauto
+        by_cases hq : q.1 ∈ Ioc (0 : ℝ) 1
+        · have h1 : (if q.1 ≤ 0 then (1 : ℝ) else q.1) = q.1 := by
+            simp [not_le.mpr hq.1]
+          simp only [mem_ofPred_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter, h1]
+          tauto
+        · simp only [mem_ofPred_eq, mem_union, mem_compl_iff, mem_preimage, mem_iInter]
+          tauto
       rw [heq]
       exact (measurableSet_Ioc.preimage measurable_fst).compl.union
         (MeasurableSet.iInter fun w => measurableSet_le (hYm (n + 1) w)
