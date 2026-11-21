@@ -2521,6 +2521,321 @@ theorem centeredOsBound_sum_of_measurable_cube [IsProbabilityMeasure P] {d : ℕ
 
 end BookStatements
 
+/-! ## Lemma A.7 -/
+
+section SubadditiveConcentration
+
+/-- The triadic cube `□_n` of (0.20) is the open cube of side `3^n` centered at the origin. -/
+theorem triadicCube_eq_cube (d n : ℕ) : triadicCube d n = cube 0 ((3 : ℝ) ^ n) := by
+  ext x
+  simp only [triadicCube, cube, Set.mem_pi, Set.mem_univ, true_implies, Set.mem_Ioo,
+    Set.mem_ofPred_eq, Pi.zero_apply, sub_zero, abs_lt]
+  constructor
+  · intro h i
+    obtain ⟨h1, h2⟩ := h i
+    constructor <;> linarith
+  · intro h i
+    obtain ⟨h1, h2⟩ := h i
+    constructor <;> linarith
+
+/-- The center offset `j - (3^k - 1)/2` of the subcube of index `j ∈ {0, …, 3^k - 1}^d` in the
+subdivision of a cube of side `3^{N+k}` into `3^{kd}` cubes of side `3^N` (in units of `3^N`). -/
+def triadicOffset {d : ℕ} (k : ℕ) (j : Fin d → Fin (3 ^ k)) : Vec d :=
+  fun i => ((j i : ℕ) : ℝ) - ((3 : ℝ) ^ k - 1) / 2
+
+theorem exists_latticeShift_eq_triadicOffset {d : ℕ} (N k : ℕ) (j : Fin d → Fin (3 ^ k)) :
+    ∃ z : LatticeIndex d, latticeShift z = (3 : ℝ) ^ N • triadicOffset k j := by
+  obtain ⟨a, ha⟩ : ∃ a : ℤ, (3 : ℤ) ^ k - 1 = 2 * a := by
+    obtain ⟨b, hb⟩ : Odd ((3 : ℤ) ^ k) := Odd.pow ⟨1, by norm_num⟩
+    exact ⟨b, by rw [hb]; ring⟩
+  have ha' : ((3 : ℝ) ^ k - 1) / 2 = a := by
+    have h := congrArg (fun x : ℤ => (x : ℝ)) ha
+    push_cast at h
+    linarith
+  refine ⟨fun i => 3 ^ N * (((j i : ℕ) : ℤ) - a), ?_⟩
+  funext i
+  simp only [latticeShift, triadicOffset, Pi.smul_apply, smul_eq_mul, ha']
+  push_cast
+  ring
+
+/-- Subcubes of the triadic subdivision whose indices are distinct and congruent modulo `3` are
+at distance at least `2 · 3^N`. -/
+theorem separatedByUnit_triadicOffset {d : ℕ} {N k : ℕ} {j j' : Fin d → Fin (3 ^ k)}
+    (hjj : j ≠ j')
+    (hres : (fun i => ((j i : ℕ) : ZMod 3)) = fun i => ((j' i : ℕ) : ZMod 3)) (c : Vec d) :
+    SeparatedByUnit (cube (c + (3 : ℝ) ^ N • triadicOffset k j) ((3 : ℝ) ^ N))
+      (cube (c + (3 : ℝ) ^ N • triadicOffset k j') ((3 : ℝ) ^ N)) := by
+  obtain ⟨i, hi⟩ : ∃ i, j i ≠ j' i := Function.ne_iff.mp hjj
+  have hmod : (j i : ℕ) ≡ (j' i : ℕ) [MOD 3] :=
+    (ZMod.natCast_eq_natCast_iff _ _ _).1 (congrFun hres i)
+  have hdvd : (3 : ℤ) ∣ ((j' i : ℕ) : ℤ) - ((j i : ℕ) : ℤ) := hmod.dvd
+  have hne : ((j i : ℕ) : ℤ) ≠ ((j' i : ℕ) : ℤ) := by
+    intro h
+    exact hi (Fin.ext (by exact_mod_cast h))
+  have h3 : (3 : ℤ) ≤ |((j' i : ℕ) : ℤ) - ((j i : ℕ) : ℤ)| := by
+    obtain ⟨q, hq⟩ := hdvd
+    have hq0 : q ≠ 0 := by
+      rintro rfl
+      apply hne
+      linarith
+    rw [hq, abs_mul, abs_of_pos (by norm_num : (0 : ℤ) < 3)]
+    have := Int.one_le_abs hq0
+    linarith
+  have h3' : (3 : ℝ) ≤ |((j' i : ℕ) : ℝ) - ((j i : ℕ) : ℝ)| := by
+    have := (Int.cast_le (R := ℝ)).mpr h3
+    push_cast at this
+    exact this
+  have hL : (1 : ℝ) ≤ (3 : ℝ) ^ N := one_le_pow₀ (by norm_num)
+  have hL0 : (0 : ℝ) < (3 : ℝ) ^ N := by positivity
+  refine ⟨2, by norm_num, fun x hx y hy => ?_⟩
+  set A : ℝ := c i + (3 : ℝ) ^ N * (((j i : ℕ) : ℝ) - ((3 : ℝ) ^ k - 1) / 2) with hA
+  set B : ℝ := c i + (3 : ℝ) ^ N * (((j' i : ℕ) : ℝ) - ((3 : ℝ) ^ k - 1) / 2) with hB
+  have h1 : |x i - A| < (3 : ℝ) ^ N / 2 := hx i
+  have h2 : |y i - B| < (3 : ℝ) ^ N / 2 := hy i
+  have hBA : |B - A| = (3 : ℝ) ^ N * |((j' i : ℕ) : ℝ) - ((j i : ℕ) : ℝ)| := by
+    rw [show B - A = (3 : ℝ) ^ N * (((j' i : ℕ) : ℝ) - ((j i : ℕ) : ℝ)) by rw [hA, hB]; ring,
+      abs_mul, abs_of_pos hL0]
+  have htri1 := abs_sub_le B (y i) A
+  have htri2 := abs_sub_le (y i) (x i) A
+  have hyb : |B - y i| = |y i - B| := abs_sub_comm _ _
+  have hxy : |y i - x i| = |x i - y i| := abs_sub_comm _ _
+  have h9 : (3 : ℝ) ^ N * 3 ≤ (3 : ℝ) ^ N * |((j' i : ℕ) : ℝ) - ((j i : ℕ) : ℝ)| :=
+    mul_le_mul_of_nonneg_left h3' hL0.le
+  have hcoord := abs_apply_le_euclideanNorm (x - y) i
+  simp only [Pi.sub_apply] at hcoord
+  linarith
+
+/-- **Lemma A.7**, for a random map `ρ` defined on the cubes: let `F` be a monotone family of
+sub-σ-algebras with a unit range of dependence, `K > 0`, and let `ρ(U)` be, for every cube `U`,
+an `F(U)`-measurable random variable with values in `[0, K]` ((A.6)–(A.7)), whose law is invariant
+under the translations of `ℤ^d`, and which is subadditive along the subdivision of a cube of side
+`3^{N+k}` into `3^{kd}` cubes of side `3^N` ((A.8)). Then for all `m, n ∈ ℕ`,
+`ρ(□_{n+m+1}) ≤ 2 E[ρ(□_n)] + O_1(K 3^{-md})`, that is, (A.9) with `C = 1`. The proof is the one
+of the book: the subcubes of side `3^n` are split into `3^d` classes of pairwise separated cubes,
+Hölder's inequality separates the classes, the independence factorizes the Laplace transform in
+each class, and `exp y ≤ 1 + 2y` on `[0, 1]`. -/
+theorem osBound_triadicCube_sub_two_integral [IsProbabilityMeasure P] {d : ℕ}
+    {F : Set (Vec d) → MeasurableSpace Ω} (hF : HasUnitRange P F) (hmono : Monotone F)
+    (hFle : ∀ U, F U ≤ (inferInstance : MeasurableSpace Ω)) {ρ : Set (Vec d) → Ω → ℝ} {K : ℝ}
+    (hK : 0 < K) (hmeas : ∀ (c : Vec d) (R : ℝ), Measurable[F (cube c R)] (ρ (cube c R)))
+    (hbd : ∀ (c : Vec d) (R : ℝ) (ω : Ω), 0 ≤ ρ (cube c R) ω ∧ ρ (cube c R) ω ≤ K)
+    (hstat : ∀ (z : LatticeIndex d) (c : Vec d) (R : ℝ),
+      IdentDistrib (ρ (cube (c + latticeShift z) R)) (ρ (cube c R)) P P)
+    (hsub : ∀ (c : Vec d) (N k : ℕ) (ω : Ω), ρ (cube c ((3 : ℝ) ^ (N + k))) ω ≤
+      ((3 : ℝ) ^ (k * d))⁻¹ * ∑ j : Fin d → Fin (3 ^ k),
+        ρ (cube (c + (3 : ℝ) ^ N • triadicOffset k j) ((3 : ℝ) ^ N)) ω)
+    (m n : ℕ) :
+    OsBound P (fun ω => ρ (triadicCube d (n + m + 1)) ω -
+      2 * ∫ ω', ρ (triadicCube d n) ω' ∂P) 1 (K / 3 ^ (m * d)) := by
+  classical
+  rw [triadicCube_eq_cube, triadicCube_eq_cube]
+  set k : ℕ := m + 1 with hkdef
+  set R : ℝ := (3 : ℝ) ^ n with hRdef
+  have hR : 0 < R := by positivity
+  set ρj : (Fin d → Fin (3 ^ k)) → Ω → ℝ :=
+    fun j => ρ (cube (0 + (3 : ℝ) ^ n • triadicOffset k j) R) with hρjdef
+  have hρjm : ∀ j, Measurable (ρj j) := fun j => (hmeas _ _).mono (hFle _) le_rfl
+  have hρ0m : Measurable (ρ (cube 0 R)) := (hmeas _ _).mono (hFle _) le_rfl
+  have hId : ∀ j, IdentDistrib (ρj j) (ρ (cube 0 R)) P P := by
+    intro j
+    obtain ⟨z, hz⟩ := exists_latticeShift_eq_triadicOffset n k j
+    have h := hstat z 0 R
+    rw [hz] at h
+    exact h
+  set E0 : ℝ := ∫ ω, ρ (cube 0 R) ω ∂P with hE0def
+  set M : ℝ := ∫ ω, Real.exp (K⁻¹ * ρ (cube 0 R) ω) ∂P with hMdef
+  have hKi : 0 < K⁻¹ := inv_pos.2 hK
+  have hexpb : ∀ (c : Vec d) (R' : ℝ) (ω : Ω),
+      Real.exp (K⁻¹ * ρ (cube c R') ω) ≤ 1 + 2 * (K⁻¹ * ρ (cube c R') ω) := by
+    intro c R' ω
+    obtain ⟨h0, h1⟩ := hbd c R' ω
+    have hy0 : 0 ≤ K⁻¹ * ρ (cube c R') ω := mul_nonneg hKi.le h0
+    have hy1 : K⁻¹ * ρ (cube c R') ω ≤ 1 := by
+      rw [inv_mul_le_iff₀ hK]
+      linarith
+    have h := Real.abs_exp_sub_one_sub_id_le (x := K⁻¹ * ρ (cube c R') ω)
+      (by rw [abs_of_nonneg hy0]; exact hy1)
+    have hy2 : (K⁻¹ * ρ (cube c R') ω) ^ 2 ≤ K⁻¹ * ρ (cube c R') ω := by nlinarith
+    linarith [(abs_le.1 h).2]
+  have hρ0i : Integrable (ρ (cube 0 R)) P :=
+    Integrable.of_bound hρ0m.aestronglyMeasurable K (Filter.Eventually.of_forall fun ω => by
+      rw [Real.norm_eq_abs, abs_of_nonneg (hbd 0 R ω).1]
+      exact (hbd 0 R ω).2)
+  have hexp0i : Integrable (fun ω => Real.exp (K⁻¹ * ρ (cube 0 R) ω)) P :=
+    Integrable.of_bound (measurable_const.mul hρ0m).exp.aestronglyMeasurable (Real.exp 1)
+      (Filter.Eventually.of_forall fun ω => by
+        rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        refine Real.exp_le_exp.2 ?_
+        rw [inv_mul_le_iff₀ hK, mul_one]
+        exact (hbd 0 R ω).2)
+  have hM : M ≤ Real.exp (2 * K⁻¹ * E0) := by
+    have hlin : Integrable (fun ω => 1 + 2 * (K⁻¹ * ρ (cube 0 R) ω)) P :=
+      (integrable_const 1).add ((hρ0i.const_mul K⁻¹).const_mul 2)
+    calc M ≤ ∫ ω, (1 + 2 * (K⁻¹ * ρ (cube 0 R) ω)) ∂P :=
+          integral_mono hexp0i hlin (hexpb 0 R)
+      _ = 1 + 2 * K⁻¹ * E0 := by
+          rw [integral_add (integrable_const 1) ((hρ0i.const_mul K⁻¹).const_mul 2),
+            integral_const_mul, integral_const_mul, ← hE0def]
+          simp only [integral_const, probReal_univ, smul_eq_mul, mul_one]
+          ring
+      _ ≤ Real.exp (2 * K⁻¹ * E0) := by linarith [Real.add_one_le_exp (2 * K⁻¹ * E0)]
+  have hM0 : 0 < M := integral_exp_pos hexp0i
+  -- the colour classes
+  set κ := Fin d → ZMod 3
+  set col : (Fin d → Fin (3 ^ k)) → κ := fun j i => ((j i : ℕ) : ZMod 3) with hcoldef
+  set S : κ → Finset (Fin d → Fin (3 ^ k)) := fun c => Finset.univ.filter fun j => col j = c
+    with hSdef
+  have hclass : ∀ c : κ, ∫ ω, Real.exp (K⁻¹ * ∑ j ∈ S c, ρj j ω) ∂P = M ^ (S c).card := by
+    intro c
+    have hind : iIndepFun (fun j : S c => ρj j) P := by
+      refine iIndepFun_of_separated hF hmono
+        (U := fun j : S c => cube (0 + (3 : ℝ) ^ n • triadicOffset k j.1) R)
+        (fun j => measurableSet_cube _ _) ?_ (fun j => hmeas _ _)
+      intro j j' hjj
+      have hcj : col j.1 = c := (Finset.mem_filter.mp j.2).2
+      have hcj' : col j'.1 = c := (Finset.mem_filter.mp j'.2).2
+      exact separatedByUnit_triadicOffset (fun h => hjj (Subtype.ext h)) (hcj.trans hcj'.symm) 0
+    have hmgf := hind.mgf_sum (fun j => hρjm j) (Finset.univ : Finset (S c)) (t := K⁻¹)
+    have hlhs : mgf (∑ j : S c, ρj j) P K⁻¹ = ∫ ω, Real.exp (K⁻¹ * ∑ j ∈ S c, ρj j ω) ∂P := by
+      simp only [mgf, Finset.sum_apply]
+      congr 1
+      funext ω
+      rw [Finset.sum_coe_sort (S c) (fun j => ρj j ω)]
+    have heach : ∀ j : S c, mgf (ρj j) P K⁻¹ = M := fun j =>
+      ((hId j.1).comp (measurable_const.mul measurable_id).exp).integral_eq
+    rw [← hlhs, hmgf, Finset.prod_congr rfl fun j _ => heach j, Finset.prod_const,
+      Finset.card_univ, Fintype.card_coe]
+  -- Hölder's inequality over the classes
+  have hcardκ : (Fintype.card κ : ℝ) = (3 : ℝ) ^ d := by
+    rw [Fintype.card_fun, ZMod.card, Fintype.card_fin]
+    push_cast
+    ring
+  set p : ℝ := ((3 : ℝ) ^ d)⁻¹ with hpdef
+  have hp0 : 0 ≤ p := by positivity
+  have hpsum : ∑ _c : κ, p = 1 := by
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, hcardκ, hpdef,
+      mul_inv_cancel₀ (by positivity)]
+  set f : κ → Ω → ℝ≥0∞ := fun c ω => ENNReal.ofReal (Real.exp (K⁻¹ * ∑ j ∈ S c, ρj j ω))
+    with hfdef
+  have hfm : ∀ c, Measurable (f c) := fun c =>
+    ENNReal.measurable_ofReal.comp
+      (measurable_const.mul (Finset.measurable_sum _ fun j _ => hρjm j)).exp
+  have hsumcol : ∀ ω, ∑ c : κ, ∑ j ∈ S c, ρj j ω = ∑ j, ρj j ω := fun ω =>
+    Finset.sum_fiberwise_of_maps_to (fun j _ => Finset.mem_univ (col j)) _
+  have hcardS : ∑ c : κ, ((S c).card : ℝ) = (3 : ℝ) ^ (k * d) := by
+    have h := Finset.card_eq_sum_card_fiberwise (s := (Finset.univ : Finset (Fin d → Fin (3 ^ k))))
+      (t := (Finset.univ : Finset κ)) (f := col) (fun j _ => Finset.mem_univ _)
+    have h' : (Finset.univ : Finset (Fin d → Fin (3 ^ k))).card = (3 ^ k) ^ d := by
+      rw [Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_fin]
+    rw [h'] at h
+    have h'' : ((3 ^ k) ^ d : ℕ) = ∑ c : κ, (S c).card := h
+    rw [← pow_mul] at h''
+    exact_mod_cast h''.symm
+  -- the bound on the Laplace transform of the large cube
+  have hbig : ∫⁻ ω, ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) *
+      ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) ∂P ≤
+      ENNReal.ofReal (Real.exp (2 * K⁻¹ * E0 * 3 ^ (m * d))) := by
+    have h3 : (3 : ℝ) ^ (m * d) * ((3 : ℝ) ^ (k * d))⁻¹ = p := by
+      rw [hkdef, add_mul, one_mul, pow_add, mul_inv, ← mul_assoc,
+        mul_inv_cancel₀ (by positivity), one_mul]
+    have hpt : ∀ ω, ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) *
+        ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) ≤ ∏ c : κ, f c ω ^ p := by
+      intro ω
+      have hs := hsub 0 n k ω
+      rw [show n + k = n + m + 1 by rw [hkdef]; ring] at hs
+      have hle : K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω ≤
+          ∑ c : κ, p * (K⁻¹ * ∑ j ∈ S c, ρj j ω) := by
+        rw [← Finset.mul_sum, ← Finset.mul_sum, hsumcol, ← h3]
+        have h0 : 0 ≤ K⁻¹ * 3 ^ (m * d) := by positivity
+        calc K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω
+            ≤ K⁻¹ * 3 ^ (m * d) * (((3 : ℝ) ^ (k * d))⁻¹ * ∑ j, ρj j ω) :=
+              mul_le_mul_of_nonneg_left hs h0
+          _ = 3 ^ (m * d) * ((3 : ℝ) ^ (k * d))⁻¹ * (K⁻¹ * ∑ j, ρj j ω) := by ring
+      calc ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω))
+          ≤ ENNReal.ofReal (Real.exp (∑ c : κ, p * (K⁻¹ * ∑ j ∈ S c, ρj j ω))) :=
+            ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 hle)
+        _ = ∏ c : κ, f c ω ^ p := by
+            rw [Real.exp_sum, ENNReal.ofReal_prod_of_nonneg fun c _ => (Real.exp_pos _).le]
+            refine Finset.prod_congr rfl fun c _ => ?_
+            rw [hfdef, ENNReal.ofReal_rpow_of_nonneg (Real.exp_pos _).le hp0, ← Real.exp_mul,
+              mul_comm]
+    calc ∫⁻ ω, ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) *
+          ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) ∂P
+        ≤ ∫⁻ ω, ∏ c : κ, f c ω ^ p ∂P := lintegral_mono hpt
+      _ ≤ ∏ c : κ, (∫⁻ ω, f c ω ∂P) ^ p :=
+          ENNReal.lintegral_prod_norm_pow_le Finset.univ (fun c _ => (hfm c).aemeasurable)
+            hpsum (fun c _ => hp0)
+      _ ≤ ∏ c : κ, ENNReal.ofReal (Real.exp (2 * K⁻¹ * E0 * (S c).card)) ^ p := by
+          refine Finset.prod_le_prod fun c _ => ENNReal.rpow_le_rpow ?_ hp0
+          have hint : Integrable (fun ω => Real.exp (K⁻¹ * ∑ j ∈ S c, ρj j ω)) P := by
+            refine Integrable.of_bound (measurable_const.mul
+              (Finset.measurable_sum _ fun j _ => hρjm j)).exp.aestronglyMeasurable
+              (Real.exp (K⁻¹ * ((S c).card * K))) (Filter.Eventually.of_forall fun ω => ?_)
+            rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+            refine Real.exp_le_exp.2 (mul_le_mul_of_nonneg_left ?_ hKi.le)
+            calc ∑ j ∈ S c, ρj j ω ≤ ∑ _j ∈ S c, K :=
+                  Finset.sum_le_sum fun j _ => (hbd _ _ ω).2
+              _ = (S c).card * K := by rw [Finset.sum_const, nsmul_eq_mul]
+          rw [hfdef, ← ofReal_integral_eq_lintegral_ofReal hint
+            (Filter.Eventually.of_forall fun _ => (Real.exp_pos _).le), hclass c]
+          refine ENNReal.ofReal_le_ofReal ?_
+          rw [mul_comm (2 * K⁻¹ * E0), Real.exp_nat_mul]
+          exact pow_le_pow_left₀ hM0.le hM _
+      _ = ENNReal.ofReal (Real.exp (2 * K⁻¹ * E0 * 3 ^ (m * d))) := by
+          rw [Finset.prod_congr rfl fun c _ =>
+              ENNReal.ofReal_rpow_of_nonneg (Real.exp_pos _).le hp0,
+            ← ENNReal.ofReal_prod_of_nonneg fun c _ => Real.rpow_nonneg (Real.exp_pos _).le _]
+          congr 1
+          simp only [← Real.exp_mul]
+          rw [← Real.exp_sum]
+          congr 1
+          rw [← Finset.sum_mul, ← Finset.mul_sum, hcardS, ← h3]
+          field_simp
+  -- the stochastic bound
+  have hθ : 0 < K / 3 ^ (m * d) := by positivity
+  have hbm : Measurable (ρ (cube 0 ((3 : ℝ) ^ (n + m + 1)))) := (hmeas _ _).mono (hFle _) le_rfl
+  refine ⟨hbm.sub measurable_const, one_pos, hθ, ?_⟩
+  have hinv : (K / 3 ^ (m * d))⁻¹ = K⁻¹ * 3 ^ (m * d) := by
+    rw [inv_div, div_eq_inv_mul]
+  have hpt : ∀ ω, ENNReal.ofReal (Real.exp (((K / 3 ^ (m * d))⁻¹ *
+      max (ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω - 2 * E0) 0) ^ (1 : ℝ))) ≤
+      ENNReal.ofReal (Real.exp (-(2 * K⁻¹ * E0 * 3 ^ (m * d)))) *
+        ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) +
+        1 := by
+    intro ω
+    rw [Real.rpow_one, hinv, ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add,
+      ← ENNReal.ofReal_one, ← ENNReal.ofReal_add (Real.exp_pos _).le zero_le_one]
+    refine ENNReal.ofReal_le_ofReal ?_
+    have hc : 0 ≤ K⁻¹ * 3 ^ (m * d) := by positivity
+    rcases le_total (ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω - 2 * E0) 0 with h | h
+    · rw [max_eq_right h, mul_zero, Real.exp_zero]
+      linarith [Real.exp_pos (-(2 * K⁻¹ * E0 * 3 ^ (m * d)) +
+        K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)]
+    · rw [max_eq_left h]
+      have e : K⁻¹ * 3 ^ (m * d) * (ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω - 2 * E0) =
+          -(2 * K⁻¹ * E0 * 3 ^ (m * d)) +
+            K⁻¹ * 3 ^ (m * d) * ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω := by ring
+      rw [e]
+      linarith
+  calc ∫⁻ ω, ENNReal.ofReal (Real.exp (((K / 3 ^ (m * d))⁻¹ *
+        max (ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω - 2 * E0) 0) ^ (1 : ℝ))) ∂P
+      ≤ ∫⁻ ω, (ENNReal.ofReal (Real.exp (-(2 * K⁻¹ * E0 * 3 ^ (m * d)))) *
+          ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) *
+            ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) + 1) ∂P := lintegral_mono hpt
+    _ = ENNReal.ofReal (Real.exp (-(2 * K⁻¹ * E0 * 3 ^ (m * d)))) *
+          ∫⁻ ω, ENNReal.ofReal (Real.exp (K⁻¹ * 3 ^ (m * d) *
+            ρ (cube 0 ((3 : ℝ) ^ (n + m + 1))) ω)) ∂P + 1 := by
+        rw [lintegral_add_right _ measurable_const, lintegral_const_mul' _ _ ENNReal.ofReal_ne_top,
+          lintegral_const, measure_univ, mul_one]
+    _ ≤ ENNReal.ofReal (Real.exp (-(2 * K⁻¹ * E0 * 3 ^ (m * d)))) *
+          ENNReal.ofReal (Real.exp (2 * K⁻¹ * E0 * 3 ^ (m * d))) + 1 := by
+        gcongr
+    _ = 2 := by
+        rw [← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add, neg_add_cancel,
+          Real.exp_zero, ENNReal.ofReal_one, one_add_one_eq_two]
+
+end SubadditiveConcentration
+
 /-! ## The local σ-algebras of the coefficient fields -/
 
 section CoefficientFields

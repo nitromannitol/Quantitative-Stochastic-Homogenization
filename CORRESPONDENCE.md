@@ -78,7 +78,15 @@ of each module names the source files and commits.
   `exp(2|X|)`, `X²` and `exp(λ X)` stated. The proof is the second-order Taylor bound of `exp`
   (`abs_exp_sub_quadratic_le`), `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`,
   instead of the derivatives of `λ ↦ log E[exp(λ X)]`.
-- Lemma A.7 is not formalized.
+- **Lemma A.7.** `osBound_triadicCube_sub_two_integral`: the random map `ρ` is a function of
+  sets, and the hypotheses are assumed for the open cubes only: (A.6) for an abstract monotone
+  family `F` of sub-σ-algebras with a unit range of dependence (`HasUnitRange`), (A.7) as
+  `0 ≤ ρ ≤ K` with `K > 0`, the stationarity as the identical distribution of `ρ(U)` and
+  `ρ(z + U)` for `z ∈ ℤ^d`, and (A.8) only for the subdivision of a cube of side `3^{N+k}` into
+  its `3^{kd}` subcubes of side `3^N` (`triadicOffset`), which is the case of (A.8) used in the
+  proof. The conclusion (A.9) holds with `C = 1`: the last step uses
+  `exp(y₊) ≤ exp(y) + 1` instead of the Chebyshev inequality and Lemma A.1. The subcubes are
+  grouped by the residues of their indices modulo `3`, as in the book.
 
 ## Chapter 4, opening (`Ch04/Opening.lean`)
 
