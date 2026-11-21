@@ -130,24 +130,24 @@ theorem heat_weight_decomposition {z : Vec d} {R R' : ℝ} (hR' : 0 < R') {n : �
       rw [Set.indicator_of_mem hD, zero_add]
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
-  {s δ α : ℝ}
+  {s δ α B A : ℝ}
 
-theorem CenteredLocalFields.integrable_mul (X : CenteredLocalFields P F s δ α) (r : ℝ) (a : Ω)
+theorem CenteredLocalFields.integrable_mul (X : CenteredLocalFields P F s δ α B A) (r : ℝ) (a : Ω)
     {w : Vec d → ℝ} (hw : Integrable w) : Integrable fun y => w y * X.field r a y :=
   hw.mul_bdd ((X.measurable r).comp measurable_prodMk_left).aestronglyMeasurable
     (Filter.Eventually.of_forall fun y => by rw [Real.norm_eq_abs]; exact X.abs_le r a y)
 
-theorem CenteredLocalFields.abs_heatAverage_le (X : CenteredLocalFields P F s δ α) (r : ℝ)
+theorem CenteredLocalFields.abs_heatAverage_le (X : CenteredLocalFields P F s δ α B A) (r : ℝ)
     (a : Ω) (x : Vec d) {ρ : ℝ} (hρ : 0 < ρ) :
-    |∫ y, heatKernel x ρ y * X.field r a y| ≤ X.bound := by
+    |∫ y, heatKernel x ρ y * X.field r a y| ≤ B := by
   refine (abs_integral_le_integral_abs).trans ?_
-  calc ∫ y, |heatKernel x ρ y * X.field r a y| ≤ ∫ y, heatKernel x ρ y * X.bound := by
+  calc ∫ y, |heatKernel x ρ y * X.field r a y| ≤ ∫ y, heatKernel x ρ y * B := by
         refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun y => abs_nonneg _)
           ((integrable_heatKernel x hρ).mul_const _) (Filter.Eventually.of_forall fun y => ?_)
-        show |heatKernel x ρ y * X.field r a y| ≤ heatKernel x ρ y * X.bound
+        show |heatKernel x ρ y * X.field r a y| ≤ heatKernel x ρ y * B
         rw [abs_mul, abs_of_nonneg (heatKernel_nonneg x ρ y)]
         exact mul_le_mul_of_nonneg_left (X.abs_le r a y) (heatKernel_nonneg x ρ y)
-    _ = X.bound := by rw [integral_mul_const, integral_heatKernel x hρ, one_mul]
+    _ = B := by rw [integral_mul_const, integral_heatKernel x hρ, one_mul]
 
 /-- **The induction step** (4.119), for `R/2 ∈ [1, R₁]`, `r₁ = (R/2)^{η₁} < r`, an auxiliary side
 `R'` with `n R' ≤ R/2 < (n+1) R'`, and the conditions on `r₁` and `R'` that make the induction
@@ -155,7 +155,7 @@ hypothesis applicable at the sides `R/2` and `R'` and the neighbourhoods of radi
 the large cubes separated. The scale is the sum of the four contributions: Step 1, the large
 cubes, the frame cells and the far part. -/
 theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
-    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α) {η₁ η₂ β R₁ C : ℝ}
+    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α B A) {η₁ η₂ β R₁ C : ℝ}
     (hA : BlockBound X η₁ η₂ β R₁ C) (hβ : β ≤ (d : ℝ) / 2) (hC : 0 ≤ C) {C₀ : ℝ}
     (hfar : ∀ (r₁ : ℝ) {z : Vec d} {R ρ t : ℝ}, 0 < R → 0 < ρ → 0 ≤ t → ∀ {f : Vec d → ℝ},
       Measurable f → (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) →
@@ -163,7 +163,7 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
         ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
-        (C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))))
+        (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))))
     {R r r₁ R' : ℝ} {n : ℕ} (hR2 : 1 ≤ R / 2) (hRR₁ : R / 2 ≤ R₁) (hr₁ : 1 ≤ r₁)
     (hr₁r : r₁ < r) (hr₁lo : (R / 2) ^ η₁ ≤ r₁) (hr₁hi : r₁ ≤ (R / 2) ^ η₂)
     (hsep : 1 < R' - 2 * r₁ ^ (1 + δ)) (hR'1 : 1 ≤ R') (hR'R₁ : R' ≤ R₁)
@@ -172,10 +172,10 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
     {f : Vec d → ℝ} (hf : Measurable f) (hf1 : ∀ x, |f x| ≤ 1)
     (hfz : ∀ x ∉ closedCube z R, f x = 0) :
     CenteredOsBound P (fun a => R ^ (-(d : ℝ)) * ∫ x, f x * X.field r a x) s
-      (X.addConst * r₁ ^ (-α) + C * R ^ (-β) +
+      (A * r₁ ^ (-α) + C * R ^ (-β) +
         R ^ (-(d : ℝ)) * (Real.sqrt (2 * 4 ^ d) * (Real.sqrt (latticeFrame d (n + 2) n).card *
           (R' ^ d * (C * R' ^ (-β))))) +
-        C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) *
+        C₀ * (B * 2 ^ ((d : ℝ) / 2) *
           Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2))))) := by
   classical
   have hR0 : 0 < R := by linarith
@@ -227,7 +227,7 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
   refine hsum.congr_ae (measurable_block X r hf _) (Filter.Eventually.of_forall fun a => ?_)
   have hDint : Integrable fun x => f x * (X.field r a x -
       ∫ y, heatKernel x ρ y * X.field r₁ a y) := by
-    refine hfi.mul_bdd (c := 2 * X.bound) ?_ (Filter.Eventually.of_forall fun x => ?_)
+    refine hfi.mul_bdd (c := 2 * B) ?_ (Filter.Eventually.of_forall fun x => ?_)
     · exact (((X.measurable r).comp measurable_prodMk_left).sub
         ((measurable_heatAverage _ (X.measurable r₁) ρ).comp measurable_prodMk_left)).aestronglyMeasurable
     · rw [Real.norm_eq_abs]
@@ -236,7 +236,7 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
       have := X.abs_heatAverage_le r₁ a x hρ
       linarith
   have hHint : Integrable fun x => f x * ∫ y, heatKernel x ρ y * X.field r₁ a y := by
-    refine hfi.mul_bdd (c := X.bound) ?_ (Filter.Eventually.of_forall fun x => ?_)
+    refine hfi.mul_bdd (c := B) ?_ (Filter.Eventually.of_forall fun x => ?_)
     · exact ((measurable_heatAverage _ (X.measurable r₁) ρ).comp
         measurable_prodMk_left).aestronglyMeasurable
     · rw [Real.norm_eq_abs]

@@ -20,17 +20,18 @@ namespace QSH
 
 variable {d : ℕ}
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
-  {s δ α : ℝ}
+  {s δ α B A : ℝ}
 
 /-- **The induction step (4.118).** -/
 theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
-    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (X : CenteredLocalFields P F s δ α)
+    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) (hA0 : 0 < A)
     {η₁ η₂ β : ℝ} (hβ : β ≤ (d : ℝ) / 2) (hδ : 0 < δ) (hη₁ : 0 < η₁)
     (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1) (hα : β < η₁ * α) :
-    ∃ ε R₀ K C₁ : ℝ, 0 < ε ∧ 1 ≤ R₀ ∧ 0 < K ∧ 0 < C₁ ∧ ∀ R₁ C : ℝ, R₀ ≤ R₁ → C₁ ≤ C →
+    ∃ ε R₀ K C₁ : ℝ, 0 < ε ∧ 1 ≤ R₀ ∧ 0 < K ∧ 0 < C₁ ∧
+      ∀ (X : CenteredLocalFields P F s δ α B A) (R₁ C : ℝ), R₀ ≤ R₁ → C₁ ≤ C →
       BlockBound X η₁ η₂ β R₁ C → BlockBound X η₁ η₂ β (2 * R₁) (C * (1 + K * R₁ ^ (-ε))) := by
   obtain ⟨C₀, hC₀, hfar⟩ := exists_centeredOsBound_far_block (P := P) (F := F) (δ := δ)
-    (α := α) hs1 hs2
+    (α := α) (A := A) hs1 hs2 hB0
   have hη₂0 : 0 < η₂ := hη₁.trans hη₁₂
   set ε : ℝ := min (η₁ * α - β) (min ((1 - η₂ * (1 + δ)) / 4) ((1 - η₁ / η₂) / 2)) with hεdef
   have hq : η₁ / η₂ < 1 := (div_lt_one hη₂0).mpr hη₁₂
@@ -57,13 +58,13 @@ theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : Has
   have hR₀4 : (4 : ℝ) ^ κ₁⁻¹ ≤ R₀ := (le_max_right _ _).trans (le_max_right _ _)
   set K : ℝ := frameConst d + 1 with hKdef
   have hK : 0 < K := by have := frameConst_nonneg d; linarith
-  set C₁ : ℝ := X.addConst * 2 ^ (η₁ * α) + C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce)
+  set C₁ : ℝ := A * 2 ^ (η₁ * α) + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce)
     with hC₁def
   have hC₁ : 0 < C₁ := by
-    have := X.addConst_pos
-    have := X.bound_pos
+    have := hA0
+    have := hB0
     positivity
-  refine ⟨ε, R₀, K, C₁, hε, by linarith, hK, hC₁, fun R₁ C hR₁ hC hA => ?_⟩
+  refine ⟨ε, R₀, K, C₁, hε, by linarith, hK, hC₁, fun X R₁ C hR₁ hC hA => ?_⟩
   have hC0 : 0 ≤ C := hC₁.le.trans hC
   have hR₁0 : 0 < R₁ := by linarith
   have hfac : 1 ≤ 1 + K * R₁ ^ (-ε) := by
@@ -153,16 +154,16 @@ theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : Has
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
         ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
-        (C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) :=
+        (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) :=
     fun r₁ => hfar X r₁
   have hstep := centeredOsBound_block_step hd hF hmono X hA hβ hC0 hfarX (r := r)
     hR2 (by linarith) hr₁ hr₁r le_rfl hr₁hi hsep hR'1 hR'R₁ hr₁lo' hr₁hi' hρ₁ hn hn' z hf hf1
     hfz
   refine hstep.mono_scale ?_
-  have hθ1 : X.addConst * r₁ ^ (-α) ≤ X.addConst * 2 ^ (η₁ * α) * R ^ (-(β + ε)) := by
+  have hθ1 : A * r₁ ^ (-α) ≤ A * 2 ^ (η₁ * α) * R ^ (-(β + ε)) := by
     rw [mul_assoc]
     exact mul_le_mul_of_nonneg_left (rpow_half_rpow_neg_le hR1' (by linarith))
-      X.addConst_pos.le
+      hA0.le
   have hcard : ((latticeFrame d (n + 2) n).card : ℝ) ≤
       5 * d * 6 ^ (d - 1) * R ^ (2 * ε * ((d - 1 : ℕ) : ℝ)) := by
     have h1 : ((latticeFrame d (n + 2) n).card : ℝ) ≤
@@ -177,35 +178,35 @@ theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : Has
       r ^ 2 - r₁ ^ 2 ≤ r ^ 2)).trans ?_
     rw [Real.sqrt_sq (by linarith)]
     exact hr2
-  have hθ4 : C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) *
+  have hθ4 : C₀ * (B * 2 ^ ((d : ℝ) / 2) *
       Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2)))) ≤
-      C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by
+      C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by
     have h1 := exp_far_le (ε := ε) hR1' hρpos hρr
     have h2 := hexp R hR1'
-    have hB : 0 ≤ C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) := by
-      have := X.bound_pos
+    have hB : 0 ≤ C₀ * (B * 2 ^ ((d : ℝ) / 2)) := by
+      have := hB0
       positivity
-    calc C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) *
+    calc C₀ * (B * 2 ^ ((d : ℝ) / 2) *
           Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2))))
-        = C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) *
+        = C₀ * (B * 2 ^ ((d : ℝ) / 2)) *
           Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2))) := by ring
-      _ ≤ C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) * (Ce * R ^ (-(β + ε))) :=
+      _ ≤ C₀ * (B * 2 ^ ((d : ℝ) / 2)) * (Ce * R ^ (-(β + ε))) :=
           mul_le_mul_of_nonneg_left (h1.trans h2) hB
-      _ = C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by ring
+      _ = C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by ring
   have hsplit : R ^ (-(β + ε)) = R ^ (-β) * R ^ (-ε) := by
     rw [neg_add, Real.rpow_add hR0]
   have hRε : R ^ (-ε) ≤ R₁ ^ (-ε) :=
     Real.rpow_le_rpow_of_nonpos hR₁0 hRle.le (by linarith)
   have hRβ : 0 ≤ R ^ (-β) := Real.rpow_nonneg hR0.le _
   have hfc := frameConst_nonneg d
-  calc X.addConst * r₁ ^ (-α) + C * R ^ (-β) +
+  calc A * r₁ ^ (-α) + C * R ^ (-β) +
         R ^ (-(d : ℝ)) * (Real.sqrt (2 * 4 ^ d) * (Real.sqrt (latticeFrame d (n + 2) n).card *
           (R' ^ d * (C * R' ^ (-β))))) +
-        C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) *
+        C₀ * (B * 2 ^ ((d : ℝ) / 2) *
           Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2))))
-      ≤ X.addConst * 2 ^ (η₁ * α) * R ^ (-(β + ε)) + C * R ^ (-β) +
+      ≤ A * 2 ^ (η₁ * α) * R ^ (-(β + ε)) + C * R ^ (-β) +
           frameConst d * C * R ^ (-(β + ε)) +
-          C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by
+          C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-(β + ε)) := by
         gcongr
     _ = C * R ^ (-β) + (C₁ + frameConst d * C) * (R ^ (-β) * R ^ (-ε)) := by
         rw [hsplit, hC₁def]
@@ -246,15 +247,17 @@ theorem prod_one_add_le_exp {K R₀ ε : ℝ} (hK : 0 ≤ K) (hR₀ : 0 < R₀) 
 
 /-- **The statement (4.117)** of the proof of Proposition 4.12. -/
 theorem exists_blockBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
-    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (X : CenteredLocalFields P F s δ α)
+    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) (hA0 : 0 < A)
     {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2) (hδ : 0 < δ) (hη₁ : 0 < η₁)
     (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1) (hα : β < η₁ * α) :
-    ∃ C : ℝ, 0 < C ∧ ∀ R₁ : ℝ, BlockBound X η₁ η₂ β R₁ C := by
+    ∃ C : ℝ, 0 < C ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (R₁ : ℝ),
+      BlockBound X η₁ η₂ β R₁ C := by
   obtain ⟨ε, R₀, K, C₁, hε, hR₀, hK, hC₁, hstep⟩ :=
-    exists_blockBound_step hd hF hmono hs1 hs2 X hβ hδ hη₁ hη₁₂ hη₂ hα
-  obtain ⟨Cb, hCb, hbase⟩ := exists_blockBound_base (P := P) (F := F) (δ := δ) (α := α) hs1 hs2
+    exists_blockBound_step hd hF hmono hs1 hs2 hB0 hA0 hβ hδ hη₁ hη₁₂ hη₂ hα
+  obtain ⟨Cb, hCb, hbase⟩ := exists_blockBound_base (P := P) (F := F) (δ := δ) (α := α)
+    (A := A) hs1 hs2 hB0
   have hR₀0 : 0 < R₀ := by linarith
-  set C₂ : ℝ := max C₁ (Cb * X.bound * R₀ ^ β) with hC₂def
+  set C₂ : ℝ := max C₁ (Cb * B * R₀ ^ β) with hC₂def
   have hC₂ : 0 < C₂ := hC₁.trans_le (le_max_left _ _)
   set c : ℕ → ℝ := fun n => C₂ * ∏ j ∈ Finset.range n, (1 + K * (2 ^ j * R₀) ^ (-ε))
     with hcdef
@@ -263,6 +266,8 @@ theorem exists_blockBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitR
     linarith
   have hcge : ∀ n, C₂ ≤ c n := fun n =>
     le_mul_of_one_le_right hC₂.le (Finset.one_le_prod₀ fun j _ => hfac j)
+  set C : ℝ := C₂ * Real.exp (K * R₀ ^ (-ε) * (1 - (2 : ℝ) ^ (-ε))⁻¹) with hCdef
+  refine ⟨C, by positivity, fun X R₁ => ?_⟩
   have hind : ∀ n : ℕ, BlockBound X η₁ η₂ β (2 ^ n * R₀) (c n) := by
     intro n
     induction n with
@@ -271,11 +276,9 @@ theorem exists_blockBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitR
       exact hbase X η₁ η₂ β R₀ C₂ hβ0.le (le_max_right _ _)
     | succ n ih =>
       have hR : R₀ ≤ 2 ^ n * R₀ := le_mul_of_one_le_left hR₀0.le (one_le_pow₀ one_le_two)
-      have h := hstep (2 ^ n * R₀) (c n) hR ((le_max_left _ _).trans (hcge n)) ih
+      have h := hstep X (2 ^ n * R₀) (c n) hR ((le_max_left _ _).trans (hcge n)) ih
       rw [show 2 * (2 ^ n * R₀) = 2 ^ (n + 1) * R₀ by ring] at h
       simpa only [hcdef, Finset.prod_range_succ, mul_assoc] using h
-  set C : ℝ := C₂ * Real.exp (K * R₀ ^ (-ε) * (1 - (2 : ℝ) ^ (-ε))⁻¹) with hCdef
-  refine ⟨C, by positivity, fun R₁ => ?_⟩
   obtain ⟨n, hn⟩ := exists_nat_ge R₁
   have hR₁ : R₁ ≤ 2 ^ n * R₀ := by
     calc R₁ ≤ n := hn

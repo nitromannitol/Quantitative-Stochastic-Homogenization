@@ -18,7 +18,7 @@ namespace QSH
 
 variable {d : ℕ}
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
-  {s δ α : ℝ}
+  {s δ α B A : ℝ}
 
 /-- The maximum of `Φ_{z,ρ}` on the cell `z + R k + [-R/2, R/2)^d` given by
 `heatKernel_le_of_mem_latticeCell`. -/
@@ -94,13 +94,14 @@ theorem sum_indicator_cellAt_add (z : Vec d) {L : ℝ} (hL : 0 < L) (N : ℕ) (h
 fields themselves are `𝒪_s(C R^{-β})` at every point. -/
 theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
     (hF : HasUnitRange P F) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2)
-    (X : CenteredLocalFields P F s δ α) {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2)
+    (hB0 : 0 < B) (hA0 : 0 < A) {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2)
     (hδ : 0 < δ) (hη₁ : 0 < η₁) (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1)
     (hα : β < η₁ * α) :
-    ∃ C : ℝ, 0 < C ∧ ∀ R : ℝ, 1 ≤ R → ∀ z : Vec d,
+    ∃ C : ℝ, 0 < C ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R → ∀ z : Vec d,
       CenteredOsBound P (fun a => X.field R a z) s (C * R ^ (-β)) := by
   classical
-  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound hd hF hmono hs1 hs2 X hβ0 hβ hδ hη₁ hη₁₂ hη₂ hα
+  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound hd hF hmono hs1 hs2 hB0 hA0 hβ0 hβ hδ hη₁ hη₁₂
+    hη₂ hα
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
   obtain ⟨Ce, hCe, hexp⟩ := exists_exp_neg_rpow_le (c := 1 / 8) (κ := 2) (by norm_num)
     (by norm_num) β
@@ -108,19 +109,19 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
     have : η₂ ≤ η₂ * (1 + δ) := le_mul_of_one_le_right (hη₁.trans hη₁₂).le (by linarith)
     linarith
   set R₃ : ℝ := max 2 ((2 : ℝ) ^ (2 - 2 * η₁)⁻¹) with hR₃def
-  have hB := X.bound_pos
-  have hA := X.addConst_pos
+  have hB := hB0
+  have hA := hA0
   set G : ℝ := (2 * Real.pi) ^ (-(d : ℝ) / 2) * latticeGaussianConst ^ d with hGdef
   have hG : 0 ≤ G := by have := latticeGaussianConst_nonneg; positivity
-  set C : ℝ := X.addConst + Cb * G + C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) +
-    C₀ * X.bound * R₃ ^ β with hCdef
+  set C : ℝ := A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) +
+    C₀ * B * R₃ ^ β with hCdef
   have hR₃ : 0 < R₃ := by positivity
-  have hC1 : 0 ≤ X.addConst + Cb * G + C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) := by positivity
-  refine ⟨C, by positivity, fun R hR z => ?_⟩
+  have hC1 : 0 ≤ A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) := by positivity
+  refine ⟨C, by positivity, fun X R hR z => ?_⟩
   have hR0 : 0 < R := zero_lt_one.trans_le hR
   have hRβ : 0 ≤ R ^ (-β) := Real.rpow_nonneg hR0.le _
   by_cases hRs : R < R₃
-  · have h := h₀ P (fun a => X.field R a z) X.bound
+  · have h := h₀ P (fun a => X.field R a z) B
       ((X.measurable R).comp (measurable_id.prodMk measurable_const)) hB
       (fun a => X.abs_le R a z) (X.centered R z)
     refine h.mono_scale ?_
@@ -130,9 +131,9 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
         rw [← Real.rpow_add hR₃, add_neg_cancel, Real.rpow_zero]
       calc (1 : ℝ) = R₃ ^ β * R₃ ^ (-β) := h4.symm
         _ ≤ R₃ ^ β * R ^ (-β) := mul_le_mul_of_nonneg_left h3 (Real.rpow_nonneg hR₃.le _)
-    calc C₀ * X.bound ≤ C₀ * X.bound * (R₃ ^ β * R ^ (-β)) :=
+    calc C₀ * B ≤ C₀ * B * (R₃ ^ β * R ^ (-β)) :=
           le_mul_of_one_le_right (by positivity) h2
-      _ = (C₀ * X.bound * R₃ ^ β) * R ^ (-β) := by ring
+      _ = (C₀ * B * R₃ ^ β) * R ^ (-β) := by ring
       _ ≤ C * R ^ (-β) := mul_le_mul_of_nonneg_right (by rw [hCdef]; linarith) hRβ
   push Not at hRs
   have hR2 : 2 ≤ R := (le_max_left _ _).trans hRs
@@ -190,7 +191,7 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
       (fun a => ∫ y, (cellAt z R k).indicator (heatKernel z ρ) y * X.field r a y) s
       (cellMax ρ k * (R ^ d * (Cb * R ^ (-β)))) := by
     intro k _
-    have h1 := centeredOsBound_of_rpow_neg_mul hR0 (hBlock R R hR le_rfl r le_rfl
+    have h1 := centeredOsBound_of_rpow_neg_mul hR0 (hBlock X R R hR le_rfl r le_rfl
       (Real.rpow_le_rpow_of_exponent_le hR hη₁₂.le) _ (w k) (hwm k) (hw1 k) (hwz k))
     have h2 := h1.const_mul (cellMax_pos hρ k)
     convert h2 using 1
@@ -222,7 +223,7 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
   have hΦi : Integrable (S.indicator (heatKernel z ρ)) := (integrable_heatKernel z hρ).indicator hSm
   have hΦm : Measurable (S.indicator (heatKernel z ρ)) :=
     ((measurable_heatKernel_prod ρ).comp (measurable_const.prodMk measurable_id)).indicator hSm
-  set b : ℝ := X.bound * (2 ^ ((d : ℝ) / 2) * Real.exp (-(((N : ℝ) * R) ^ 2 / (8 * ρ ^ 2))))
+  set b : ℝ := B * (2 ^ ((d : ℝ) / 2) * Real.exp (-(((N : ℝ) * R) ^ 2 / (8 * ρ ^ 2))))
     with hbdef
   have hb : 0 < b := by positivity
   have hfarB : ∀ a, |∫ y, S.indicator (heatKernel z ρ) y * X.field r a y| ≤ b := by
@@ -238,7 +239,7 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
     exact setIntegral_heatKernel_le_of_far z hρ (by positivity) hSm hfarS
   have hfar := h₀ P _ b (measurable_integral_mul hΦm (X.measurable r)) hb hfarB
     (integral_integral_mul_eq_zero (X.measurable r) (X.abs_le r) (X.centered r) hΦi)
-  have hble : C₀ * b ≤ C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by
+  have hble : C₀ * b ≤ C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by
     have h1 : Real.exp (-(((N : ℝ) * R) ^ 2 / (8 * ρ ^ 2))) ≤ Real.exp (-(1 / 8 * R ^ (2 : ℝ))) := by
       refine Real.exp_le_exp.mpr (neg_le_neg ?_)
       rw [Real.rpow_two, le_div_iff₀ (by positivity)]
@@ -251,12 +252,12 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
       rw [e1]
       linarith
     have h2 := hexp R hR
-    have hB' : 0 ≤ C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) := by positivity
-    calc C₀ * b = C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) *
+    have hB' : 0 ≤ C₀ * (B * 2 ^ ((d : ℝ) / 2)) := by positivity
+    calc C₀ * b = C₀ * (B * 2 ^ ((d : ℝ) / 2)) *
           Real.exp (-(((N : ℝ) * R) ^ 2 / (8 * ρ ^ 2))) := by rw [hbdef]; ring
-      _ ≤ C₀ * (X.bound * 2 ^ ((d : ℝ) / 2)) * (Ce * R ^ (-β)) :=
+      _ ≤ C₀ * (B * 2 ^ ((d : ℝ) / 2)) * (Ce * R ^ (-β)) :=
           mul_le_mul_of_nonneg_left (h1.trans h2) hB'
-      _ = C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by ring
+      _ = C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by ring
   have hall := (hadd.add hsum).add hfar
   refine hall.congr_ae ((X.measurable R).comp (measurable_id.prodMk measurable_const))
     (Filter.Eventually.of_forall fun a => ?_) |>.mono_scale ?_
@@ -287,20 +288,20 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
     beta_reduce
     rw [hint]
     ring
-  · have hr : X.addConst * r ^ (-α) ≤ X.addConst * R ^ (-β) := by
+  · have hr : A * r ^ (-α) ≤ A * R ^ (-β) := by
       refine mul_le_mul_of_nonneg_left ?_ hA.le
       rw [hrdef, ← Real.rpow_mul hR0.le]
       have e : η₁ * -α = -(η₁ * α) := by ring
       exact Real.rpow_le_rpow_of_exponent_le hR (by rw [e]; linarith)
-    calc X.addConst * r ^ (-α) + ∑ k ∈ latticeBox d N,
+    calc A * r ^ (-α) + ∑ k ∈ latticeBox d N,
           cellMax ρ k * (R ^ d * (Cb * R ^ (-β))) + C₀ * b
-        ≤ X.addConst * R ^ (-β) + Cb * G * R ^ (-β) +
-          C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by gcongr
-      _ = (X.addConst + Cb * G + C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Ce)) * R ^ (-β) := by ring
+        ≤ A * R ^ (-β) + Cb * G * R ^ (-β) +
+          C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by gcongr
+      _ = (A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce)) * R ^ (-β) := by ring
       _ ≤ C * R ^ (-β) := by
           refine mul_le_mul_of_nonneg_right ?_ hRβ
           rw [hCdef]
-          have : 0 ≤ C₀ * X.bound * R₃ ^ β := by positivity
+          have : 0 ≤ C₀ * B * R₃ ^ β := by positivity
           linarith
 
 end QSH

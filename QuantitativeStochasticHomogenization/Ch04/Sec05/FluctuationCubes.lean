@@ -20,7 +20,7 @@ namespace QSH
 
 variable {d : ℕ}
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
-  {s δ α : ℝ}
+  {s δ α B A : ℝ}
 
 theorem centeredOsBound_of_rpow_neg_mul {V : Ω → ℝ} {R θ : ℝ} (hR : 0 < R)
     (h : CenteredOsBound P (fun a => R ^ (-(d : ℝ)) * V a) s θ) :
@@ -75,7 +75,7 @@ theorem scale_bigCubes_le {R C β : ℝ} (hR : 0 < R) (hC : 0 ≤ C) (hβ : β �
 
 /-- **The `2^d` large cubes** (Step 2 of the proof of Proposition 4.12). -/
 theorem centeredOsBound_sum_bigCubes [IsProbabilityMeasure P] (hF : HasUnitRange P F)
-    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α) {η₁ η₂ β R₁ C : ℝ}
+    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α B A) {η₁ η₂ β R₁ C : ℝ}
     (hA : BlockBound X η₁ η₂ β R₁ C) (hβ : β ≤ (d : ℝ) / 2) (hC : 0 ≤ C) {R R' r₁ : ℝ}
     (hR2 : 1 ≤ R / 2) (hRR₁ : R / 2 ≤ R₁) (hr₁ : 1 ≤ r₁) (hr₁lo : (R / 2) ^ η₁ ≤ r₁)
     (hr₁hi : r₁ ≤ (R / 2) ^ η₂) (hsep : 1 < R' - 2 * r₁ ^ (1 + δ)) (z : Vec d)
@@ -121,7 +121,7 @@ theorem centeredOsBound_sum_bigCubes [IsProbabilityMeasure P] (hF : HasUnitRange
 weights supported in the cells `closedCube (z + R' k) R'`, `k ∈ T`, have a sum
 `𝒪_s((2 · 4^d)^{1/2} |T|^{1/2} R'^d C R'^{-β})`. -/
 theorem centeredOsBound_sum_cells [IsProbabilityMeasure P] (hF : HasUnitRange P F)
-    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α) {η₁ η₂ β R₁ C : ℝ}
+    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α B A) {η₁ η₂ β R₁ C : ℝ}
     (hA : BlockBound X η₁ η₂ β R₁ C) (hC : 0 ≤ C) {R' r₁ : ℝ} (hR'1 : 1 ≤ R') (hR'R₁ : R' ≤ R₁)
     (hr₁ : 1 ≤ r₁) (hr₁lo : R' ^ η₁ ≤ r₁) (hr₁hi : r₁ ≤ R' ^ η₂) (hρ : r₁ ^ (1 + δ) ≤ R' / 2)
     (z : Vec d) (T : Finset (LatticeIndex d)) (hT : T.Nonempty) {g : LatticeIndex d → Vec d → ℝ}

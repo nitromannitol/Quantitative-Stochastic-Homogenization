@@ -65,7 +65,7 @@ theorem abs_sub_lt_of_mem_euclideanThickening_closedCube {c : Vec d} {L ρ : ℝ
 /-! ### Heat averages of blocks -/
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
-  {s δ α : ℝ}
+  {s δ α B A : ℝ}
 
 theorem measurable_heatAverage (G : Ω → Vec d → ℝ)
     (hG : Measurable fun w : Ω × Vec d => G w.1 w.2) (ρ : ℝ) :
@@ -78,12 +78,12 @@ theorem measurable_heatAverage (G : Ω → Vec d → ℝ)
 /-- **Step 1 of the proof of Proposition 4.12**: in a block, replacing `X(r)` by the heat average
 of `X(r₁)` costs `𝒪_s(C r₁^{-α})`. -/
 theorem centeredOsBound_block_additivity_defect [IsProbabilityMeasure P]
-    (X : CenteredLocalFields P F s δ α) {r₁ r : ℝ} (hr₁ : 1 ≤ r₁) (hr : r₁ < r) {z : Vec d}
+    (X : CenteredLocalFields P F s δ α B A) {r₁ r : ℝ} (hr₁ : 1 ≤ r₁) (hr : r₁ < r) {z : Vec d}
     {R : ℝ} (hR : 0 < R) {f : Vec d → ℝ} (hf : Measurable f) (hf1 : ∀ x, |f x| ≤ 1)
     (hfz : ∀ x ∉ closedCube z R, f x = 0) :
     CenteredOsBound P (fun a => R ^ (-(d : ℝ)) * ∫ x, f x * (X.field r a x -
       ∫ y, heatKernel x (Real.sqrt (r ^ 2 - r₁ ^ 2)) y * X.field r₁ a y))
-      s (X.addConst * r₁ ^ (-α)) := by
+      s (A * r₁ ^ (-α)) := by
   have hDm : Measurable fun w : Ω × Vec d => X.field r w.1 w.2 -
       ∫ y, heatKernel w.2 (Real.sqrt (r ^ 2 - r₁ ^ 2)) y * X.field r₁ w.1 y :=
     (X.measurable r).sub (measurable_heatAverage _ (X.measurable r₁) _)
@@ -208,14 +208,14 @@ theorem integrable_heatSmooth {f : Vec d → ℝ} (hf : Integrable f) (hfm : Mea
 /-- **The far part of a block** (the Gaussian tail (4.123) in Step 2): if every `y ∈ S` is at
 Euclidean distance at least `t` from every `x ∈ closedCube z R`, the centered block
 `R^{-d} ∫_S g X(r₁)` is `𝒪_s(C(s) B 2^{d/2} exp(-t²/(8ρ²)))`. -/
-theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) :
-    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ [IsProbabilityMeasure P] (X : CenteredLocalFields P F s δ α) (r₁ : ℝ)
+theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) :
+    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ [IsProbabilityMeasure P] (X : CenteredLocalFields P F s δ α B A) (r₁ : ℝ)
       {z : Vec d} {R ρ t : ℝ}, 0 < R → 0 < ρ → 0 ≤ t → ∀ {f : Vec d → ℝ}, Measurable f →
       (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) → ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
         ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
-        (C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) := by
+        (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) := by
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
   refine ⟨C₀, hC₀, ?_⟩
   intro _ X r₁ z R ρ t hR hρ ht f hf hf1 hfz S hS hfar
@@ -246,17 +246,17 @@ theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) :
       _ ≤ R ^ d * e := mul_le_mul_of_nonneg_right
             (integral_abs_le_of_closedCube hf hf1 hR.le hfz) he.le
   have hbound : ∀ a, |R ^ (-(d : ℝ)) * ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y| ≤
-      X.bound * e := by
+      B * e := by
     intro a
     rw [abs_mul, abs_of_pos (Real.rpow_pos_of_pos hR _)]
     calc R ^ (-(d : ℝ)) * |∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y|
-        ≤ R ^ (-(d : ℝ)) * (X.bound * (R ^ d * e)) :=
+        ≤ R ^ (-(d : ℝ)) * (B * (R ^ d * e)) :=
           mul_le_mul_of_nonneg_left ((abs_integral_mul_le (X.abs_le r₁) hgi a).trans
-            (mul_le_mul_of_nonneg_left hint_g X.bound_pos.le)) (Real.rpow_nonneg hR.le _)
-      _ = X.bound * e := by
+            (mul_le_mul_of_nonneg_left hint_g hB0.le)) (Real.rpow_nonneg hR.le _)
+      _ = B * e := by
           rw [← Real.rpow_natCast, mul_left_comm, ← mul_assoc (R ^ (-(d : ℝ))),
             ← Real.rpow_add hR, neg_add_cancel, Real.rpow_zero, one_mul]
-  have h := h₀ P _ (X.bound * e) (measurable_block X r₁ hgm _) (mul_pos X.bound_pos he) hbound
+  have h := h₀ P _ (B * e) (measurable_block X r₁ hgm _) (mul_pos hB0 he) hbound
     (integral_block_eq_zero X r₁ hgi _)
   simpa only [hedef, mul_assoc] using h
 
