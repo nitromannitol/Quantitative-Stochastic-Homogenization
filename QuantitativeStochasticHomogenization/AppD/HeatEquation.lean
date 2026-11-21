@@ -75,4 +75,54 @@ theorem hasDerivAt_heatKernel1_time {t : ℝ} (ht : 0 < t) (y : ℝ) :
   field_simp
   ring
 
+/-! ## The heat equation in dimension `d` -/
+
+variable {d : ℕ}
+
+/-- `∂ₜ Φ(t, s) = (∑ⱼ (sⱼ²/(4t²) - 1/(2t))) Φ(t, s)`. -/
+def kernelTimeDeriv (t : ℝ) (s : Vec d) : ℝ :=
+  (∑ j, heatFactor t (s j)) * euclideanHeatKernel t s
+
+theorem hasDerivAt_euclideanHeatKernel_time {t : ℝ} (ht : 0 < t) (s : Vec d) :
+    HasDerivAt (fun τ => euclideanHeatKernel τ s) (kernelTimeDeriv t s) t := by
+  classical
+  have hev : (fun τ => euclideanHeatKernel τ s) =ᶠ[nhds t] fun τ => ∏ i, heatKernel1 τ (s i) := by
+    filter_upwards [lt_mem_nhds ht] with τ hτ
+    rw [euclideanHeatKernel_eq_prodFun hτ, prodFun]
+  refine HasDerivAt.congr_of_eventuallyEq ?_ hev
+  have hp := HasDerivAt.fun_finsetProd (u := Finset.univ) (x := t)
+    (f := fun i τ => heatKernel1 τ (s i)) fun i _ => hasDerivAt_heatKernel1_time ht (s i)
+  refine hp.congr_deriv ?_
+  rw [kernelTimeDeriv, euclideanHeatKernel_eq_prodFun ht, prodFun, Finset.sum_mul]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [smul_eq_mul, ← Finset.mul_prod_erase Finset.univ (fun j => heatKernel1 t (s j))
+    (Finset.mem_univ i)]
+  ring
+
+/-- The Laplacian `∑ⱼ ∂ⱼ∂ⱼ χ` in coordinates. -/
+def coordLaplacian (χ : Vec d → ℝ) (x : Vec d) : ℝ :=
+  ∑ j, coordinateDerivative j (coordinateDerivative j χ) x
+
+theorem coordLaplacian_euclideanHeatKernel {t : ℝ} (ht : 0 < t) (s : Vec d) :
+    coordLaplacian (euclideanHeatKernel t) s = kernelTimeDeriv t s := by
+  classical
+  unfold coordLaplacian kernelTimeDeriv
+  rw [Finset.sum_mul]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  have h := foldr_coordinateDerivative_prodFun (fun _ => contDiff_heatKernel1 t) [j, j]
+  simp only [List.foldr_cons, List.foldr_nil] at h
+  rw [euclideanHeatKernel_eq_prodFun ht, h, prodFun, prodFun,
+    ← Finset.mul_prod_erase Finset.univ _ (Finset.mem_univ j),
+    ← Finset.mul_prod_erase Finset.univ (fun i => heatKernel1 t (s i)) (Finset.mem_univ j)]
+  have hcj : List.count j [j, j] = 2 := by simp
+  rw [hcj, iteratedDeriv_two_heatKernel1 ht]
+  have hrest : ∏ x ∈ Finset.univ.erase j, iteratedDeriv (List.count x [j, j]) (heatKernel1 t) (s x) =
+      ∏ x ∈ Finset.univ.erase j, heatKernel1 t (s x) := by
+    refine Finset.prod_congr rfl fun i hi => ?_
+    have hij : i ≠ j := Finset.ne_of_mem_erase hi
+    have : List.count i [j, j] = 0 := by simp [List.count_cons, Ne.symm hij]
+    rw [this, iteratedDeriv_zero]
+  rw [hrest]
+  ring
+
 end QSH
