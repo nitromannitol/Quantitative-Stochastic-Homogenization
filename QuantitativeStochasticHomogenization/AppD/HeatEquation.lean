@@ -9,8 +9,8 @@ Appendix D (Sobolev norms and heat flow): the one-dimensional heat kernel
 (`hasDerivAt_heatKernel1_time`, `iteratedDeriv_two_heatKernel1`).
 -/
 
-open MeasureTheory
-open scoped ContDiff
+open MeasureTheory Filter
+open scoped ContDiff Topology Convolution
 
 noncomputable section
 
@@ -242,5 +242,94 @@ theorem hasDerivAt_heatSmooth {t : ℝ} (ht : 0 < t) {χ : Vec d → ℝ} (hχ :
   congr 1
   funext s
   rw [coordLaplacian, Finset.mul_sum]
+
+/-! ## The heat smoothing at time zero -/
+
+theorem norm_sq_le_euclideanSq (v : Vec d) : ‖v‖ ^ 2 ≤ euclideanSq v := by
+  have h : ‖v‖ ≤ Real.sqrt (euclideanSq v) :=
+    (pi_norm_le_iff_of_nonneg (Real.sqrt_nonneg _)).mpr fun i => by
+      rw [Real.norm_eq_abs]
+      unfold euclideanSq dot
+      apply Real.abs_le_sqrt
+      rw [sq]
+      exact Finset.single_le_sum (f := fun j => v j * v j) (fun j _ => mul_self_nonneg _)
+        (Finset.mem_univ i)
+  have h0 : 0 ≤ euclideanSq v := by
+    unfold euclideanSq dot; exact Finset.sum_nonneg fun i _ => mul_self_nonneg _
+  calc ‖v‖ ^ 2 ≤ Real.sqrt (euclideanSq v) ^ 2 := pow_le_pow_left₀ (norm_nonneg v) h 2
+    _ = euclideanSq v := Real.sq_sqrt h0
+
+theorem tendsto_norm_pow_mul_euclideanHeatKernel_one :
+    Tendsto (fun x : Vec d => ‖x‖ ^ d * euclideanHeatKernel 1 x) (Bornology.cobounded (Vec d))
+      (𝓝 0) := by
+  have hdecay : Tendsto (fun r : ℝ => (r ^ 2) ^ ((d : ℝ) / 2) * Real.exp (-(1 / 4) * r ^ 2))
+      atTop (𝓝 0) :=
+    (tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero ((d : ℝ) / 2) (1 / 4) (by norm_num)).comp
+      (tendsto_pow_atTop two_ne_zero)
+  have hc := (hdecay.comp (tendsto_norm_cobounded_atTop (E := Vec d))).const_mul
+    ((4 * Real.pi * 1) ^ (-(d : ℝ) / 2))
+  rw [mul_zero] at hc
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hc (fun x => ?_) (fun x => ?_)
+  · exact mul_nonneg (pow_nonneg (norm_nonneg x) d) (euclideanHeatKernel_nonneg zero_le_one x)
+  · simp only [Function.comp]
+    unfold euclideanHeatKernel
+    have h1 : (‖x‖ ^ 2) ^ ((d : ℝ) / 2) = ‖x‖ ^ d := by
+      rw [← Real.rpow_natCast, ← Real.rpow_mul (norm_nonneg x)]
+      rw [← Real.rpow_natCast]
+      congr 1
+      ring
+    rw [h1]
+    have h2 : Real.exp (-euclideanSq x / (4 * 1)) ≤ Real.exp (-(1 / 4) * ‖x‖ ^ 2) := by
+      apply Real.exp_le_exp.mpr
+      have := norm_sq_le_euclideanSq x
+      linarith
+    have h3 : 0 ≤ (4 * Real.pi * 1) ^ (-(d : ℝ) / 2) := Real.rpow_nonneg (by positivity) _
+    calc ‖x‖ ^ d * ((4 * Real.pi * 1) ^ (-(d : ℝ) / 2) * Real.exp (-euclideanSq x / (4 * 1)))
+        ≤ ‖x‖ ^ d * ((4 * Real.pi * 1) ^ (-(d : ℝ) / 2) * Real.exp (-(1 / 4) * ‖x‖ ^ 2)) := by
+          gcongr
+      _ = (4 * Real.pi * 1) ^ (-(d : ℝ) / 2) * (‖x‖ ^ d * Real.exp (-(1 / 4) * ‖x‖ ^ 2)) := by
+          ring
+
+theorem euclideanHeatKernel_eq_scale {t : ℝ} (ht : 0 < t) (v : Vec d) :
+    euclideanHeatKernel t v = (t ^ (-(1 : ℝ) / 2)) ^ d * euclideanHeatKernel 1 (t ^ (-(1 : ℝ) / 2) • v) := by
+  unfold euclideanHeatKernel
+  have hc : 0 < t ^ (-(1 : ℝ) / 2) := Real.rpow_pos_of_pos ht _
+  have hsq : euclideanSq (t ^ (-(1 : ℝ) / 2) • v) = t⁻¹ * euclideanSq v := by
+    simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    have : t ^ (-(1 : ℝ) / 2) * t ^ (-(1 : ℝ) / 2) = t⁻¹ := by
+      rw [← Real.rpow_add ht, ← Real.rpow_neg_one]; norm_num
+    calc t ^ (-(1 : ℝ) / 2) * v i * (t ^ (-(1 : ℝ) / 2) * v i)
+        = (t ^ (-(1 : ℝ) / 2) * t ^ (-(1 : ℝ) / 2)) * (v i * v i) := by ring
+      _ = t⁻¹ * (v i * v i) := by rw [this]
+  rw [hsq]
+  have h1 : (4 * Real.pi * t) ^ (-(d : ℝ) / 2) =
+      (t ^ (-(1 : ℝ) / 2)) ^ d * (4 * Real.pi * 1) ^ (-(d : ℝ) / 2) := by
+    rw [mul_one, Real.mul_rpow (by positivity) ht.le, ← Real.rpow_natCast,
+      ← Real.rpow_mul ht.le]
+    ring_nf
+  rw [h1]
+  have h2 : -euclideanSq v / (4 * t) = -(t⁻¹ * euclideanSq v) / (4 * 1) := by
+    field_simp
+  rw [h2]
+  ring
+
+/-- **The heat smoothing at time zero**: `Φ(t) ∗ ψ → ψ` pointwise as `t → 0⁺`, for a continuous
+compactly supported `ψ`. -/
+theorem tendsto_heatSmooth_zero {ψ : Vec d → ℝ} (hψ : Continuous ψ) (hcψ : HasCompactSupport ψ)
+    (x : Vec d) : Tendsto (fun t => heatSmooth t ψ x) (𝓝[>] 0) (𝓝 (ψ x)) := by
+  have h := tendsto_integral_comp_smul_smul_of_integrable' (μ := (volume : Measure (Vec d)))
+    (φ := euclideanHeatKernel 1) (fun y => euclideanHeatKernel_nonneg zero_le_one y)
+    (integral_euclideanHeatKernel one_pos)
+    (by rw [Module.finrank_fin_fun]; exact tendsto_norm_pow_mul_euclideanHeatKernel_one)
+    (hψ.integrable_of_hasCompactSupport hcψ) hψ.continuousAt (x₀ := x)
+  have hc := h.comp (tendsto_rpow_neg_nhdsGT_zero (y := -(1 : ℝ) / 2) (by norm_num))
+  refine hc.congr' ?_
+  filter_upwards [self_mem_nhdsWithin] with t ht
+  simp only [Function.comp, Module.finrank_fin_fun, heatSmooth, convolution_eq_swap,
+    ContinuousLinearMap.lsmul_apply, smul_eq_mul]
+  refine integral_congr_ae (Eventually.of_forall fun y => ?_)
+  simp only
+  rw [euclideanHeatKernel_eq_scale ht]
 
 end QSH
