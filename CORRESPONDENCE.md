@@ -7,4 +7,90 @@ and the statement makes explicit, a measurability, integrability or summability 
 book takes for granted, and any other difference between a statement of the book and its Lean
 form. Each entry names the numbered result of the book and the Lean declaration.
 
-No result of the book is formalized in this repository yet, so there is no entry yet.
+The material of Appendix A, of the opening of Chapter 4 and of Section 4.2 listed below was moved
+from [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean); the header
+of each module names the source files and commits.
+
+## Appendix A: The O_s Notation (`AppA/OsNotation.lean`)
+
+- **(A.1), `OsBound P X s θ`.** The measurability of `X` and the positivity of `s` and `θ` are part
+  of the definition, `X₊ = max X 0`, and the expectation is the lower Lebesgue integral of
+  `exp((θ⁻¹ X₊)^s)`, so that no integrability condition is needed.
+- **The notation `X = O_s(θ)` (after (A.2)).** Several statements (Definitions 4.7–4.9, Lemma A.9)
+  bound `|X| ≤ O_s(θ)` instead of the pair `X ≤ O_s(θ)`, `-X ≤ O_s(θ)`. The two are equivalent up
+  to the factor `2^{1/s}`: `OsBound.of_abs` and `OsBound.abs_of_neg`.
+- **Lemma A.1.** `OsBound.measureReal_ge_le` and `osBound_of_measureReal_ge_le`, as in the book,
+  for a probability measure and a measurable `X`; both are proved through the corresponding
+  statements of subdiffusive-process (`osBound_iff_ogammaLE` identifies the two notions).
+- **Remark A.2.** In place of (A.3), `osBound_of_tail` assumes `P[X ≥ t A] ≤ exp(-t^q)` for
+  `t ≥ 1` and some `q ≥ s`, and concludes `X ≤ O_s(8^{1/s} A)`.
+- **Lemma A.3.** (i) `OsBound.of_mem_Icc` and (ii) `OsBound.mul`, as in the book. A rule that is
+  not in the book, `OsBound.mono_exponent`, passes to a smaller exponent on a probability space:
+  `X ≤ O_s(θ)` and `0 < s' ≤ s` give `X ≤ O_{s'}((2e - 1)^{1/s'} θ)`.
+- **Lemma A.4.** Only the case `s ≥ 1` with `C_s = 1` for finite sums is formalized
+  (`osBound_finset_sum`); the general measure and the case `s < 1` are not.
+- **(A.12), `CenteredOsBound P X s θ`.** The condition `log E[exp(λ θ⁻¹ X)] ≤ λ² ∨ |λ|^{s/(s-1)}` is
+  stated as `E[exp(λ θ⁻¹ X)] ≤ exp(λ² ∨ |λ|^{s/(s-1)})` together with the integrability of
+  `exp(λ θ⁻¹ X)` for every real `λ`; the measurability of `X`, `s ∈ (1, 2]` and `θ > 0` are part
+  of the definition.
+- **Lemma A.9.** First implication: `CenteredOsBound.osBound_abs` (`|X| ≤ O_s(4 · 8^{1/s} θ)`) and
+  `CenteredOsBound.osBound_and_neg` (the form of the book, `C = 4 · 8^{1/s}`); the proof is the
+  Chernoff bound and `osBound_of_tail`, not Lemma A.5. Second implication:
+  `exists_centeredOsBound_of_osBound` (the form of the book) and
+  `exists_centeredOsBound_of_osBound_abs` (from `|X| ≤ O_s(θ)`); the proof uses the one-variable
+  bounds of the moment generating function of the library CoarseGraining (quadratic for small
+  parameters and mean zero, and the large-parameter regime) in place of Lemmas A.5 and A.8. The
+  constant is chosen before the probability space, which ranges over a fixed universe.
+- **Lemma A.10.** `centeredOsBound_integral` is the case of a constant scale `θ` on a finite measure
+  `μ ≠ 0`, with the scale `μ(E) θ = ∫ θ dμ` and `C = 1`, for a jointly measurable family; the book
+  allows a measurable scale `θ(x)` and an arbitrary measure. `exists_centeredOsBound_integral_sub`
+  combines it with Lemma A.9 for the centered average of a bounded family with
+  `|V(x)| ≤ O_s(θ)`.
+- **Lemma A.11.** `centeredOsBound_sum`, with `C = √2`, and `centeredOsBound_sum_of_eq_scale`, with
+  `C = 1` for equal scales, for a family indexed by a finite type and independent in the sense of
+  `iIndepFun`. The scales are positive (the book allows `θᵢ ≥ 0`).
+- **Lemma A.12.** `centeredOsBound_sum_of_localSigma_cube` (coefficient fields under (P1)–(P2)) and
+  `centeredOsBound_sum_of_measurable_cube` (an abstract monotone family `F` of σ-algebras with a
+  unit range of dependence, `HasUnitRange`): the set `Z ⊆ R ℤ^d` is `R I` for a finite nonempty
+  set `I` of lattice indices, `□_{2R}(R k)` is the open cube `cube (R • k) (2R)`, and
+  `C = (2 · 4^d)^{1/2}` depends on `d` (as the proof of the book does, through its `3^d`
+  classes). The partition is by the residues of `k` modulo `4` instead of the translates of
+  `(3R ℤ)^d`. The general forms are `centeredOsBound_lattice_sum` (measurable sets inside the
+  cubes) and `centeredOsBound_sum_of_colouring` (any colouring with separated classes, with
+  `C = (2N)^{1/2}` for `N` colours).
+- Lemmas A.5, A.7 and A.8 are not formalized.
+
+## Chapter 4, opening (`Ch04/Opening.lean`)
+
+- The semigroup property of the heat kernel, used without a number in the book:
+  `integral_euclideanHeatKernel_mul` (`Φ(t) ∗ Φ(s) = Φ(t + s)`) and
+  `integral_heatKernel_mul_heatKernel` (`∫ Φ_{z,ρ}(y) Φ_{y,r}(w) dy = Φ_{z,√(ρ² + r²)}(w)`), for
+  `t, s, ρ, r > 0`.
+
+## Section 4.2 (`Ch04/Sec02AdditiveStructureOfJ1.lean`)
+
+- **Definitions 4.7–4.9.** `AddEstimate`, `FlucEstimate` and `LocEstimate` are stated for an
+  arbitrary random field `J(a, z, r, p, q)` and an arbitrary family `F` of local σ-algebras; for
+  `J₁(Φ_{z,r}, p, q)` and the σ-algebras `F(U)` of (0.9) they are `AddJ1`, `FlucJ1` and `LocJ1`.
+  The equalities `X = Y + O_s(C r^{-α})` are stated as `|X - Y| ≤ O_s(C r^{-α})` (see Appendix A),
+  `B₁` is the open unit ball, and the constant `C > 0` is existential. Definition 4.7 is stated
+  for `1 ≤ r < R` (the book writes `1 ≤ r ≤ R`; the mask `Φ_{z,0}` is not defined), with the
+  almost sure integrability of `x ↦ Φ_{z,√(R²-r²)}(x) J(x, r, p, q)`; Definition 4.8 includes the
+  integrability of `J(z, r, p, q)`.
+- **Propositions 4.10–4.12** are not proved. Their conclusions are the definitions
+  `ImprovementOfAdditivity`, `LocalizationEstimates` and `FluctuationEstimates` (and
+  `LocalizationEstimatesFor`, `FluctuationEstimatesFor` for any localization statement monotone in
+  its exponent).
+- **Theorem 4.6 (i), (iii), (iv).** `additiveStructure_J1` (and `additiveStructure_of_bootstrap`,
+  `additiveStructure_of_bootstrapFor` for an abstract field) assume `d ≥ 1`, a probability
+  measure, the conclusions of Propositions 4.10–4.12, and, for each `s ∈ (1, 2)`, an exponent
+  `α₀ > 0` with `Fluc(s, α₀)` (supplied in the book by Proposition 4.3). The proof follows the
+  book with two changes: Proposition 4.12 is stated for `s ∈ (1, 2]`, so Steps 1 and 2 are run for
+  `s ∈ (1, 2)` and the exponents `s ≤ 1` are reached by `OsBound.mono_exponent`; in Step 3 the
+  auxiliary exponent is `α = d/2 - δ/(2(1+δ))`, for which `α(1+δ) + δ = d/2 (1+δ) + δ/2 >
+  d/2 (1+δ)`. Part (ii) is not formalized.
+- **`LocFieldEstimate`.** The proof of Proposition 4.12 integrates the localized variables
+  `x ↦ J₁^{(δ)}(x, r, p, q)` over boxes and uses the independence of integrals over boxes at
+  distance larger than one, which needs a family that is jointly measurable in the coefficients
+  and the center. `LocFieldEstimate` states localization by such a family and implies
+  `LocEstimate` (`LocFieldEstimate.locEstimate`).

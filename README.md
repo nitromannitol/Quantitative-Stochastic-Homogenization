@@ -42,14 +42,15 @@ stationary under translations by `ℤᵈ`, and has a unit range of dependence (t
 
 ## Status
 
-The repository is a scaffold: the modules, one per section of the book, carry a docstring and no
-declaration yet, and no result of the book is proved here. [`ROADMAP.md`](ROADMAP.md) lists every
-numbered result of the book (226 of them, by chapter and section) with its status.
+The modules, one per section of the book, carry a docstring and, so far, the notation of the
+frozen statements, the `O_s` calculus of Appendix A and the additive structure of Section 4.2.
+[`ROADMAP.md`](ROADMAP.md) lists every numbered result of the book (226 of them, by chapter and
+section) with its status.
 
 The current priority is the frozen statements needed by
 [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in
-[`FROZEN.md`](FROZEN.md). Some material is being moved here from that repository: the `O_s` calculus of
-Appendix A, Definitions 4.7–4.9, and parts (i), (iii) and (iv) of Theorem 4.6 conditional on
+[`FROZEN.md`](FROZEN.md). Some material was moved here from that repository: the `O_s` calculus of Appendix A,
+Definitions 4.7–4.9, and parts (i), (iii) and (iv) of Theorem 4.6 conditional on
 Propositions 4.10–4.12. Where a proof departs from the book, [`CORRESPONDENCE.md`](CORRESPONDENCE.md)
 records it.
 
