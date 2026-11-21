@@ -200,6 +200,18 @@ theorem continuous_energyForm (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) :
     fun_prop
   exact hW.comp h1
 
+theorem Continuous.energyForm {X : Type*} [TopologicalSpace X] (a : CoefficientField d Λ)
+    (hΛ : 0 ≤ Λ) {f g : X → PairSpace d z T} (hf : Continuous f) (hg : Continuous g) :
+    Continuous fun x => energyForm a (f x) (g x) := by
+  unfold QSH.energyForm
+  refine continuous_finsetSum _ fun k _ => continuous_finsetSum _ fun l _ => ?_
+  have hW := continuous_weightedPairing (μ := ballMeasure z T)
+    (aestronglyMeasurable_coefficient_ball a k l) hΛ (coefficient_bound a k l)
+  have h1 : Continuous fun x => ((f x).2 l, (g x).2 k) :=
+    ((continuous_apply l).comp (continuous_snd.comp hf)).prodMk
+      ((continuous_apply k).comp (continuous_snd.comp hg))
+  exact hW.comp h1
+
 /-- The energy form is measurable in the coefficients for the local σ-algebra. -/
 theorem measurable_energyForm (F H : PairSpace d z T) :
     @Measurable (CoefficientField d Λ) ℝ (localSigma (ball z T)) _
