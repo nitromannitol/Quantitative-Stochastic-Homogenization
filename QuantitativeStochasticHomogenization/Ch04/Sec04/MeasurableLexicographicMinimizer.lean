@@ -140,19 +140,21 @@ theorem exists_index_of_mem_closure {h : ℕ → E} {y : E} (hy : y ∈ closure 
     mem_closure_iff.1 hy _ hO ⟨hyU, by simp [hδ]⟩
   exact ⟨n, hzU, hzφ⟩
 
-/-- **Measurability of lexicographic minimizers** from a measurable dense sequence. -/
-theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGauge Q)
+/-- **Measurability of lexicographic minimizers** from a measurable dense sequence, for functions
+depending on the parameter. -/
+theorem measurable_lexicographic_minimizer_param {Q : E → ℝ} (hQ : IsQuadraticGauge Q)
     (hQc : Continuous Q) {K : Ω → Set E} (hK : ∀ ω, IsClosed (K ω))
-    {f g : E → ℝ} (hf : Continuous f) (hfc : ∀ ω, ConvexOn ℝ (K ω) f)
-    (hf0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ f y) (hg : Continuous g) (hgc : ∀ ω, ConvexOn ℝ (K ω) g)
-    (hg0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ g y)
-    (hcoer : ∀ ω t, BddAbove (Q '' {y | y ∈ K ω ∧ f y ≤ t}))
+    {F G : Ω → E → ℝ} (hF : ∀ ω, Continuous (F ω)) (hfc : ∀ ω, ConvexOn ℝ (K ω) (F ω))
+    (hf0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ F ω y) (hG : ∀ ω, Continuous (G ω))
+    (hgc : ∀ ω, ConvexOn ℝ (K ω) (G ω)) (hg0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ G ω y)
+    (hcoer : ∀ ω t, BddAbove (Q '' {y | y ∈ K ω ∧ F ω y ≤ t}))
     (h : ℕ → Ω → E) (hh : ∀ n, Measurable (h n)) (hmem : ∀ n ω, h n ω ∈ K ω)
+    (hFm : ∀ n, Measurable fun ω => F ω (h n ω)) (hGm : ∀ n, Measurable fun ω => G ω (h n ω))
     (hdense : ∀ ω, K ω ⊆ closure (Set.range fun n => h n ω))
-    (x : Ω → E) (hxK : ∀ ω, x ω ∈ K ω) (hxf : ∀ ω, ∀ y ∈ K ω, f (x ω) ≤ f y)
-    (hxg : ∀ ω, ∀ y ∈ K ω, f y ≤ f (x ω) → g (x ω) ≤ g y)
-    (huniq : ∀ ω, ∀ y ∈ K ω, (∀ z ∈ K ω, f y ≤ f z) →
-      (∀ z ∈ K ω, f z ≤ f y → g y ≤ g z) → y = x ω) :
+    (x : Ω → E) (hxK : ∀ ω, x ω ∈ K ω) (hxf : ∀ ω, ∀ y ∈ K ω, F ω (x ω) ≤ F ω y)
+    (hxg : ∀ ω, ∀ y ∈ K ω, F ω y ≤ F ω (x ω) → G ω (x ω) ≤ G ω y)
+    (huniq : ∀ ω, ∀ y ∈ K ω, (∀ z ∈ K ω, F ω y ≤ F ω z) →
+      (∀ z ∈ K ω, F ω z ≤ F ω y → G ω y ≤ G ω z) → y = x ω) :
     Measurable x := by
   classical
   set ε : ℕ → ℝ := fun j => 1 / ((j : ℝ) + 1) with hε_def
@@ -160,52 +162,52 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
   have hεanti : Antitone ε := fun j k hjk =>
     one_div_le_one_div_of_le (by positivity) (by exact_mod_cast Nat.add_le_add_right hjk 1)
   have hεlim : Tendsto ε atTop (𝓝 0) := tendsto_one_div_add_atTop_nhds_zero_nat
-  have hfh : ∀ n, Measurable fun ω => f (h n ω) := fun n => hf.measurable.comp (hh n)
-  have hgh : ∀ n, Measurable fun ω => g (h n ω) := fun n => hg.measurable.comp (hh n)
+  have hfh : ∀ n, Measurable fun ω => F ω (h n ω) := hFm
+  have hgh : ∀ n, Measurable fun ω => G ω (h n ω) := hGm
   have hQh : ∀ n, Measurable fun ω => Q (h n ω) := fun n => hQc.measurable.comp (hh n)
   -- the infimum of `f`
-  set m : Ω → ℝ := fun ω => ⨅ n, f (h n ω) with hm_def
+  set m : Ω → ℝ := fun ω => ⨅ n, F ω (h n ω) with hm_def
   have hm_meas : Measurable m := Measurable.iInf hfh
-  have hm_eq : ∀ ω, m ω = f (x ω) := by
+  have hm_eq : ∀ ω, m ω = F ω (x ω) := by
     intro ω
-    have hbdd : BddBelow (Set.range fun n => f (h n ω)) :=
+    have hbdd : BddBelow (Set.range fun n => F ω (h n ω)) :=
       ⟨0, by rintro _ ⟨n, rfl⟩; exact hf0 ω _ (hmem n ω)⟩
     refine le_antisymm (le_of_forall_pos_lt_add fun δ hδ => ?_)
       (le_ciInf fun n => hxf ω _ (hmem n ω))
     obtain ⟨n, -, hn⟩ := exists_index_of_mem_closure (hdense ω (hxK ω)) isOpen_univ
-      (Set.mem_univ _) hf hδ
+      (Set.mem_univ _) (hF ω) hδ
     exact (ciInf_le hbdd n).trans_lt hn
   -- the existence of members of the dense sequence in open sets around `x ω`
   have hex : ∀ ω (U : Set E), IsOpen U → x ω ∈ U → ∃ n, h n ω ∈ U := fun ω U hU hxU => by
-    obtain ⟨n, hn, -⟩ := exists_index_of_mem_closure (hdense ω (hxK ω)) hU hxU hf one_pos
+    obtain ⟨n, hn, -⟩ := exists_index_of_mem_closure (hdense ω (hxK ω)) hU hxU (hF ω) one_pos
     exact ⟨n, hn⟩
   -- the infimum of `g` on the almost minimizers of `f`
-  set PA : ℕ → Ω → ℕ → Prop := fun j ω n => f (h n ω) < m ω + ε j
+  set PA : ℕ → Ω → ℕ → Prop := fun j ω n => F ω (h n ω) < m ω + ε j
   have hPA : ∀ j ω, ∃ n, PA j ω n := fun j ω => by
-    obtain ⟨n, hn⟩ := hex ω {y | f y < m ω + ε j} (isOpen_lt hf continuous_const)
+    obtain ⟨n, hn⟩ := hex ω {y | F ω y < m ω + ε j} (isOpen_lt (hF ω) continuous_const)
       (by simp [hm_eq, hεpos j])
     exact ⟨n, hn⟩
   have hPA_meas : ∀ j n, MeasurableSet {ω | PA j ω n} := fun j n =>
     measurableSet_lt (hfh n) (hm_meas.add_const _)
-  set Nj : ℕ → Ω → ℝ := fun j ω => condInf (PA j ω) (fun n => g (h n ω)) (hPA j ω)
+  set Nj : ℕ → Ω → ℝ := fun j ω => condInf (PA j ω) (fun n => G ω (h n ω)) (hPA j ω)
   have hNj_meas : ∀ j, Measurable (Nj j) := fun j =>
     measurable_condInf (hPA j) (hPA_meas j) hgh
-  have hNj_le : ∀ j ω, Nj j ω ≤ g (x ω) := by
+  have hNj_le : ∀ j ω, Nj j ω ≤ G ω (x ω) := by
     intro j ω
     refine le_of_forall_pos_lt_add fun δ hδ => ?_
     obtain ⟨n, hn, hgn⟩ := exists_index_of_mem_closure (hdense ω (hxK ω))
-      (isOpen_lt hf continuous_const) (show f (x ω) < m ω + ε j by simp [hm_eq, hεpos j]) hg hδ
+      (isOpen_lt (hF ω) continuous_const) (show F ω (x ω) < m ω + ε j by simp [hm_eq, hεpos j]) (hG ω) hδ
     exact (condInf_le (hPA j ω) (fun k => hg0 ω _ (hmem k ω)) hn).trans_lt hgn
   set N : Ω → ℝ := fun ω => ⨆ j, Nj j ω
   have hN_meas : Measurable N := Measurable.iSup hNj_meas
-  have hN_eq : ∀ ω, N ω = g (x ω) := by
+  have hN_eq : ∀ ω, N ω = G ω (x ω) := by
     intro ω
     have hbdd : BddAbove (Set.range fun j => Nj j ω) :=
-      ⟨g (x ω), by rintro _ ⟨j, rfl⟩; exact hNj_le j ω⟩
+      ⟨G ω (x ω), by rintro _ ⟨j, rfl⟩; exact hNj_le j ω⟩
     refine le_antisymm (ciSup_le fun j => hNj_le j ω) ?_
     set L := N ω
     have hNL : ∀ j, Nj j ω ≤ L := fun j => le_ciSup hbdd j
-    set D : ℕ → Set E := fun j => {y | y ∈ {y | y ∈ K ω ∧ f y ≤ m ω + ε j} ∧ g y ≤ L + ε j}
+    set D : ℕ → Set E := fun j => {y | y ∈ {y | y ∈ K ω ∧ F ω y ≤ m ω + ε j} ∧ G ω y ≤ L + ε j}
     have hDanti : Antitone D := by
       intro j k hjk y hy
       exact ⟨⟨hy.1.1, hy.1.2.trans (by linarith [hεanti hjk])⟩, hy.2.trans
@@ -216,7 +218,7 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
         (show Nj j ω < L + ε j by linarith [hNL j, hεpos j])
       exact ⟨h n ω, ⟨hmem n ω, hn.le⟩, hgn.le⟩
     have hDclosed : ∀ j, IsClosed (D j) := fun j =>
-      ((hK ω).inter (isClosed_le hf continuous_const)).inter (isClosed_le hg continuous_const)
+      ((hK ω).inter (isClosed_le (hF ω) continuous_const)).inter (isClosed_le (hG ω) continuous_const)
     have hDconv : ∀ j, Convex ℝ (D j) := fun j =>
       ((hgc ω).subset (fun y hy => hy.1) ((hfc ω).convex_le _)).convex_le _
     have hD0 : BddAbove (Q '' D 0) :=
@@ -224,21 +226,21 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
     obtain ⟨y, hy⟩ := nonempty_iInter_of_isQuadraticGauge hQ D hDanti hDne hDclosed hDconv hD0
     have hy' : ∀ j, y ∈ D j := Set.mem_iInter.1 hy
     have hyK : y ∈ K ω := (hy' 0).1.1
-    have hfy : f y ≤ f (x ω) := by
+    have hfy : F ω y ≤ F ω (x ω) := by
       rw [← hm_eq]
       refine le_of_forall_pos_lt_add fun δ hδ => ?_
       obtain ⟨j, hj⟩ := exists_nat_one_div_lt hδ
       exact lt_of_le_of_lt (hy' j).1.2 (by simp only [hε_def]; linarith)
-    have hgy : g y ≤ L := by
+    have hgy : G ω y ≤ L := by
       refine le_of_forall_pos_lt_add fun δ hδ => ?_
       obtain ⟨j, hj⟩ := exists_nat_one_div_lt hδ
       exact lt_of_le_of_lt (hy' j).2 (by simp only [hε_def]; linarith)
     exact (hxg ω y hyK hfy).trans hgy
   -- the infimum of `Q` on the almost lexicographic minimizers
-  set PB : ℕ → Ω → ℕ → Prop := fun j ω n => f (h n ω) < m ω + ε j ∧ g (h n ω) < N ω + ε j
-  have hBopen : ∀ j ω, IsOpen {y : E | f y < m ω + ε j ∧ g y < N ω + ε j} := fun j ω =>
-    (isOpen_lt hf continuous_const).inter (isOpen_lt hg continuous_const)
-  have hxB : ∀ j ω, x ω ∈ {y : E | f y < m ω + ε j ∧ g y < N ω + ε j} := fun j ω =>
+  set PB : ℕ → Ω → ℕ → Prop := fun j ω n => F ω (h n ω) < m ω + ε j ∧ G ω (h n ω) < N ω + ε j
+  have hBopen : ∀ j ω, IsOpen {y : E | F ω y < m ω + ε j ∧ G ω y < N ω + ε j} := fun j ω =>
+    (isOpen_lt (hF ω) continuous_const).inter (isOpen_lt (hG ω) continuous_const)
+  have hxB : ∀ j ω, x ω ∈ {y : E | F ω y < m ω + ε j ∧ G ω y < N ω + ε j} := fun j ω =>
     ⟨by simp [hm_eq, hεpos j], by simp [hN_eq, hεpos j]⟩
   have hPB : ∀ j ω, ∃ n, PB j ω n := fun j ω => hex ω _ (hBopen j ω) (hxB j ω)
   have hPB_meas : ∀ j n, MeasurableSet {ω | PB j ω n} := fun j n =>
@@ -246,7 +248,7 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
       (measurableSet_lt (hgh n) (hN_meas.add_const _))
   set β : ℕ → Ω → ℝ := fun j ω => condInf (PB j ω) (fun n => Q (h n ω)) (hPB j ω)
   have hβ_meas : ∀ j, Measurable (β j) := fun j => measurable_condInf (hPB j) (hPB_meas j) hQh
-  have hβ_le : ∀ j ω, ∀ y ∈ K ω, f y < m ω + ε j → g y < N ω + ε j → β j ω ≤ Q y := by
+  have hβ_le : ∀ j ω, ∀ y ∈ K ω, F ω y < m ω + ε j → G ω y < N ω + ε j → β j ω ≤ Q y := by
     intro j ω y hyK hfy hgy
     refine le_of_forall_pos_lt_add fun δ hδ => ?_
     obtain ⟨n, hn, hQn⟩ := exists_index_of_mem_closure (hdense ω hyK) (hBopen j ω) ⟨hfy, hgy⟩
@@ -268,7 +270,7 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
   -- convergence to `x`
   have hlim : ∀ ω, Tendsto (fun j => xs j ω) atTop (𝓝 (x ω)) := by
     intro ω
-    set B : ℕ → Set E := fun j => {y | y ∈ K ω ∧ (f y < m ω + ε j ∧ g y < N ω + ε j)}
+    set B : ℕ → Set E := fun j => {y | y ∈ K ω ∧ (F ω y < m ω + ε j ∧ G ω y < N ω + ε j)}
     have hBanti : Antitone B := by
       intro j l hjl y hy
       exact ⟨hy.1, hy.2.1.trans_le (by linarith [hεanti hjl]),
@@ -280,27 +282,27 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
       exact ⟨a1.1, a1.2, a2.2⟩
     have hB0 : BddAbove (Q '' B 0) :=
       (hcoer ω (m ω + ε 0)).mono (Set.image_mono fun y (hy : y ∈ B 0) =>
-        (⟨hy.1, hy.2.1.le⟩ : y ∈ {y | y ∈ K ω ∧ f y ≤ m ω + ε 0}))
+        (⟨hy.1, hy.2.1.le⟩ : y ∈ {y | y ∈ K ω ∧ F ω y ≤ m ω + ε 0}))
     have hxsB : ∀ j, xs j ω ∈ B j := fun j => ⟨hmem _ ω, (hxs_spec j ω).1⟩
     have hxsQ : ∀ j, ∀ y ∈ B j, Q (xs j ω) ≤ Q y + ε j := fun j y hy =>
       ((hxs_spec j ω).2.trans_le (by linarith [hβ_le j ω y hy.1 hy.2.1 hy.2.2])).le
     have hcauchy := cauchySeq_of_almost_minimizers hQ B hBanti hBconv hB0 ε hεanti hεlim
       (fun j => xs j ω) hxsB hxsQ
     obtain ⟨y, hy⟩ := cauchySeq_tendsto_of_complete hcauchy
-    have hyC : ∀ j, y ∈ {y | y ∈ K ω ∧ f y ≤ m ω + ε j ∧ g y ≤ N ω + ε j} := by
+    have hyC : ∀ j, y ∈ {y | y ∈ K ω ∧ F ω y ≤ m ω + ε j ∧ G ω y ≤ N ω + ε j} := by
       intro j
-      have hC : IsClosed {y | y ∈ K ω ∧ f y ≤ m ω + ε j ∧ g y ≤ N ω + ε j} :=
-        (hK ω).inter ((isClosed_le hf continuous_const).inter (isClosed_le hg continuous_const))
+      have hC : IsClosed {y | y ∈ K ω ∧ F ω y ≤ m ω + ε j ∧ G ω y ≤ N ω + ε j} :=
+        (hK ω).inter ((isClosed_le (hF ω) continuous_const).inter (isClosed_le (hG ω) continuous_const))
       refine hC.mem_of_tendsto hy ?_
       filter_upwards [eventually_ge_atTop j] with l hl
       have hl' := hBanti hl (hxsB l)
       exact ⟨hl'.1, hl'.2.1.le, hl'.2.2.le⟩
     have hyK : y ∈ K ω := (hyC 0).1
-    have hfy : f y ≤ m ω := by
+    have hfy : F ω y ≤ m ω := by
       refine le_of_forall_pos_lt_add fun δ hδ => ?_
       obtain ⟨j, hj⟩ := exists_nat_one_div_lt hδ
       exact lt_of_le_of_lt (hyC j).2.1 (by simp only [hε_def]; linarith)
-    have hgy : g y ≤ N ω := by
+    have hgy : G ω y ≤ N ω := by
       refine le_of_forall_pos_lt_add fun δ hδ => ?_
       obtain ⟨j, hj⟩ := exists_nat_one_div_lt hδ
       exact lt_of_le_of_lt (hyC j).2.2 (by simp only [hε_def]; linarith)
@@ -312,5 +314,24 @@ theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGaug
     rw [← hyx]
     exact hy
   exact measurable_of_tendsto_metrizable hxs_meas (tendsto_pi_nhds.2 hlim)
+
+/-- **Measurability of lexicographic minimizers** from a measurable dense sequence. -/
+theorem measurable_lexicographic_minimizer {Q : E → ℝ} (hQ : IsQuadraticGauge Q)
+    (hQc : Continuous Q) {K : Ω → Set E} (hK : ∀ ω, IsClosed (K ω))
+    {f g : E → ℝ} (hf : Continuous f) (hfc : ∀ ω, ConvexOn ℝ (K ω) f)
+    (hf0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ f y) (hg : Continuous g) (hgc : ∀ ω, ConvexOn ℝ (K ω) g)
+    (hg0 : ∀ ω, ∀ y ∈ K ω, 0 ≤ g y)
+    (hcoer : ∀ ω t, BddAbove (Q '' {y | y ∈ K ω ∧ f y ≤ t}))
+    (h : ℕ → Ω → E) (hh : ∀ n, Measurable (h n)) (hmem : ∀ n ω, h n ω ∈ K ω)
+    (hdense : ∀ ω, K ω ⊆ closure (Set.range fun n => h n ω))
+    (x : Ω → E) (hxK : ∀ ω, x ω ∈ K ω) (hxf : ∀ ω, ∀ y ∈ K ω, f (x ω) ≤ f y)
+    (hxg : ∀ ω, ∀ y ∈ K ω, f y ≤ f (x ω) → g (x ω) ≤ g y)
+    (huniq : ∀ ω, ∀ y ∈ K ω, (∀ z ∈ K ω, f y ≤ f z) →
+      (∀ z ∈ K ω, f z ≤ f y → g y ≤ g z) → y = x ω) :
+    Measurable x :=
+  measurable_lexicographic_minimizer_param hQ hQc hK (F := fun _ => f) (G := fun _ => g)
+    (fun _ => hf) hfc hf0 (fun _ => hg) hgc hg0 hcoer h hh hmem
+    (fun n => hf.measurable.comp (hh n)) (fun n => hg.measurable.comp (hh n)) hdense x hxK hxf
+    hxg huniq
 
 end QSH
