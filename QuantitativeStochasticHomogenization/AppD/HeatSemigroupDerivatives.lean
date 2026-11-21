@@ -122,7 +122,51 @@ theorem coordinateDerivative_integral_comp_sub {K : Vec d → ℝ} (hK : ContDif
       (Eventually.of_forall fun y => hbound x y)
   rw [ContinuousLinearMap.integral_apply hint]
   refine integral_congr_ae (Eventually.of_forall fun y => ?_)
-  simp only [ContinuousLinearMap.smul_apply, smul_eq_mul]
+  simp only [smul_apply, smul_eq_mul]
   ring
+
+theorem foldr_integral_comp_sub_heatKernel {t : ℝ} (ht : 0 < t) {w : Vec d → ℝ}
+    (hw : Integrable w) (l : List (Fin d)) :
+    l.foldr coordinateDerivative (fun x => ∫ y, euclideanHeatKernel t (x - y) * w y) =
+      fun x => ∫ y, l.foldr coordinateDerivative (euclideanHeatKernel (d := d) t) (x - y) * w y := by
+  induction l with
+  | nil => rfl
+  | cons j l ih =>
+    rw [List.foldr_cons, ih]
+    funext x
+    have hK := foldr_coordinateDerivative_contDiff (contDiff_euclideanHeatKernel (d := d) t) l
+    obtain ⟨C0, -, hC0⟩ := abs_foldr_euclideanHeatKernel_le (d := d) ht l
+    have hK1 : ∀ i, ∃ C, ∀ v, |coordinateDerivative i
+        (l.foldr coordinateDerivative (euclideanHeatKernel (d := d) t)) v| ≤ C := fun i => by
+      obtain ⟨C, -, hC⟩ := abs_foldr_euclideanHeatKernel_le (d := d) ht (i :: l)
+      exact ⟨C, fun v => by simpa using hC v⟩
+    exact coordinateDerivative_integral_comp_sub hK ⟨C0, hC0⟩ hK1 hw j x
+
+theorem foldr_comp_sub (l : List (Fin d)) {f : Vec d → ℝ} (hf : ContDiff ℝ ∞ f) (z : Vec d) :
+    l.foldr coordinateDerivative (fun x => f (x - z)) =
+      fun x => l.foldr coordinateDerivative f (x - z) := by
+  induction l with
+  | nil => rfl
+  | cons j l ih =>
+    rw [List.foldr_cons, ih]
+    funext x
+    unfold coordinateDerivative
+    rw [fderiv_comp_sub z]
+    rfl
+
+/-- **The derivatives of the semigroup identity**: `∂^l Φ(t + s)(x - z) = ∫ ∂^l Φ(t)(x - y) Φ(s)(y - z) dy`. -/
+theorem foldr_euclideanHeatKernel_semigroup {t s : ℝ} (ht : 0 < t) (hs : 0 < s)
+    (l : List (Fin d)) (x z : Vec d) :
+    l.foldr coordinateDerivative (euclideanHeatKernel (d := d) (t + s)) (x - z) =
+      ∫ y, l.foldr coordinateDerivative (euclideanHeatKernel (d := d) t) (x - y) *
+        euclideanHeatKernel s (y - z) := by
+  have hw : Integrable (fun y => euclideanHeatKernel (d := d) s (y - z)) :=
+    (integrable_euclideanHeatKernel hs).comp_sub_right z
+  have h1 := congrFun (foldr_integral_comp_sub_heatKernel ht hw l) x
+  have h2 : (fun x => ∫ y, euclideanHeatKernel (d := d) t (x - y) *
+      euclideanHeatKernel s (y - z)) = fun x => euclideanHeatKernel (t + s) (x - z) :=
+    funext fun x => integral_euclideanHeatKernel_mul ht hs x z
+  rw [h2, foldr_comp_sub l (contDiff_euclideanHeatKernel (t + s)) z] at h1
+  exact h1
 
 end QSH
