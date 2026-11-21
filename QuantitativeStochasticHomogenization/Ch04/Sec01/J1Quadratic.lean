@@ -194,4 +194,51 @@ theorem ae_J1_eq_half_dot_load (hL : firstOrderLiouvilleStatement) (hd : 2 ≤ d
   rw [hfun]
   exact (isGreatest_quadratic _ _ c₀ hsym hpsd hc₀).csSup_eq
 
+theorem dot_mulVec_comm_of_coefficientField {Λ : ℝ} (a : CoefficientField d Λ) (x u v : Vec d) :
+    dot u ((a x).mulVec v) = dot v ((a x).mulVec u) := by
+  change dotProduct u ((a x).mulVec v) = dotProduct v ((a x).mulVec u)
+  rw [Matrix.dotProduct_mulVec, ← Matrix.vecMul_transpose, a.symmetric x]
+  exact dotProduct_comm _ _
+
+/-- The Gram matrix is symmetric. -/
+theorem J1Gram_transpose {Λ : ℝ} {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P)
+    (a : CoefficientField d Λ) (mask : Vec d → ℝ) :
+    (J1Gram S a mask).transpose = J1Gram S a mask := by
+  funext i j
+  simp only [Matrix.transpose_apply, J1Gram]
+  congr 1
+  funext x
+  rw [dot_mulVec_comm_of_coefficientField]
+
+/-- The Gram matrix of a nonnegative mask is positive semidefinite. -/
+theorem J1Gram_nonneg {Λ : ℝ} {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P)
+    (a : CoefficientField d Λ) (mask : Vec d → ℝ) (hmask : ∀ x, 0 ≤ mask x)
+    (hM : ∀ i j, Integrable (fun x => mask x *
+      dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x)))) (c : Vec d) :
+    0 ≤ dot c ((J1Gram S a mask).mulVec c) := by
+  have hb : ∀ i, Integrable (fun x => mask x * (-dot (0 : Vec d)
+      ((a x).mulVec (correctorColumn S a i x)) + dot (0 : Vec d) (correctorColumn S a i x))) := by
+    intro i
+    simp only [dot, Pi.zero_apply, zero_mul, Finset.sum_const_zero, neg_zero, add_zero, mul_zero]
+    exact integrable_zero _ _ _
+  have h := J1Objective_eq_quadratic S a mask 0 0 hM hb c
+  have hload : J1Load S a mask 0 0 = 0 := by
+    funext i
+    simp [J1Load, dot]
+  have hnonpos : J1Objective S a mask 0 0 c ≤ 0 := by
+    unfold J1Objective
+    refine integral_nonpos fun x => ?_
+    have hE := (a.elliptic x (correctedAffineGrad S a c x)).1
+    have hsq : 0 ≤ euclideanSq (correctedAffineGrad S a c x) := by
+      unfold euclideanSq dot
+      exact Finset.sum_nonneg fun l _ => mul_self_nonneg _
+    have h0 : dot (0 : Vec d) ((a x).mulVec (correctedAffineGrad S a c x)) = 0 := by simp [dot]
+    have h0' : dot (0 : Vec d) (correctedAffineGrad S a c x) = 0 := by simp [dot]
+    rw [h0, h0']
+    exact mul_nonpos_of_nonneg_of_nonpos (hmask x) (by linarith)
+  rw [h, hload] at hnonpos
+  simp only [dot, Pi.zero_apply, zero_mul, Finset.sum_const_zero, zero_sub] at hnonpos
+  change 0 ≤ ∑ i, c i * ((J1Gram S a mask).mulVec c) i
+  linarith
+
 end QSH
