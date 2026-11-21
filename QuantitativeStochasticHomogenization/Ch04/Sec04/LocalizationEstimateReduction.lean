@@ -80,16 +80,19 @@ theorem abs_J1Heat_sub_localizedJ1_le_of_approximationAt {a : CoefficientField d
   exact (abs_J1Heat_sub_localizedJ1_le_of_tail hΛ hr W p q hη hκ hΦ hmass hε₀ hint hint2
     houter hAV hVA).trans hZ
 
-/-- **The stochastic form of Lemmas 4.21-4.22**: almost surely the hypotheses of Lemma 4.22 hold
-with a dominating `Z ≤ O_s(C r^{-γ})`. -/
+/-- **The stochastic form of Lemmas 4.21-4.22**: there is `Z ≤ O_s(C r^{-γ})` such that almost
+surely either the hypotheses of Lemma 4.22 hold with errors whose bound is at most `Z`, or the
+localization error is directly at most `Z` (the exceptional event of the book, where both energies
+are bounded). -/
 def LocalizationApproximation (d : ℕ) (Λ s δ γ α σ θ C₀ C : ℝ) : Prop :=
   ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
     ∀ W : LocalizedFamily d Λ δ γ α σ θ C₀, ∀ (z : Vec d) (r : ℝ) (hr : 2 ≤ r) (p q : Vec d),
       euclideanNorm p < 1 → euclideanNorm q < 1 →
-      ∃ η ε₀ κ Z : CoefficientField d Λ → ℝ,
+      ∃ Z : CoefficientField d Λ → ℝ,
         AEOsBound P Z s (C * r ^ (-γ)) ∧
-        ∀ᵐ a ∂P, LocalizationApproximationAt a z (localizationOuterRadius δ r) r
-          (by linarith : r ≠ 0) (W a z r hr) p q (η a) (ε₀ a) (κ a) (Z a)
+        ∀ᵐ a ∂P, (∃ η ε₀ κ : ℝ, LocalizationApproximationAt a z (localizationOuterRadius δ r) r
+            (by linarith : r ≠ 0) (W a z r hr) p q η ε₀ κ (Z a)) ∨
+          |J1Heat a z r p q - localizedJ1 (W a z r hr) r p q| ≤ Z a
 
 /-- **The localization estimate of (5.85) from the stochastic form of Lemmas 4.21-4.22.** -/
 theorem localizationEstimate_of_approximation {s δ γ α σ θ C₀ C : ℝ} (hΛ : 0 ≤ Λ)
@@ -99,7 +102,7 @@ theorem localizationEstimate_of_approximation {s δ γ α σ θ C₀ C : ℝ} (h
     (h : LocalizationApproximation d Λ s δ γ α σ θ C₀ C) :
     LocalizationEstimate d Λ s δ γ α σ θ C₀ C := by
   intro P hP W z r hr p q hp hq
-  obtain ⟨η, ε₀, κ, Z, hZ, hae⟩ := h P hP W z r hr p q hp hq
+  obtain ⟨Z, hZ, hae⟩ := h P hP W z r hr p q hp hq
   have hmeas : AEMeasurable (fun a => |J1Heat a z r p q - localizedJ1 (W a z r hr) r p q|) P := by
     have h1 := hJ1 P hP z r p q hr
     have h2 : Measurable fun a => localizedJ1 (W a z r hr) r p q :=
@@ -108,7 +111,9 @@ theorem localizationEstimate_of_approximation {s δ γ α σ θ C₀ C : ℝ} (h
     exact (h1.sub h2.aemeasurable).abs
   refine AEOsBound.of_le hmeas hZ ?_
   filter_upwards [hae] with a ha
-  exact abs_J1Heat_sub_localizedJ1_le_of_approximationAt hΛ _ ha
+  rcases ha with ⟨η, ε₀, κ, ha⟩ | ha
+  · exact abs_J1Heat_sub_localizedJ1_le_of_approximationAt hΛ _ ha
+  · exact ha
 
 /-- **(5.85) from the stochastic form of Lemmas 4.21-4.22** and the almost sure measurability of
 `J₁(Φ_{z,r}, p, q)`. -/
