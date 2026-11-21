@@ -50,6 +50,25 @@ No result of the book is formalized in this repository yet, so there is no entry
   uses near maximizers, whose weighted norm is bounded by the concavity of the energy
   (`QSH.IsConcaveEnergy.abs_sSup_sub_sSup_le`), so it needs neither the existence of maximizers nor
   the finite dimension of `A₁`.
+- **(4.104), the energies outside the ball** (p. 162). `QSH.outer_le_of_gaussianGram`: outside
+  `B_T(z)` the mask of scale `r` is at most `2^{d/2} exp(-T²/(8r²))` times the mask of scale
+  `√2 r`, so the outer energy of a combination of spanning fields `W_i` is at most that factor
+  times `d E / m` times its inner energy, where `E` bounds the Gaussian energies of the `W_i` at
+  scale `√2 r` and `m` is a lower bound for their Gaussian Gram matrix inside the ball. The lower
+  bound (`QSH.heatGram_lower_bound`, constant `QSH.heatGramConstant d`) comes from the Poincaré
+  inequality applied to `∑ ξ_i u_i`, where the `u_i` are functions with weak gradients `W_i` that
+  are close to the coordinates in `L²(B_r(z))` (the corrected coordinates above the minimal
+  scale): a linear function `ξ·(x - z)` oscillates by `|ξ| r/2` on one of two balls of radius
+  `r/4` (`QSH.integral_dot_sub_sq_ge`).
+- **(4.91) from matched columns.** `QSH.localizationDistances_of_matched`: if the rescaled
+  gradients of `A₁` on `B_T(z)` are exactly the combinations of tuples `G_i` with
+  `μ ∑ |c_i| ≤ ‖∑ c_i G_i‖`, and the `i`-th localized coordinate is within `ρ ≤ μ/2` of `G_i`, then
+  both directed distances at norm `L` are at most `2 L ρ / μ`.
 - **(5.85)** is reduced to the stochastic estimate for the localized families
-  (`QSH.localizedEnergy_of_localizationEstimate`); Lemma 4.21 and the stochastic form of Lemma 4.22
-  are not formalized yet.
+  (`QSH.localizedEnergy_of_localizationEstimate`, `QSH.localizedEnergy_of_uniformApproximation`),
+  and the almost sure hypotheses of Lemma 4.22 are reduced
+  (`QSH.LocalizationApproximationAtUniform.of_matched`) to properties of the corrected
+  coordinates (sublinearity on `B_r(z)`, Gaussian energies at scale `√2 r`, the first-order
+  Liouville representation of `A₁`) and to fields `V_i` matched with the localized coordinates in
+  `L²(Φ_{z,r}, B_T(z))`. The construction of the matched fields (the proof of Lemma 4.21 proper)
+  and the stochastic bounds are not formalized yet.
