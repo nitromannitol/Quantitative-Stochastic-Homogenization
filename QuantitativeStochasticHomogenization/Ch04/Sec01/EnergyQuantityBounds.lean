@@ -33,17 +33,13 @@ def zeroHarmonicA1 (a : CoefficientField d Λ) : HarmonicA1 a where
   grad := fun _ => 0
   weak_gradient := fun _ => ⟨locallyIntegrableOn_zero, locallyIntegrableOn_zero, fun φ _ => by
     simp⟩
-  local_energy := fun R _ => ⟨MemLp.zero, by
-    simpa [euclideanNorm, euclideanSq, dot] using
-      (MemLp.zero : MemLp (0 : Vec d → ℝ) 2 (volume.restrict (ball 0 R)))⟩
+  local_energy := fun R _ => ⟨MemLp.zero, by simp [euclideanNorm, euclideanSq, dot]⟩
   harmonic := by
     refine ⟨fun i => ?_, locallyIntegrableOn_zero, fun φ _ => ?_⟩
     · simpa [Matrix.mulVec_zero] using
         (locallyIntegrableOn_zero : LocallyIntegrableOn (fun _ : Vec d => (0 : ℝ)) Set.univ volume)
     · simp [Matrix.mulVec_zero, dot]
-  growth := by
-    simpa using (tendsto_const_nhds : Filter.Tendsto (fun _ : ℝ => (0 : ℝ)) Filter.atTop
-      (nhds 0))
+  growth := by simp
 
 theorem j1Functional_zeroHarmonicA1 (a : CoefficientField d Λ) (mask : Vec d → ℝ)
     (p q : Vec d) : j1Functional a mask p q (zeroHarmonicA1 a).grad = 0 := by
