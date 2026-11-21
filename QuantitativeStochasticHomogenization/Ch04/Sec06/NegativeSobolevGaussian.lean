@@ -1,0 +1,118 @@
+import QuantitativeStochasticHomogenization.Ch04.Sec06.HeatScaleBounds
+import QuantitativeStochasticHomogenization.Ch04.Sec06.GaussianMoments
+
+/-!
+# Section 4.6: (4.126) from Gaussian estimates of the corrector fields
+
+Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
+(4.126). The Gaussian estimate of a random field at the scale `ε` (`GaussianFieldEstimate`) asks
+for a jointly measurable version of the field with a Gaussian `L²` norm `O_1(C₁)` at the unit scale
+(which gives the Gaussian moments of the field, `GaussianMoments`), and Gaussian averages
+`O_1(C₂ ε^{d/2} t^{-d/4})` at every center for the heat times `ε² ≤ t ≤ 1/2`. For the rescaled corrector gradient these are the energy
+estimate and the estimate (4.2) of the averages at the radii `√t/ε ≥ 1`; for the rescaled flux they
+are the energy estimate and (4.3). From these estimates for the `2d` components of the two fields,
+`negativeSobolevCorrector_of_gaussian` gives the frozen statement for every integer `m > d/2`.
+-/
+
+open MeasureTheory Filter Set
+open scoped ENNReal
+
+noncomputable section
+
+namespace QSH
+
+variable {d : ℕ}
+
+/-- **The Gaussian estimate** of a random field `F` at the scale `ε`, through a jointly measurable
+version `F'` agreeing with `F` almost everywhere in space for every sample. -/
+def GaussianFieldEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (F : Ω → Vec d → ℝ)
+    (C₁ C₂ ε : ℝ) : Prop :=
+  ∃ F' : Ω → Vec d → ℝ, Measurable (Function.uncurry F') ∧ (∀ a, F' a =ᵐ[volume] F a) ∧
+    (∃ R : Ω → ℝ, OsBound P R 1 C₁ ∧ ∀ᵐ a ∂P, (∫⁻ x, ‖F' a x‖ₑ ^ (2 : ℝ) *
+      ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)) ∧
+    ∀ t : ℝ, ε ^ 2 ≤ t → t ≤ 1 / 2 → ∀ u,
+      OsBound P (fun a => |heatAverage t (F' a) u|) 1 (C₂ * ε ^ ((d : ℝ) / 2) * t ^ (-(d : ℝ) / 4))
+
+theorem heatDerivativeAverage_congr {k : ℕ} (β : Fin d → Fin (k + 1)) (s : ℝ)
+    {F G : Vec d → ℝ} (h : F =ᵐ[volume] G) :
+    heatDerivativeAverage β s F = heatDerivativeAverage β s G := funext fun y => by
+  unfold heatDerivativeAverage
+  refine integral_congr_ae ?_
+  filter_upwards [h] with x hx
+  rw [hx]
+
+theorem HeatScaleEstimate.congr {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {n : ℕ}
+    {F F' : Ω → Vec d → ℝ} {c ε : ℝ} (h : HeatScaleEstimate P n F' c ε)
+    (hF : ∀ a, F' a =ᵐ[volume] F a) : HeatScaleEstimate P n F c ε := by
+  have heq : ∀ a k (w : Fin k → Fin d) s, heatDerivativeAverage (countIndex w) s (F a) =
+      heatDerivativeAverage (countIndex w) s (F' a) := fun a k w s =>
+    heatDerivativeAverage_congr _ s (hF a).symm
+  obtain ⟨Q, hQm, hQ0, hYm, hQ, hY⟩ := h
+  refine ⟨Q, hQm, hQ0, ?_, hQ, ?_⟩
+  · intro k w
+    simp_rw [heq]
+    exact hYm k w
+  · intro k w hk s hs
+    simp_rw [heq]
+    exact hY k w hk s hs
+
+theorem lintegral_lt_top_of_rpow_le {X : ℝ≥0∞} {r : ℝ} (h : X ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal r) :
+    X < ⊤ :=
+  (ENNReal.rpow_lt_top_iff_of_pos (by norm_num)).mp (h.trans_lt ENNReal.ofReal_lt_top)
+
+theorem GaussianFieldEstimate.ae_hasGaussianMoment {Ω : Type*} [MeasurableSpace Ω]
+    {P : Measure Ω} (hd : 1 ≤ d) {F : Ω → Vec d → ℝ} {C₁ C₂ ε : ℝ}
+    (h : GaussianFieldEstimate P F C₁ C₂ ε) : ∀ᵐ a ∂P, HasGaussianMoment (F a) := by
+  obtain ⟨F', hFm, hF, ⟨R, -, hR⟩, -⟩ := h
+  filter_upwards [hR] with a ha
+  have hFa : AEStronglyMeasurable (F' a) volume :=
+    (hFm.comp (measurable_const.prodMk measurable_id)).aestronglyMeasurable
+  have hi := integrable_mul_exp_of_energy hd hFa (lintegral_lt_top_of_rpow_le ha)
+  refine ⟨hFa.congr (hF a), hi.congr ?_⟩
+  filter_upwards [hF a] with x hx
+  rw [hx]
+
+/-- **(4.126) from the Gaussian estimates** of the components of `∇φ_e(·/ε)` and of
+`a(·/ε)(e + ∇φ_e(·/ε)) - ā e`. -/
+theorem negativeSobolevCorrector_of_gaussian
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C₁ C₂ : ℝ, 0 < C₁ ∧ 0 < C₂ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, ∀ e : Vec d, euclideanNorm e < 1 →
+          ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∀ j : Fin d,
+            GaussianFieldEstimate P (fun a x => (S.corrector e).grad a (ε⁻¹ • x) j) C₁ C₂ ε ∧
+            GaussianFieldEstimate P (fun a x => ((a (ε⁻¹ • x)).mulVec
+              (e + (S.corrector e).grad a (ε⁻¹ • x)) - S.homogenized.mulVec e) j) C₁ C₂ ε) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_heatScale fun d hd Λ hΛ m hm => ?_
+  obtain ⟨C₁, C₂, hC₁, hC₂, hP⟩ := h d hd Λ hΛ
+  have hd1 : 1 ≤ d := by omega
+  have hH : 0 < heatScaleCoefficient d (m - 1) := by
+    have h1 := youngConstant_add_one_le (d := d) (n := m - 1) (Nat.zero_le _)
+      (fun i : Fin 0 => i.elim0)
+    have h2 := youngConstant_nonneg (countIndex (fun i : Fin 0 => (i.elim0 : Fin d)))
+    linarith
+  have hlog : 0 < Real.log 2 := Real.log_pos one_lt_two
+  have hK0 : 0 ≤ gaussSquareConstant d := Real.rpow_nonneg (mul_nonneg
+    (Real.rpow_nonneg (by positivity) _) (integral_nonneg fun u => (gaussWeight_pos u).le)) _
+  refine ⟨heatScaleCoefficient d (m - 1) * ((C₁ + gaussSquareConstant d * C₂) *
+    2 ^ ((d : ℝ) / 4)), by positivity, fun P hPl => ?_⟩
+  have := hPl.1
+  obtain ⟨S, hS⟩ := hP P hPl
+  refine ⟨S, fun e he ε hε hε2 j => ?_⟩
+  obtain ⟨hG, hFl⟩ := hS e he ε hε hε2 j
+  have hscale : ∀ {F : CoefficientField d Λ → Vec d → ℝ}, GaussianFieldEstimate P F C₁ C₂ ε →
+      HeatScaleEstimate P (m - 1) F (heatScaleCoefficient d (m - 1) *
+        ((C₁ + gaussSquareConstant d * C₂) * 2 ^ ((d : ℝ) / 4))) ε := fun {F} hF => by
+    obtain ⟨F', hFm, hFF, ⟨R, hRo, hR⟩, hA⟩ := hF
+    have hFg : ∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → τ ≤ 2 → ∀ y,
+        Integrable (fun x => F' a x * euclideanHeatKernel τ (x - y)) := by
+      filter_upwards [hR] with a ha τ hτ hτ2 y
+      exact integrable_mul_euclideanHeatKernel_of_energy hd1
+        (hFm.comp (measurable_const.prodMk measurable_id)).aestronglyMeasurable
+        (lintegral_lt_top_of_rpow_le ha) hτ hτ2 y
+    exact (heatScaleEstimate_of_gaussian hd1 (m - 1) hFm hε hC₁ hC₂ hFg hRo hR hA).congr hFF
+  refine ⟨?_, hscale hG, hscale hFl⟩
+  filter_upwards [hG.ae_hasGaussianMoment hd1, hFl.ae_hasGaussianMoment hd1] with a h1 h2
+  exact ⟨h1, h2⟩
+
+end QSH
