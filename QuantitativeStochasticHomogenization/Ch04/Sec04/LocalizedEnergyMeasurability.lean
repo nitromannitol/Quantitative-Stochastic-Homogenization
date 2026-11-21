@@ -273,4 +273,176 @@ theorem integral_energy_eq_pairEnergy (a : CoefficientField d Λ) {r : ℝ} (hr 
     rw [integral_const_mul]
     rfl
 
+/-! ## The supremum over coefficient vectors -/
+
+theorem sSup_range_eq_iSup_of_denseRange {X : Type*} [TopologicalSpace X] [Nonempty X]
+    {f : X → ℝ} (hf : Continuous f) {u : ℕ → X} (hu : DenseRange u) :
+    sSup (Set.range f) = ⨆ n, f (u n) := by
+  have key : ∀ M, (∀ n, f (u n) ≤ M) → ∀ x, f x ≤ M := by
+    intro M hM x
+    by_contra h
+    obtain ⟨n, hn⟩ := hu.exists_mem_open (isOpen_lt continuous_const hf) ⟨x, not_le.1 h⟩
+    exact absurd (hM n) (not_le.2 hn)
+  by_cases hb : BddAbove (Set.range f)
+  · have hb' : BddAbove (Set.range fun n => f (u n)) :=
+      hb.mono (by rintro _ ⟨n, rfl⟩; exact ⟨u n, rfl⟩)
+    apply le_antisymm
+    · refine csSup_le (Set.range_nonempty f) ?_
+      rintro _ ⟨x, rfl⟩
+      exact key _ (fun n => le_ciSup hb' n) x
+    · exact ciSup_le fun n => le_csSup hb ⟨u n, rfl⟩
+  · rw [Real.sSup_of_not_bddAbove hb, Real.iSup_of_not_bddAbove]
+    rintro ⟨M, hM⟩
+    exact hb ⟨M, by rintro _ ⟨x, rfl⟩; exact key M (fun n => hM ⟨n, rfl⟩) x⟩
+
+/-- The combination `∑_i c_i g_{i,k}` of the gradient classes of `d` pairs. -/
+def pairCombination (F : Fin d → PairSpace d z T) (c : Vec d) (k : Fin d) :
+    Lp ℝ 2 (ballMeasure z T) :=
+  ∑ i, c i • (F i).2 k
+
+theorem continuous_pairCombination_left (c : Vec d) (k : Fin d) :
+    Continuous fun F : Fin d → PairSpace d z T => pairCombination F c k := by
+  unfold pairCombination
+  fun_prop
+
+theorem continuous_pairCombination_right (F : Fin d → PairSpace d z T) (k : Fin d) :
+    Continuous fun c : Vec d => pairCombination F c k :=
+  continuous_finsetSum _ fun i _ => (continuous_apply i).smul continuous_const
+
+theorem continuous_pairEnergy (a : CoefficientField d Λ) (hΛ0 : 0 ≤ Λ) {r : ℝ} (hr : r ≠ 0)
+    (p q : Vec d) : Continuous (pairEnergy a z T r p q) := by
+  have hW : ∀ k l, Continuous fun uv : Lp ℝ 2 (ballMeasure z T) × Lp ℝ 2 (ballMeasure z T) =>
+      weightedPairing (ballMeasure z T) (heatCoefficient a z r k l) uv.1 uv.2 := fun k l =>
+    continuous_weightedPairing (aestronglyMeasurable_heatCoefficient a r k l)
+      (mul_nonneg (heatKernelPeak_pos hr).le hΛ0)
+      (Eventually.of_forall fun x => abs_heat_coefficient_le a hr k l x)
+  have hW0 : Continuous fun uv : Lp ℝ 2 (ballMeasure z T) × Lp ℝ 2 (ballMeasure z T) =>
+      weightedPairing (ballMeasure z T) (heatKernel z r) uv.1 uv.2 :=
+    continuous_weightedPairing (continuous_heatKernel_right z r).aestronglyMeasurable
+      (heatKernelPeak_pos hr).le (Eventually.of_forall fun x => abs_heatKernel_le z hr x)
+  unfold pairEnergy
+  refine (continuous_finsetSum _ fun k _ => continuous_finsetSum _ fun l _ => ?_).add
+    (continuous_finsetSum _ fun k _ => ?_)
+  · have h1 : Continuous fun G : Fin d → Lp ℝ 2 (ballMeasure z T) => (G k, G l) :=
+      (continuous_apply k).prodMk (continuous_apply l)
+    have h2 : Continuous fun G : Fin d → Lp ℝ 2 (ballMeasure z T) => (G l, oneLp z T) :=
+      (continuous_apply l).prodMk continuous_const
+    exact (continuous_const.mul ((hW k l).comp h1)).sub (continuous_const.mul ((hW k l).comp h2))
+  · have h3 : Continuous fun G : Fin d → Lp ℝ 2 (ballMeasure z T) => (G k, oneLp z T) :=
+      (continuous_apply k).prodMk continuous_const
+    exact continuous_const.mul (hW0.comp h3)
+
+variable {S σ θ C : ℝ}
+
+theorem localizedJ1_eq_sSup {a : CoefficientField d Λ} (W : LocalizedBasis a z T S σ θ C) {r : ℝ} (hr : r ≠ 0)
+    (p q : Vec d) :
+    localizedJ1 W r p q = sSup (Set.range fun c =>
+      pairEnergy a z T r p q (pairCombination (fun i => (W.coordinate i).toPair) c)) := by
+  unfold localizedJ1
+  congr 1
+  ext e
+  refine exists_congr fun c => ?_
+  rw [integral_energy_eq_pairEnergy a hr p q _ ?_]
+  · exact ⟨fun h => h.symm, fun h => h.symm⟩
+  · have hk : ∀ k, ∀ᵐ x ∂ballMeasure z T, localizedGradient W c x k =
+        (pairCombination (fun i => (W.coordinate i).toPair) c k : Vec d → ℝ) x := by
+      intro k
+      have h1 := ae_coeFn_sum_smul (μ := ballMeasure z T) Finset.univ c
+        (fun i => (W.coordinate i).toPair.2 k)
+      have h2 := ae_all_iff.2 fun i => (W.coordinate i).toPair_snd_ae k
+      filter_upwards [h1, h2] with x hx1 hx2
+      rw [pairCombination, hx1]
+      simp only [localizedGradient, Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+      exact Finset.sum_congr rfl fun i _ => by rw [hx2 i]
+    filter_upwards [ae_all_iff.2 hk] with x hx
+    funext k
+    exact hx k
+
+/-- **Measurability of the localized energy** along measurable selected bases. -/
+theorem measurable_localizedJ1 (hΛ0 : 0 ≤ Λ) {r : ℝ} (hr : r ≠ 0) (p q : Vec d)
+    (W : ∀ a : CoefficientField d Λ, LocalizedBasis a z T S σ θ C)
+    (hW : ∀ i, @Measurable _ _ (localSigma (ball z T)) _ fun a => ((W a).coordinate i).toPair) :
+    @Measurable _ ℝ (localSigma (ball z T)) _ fun a => localizedJ1 (W a) r p q := by
+  obtain ⟨cs, hcs⟩ := TopologicalSpace.exists_dense_seq (Vec d)
+  have heq : (fun a => localizedJ1 (W a) r p q) = fun a => ⨆ n, pairEnergy a z T r p q
+      (pairCombination (fun i => ((W a).coordinate i).toPair) (cs n)) := by
+    funext a
+    have hcont : Continuous fun c => pairEnergy a z T r p q
+        (pairCombination (fun i => ((W a).coordinate i).toPair) c) :=
+      (continuous_pairEnergy a hΛ0 hr p q).comp (continuous_pi fun k =>
+        continuous_pairCombination_right (fun i => ((W a).coordinate i).toPair) k)
+    rw [localizedJ1_eq_sSup (W a) hr p q, sSup_range_eq_iSup_of_denseRange hcont hcs]
+  rw [heq]
+  let _ : MeasurableSpace (CoefficientField d Λ) := localSigma (ball z T)
+  refine Measurable.iSup fun n => ?_
+  have hF : Measurable fun a => fun i => ((W a).coordinate i).toPair := measurable_pi_iff.2 hW
+  have hG : ∀ k, Measurable fun a =>
+      pairCombination (fun i => ((W a).coordinate i).toPair) (cs n) k := fun k =>
+    (continuous_pairCombination_left (cs n) k).measurable.comp hF
+  have hW0 : Continuous fun uv : Lp ℝ 2 (ballMeasure z T) × Lp ℝ 2 (ballMeasure z T) =>
+      weightedPairing (ballMeasure z T) (heatKernel z r) uv.1 uv.2 :=
+    continuous_weightedPairing (continuous_heatKernel_right z r).aestronglyMeasurable
+      (heatKernelPeak_pos hr).le (Eventually.of_forall fun x => abs_heatKernel_le z hr x)
+  unfold pairEnergy
+  refine (Finset.measurable_sum _ fun k _ => Finset.measurable_sum _ fun l _ => ?_).add
+    (Finset.measurable_sum _ fun k _ => ?_)
+  · exact ((measurable_weightedPairing_coefficient hΛ0 hr k l (hG k) (hG l)).const_mul _).sub
+      ((measurable_weightedPairing_coefficient hΛ0 hr k l (hG l) measurable_const).const_mul _)
+  · exact (hW0.measurable.comp ((hG k).prodMk measurable_const)).const_mul _
+
+/-- **Measurability of the least-norm coordinate minimizers** from a measurable dense sequence
+in the admissible class. -/
+theorem measurable_toPair_of_denseSeq (hT : 0 < T) (hσS : σ * S ≠ 0) (hSθ : 0 < S / θ)
+    (hC : 0 ≤ C) (i : Fin d) (h : ℕ → CoefficientField d Λ → PairSpace d z T)
+    (hh : ∀ n, @Measurable _ _ (localSigma (ball z T)) _ (h n))
+    (hmem : ∀ n a, h n a ∈ admissiblePairs a z T C)
+    (hdense : ∀ a, admissiblePairs a z T C ⊆ closure (Set.range fun n => h n a))
+    (w : ∀ a : CoefficientField d Λ, LocalHarmonic a z T)
+    (hw : ∀ a, IsLeastNormCoordinateMinimizer S σ θ C i (w a)) :
+    @Measurable _ _ (localSigma (ball z T)) _ fun a => (w a).toPair := by
+  have hcoord : ∀ (a : CoefficientField d Λ) (y : PairSpace d z T)
+      (hy : y ∈ admissiblePairs a z T C),
+      (∀ v ∈ admissiblePairs a z T C, pairObjective z T S σ θ i y ≤ pairObjective z T S σ θ i v) →
+      IsCoordinateMinimizer S σ θ C i (ofPair a y hy.1) := by
+    intro a y hy hmin
+    refine ⟨((ofPair a y hy.1).admissible_iff hC hT).2 ((toPair_ofPair y hy.1).symm ▸ hy.2),
+      fun v hv => ?_⟩
+    rw [(ofPair a y hy.1).objective_eq, v.objective_eq, toPair_ofPair]
+    exact hmin _ (v.toPair_mem hC hT hv)
+  refine measurable_lexicographic_minimizer (mΩ := localSigma (ball z T))
+    isQuadraticGauge_pairGauge
+    ((continuous_fst.norm.pow 2).add continuous_pairGradEnergy)
+    (K := fun a => admissiblePairs a z T C) (fun a => isClosed_admissiblePairs a z T C)
+    (continuous_pairObjective (θ := θ) hσS i)
+    (fun a => (convexOn_pairObjective hσS i).subset (Set.subset_univ _)
+      (convex_admissiblePairs a z T C))
+    (fun a y _ => pairObjective_nonneg i y) (g := fun F => ‖F.1‖ ^ 2)
+    (continuous_fst.norm.pow 2)
+    (fun a => convexOn_norm_fst_sq.subset (Set.subset_univ _) (convex_admissiblePairs a z T C))
+    (fun a y _ => sq_nonneg _) (fun a t => bddAbove_pairGauge_sublevel hT hσS hSθ i t)
+    h hh hmem hdense (fun a => (w a).toPair) (fun a => (w a).toPair_mem hC hT (hw a).1.1)
+    (fun a y hy => ?_) (fun a y hy hfy => ?_) (fun a y hy hfy hgy => ?_)
+  · have h1 := (hw a).1.2 (ofPair a y hy.1)
+      (((ofPair a y hy.1).admissible_iff hC hT).2 ((toPair_ofPair y hy.1).symm ▸ hy.2))
+    rwa [(w a).objective_eq, (ofPair a y hy.1).objective_eq, toPair_ofPair] at h1
+  · have hmin : ∀ v ∈ admissiblePairs a z T C,
+        pairObjective z T S σ θ i y ≤ pairObjective z T S σ θ i v := by
+      intro v hv
+      refine hfy.trans ?_
+      have h1 := (hw a).1.2 (ofPair a v hv.1)
+        (((ofPair a v hv.1).admissible_iff hC hT).2 ((toPair_ofPair v hv.1).symm ▸ hv.2))
+      rwa [(w a).objective_eq, (ofPair a v hv.1).objective_eq, toPair_ofPair] at h1
+    have h2 := (hw a).2 (ofPair a y hy.1) (hcoord a y hy hmin)
+    rwa [(w a).integral_potential_sq, (ofPair a y hy.1).integral_potential_sq,
+      toPair_ofPair] at h2
+  · have hcm := hcoord a y hy hfy
+    have hln : IsLeastNormCoordinateMinimizer S σ θ C i (ofPair a y hy.1) := by
+      refine ⟨hcm, fun v hv => ?_⟩
+      rw [(ofPair a y hy.1).integral_potential_sq, v.integral_potential_sq, toPair_ofPair]
+      refine hgy _ (v.toPair_mem hC hT hv.1) ?_
+      have h1 := hv.2 (ofPair a y hy.1) hcm.1
+      rwa [v.objective_eq, (ofPair a y hy.1).objective_eq, toPair_ofPair] at h1
+    have := hln.toPair_eq hT hσS hC (hw a)
+    rwa [toPair_ofPair] at this
+
 end QSH
