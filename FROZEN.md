@@ -62,7 +62,9 @@ written after its keyword, the SHA-256 of its text, and the frozen statements th
 text runs from the line of the keyword up to the next line that begins in the first column, with
 trailing blank lines dropped; the docstring and the attributes are not hashed. The rows list every
 definition, structure and instance of the library reached from a frozen statement through the
-types and values of definitions (proofs are not followed).
+types and values of definitions (proofs are not followed), together with the coercion instances
+`instCoeFunSmoothCompactTestForallVecReal` and `instCoeFunCoefficientFieldForallVecMat`, which fix
+the meaning of `u x` and `a x` but are unfolded during elaboration and are therefore added by hand.
 
 <!-- FROZEN-VOCABULARY-BEGIN -->
 | file | name | sha256 | used by |
@@ -99,7 +101,9 @@ types and values of definitions (proofs are not followed).
 | `QuantitativeStochasticHomogenization/Ch05/Sec04CentralLimitTheoremForJ1.lean` | `familyJ1` | `d66ca7ed1903e87387b9c4113ad2d63cba50860a8ae52ebb1166d26345fa2b6e` | E2, E3, E4 |
 | `QuantitativeStochasticHomogenization/Ch05/Sec04CentralLimitTheoremForJ1.lean` | `centeredBlock` | `c7743d418cb928223c5147b882e7a619f330c12fc8df25b1f11b2df3f636faf7` | E2, E3, E4 |
 | `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `SmoothCompactTest` | `79e738f581c92adf57a5cf0c2013d6060d9363fdec501ea4336f2360901fb4d9` | E1, E2, E3, E4, E5, E6, E7 |
+| `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `instCoeFunSmoothCompactTestForallVecReal` | `7addf5ea008dd77b08356f107dde91c514071e01e67fd86b1110acf0935d5415` | E1, E2, E3, E4, E5, E6, E7 |
 | `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `CoefficientField` | `aa28e246662483df7fc5152f66175c4c7928ecc11ac17b2caaa210da0e10125b` | E1, E2, E3, E4, E5, E6, E7 |
+| `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `instCoeFunCoefficientFieldForallVecMat` | `b39e944d8590866f7332d56ee149b2c400a8530e6ae52dd5bb584c281022ca7d` | E1, E2, E3, E4, E5, E6, E7 |
 | `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `testIntegral` | `94728d9759b05d260c91014a5dd2eec7a33600021bfd89fa9584ecd3693c8d5c` | E1, E2, E3, E4, E5, E6, E7 |
 | `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `instMeasurableSpaceCoefficientField` | `b42f2732248bf28afab6a3f0657c0b92cb17d5bdf08243bf3c25bd402b071c35` | E1, E2, E3, E4, E5, E6, E7 |
 | `QuantitativeStochasticHomogenization/Front/Assumptions.lean` | `localSigma` | `26a76811981cc34b4e41f47635cbe919c3465feebc47d7be7ac7030f1645fc27` | E1, E2, E3, E4, E5, E6, E7 |

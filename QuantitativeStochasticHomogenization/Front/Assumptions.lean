@@ -27,7 +27,8 @@ structure SmoothCompactTest (d : ℕ) where
   smooth : ContDiff ℝ (⊤ : ℕ∞) toFun
   compact : HasCompactSupport toFun
 
-instance {d : ℕ} : CoeFun (SmoothCompactTest d) (fun _ => Vec d → ℝ) :=
+instance instCoeFunSmoothCompactTestForallVecReal {d : ℕ} :
+    CoeFun (SmoothCompactTest d) (fun _ => Vec d → ℝ) :=
   ⟨SmoothCompactTest.toFun⟩
 
 /-- **The set `Ω` of coefficient fields**, (0.6)-(0.7): locally integrable symmetric matrix fields with
@@ -39,7 +40,8 @@ structure CoefficientField (d : ℕ) (Λ : ℝ) where
   elliptic : ∀ x ξ, euclideanSq ξ ≤ dot ξ ((field x).mulVec ξ) ∧
     dot ξ ((field x).mulVec ξ) ≤ Λ * euclideanSq ξ
 
-instance {d : ℕ} {Λ : ℝ} : CoeFun (CoefficientField d Λ) (fun _ => Vec d → Mat d) :=
+instance instCoeFunCoefficientFieldForallVecMat {d : ℕ} {Λ : ℝ} :
+    CoeFun (CoefficientField d Λ) (fun _ => Vec d → Mat d) :=
   ⟨CoefficientField.field⟩
 
 /-- The test integral `∫ u a_{ij}` of (0.8). -/
