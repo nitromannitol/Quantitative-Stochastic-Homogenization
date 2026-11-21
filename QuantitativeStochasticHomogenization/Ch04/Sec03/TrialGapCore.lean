@@ -88,6 +88,34 @@ theorem OsBound.integral_sq_le [IsProbabilityMeasure P] {X : Ω → ℝ} {s θ :
     Integrable (fun ω => X ω ^ 2) P ∧ ∫ ω, X ω ^ 2 ∂P ≤ momentConstant (s / 2) * θ ^ 2 :=
   (h.sq hX0).integral_le_factorial_mul fun _ => sq_nonneg _
 
+/-- Finite sums over a finset at every exponent on a probability space:
+`∑_{i∈I} Xᵢ ≤ O_s((2·2^{1/s})^{|I|} θ)`. -/
+theorem osBound_finset_sum_of_pos [IsProbabilityMeasure P] {ι : Type*} (I : Finset ι)
+    {X : ι → Ω → ℝ} {s θ : ℝ} (hs : 0 < s) (hθ : 0 < θ) (h : ∀ i ∈ I, OsBound P (X i) s θ) :
+    OsBound P (fun ω => ∑ i ∈ I, X i ω) s ((2 * (2 : ℝ) ^ s⁻¹) ^ I.card * θ) := by
+  classical
+  have hc : 1 ≤ 2 * (2 : ℝ) ^ s⁻¹ := by
+    have : 1 ≤ (2 : ℝ) ^ s⁻¹ := Real.one_le_rpow (by norm_num) (inv_nonneg.mpr hs.le)
+    linarith
+  induction I using Finset.induction_on with
+  | empty =>
+    simp only [Finset.sum_empty, Finset.card_empty, pow_zero, one_mul]
+    refine ⟨measurable_const, hs, hθ, ?_⟩
+    simp only [max_self, mul_zero, Real.zero_rpow hs.ne', Real.exp_zero, ENNReal.ofReal_one,
+      lintegral_const, measure_univ, mul_one]
+    norm_num
+  | insert i I hi ih =>
+    have hI := ih fun j hj => h j (Finset.mem_insert_of_mem hj)
+    have hsum := osBound_add_of_pos (h i (Finset.mem_insert_self i I)) hI
+    have e : (fun ω => ∑ j ∈ insert i I, X j ω) = fun ω => X i ω + ∑ j ∈ I, X j ω :=
+      funext fun ω => Finset.sum_insert hi
+    rw [e, Finset.card_insert_of_notMem hi]
+    refine hsum.mono_scale (le_of_eq ?_)
+    have hpow : θ ≤ (2 * (2 : ℝ) ^ s⁻¹) ^ I.card * θ :=
+      le_mul_of_one_le_left hθ.le (one_le_pow₀ hc)
+    rw [max_eq_right hpow, pow_succ]
+    ring
+
 end Rules
 
 /-! ## The inputs -/
@@ -161,7 +189,7 @@ theorem trialGap_pos_le (S : HomogenizationData P) (a : CoefficientField d Λ) (
       have hM0 : 0 ≤ M := hXN0.trans hXN
       positivity
     linarith
-  · push_neg at hXr
+  · replace hXr := not_le.mp hXr
     have hMr : 1 ≤ M / r := by rw [le_div_iff₀ hr0]; linarith
     have hMd : 1 ≤ (M / r) ^ d := one_le_pow₀ hMr
     have hXNd : (XN / r) ^ d ≤ (M / r) ^ d :=
