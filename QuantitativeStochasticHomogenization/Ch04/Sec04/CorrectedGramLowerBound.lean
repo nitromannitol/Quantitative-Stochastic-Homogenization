@@ -303,4 +303,95 @@ theorem gram_lower_bound_of_sublinear (hR : 0 < R) (u : Fin d → Vec d → ℝ)
         rw [div_le_iff₀ hc]
         linarith
 
+/-- The peak of the mask of scale `r` times the volume of `B_r` does not depend on `r`. -/
+theorem heatKernelPeak_mul_volume_real_ball (z : Vec d) {r : ℝ} (hr : 0 < r) :
+    heatKernelPeak d r * volume.real (ball z r) =
+      (4 * Real.pi) ^ (-(d : ℝ) / 2) * volume.real (ball (0 : Vec d) 1) := by
+  rw [volume_real_ball_eq_mul z hr, heatKernelPeak,
+    Real.mul_rpow (by positivity : (0 : ℝ) ≤ 4 * Real.pi) (by positivity : (0 : ℝ) ≤ r ^ 2)]
+  have h1 : (r ^ 2) ^ (-(d : ℝ) / 2) * r ^ d = 1 := by
+    rw [← Real.rpow_natCast r 2, ← Real.rpow_mul hr.le, ← Real.rpow_natCast r d,
+      ← Real.rpow_add hr, show ((2 : ℕ) : ℝ) * (-(d : ℝ) / 2) + d = 0 by push_cast; ring,
+      Real.rpow_zero]
+  calc (4 * Real.pi) ^ (-(d : ℝ) / 2) * (r ^ 2) ^ (-(d : ℝ) / 2) *
+        (r ^ d * volume.real (ball (0 : Vec d) 1))
+      = (4 * Real.pi) ^ (-(d : ℝ) / 2) * ((r ^ 2) ^ (-(d : ℝ) / 2) * r ^ d) *
+          volume.real (ball (0 : Vec d) 1) := by ring
+    _ = _ := by rw [h1, mul_one]
+
+/-- On `B_r(z)`, the mask of scale `r` is at least `e^{-1/4}` times its peak. -/
+theorem heatKernelPeak_mul_exp_le_heatKernel (z : Vec d) {r : ℝ} (hr : r ≠ 0) {x : Vec d}
+    (hx : x ∈ ball z r) : heatKernelPeak d r * Real.exp (-(1 / 4)) ≤ heatKernel z r x := by
+  rw [heatKernel_eq_exp]
+  refine mul_le_mul_of_nonneg_left (Real.exp_le_exp.2 ?_) (heatKernelPeak_pos hr).le
+  have hx' : euclideanNorm (x - z) < r := hx
+  have hsq : euclideanSq (x - z) ≤ r ^ 2 := by
+    rw [← sq_euclideanNorm]
+    exact pow_le_pow_left₀ (zero_le_euclideanNorm _) hx'.le 2
+  have h4 : 0 < 4 * r ^ 2 := by positivity
+  have h5 : 1 / (4 * r ^ 2) * euclideanSq (x - z) ≤ 1 / 4 := by
+    rw [div_mul_eq_mul_div, one_mul, div_le_div_iff₀ h4 (by norm_num)]
+    linarith
+  linarith
+
+/-- The constant of the lower bound of the Gaussian Gram matrix of corrected gradients. -/
+def heatGramConstant (d : ℕ) : ℝ :=
+  (4 * Real.pi) ^ (-(d : ℝ) / 2) * volume.real (ball (0 : Vec d) 1) * Real.exp (-(1 / 4)) *
+    ((1 / 4 : ℝ) ^ d / (16 * (2 ^ d * 2) ^ 2))
+
+theorem heatGramConstant_pos (d : ℕ) : 0 < heatGramConstant d := by
+  unfold heatGramConstant
+  have := volume_real_ball_pos (0 : Vec d) one_pos
+  positivity
+
+/-- **The lower bound of the Gaussian Gram matrix of corrected gradients**: under the hypotheses
+of `gram_lower_bound_of_sublinear` on `B_r(z)`, for `r ≤ T` the Gaussian energy inside `B_T(z)`
+of every combination `∑ ξ_i W_i` is at least `heatGramConstant d · |ξ|²`. -/
+theorem heatGram_lower_bound {T r : ℝ} (hr : 0 < r) (hrT : r ≤ T) (u : Fin d → Vec d → ℝ)
+    (W : Fin d → Vec d → Vec d) (hu : ∀ i, MemLp (u i) 2 (ballMeasure z r))
+    (hW : ∀ i j, MemLp (fun x => W i x j) 2 (ballMeasure z T))
+    (hgrad : ∀ i, HasWeakGradient (ball z r) (u i) (W i)) (c : Fin d → ℝ) {ε : ℝ}
+    (hsub : ∀ i, ∫ x in ball z r, (u i x - (x - z) i - c i) ^ 2 ≤
+      ε ^ 2 * r ^ 2 * volume.real (ball z r))
+    (hε : (d : ℝ) * ε ^ 2 ≤ (1 / 4 : ℝ) ^ d / 16) (ξ : Vec d) :
+    heatGramConstant d * euclideanSq ξ ≤
+      ∫ x in ball z T, heatKernel z r x * euclideanSq (∑ i, ξ i • W i x) := by
+  have hsubset : ball z r ⊆ ball z T := fun x hx => lt_of_lt_of_le hx hrT
+  have hWr : ∀ i j, MemLp (fun x => W i x j) 2 (ballMeasure z r) := fun i j =>
+    (hW i j).mono_measure (Measure.restrict_mono hsubset le_rfl)
+  have hG := gram_lower_bound_of_sublinear hr u W hu hWr hgrad c hsub hε ξ
+  have hvj : ∀ j, MemLp (fun x => ∑ i, ξ i * W i x j) 2 (ballMeasure z T) := fun j =>
+    memLp_finsetSum _ fun i _ => (hW i j).const_mul (ξ i)
+  have hsq : Integrable (fun x => euclideanSq (∑ i, ξ i • W i x)) (ballMeasure z T) := by
+    have := integrable_finsetSum Finset.univ fun j _ => (hvj j).integrable_sq
+    refine this.congr (Eventually.of_forall fun x => ?_)
+    simp only [euclideanSq, dot, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, sq]
+  have hint : IntegrableOn (fun x => heatKernel z r x * euclideanSq (∑ i, ξ i • W i x))
+      (ball z T) := by
+    refine hsq.bdd_mul (c := heatKernelPeak d r)
+      (continuous_heatKernel_right z r).aestronglyMeasurable (Eventually.of_forall fun x => ?_)
+    rw [Real.norm_eq_abs, abs_of_nonneg (heatKernel_pos_of_ne z hr.ne' x).le]
+    exact heatKernel_le_peak z hr.ne' x
+  have h0 : ∀ x, 0 ≤ heatKernel z r x * euclideanSq (∑ i, ξ i • W i x) := fun x =>
+    mul_nonneg (heatKernel_pos_of_ne z hr.ne' x).le (zero_le_euclideanSq _)
+  have hpk := heatKernelPeak_mul_volume_real_ball z hr
+  have hc0 : 0 ≤ heatKernelPeak d r * Real.exp (-(1 / 4)) :=
+    mul_nonneg (heatKernelPeak_pos hr.ne').le (Real.exp_pos _).le
+  calc heatGramConstant d * euclideanSq ξ
+      = heatKernelPeak d r * Real.exp (-(1 / 4)) * ((1 / 4 : ℝ) ^ d /
+          (16 * (2 ^ d * 2) ^ 2) * euclideanSq ξ * volume.real (ball z r)) := by
+        rw [heatGramConstant, ← hpk]; ring
+    _ ≤ heatKernelPeak d r * Real.exp (-(1 / 4)) *
+          ∫ x in ball z r, euclideanSq (∑ i, ξ i • W i x) :=
+        mul_le_mul_of_nonneg_left hG hc0
+    _ = ∫ x in ball z r, heatKernelPeak d r * Real.exp (-(1 / 4)) *
+          euclideanSq (∑ i, ξ i • W i x) := (integral_const_mul _ _).symm
+    _ ≤ ∫ x in ball z r, heatKernel z r x * euclideanSq (∑ i, ξ i • W i x) :=
+        setIntegral_mono_on ((hsq.mono_measure (Measure.restrict_mono hsubset le_rfl)).const_mul _)
+          (hint.mono_set hsubset) (measurableSet_ball z r) fun x hx =>
+            mul_le_mul_of_nonneg_right (heatKernelPeak_mul_exp_le_heatKernel z hr.ne' hx)
+              (zero_le_euclideanSq _)
+    _ ≤ ∫ x in ball z T, heatKernel z r x * euclideanSq (∑ i, ξ i • W i x) :=
+        setIntegral_mono_set hint (Eventually.of_forall h0) hsubset.eventuallyLE
+
 end QSH
