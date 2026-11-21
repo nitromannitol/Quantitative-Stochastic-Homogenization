@@ -7,7 +7,7 @@ Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-S
 chapter "Notation" before Chapter 1.
 
 Defined here: coordinates of `ℝ^d`, the Euclidean scalar product and norm, Euclidean balls,
-the lattice `ℤ^d`, the unit cell, triadic cubes (0.20) and cubes `□_R(z)` (0.27), weak
+the lattice `ℤ^d`, the unit cell, triadic cubes (0.20) and cubes `□_R(z)`, weak
 derivatives, normalized `L²` norms, and the normalized Sobolev norms `H^m` (0.26) and `H^{-m}`
 (0.29).
 -/
@@ -58,7 +58,7 @@ def unitCell (d : ℕ) : Set (Vec d) := Set.pi Set.univ (fun _ => Set.Ico (-1 / 
 def triadicCube (d n : ℕ) : Set (Vec d) :=
   Set.pi Set.univ (fun _ => Set.Ioo (-((3 : ℝ) ^ n) / 2) (((3 : ℝ) ^ n) / 2))
 
-/-- The open cube `□_R(z)` of side `R` centered at `z`, (0.27). -/
+/-- The open cube `□_R(z)` of side `R` centered at `z`. -/
 def cube {d : ℕ} (z : Vec d) (R : ℝ) : Set (Vec d) := {x | ∀ i, |x i - z i| < R / 2}
 
 /-! ## Weak derivatives -/

@@ -31,14 +31,16 @@ abbrev LocalizedFamily (d : ℕ) (Λ δ γ α σ θ C₀ : ℝ) : Type :=
       σ θ C₀
 
 /-- The two properties of (5.85) for a localized family with constant `C`: `J₁^{(δ)}(z, r, p, q)`
-is `F(B_{r^{1+δ}}(z))`-measurable and `|J₁(Φ_{z,r}, p, q) - J₁^{(δ)}(z, r, p, q)| ≤ O_s(C r^{-γ})`. -/
+is `F(B_{r^{1+δ}}(z))`-measurable and `|J₁(Φ_{z,r}, p, q) - J₁^{(δ)}(z, r, p, q)| ≤ O_s(C r^{-γ})`,
+the difference being almost surely measurable (Remark 5.17), since `J₁(Φ_{z,r}, p, q)` is
+identified with its finite-dimensional form (4.12) only almost surely. -/
 def IsLocalization {d : ℕ} {Λ : ℝ} (P : Measure (CoefficientField d Λ)) (s δ γ α σ θ C₀ C : ℝ)
     (W : LocalizedFamily d Λ δ γ α σ θ C₀) : Prop :=
   ∀ (z : Vec d) (r : ℝ) (hr : 2 ≤ r) (p q : Vec d),
     euclideanNorm p < 1 → euclideanNorm q < 1 →
     @Measurable (CoefficientField d Λ) ℝ (localSigma (ball z (localizationOuterRadius δ r)))
       inferInstance (fun a => localizedJ1 (W a z r hr) r p q) ∧
-    OsBound P (fun a => |J1Heat a z r p q - localizedJ1 (W a z r hr) r p q|) s (C * r ^ (-γ))
+    AEOsBound P (fun a => |J1Heat a z r p q - localizedJ1 (W a z r hr) r p q|) s (C * r ^ (-γ))
 
 /-! ## Blocks of Section 5.4 -/
 
