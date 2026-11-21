@@ -1,0 +1,103 @@
+name: CI
+
+permissions:
+  contents: read
+
+# Runs on GitHub-hosted runners (`ubuntu-24.04`: 4 vCPU, 16 GB RAM, 6 h per job). No `pull_request`
+# trigger: a fork's pull request would run with this repository's Actions cache in scope.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'CITATION.cff'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, frozen statements and axiom audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 345
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Fails on a changed frozen statement, a forbidden token (`axiom`, `admit`, `native_decide`, ...)
+      # or a `sorry` outside a registered draft statement. With no frozen statement the list is empty.
+      - name: Frozen statements and forbidden tokens
+        shell: bash
+        run: python3 scripts/check_frozen.py
+
+      - name: Reclaim runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /usr/local/share/powershell \
+                      /usr/share/swift /usr/local/share/boost || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Enlarge swap
+        shell: bash
+        run: |
+          sudo swapoff -a || true
+          swapdir=/mnt
+          [ -d "$swapdir" ] || swapdir="${RUNNER_TEMP:-/tmp}"
+          sudo rm -f "$swapdir/lean-swapfile"
+          sudo fallocate -l 16G "$swapdir/lean-swapfile"
+          sudo chmod 600 "$swapdir/lean-swapfile"
+          sudo mkswap "$swapdir/lean-swapfile"
+          sudo swapon "$swapdir/lean-swapfile"
+          free -h
+
+      # Installs the toolchain named in `lean-toolchain`, fetches every package in `lake-manifest.json`
+      # and downloads the Mathlib oleans.
+      - name: Set up Lean and fetch the Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-mathlib-cache: true
+
+      # Restore and save are split so that the save runs even when the build is cut off: a partial build
+      # banks its completed modules, dependencies included, and the next run resumes from them.
+      - name: Restore build artifacts
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .lake/build
+            .lake/packages/*/.lake/build
+            !.lake/packages/mathlib/.lake/build
+          key: lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+
+      # Warnings are errors: `check_warnings.py` fails on any warning in the log, and on an error.
+      # The only tolerated warning is `declaration uses 'sorry'` in a draft statement of FROZEN.md.
+      - name: Build the library
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 300m lake build 2>&1 | tee build.log
+          python3 scripts/check_warnings.py build.log
+
+      # `QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean` fails to compile when a declaration
+      # of the library depends on an axiom other than `propext`, `Classical.choice` and `Quot.sound`.
+      # It is part of the build above; running it again prints its report.
+      - name: Axiom audit
+        shell: bash
+        run: lake env lean QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean
+
+      - name: Save build artifacts
+        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .lake/build
+            .lake/packages/*/.lake/build
+            !.lake/packages/mathlib/.lake/build
+          key: lake-all-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
