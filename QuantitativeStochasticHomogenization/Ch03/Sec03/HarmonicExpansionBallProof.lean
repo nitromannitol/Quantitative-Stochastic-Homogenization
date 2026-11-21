@@ -239,4 +239,9 @@ theorem harmonicExpansionBall : harmonicExpansionBallStatement := by
       (div_nonneg (PDE.harmonicPointwiseConst_pos hd).le hb.le)
     exact hvar
 
+/-- **Theorem 3.8, `k = 1`, from the harmonic approximation (2) alone.** -/
+theorem firstOrderLiouville_of_harmonicApproximation_only (h2 : harmonicApproximationStatement) :
+    firstOrderLiouvilleStatement :=
+  firstOrderLiouville_of_harmonicApproximation_of_ball h2 harmonicExpansionBall
+
 end QSH
