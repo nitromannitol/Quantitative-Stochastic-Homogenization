@@ -205,4 +205,159 @@ theorem trialGap_pos_le (S : HomogenizationData P) (a : CoefficientField d Λ) (
 
 end Inputs
 
+/-! ## Fluctuations of the polarization vector -/
+
+theorem euclideanSq_smul (t : ℝ) (v : Vec d) : euclideanSq (t • v) = t ^ 2 * euclideanSq v := by
+  simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun i _ => by ring
+
+theorem euclideanNorm_smul (t : ℝ) (v : Vec d) : euclideanNorm (t • v) = |t| * euclideanNorm v := by
+  rw [euclideanNorm, euclideanSq_smul, Real.sqrt_mul (sq_nonneg t), Real.sqrt_sq_eq_abs]; rfl
+
+theorem euclideanNorm_unitVector (i : Fin d) : euclideanNorm (unitVector i : Vec d) = 1 := by
+  simp [euclideanNorm, euclideanSq, dot, unitVector, Pi.single_apply]
+
+section Fluctuation
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **Fluctuations of the polarization vector**: under `Fluc(s, α)` with constant `C_F`, the
+squared distance of the polarization vector to its expectation is `O_{s/2}(C r^{-2α})` and has
+mean at most `C' r^{-2α}`. -/
+theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+    (hCF : 0 < CF)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      Integrable (fun a => J1Heat a z r p q) P ∧
+      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+    (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {p q : Vec d} (hp : euclideanNorm p < 1)
+    (hq : euclideanNorm q < 1) :
+    OsBound P (fun a => euclideanSq (polarizationVector a y r p q -
+        fun i => ∫ a', polarizationVector a' y r p q i ∂P)) (s / 2)
+      ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * (16 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ∧
+    Integrable (fun a => euclideanSq (polarizationVector a y r p q -
+        fun i => ∫ a', polarizationVector a' y r p q i ∂P)) P ∧
+    ∫ a, euclideanSq (polarizationVector a y r p q -
+        fun i => ∫ a', polarizationVector a' y r p q i ∂P) ∂P ≤
+      d * (16 * (momentConstant (s / 2) * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) := by
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  set θ : ℝ := CF * r ^ (-α) with hθ
+  have hθ0 : 0 < θ := mul_pos hCF (Real.rpow_pos_of_pos hr0 _)
+  set c : ℝ := 2 * (2 : ℝ) ^ s⁻¹ with hc
+  have hc1 : 1 ≤ c := by
+    have : 1 ≤ (2 : ℝ) ^ s⁻¹ := Real.one_le_rpow (by norm_num) (inv_nonneg.mpr hs0.le)
+    linarith
+  -- the three loads
+  have hhalf : ∀ v : Vec d, euclideanNorm v < 2 → euclideanNorm ((1 / 2 : ℝ) • v) < 1 := by
+    intro v hv
+    rw [euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+    linarith
+  have hp' : euclideanNorm ((1 / 2 : ℝ) • p) < 1 := hhalf p (by linarith)
+  have hq' : euclideanNorm ((1 / 2 : ℝ) • q) < 1 := hhalf q (by linarith)
+  have hqe : ∀ i, euclideanNorm ((1 / 2 : ℝ) • (q + unitVector i)) < 1 := fun i =>
+    hhalf _ (lt_of_le_of_lt (euclideanNorm_add_le _ _) (by rw [euclideanNorm_unitVector]; linarith))
+  have he : ∀ i, euclideanNorm ((1 / 2 : ℝ) • (unitVector i : Vec d)) < 1 := fun i =>
+    hhalf _ (by rw [euclideanNorm_unitVector]; norm_num)
+  have h0 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
+  set J₁ : Fin d → CoefficientField d Λ → ℝ :=
+    fun i a => J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) with hJ₁
+  set J₂ : CoefficientField d Λ → ℝ := fun a => J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q)
+    with hJ₂
+  set J₃ : Fin d → CoefficientField d Λ → ℝ :=
+    fun i a => J1Heat a y r 0 ((1 / 2 : ℝ) • unitVector i) with hJ₃
+  have hF₁ := fun i => hF y r hr _ _ hp' (hqe i)
+  have hF₂ := hF y r hr _ _ hp' hq'
+  have hF₃ := fun i => hF y r hr _ _ h0 (he i)
+  set T : Fin d → CoefficientField d Λ → ℝ := fun i a =>
+    |J₁ i a - ∫ a', J₁ i a' ∂P| + |J₂ a - ∫ a', J₂ a' ∂P| + |J₃ i a - ∫ a', J₃ i a' ∂P| with hT
+  have hT0 : ∀ i a, 0 ≤ T i a := fun i a => by positivity
+  have hTos : ∀ i, OsBound P (T i) s (c ^ 2 * θ) := by
+    intro i
+    have h12 := osBound_add_of_pos (hF₁ i).2 hF₂.2
+    have h123 := osBound_add_of_pos h12 (hF₃ i).2
+    refine h123.mono_scale (le_of_eq ?_)
+    have e1 : (2 : ℝ) * ((2 : ℝ) ^ s⁻¹ * max (CF * r ^ (-α)) (CF * r ^ (-α))) = c * θ := by
+      rw [max_self, hc, hθ]; ring
+    rw [e1, max_eq_left (le_mul_of_one_le_left hθ0.le hc1), hc]
+    ring
+  -- the polarization vector and its mean
+  have hpol : ∀ (a : CoefficientField d Λ) (i : Fin d),
+      polarizationVector a y r p q i = 4 * (J₁ i a - J₂ a - J₃ i a) := fun a i => rfl
+  have hmean : ∀ i, ∫ a', polarizationVector a' y r p q i ∂P =
+      4 * ((∫ a', J₁ i a' ∂P) - (∫ a', J₂ a' ∂P) - ∫ a', J₃ i a' ∂P) := by
+    intro i
+    have i12 : Integrable (fun a => J₁ i a - J₂ a) P := (hF₁ i).1.sub hF₂.1
+    simp only [hpol]
+    rw [integral_const_mul, integral_sub i12 (hF₃ i).1, integral_sub (hF₁ i).1 hF₂.1]
+  have hcomp : ∀ (a : CoefficientField d Λ) (i : Fin d), (polarizationVector a y r p q -
+      fun i => ∫ a', polarizationVector a' y r p q i ∂P) i ^ 2 ≤ 16 * T i a ^ 2 := by
+    intro a i
+    have hdiff : (polarizationVector a y r p q -
+        fun i => ∫ a', polarizationVector a' y r p q i ∂P) i =
+        4 * ((J₁ i a - ∫ a', J₁ i a' ∂P) - (J₂ a - ∫ a', J₂ a' ∂P) -
+          (J₃ i a - ∫ a', J₃ i a' ∂P)) := by
+      simp only [Pi.sub_apply]
+      rw [hmean, hpol]
+      ring
+    rw [hdiff]
+    have hb : |(J₁ i a - ∫ a', J₁ i a' ∂P) - (J₂ a - ∫ a', J₂ a' ∂P) -
+        (J₃ i a - ∫ a', J₃ i a' ∂P)| ≤ T i a := by
+      have h1 := abs_sub (J₁ i a - ∫ a', J₁ i a' ∂P - (J₂ a - ∫ a', J₂ a' ∂P))
+        (J₃ i a - ∫ a', J₃ i a' ∂P)
+      have h2 := abs_sub (J₁ i a - ∫ a', J₁ i a' ∂P) (J₂ a - ∫ a', J₂ a' ∂P)
+      simp only [hT]
+      linarith
+    have hb2 := sq_le_sq' (abs_le.mp hb).1 (abs_le.mp hb).2
+    nlinarith
+  have hbound : ∀ a : CoefficientField d Λ, euclideanSq (polarizationVector a y r p q -
+      fun i => ∫ a', polarizationVector a' y r p q i ∂P) ≤ ∑ i, 16 * T i a ^ 2 := by
+    intro a
+    simp only [euclideanSq, dot, ← sq]
+    exact Finset.sum_le_sum fun i _ => hcomp a i
+  -- measurability
+  have hJm : ∀ p' q' : Vec d, Measurable fun a : CoefficientField d Λ => J1Heat a y r p' q' :=
+    fun p' q' => (hmeasJ r p' q').comp (measurable_id.prodMk measurable_const)
+  have hpolm : ∀ i, Measurable fun a : CoefficientField d Λ => polarizationVector a y r p q i :=
+    fun i =>
+    measurable_const.mul (((hJm _ _).sub (hJm _ _)).sub (hJm _ _))
+  have hYm : Measurable fun a : CoefficientField d Λ => euclideanSq (polarizationVector a y r p q -
+      fun i => ∫ a', polarizationVector a' y r p q i ∂P) := by
+    simp only [euclideanSq, dot, Pi.sub_apply]
+    exact Finset.measurable_sum _ fun i _ =>
+      ((hpolm i).sub measurable_const).mul ((hpolm i).sub measurable_const)
+  -- the stochastic bound
+  have hsq : ∀ i, OsBound P (fun a => 16 * T i a ^ 2) (s / 2) (16 * (c ^ 2 * θ) ^ 2) := fun i =>
+    ((hTos i).sq (hT0 i)).const_mul (by norm_num)
+  have hsum := osBound_finset_sum_of_pos (P := P) Finset.univ (by positivity) (by positivity)
+    fun i _ => hsq i
+  rw [Finset.card_univ, Fintype.card_fin] at hsum
+  have hos := hsum.of_le hYm hbound
+  -- the mean
+  have hmom : ∀ i, Integrable (fun a => T i a ^ 2) P ∧
+      ∫ a, T i a ^ 2 ∂P ≤ momentConstant (s / 2) * (c ^ 2 * θ) ^ 2 := fun i =>
+    (hTos i).integral_sq_le (hT0 i)
+  have hsumi : Integrable (fun a => ∑ i, 16 * T i a ^ 2) P :=
+    integrable_finsetSum _ fun i _ => (hmom i).1.const_mul 16
+  have hYi : Integrable (fun a => euclideanSq (polarizationVector a y r p q -
+      fun i => ∫ a', polarizationVector a' y r p q i ∂P)) P :=
+    hsumi.mono' hYm.aestronglyMeasurable (Filter.Eventually.of_forall fun a => by
+      rw [Real.norm_eq_abs, abs_of_nonneg (euclideanSq_nonneg _)]
+      exact hbound a)
+  refine ⟨hos, hYi, ?_⟩
+  calc ∫ a, euclideanSq (polarizationVector a y r p q -
+        fun i => ∫ a', polarizationVector a' y r p q i ∂P) ∂P
+      ≤ ∫ a, ∑ i, 16 * T i a ^ 2 ∂P :=
+        integral_mono_ae hYi hsumi (Filter.Eventually.of_forall hbound)
+    _ = ∑ i, 16 * ∫ a, T i a ^ 2 ∂P := by
+        rw [integral_finsetSum _ fun i _ => (hmom i).1.const_mul 16]
+        exact Finset.sum_congr rfl fun i _ => integral_const_mul _ _
+    _ ≤ ∑ _i : Fin d, 16 * (momentConstant (s / 2) * (c ^ 2 * θ) ^ 2) :=
+        Finset.sum_le_sum fun i _ => by linarith [(hmom i).2]
+    _ = d * (16 * (momentConstant (s / 2) * (c ^ 2 * θ) ^ 2)) := by
+        rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+
+end Fluctuation
+
 end QSH
