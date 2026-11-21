@@ -1,4 +1,4 @@
-import QuantitativeStochasticHomogenization.Ch03.Sec03.QuarterExcessStep
+import QuantitativeStochasticHomogenization.Ch03.Sec03.QuarterExcessStepReduction
 import QuantitativeStochasticHomogenization.Ch03.Sec03.FirstOrderLiouville
 import QuantitativeStochasticHomogenization.Ch03.Sec03.CorrectedAffine
 import QuantitativeStochasticHomogenization.Ch06.Sec01.FluxCorrectorSkewDivergence
@@ -18,7 +18,9 @@ the high-contrast theorem: (6.5)–(6.6) give the flux identity, and Lemma 3.17 
 and Proposition 6.2 give the oscillation bound `C r^{1 - β(d - s)}` above the largest of the
 `d` random scales, with `s` chosen so that `β(d - s) ≤ ½`. Each entry of the skew part has
 centered normalized `L²` norm at most that of the flux corrector in the Frobenius norm. The
-gradients agree because weak gradients are unique.
+gradients agree because weak gradients are unique. With the derivation of the quarter step from
+the harmonic approximation (2) and the harmonic expansion, the first-order Liouville theorem
+follows from these two deterministic estimates.
 -/
 
 open MeasureTheory Filter Topology
@@ -284,5 +286,10 @@ theorem firstOrderLiouville_of_quarterExcessStep (hstep : quarterExcessStepState
   have h := hasWeakGradient_ae_eq w.weak_gradient hG hpot
   filter_upwards [h] with x hx
   rw [hx, zero_add]
+
+/-- **Theorem 3.8, `k = 1`, from the harmonic approximation (2) and the harmonic expansion.** -/
+theorem firstOrderLiouville_of_harmonicApproximation (h2 : harmonicApproximationStatement)
+    (hH : harmonicExpansionStatement) : firstOrderLiouvilleStatement :=
+  firstOrderLiouville_of_quarterExcessStep (quarterExcessStep_of_harmonicApproximation h2 hH)
 
 end QSH
