@@ -27,7 +27,7 @@ def harmonicExpansionBallStatement : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∃ C : ℝ, 0 ≤ C ∧ ∀ b : ℝ, 0 < b → ∀ u : Vec d → ℝ,
     IsL2HarmonicOn 1 (ball 0 b) u →
     ∃ (c : ℝ) (q : Vec d),
-      (∀ t : ℝ, 0 < t → t ≤ b →
+      (∀ t : ℝ, 0 < t → t < b →
         scalarRms volume (ball 0 t) (fun y => u y - (c + dot q y)) ≤
           (t / b) ^ 2 * scalarRms volume (ball 0 b) u) ∧
       euclideanNorm q ≤ C / b * scalarRms volume (ball 0 b) u
@@ -207,11 +207,15 @@ theorem HasWeakDivergence.comp_matrixEllipsoid {M : Mat d} (hdet : M.det ≠ 0) 
 theorem IsL2HarmonicOn.comp_matrixEllipsoid {M : Mat d} (hdet : M.det ≠ 0) {R : ℝ}
     {h : Vec d → ℝ} (hh : IsL2HarmonicOn (M * M.transpose) (matrixEllipsoid M R) h) :
     IsL2HarmonicOn 1 (ball 0 R) (fun y => h (M.mulVec y)) := by
-  obtain ⟨hL2, gh, hgrad, hdiv⟩ := hh
-  refine ⟨?_, fun y => M.transpose.mulVec (gh (M.mulVec y)), hgrad.comp_matrixEllipsoid hdet,
+  obtain ⟨hL2, gh, hgL2, hgrad, hdiv⟩ := hh
+  rw [matrixEllipsoid_eq_image hdet] at hL2 hgL2
+  refine ⟨MemLp.comp_matrixEllipsoid hdet hL2, fun y => M.transpose.mulVec (gh (M.mulVec y)),
+    fun i => ?_, hgrad.comp_matrixEllipsoid hdet,
     hdiv.comp_matrixEllipsoid hdet (fun k => (hgrad k).2.1)⟩
-  rw [matrixEllipsoid_eq_image hdet] at hL2
-  exact MemLp.comp_matrixEllipsoid hdet hL2
+  have h : MemLp (fun y => ∑ k, M k i * gh (M.mulVec y) k) 2 (volume.restrict (ball (0 : Vec d) R)) :=
+    memLp_finsetSum _ fun k _ => (MemLp.comp_matrixEllipsoid hdet (hgL2 k)).const_mul (M k i)
+  refine h.ae_eq (Eventually.of_forall fun y => ?_)
+  simp only [Matrix.mulVec, dotProduct, Matrix.transpose_apply]
 
 theorem dot_inv_transpose_mulVec {M : Mat d} (hdet : M.det ≠ 0) (q y : Vec d) :
     dot ((M⁻¹).transpose.mulVec q) (M.mulVec y) = dot q y := by

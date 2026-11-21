@@ -26,7 +26,7 @@ def harmonicExpansionOfRootStatement : Prop :=
   ∃ C : ℝ, 0 ≤ C ∧ ∀ b : ℝ, 0 < b → ∀ h : Vec d → ℝ,
     IsL2HarmonicOn (M * M.transpose) (matrixEllipsoid M b) h →
     ∃ (c : ℝ) (p : Vec d),
-      (∀ t : ℝ, 0 < t → t ≤ b →
+      (∀ t : ℝ, 0 < t → t < b →
         scalarRms volume (matrixEllipsoid M t) (fun x => h x - (c + dot p x)) ≤
           (t / b) ^ 2 * scalarRms volume (matrixEllipsoid M b) h) ∧
       euclideanNorm p ≤ C / b * scalarRms volume (matrixEllipsoid M b) h

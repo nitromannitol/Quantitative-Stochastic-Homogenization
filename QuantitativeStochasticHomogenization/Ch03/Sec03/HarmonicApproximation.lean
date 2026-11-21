@@ -17,7 +17,7 @@ mollification at scale `R^{1-2ν}` and the comparison principle for `B` on `E_b`
 `harmonicExpansionStatement` is the expansion of `B`-harmonic functions: after the change of
 variables `x = M y`, a `B`-harmonic function on `E_b` is harmonic on `B_b`, its homogeneous
 harmonic polynomials are orthogonal on balls, and the terms of degree at least two decay like
-`(t/b)²`; the first-order term has slope at most `C b⁻¹ ‖h‖_{L̲²(E_b)}`.
+`(t/b)²` for `t < b`; the first-order term has slope at most `C b⁻¹ ‖h‖_{L̲²(E_b)}`.
 -/
 
 open MeasureTheory
@@ -28,9 +28,10 @@ namespace QSH
 
 variable {d : ℕ}
 
-/-- `h` is square integrable on `U` and weakly `B`-harmonic in `U`. -/
+/-- `h` belongs to `H¹(U)` and is weakly `B`-harmonic in `U`. -/
 def IsL2HarmonicOn (B : Mat d) (U : Set (Vec d)) (h : Vec d → ℝ) : Prop :=
-  MemLp h 2 (volume.restrict U) ∧ ∃ gh : Vec d → Vec d, HasWeakGradient U h gh ∧
+  MemLp h 2 (volume.restrict U) ∧ ∃ gh : Vec d → Vec d,
+    (∀ i, MemLp (fun x => gh x i) 2 (volume.restrict U)) ∧ HasWeakGradient U h gh ∧
     HasWeakDivergence U (fun x => B.mulVec (gh x)) (fun _ => 0)
 
 /-- **Harmonic approximation on nearly full ellipsoids**, (2) of the first-order proof of
@@ -56,7 +57,7 @@ def harmonicExpansionStatement : Prop :=
   ∃ C : ℝ, 0 ≤ C ∧ ∀ b : ℝ, 0 < b → ∀ h : Vec d → ℝ,
     IsL2HarmonicOn (M * M.transpose) (matrixEllipsoid M b) h →
     ∃ (c : ℝ) (p : Vec d),
-      (∀ t : ℝ, 0 < t → t ≤ b →
+      (∀ t : ℝ, 0 < t → t < b →
         scalarRms volume (matrixEllipsoid M t) (fun x => h x - (c + dot p x)) ≤
           (t / b) ^ 2 * scalarRms volume (matrixEllipsoid M b) h) ∧
       euclideanNorm p ≤ C / b * scalarRms volume (matrixEllipsoid M b) h

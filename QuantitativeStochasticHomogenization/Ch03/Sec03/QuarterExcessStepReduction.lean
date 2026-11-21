@@ -165,10 +165,10 @@ theorem quarterExcessStep_of_harmonicApproximation (h2 : harmonicApproximationSt
   refine ⟨M, 4 * (6 * ((2 : ℝ) ^ (d + 2) - 1) / 4 + C₂ + 2 ^ d * C₂ + K₃ * (2 ^ d + C₂)), ν,
     hdet, hMM, hν, fun R₀ hR₀ => ?_⟩
   obtain ⟨R₂, hR₀₂, happR⟩ := happ R₀ hR₀
-  refine ⟨max R₂ (max ((6 : ℝ) ^ (1 / ν₂)) (2 * R₀)), le_trans hR₀₂ (le_max_left _ _),
+  refine ⟨max R₂ (max ((7 : ℝ) ^ (1 / ν₂)) (2 * R₀)), le_trans hR₀₂ (le_max_left _ _),
     fun a F w R hR c p => ?_⟩
   have hR2 : R₂ ≤ R := le_trans (le_max_left _ _) hR
-  have hR6 : (6 : ℝ) ^ (1 / ν₂) ≤ R :=
+  have hR6 : (7 : ℝ) ^ (1 / ν₂) ≤ R :=
     le_trans (le_trans (le_max_left _ _) (le_max_right _ _)) hR
   have hRR₀ : 2 * R₀ ≤ R := le_trans (le_trans (le_max_right _ _) (le_max_right _ _)) hR
   have hR1 : 1 ≤ R := by linarith
@@ -179,12 +179,13 @@ theorem quarterExcessStep_of_harmonicApproximation (h2 : harmonicApproximationSt
   obtain ⟨η, hηdef⟩ : ∃ η : ℝ, η = R ^ (-ν₂) := ⟨_, rfl⟩
   rw [← hηdef] at hvh hbdef
   have hη0 : 0 < η := hηdef ▸ Real.rpow_pos_of_pos hR0 _
-  have hη6 : η ≤ 1 / 6 := by
-    have h1 : (6 : ℝ) ≤ R ^ ν₂ := by
+  have hη7 : η ≤ 1 / 7 := by
+    have h1 : (7 : ℝ) ≤ R ^ ν₂ := by
       have h := Real.rpow_le_rpow (by positivity) hR6 hν₂.le
       rwa [← Real.rpow_mul (by norm_num), one_div, inv_mul_cancel₀ hν₂.ne', Real.rpow_one] at h
     rw [hηdef, Real.rpow_neg hR0.le, one_div]
     exact inv_anti₀ (by norm_num) h1
+  have hη6 : η ≤ 1 / 6 := by linarith
   have hb2 : R / 2 ≤ b := by
     have : 0 ≤ (1 / 2 - 3 * η) * R := mul_nonneg (by linarith) hR0.le
     rw [hbdef]
@@ -193,10 +194,15 @@ theorem quarterExcessStep_of_harmonicApproximation (h2 : harmonicApproximationSt
     have : 0 ≤ η * R := mul_nonneg hη0.le hR0.le
     rw [hbdef]
     linarith
+  have hb2' : R / 2 < b := by
+    have : 0 < (1 / 2 - 3 * η) * R := mul_pos (by linarith) hR0
+    rw [hbdef]
+    linarith
   have hb0 : 0 < b := by linarith
   obtain ⟨t, htdef⟩ : ∃ t : ℝ, t = R / 2 := ⟨_, rfl⟩
   have ht0 : 0 < t := by rw [htdef]; linarith
   have htb : t ≤ b := htdef ▸ hb2
+  have htb' : t < b := htdef ▸ hb2'
   have htR : t ≤ R := by rw [htdef]; linarith
   have hLt : R₀ ≤ L * t := by
     have h1 : t ≤ L * t := le_mul_of_one_le_left ht0.le hL1
@@ -293,7 +299,7 @@ theorem quarterExcessStep_of_harmonicApproximation (h2 : harmonicApproximationSt
     linarith
   have hT2 : scalarRms volume (matrixEllipsoid M t) (fun x => h x - (c₁ + dot p₁ x)) ≤
       (R / b / 2) ^ 2 * scalarRms volume (matrixEllipsoid M b) h := by
-    have h1 := hdec t ht0 htb
+    have h1 := hdec t ht0 htb'
     have e : t / b = R / b / 2 := by rw [htdef]; ring
     rwa [e] at h1
   -- third term
