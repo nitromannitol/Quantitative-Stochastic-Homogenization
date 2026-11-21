@@ -141,4 +141,60 @@ theorem card_layerCells_le {R L : ℝ} {N : ℕ} (hN : (N : ℝ) ≤ R / (2 * L)
     _ ≤ d * (8 * (2 * N + 1) ^ (d - 1)) := by gcongr
     _ = 8 * d * (2 * N + 1) ^ (d - 1) := by ring
 
+theorem sum_indicator_cellAt_finset (z : Vec d) {L : ℝ} (hL : 0 < L) (T : Finset (LatticeIndex d))
+    (h : Vec d → ℝ) (y : Vec d) :
+    ∑ k ∈ T, (cellAt z L k).indicator h y = if cellIndex L (y - z) ∈ T then h y else 0 := by
+  classical
+  have e : ∀ k, (cellAt z L k).indicator h y = (latticeCell L k).indicator (fun w => h (w + z))
+      (y - z) := by
+    intro k
+    by_cases hy : y - z ∈ latticeCell L k
+    · rw [Set.indicator_of_mem (show y ∈ cellAt z L k from hy), Set.indicator_of_mem hy,
+        sub_add_cancel]
+    · rw [Set.indicator_of_notMem (show y ∉ cellAt z L k from hy), Set.indicator_of_notMem hy]
+  simp only [e]
+  rw [sum_indicator_latticeCell hL, sub_add_cancel]
+
+/-- The constant of the boundary layer. -/
+noncomputable def layerConst (d : ℕ) : ℝ := Real.sqrt (2 * 8 ^ d) * Real.sqrt (8 * d * 6 ^ (d - 1))
+
+theorem layerConst_nonneg (d : ℕ) : 0 ≤ layerConst d := by unfold layerConst; positivity
+
+/-- The scale of the boundary layer: with `L = R^b`, `m ≤ 8 d 6^{d-1} R^{(1-b)(d-1)}`,
+`R^{-d} (2·8^d)^{1/2} m^{1/2} L^d C L^{-d/2} ≤ K_d C R^{-d/2-(1-b)/2}`. -/
+theorem scale_layer_le (hd : 1 ≤ d) {R b C m : ℝ} (hR : 1 ≤ R) (hC : 0 ≤ C)
+    (hm : m ≤ 8 * d * 6 ^ (d - 1) * R ^ ((1 - b) * ((d - 1 : ℕ) : ℝ))) :
+    R ^ (-(d : ℝ)) * (Real.sqrt (2 * 8 ^ d) * (Real.sqrt m *
+      ((R ^ b) ^ d * (C * (R ^ b) ^ (-((d : ℝ) / 2)))))) ≤
+      layerConst d * C * R ^ (-(d : ℝ) / 2 - (1 - b) / 2) := by
+  have hR0 : 0 < R := zero_lt_one.trans_le hR
+  have hdm : ((d - 1 : ℕ) : ℝ) = (d : ℝ) - 1 := by
+    rw [Nat.cast_sub hd]; simp
+  have hsq : Real.sqrt m ≤ Real.sqrt (8 * d * 6 ^ (d - 1)) * R ^ ((1 - b) * ((d : ℝ) - 1) / 2) := by
+    calc Real.sqrt m ≤ Real.sqrt (8 * d * 6 ^ (d - 1) * R ^ ((1 - b) * ((d - 1 : ℕ) : ℝ))) :=
+          Real.sqrt_le_sqrt hm
+      _ = Real.sqrt (8 * d * 6 ^ (d - 1)) * R ^ ((1 - b) * ((d : ℝ) - 1) / 2) := by
+          rw [Real.sqrt_mul (by positivity), Real.sqrt_eq_rpow (R ^ _), ← Real.rpow_mul hR0.le,
+            hdm]
+          ring_nf
+  have hexp : R ^ (-(d : ℝ)) * ((R ^ b) ^ d * (R ^ b) ^ (-((d : ℝ) / 2))) *
+      R ^ ((1 - b) * ((d : ℝ) - 1) / 2) = R ^ (-(d : ℝ) / 2 - (1 - b) / 2) := by
+    rw [← Real.rpow_natCast (R ^ b), ← Real.rpow_mul hR0.le, ← Real.rpow_mul hR0.le,
+      ← Real.rpow_add hR0, ← Real.rpow_add hR0, ← Real.rpow_add hR0]
+    congr 1
+    ring
+  have hA : 0 ≤ Real.sqrt (2 * 8 ^ d) := Real.sqrt_nonneg _
+  calc R ^ (-(d : ℝ)) * (Real.sqrt (2 * 8 ^ d) * (Real.sqrt m *
+        ((R ^ b) ^ d * (C * (R ^ b) ^ (-((d : ℝ) / 2))))))
+      = Real.sqrt (2 * 8 ^ d) * C * Real.sqrt m *
+          (R ^ (-(d : ℝ)) * ((R ^ b) ^ d * (R ^ b) ^ (-((d : ℝ) / 2)))) := by ring
+    _ ≤ Real.sqrt (2 * 8 ^ d) * C * (Real.sqrt (8 * d * 6 ^ (d - 1)) *
+          R ^ ((1 - b) * ((d : ℝ) - 1) / 2)) *
+          (R ^ (-(d : ℝ)) * ((R ^ b) ^ d * (R ^ b) ^ (-((d : ℝ) / 2)))) := by gcongr
+    _ = layerConst d * C * (R ^ (-(d : ℝ)) * ((R ^ b) ^ d * (R ^ b) ^ (-((d : ℝ) / 2))) *
+          R ^ ((1 - b) * ((d : ℝ) - 1) / 2)) := by
+        unfold layerConst
+        ring
+    _ = layerConst d * C * R ^ (-(d : ℝ) / 2 - (1 - b) / 2) := by rw [hexp]
+
 end QSH
