@@ -159,4 +159,101 @@ theorem sphereMean_sq_le_four (hd : 0 < d) {R : ℝ} {w : Vec d → ℝ}
     rw [h4] at h2
     exact h1.trans (mul_le_mul_of_nonneg_right h2 hmr.le)
 
+/-- **Sharp decay of ball averages** for harmonic functions vanishing to second order:
+`⨍_{B_t} w² ≤ (t/r)⁴ ⨍_{B_r} w²` for `0 < t < r < R`. -/
+theorem integralAverage_sq_le_four (hd : 0 < d) {R : ℝ} {w : Vec d → ℝ}
+    (hw : ContDiffOn ℝ 2 w (PDE.euclideanBall 0 R))
+    (hharm : ∀ x ∈ PDE.euclideanBall (0 : Vec d) R, PDE.euclideanCoordLaplacian w x = 0)
+    (hw0 : w 0 = 0) (hdw0 : fderiv ℝ w 0 = 0) {t r : ℝ} (ht : 0 < t) (htr : t < r)
+    (hrR : r < R) :
+    PDE.integralAverage (PDE.euclideanBall (0 : Vec d) t) (fun x => w x ^ 2) ≤
+      (t / r) ^ 4 * PDE.integralAverage (PDE.euclideanBall (0 : Vec d) r) (fun x => w x ^ 2) := by
+  have : NeZero d := ⟨hd.ne'⟩
+  have hr : 0 < r := ht.trans htr
+  obtain ⟨ρ', v, hrρ, -, hv, hvw⟩ := PDE.exists_contDiff_localization hw hr hrR
+  have hρ0 : 0 < ρ' := hr.trans hrρ
+  have hg : Continuous fun x => v x ^ 2 := hv.continuous.pow 2
+  have hsub : ∀ s : ℝ, 0 ≤ s → s < ρ' → PDE.euclideanBall (0 : Vec d) s ⊆ PDE.euclideanBall 0 ρ' := by
+    intro s hs0 hsρ x hx
+    rw [PDE.mem_euclideanBall_zero_iff] at hx ⊢
+    exact hx.trans (pow_lt_pow_left₀ hsρ hs0 two_ne_zero)
+  have hint : ∀ s : ℝ, 0 ≤ s → s < ρ' →
+      ∫ x in PDE.euclideanBall (0 : Vec d) s, w x ^ 2 =
+        ∫ x in PDE.euclideanBall (0 : Vec d) s, v x ^ 2 := by
+    intro s hs0 hsρ
+    refine setIntegral_congr_fun (PDE.isOpen_euclideanBall _ _).measurableSet fun x hx => ?_
+    simp only [hvw (hsub s hs0 hsρ hx)]
+  have hmean : ∀ s : ℝ, 0 ≤ s → s < ρ' →
+      PDE.sphereMean (0 : Vec d) s (fun x => v x ^ 2) =
+        PDE.sphereMean (0 : Vec d) s (fun x => w x ^ 2) := by
+    intro s hs0 hsρ
+    refine PDE.sphereMean_congr_of_eqOn hρ0 (by rwa [abs_of_nonneg hs0]) fun x hx => ?_
+    simp only [hvw hx]
+  set c : ℝ := t / r with hc
+  have hc0 : 0 < c := div_pos ht hr
+  have hc1 : c < 1 := (div_lt_one hr).mpr htr
+  set I : ℝ → ℝ := fun s => PDE.sphereIntegral 0 s (fun x => v x ^ 2) with hIdef
+  have hIc : Continuous I := PDE.continuous_sphereIntegral hg 0
+  have hcmp : ∀ s ∈ Ioo (0 : ℝ) r, I (c * s) ≤ c ^ (d + 3) * I s := by
+    intro s hs
+    have hcs : 0 < c * s := mul_pos hc0 hs.1
+    have hcs' : c * s < s := by nlinarith [hs.1]
+    simp only [hIdef, PDE.sphereIntegral_eq_mul_sphereMean]
+    rw [hmean _ hcs.le (hcs'.trans (hs.2.trans hrρ)), hmean _ hs.1.le (hs.2.trans hrρ)]
+    have hm := sphereMean_sq_le_four hd hw hharm hw0 hdw0 hcs hcs' (hs.2.trans hrR)
+    have hq : c * s / s = c := mul_div_cancel_right₀ c hs.1.ne'
+    rw [hq] at hm
+    have hA := PDE.sphereArea_pos (d := d)
+    have hpow : (c * s) ^ (d - 1) * c ^ 4 = c ^ (d + 3) * s ^ (d - 1) := by
+      rw [mul_pow, mul_comm (c ^ (d - 1)), mul_assoc, ← pow_add]
+      have : d - 1 + 4 = d + 3 := by have := NeZero.pos d; omega
+      rw [this]
+      ring
+    calc PDE.sphereArea d * (c * s) ^ (d - 1) * PDE.sphereMean 0 (c * s) (fun x => w x ^ 2)
+        ≤ PDE.sphereArea d * (c * s) ^ (d - 1) *
+            (c ^ 4 * PDE.sphereMean 0 s (fun x => w x ^ 2)) :=
+          mul_le_mul_of_nonneg_left hm (mul_nonneg hA.le (pow_nonneg hcs.le _))
+      _ = PDE.sphereArea d * ((c * s) ^ (d - 1) * c ^ 4) *
+            PDE.sphereMean 0 s (fun x => w x ^ 2) := by ring
+      _ = c ^ (d + 3) * (PDE.sphereArea d * s ^ (d - 1) *
+            PDE.sphereMean 0 s (fun x => w x ^ 2)) := by
+          rw [hpow]
+          ring
+  have hsubst : ∫ s in (0 : ℝ)..r, I (c * s) = c⁻¹ * ∫ s in (0 : ℝ)..t, I s := by
+    rw [intervalIntegral.integral_comp_mul_left I hc0.ne', mul_zero, smul_eq_mul]
+    congr 2
+    rw [hc]
+    field_simp
+  have hmono : ∫ s in (0 : ℝ)..r, I (c * s) ≤ ∫ s in (0 : ℝ)..r, c ^ (d + 3) * I s :=
+    intervalIntegral.integral_mono_on_of_le_Ioo hr.le
+      ((hIc.comp (continuous_const.mul continuous_id)).intervalIntegrable _ _)
+      ((continuous_const.mul hIc).intervalIntegrable _ _) hcmp
+  rw [intervalIntegral.integral_const_mul, hsubst] at hmono
+  have hball : ∫ s in (0 : ℝ)..t, I s ≤ c ^ (d + 4) * ∫ s in (0 : ℝ)..r, I s := by
+    have h := mul_le_mul_of_nonneg_left hmono hc0.le
+    rw [← mul_assoc, mul_inv_cancel₀ hc0.ne', one_mul, ← mul_assoc, ← pow_succ'] at h
+    exact h
+  have hpt := PDE.integral_euclideanBall_eq_intervalIntegral_sphereIntegral hg ht
+  have hpr := PDE.integral_euclideanBall_eq_intervalIntegral_sphereIntegral hg hr
+  have hω : 0 < (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal :=
+    PDE.volume_euclideanBall_toReal_pos 0 one_pos
+  unfold PDE.integralAverage
+  rw [PDE.volume_euclideanBall_toReal_eq_unit_mul_of_pos _ ht,
+    PDE.volume_euclideanBall_toReal_eq_unit_mul_of_pos _ hr, hint t ht.le (htr.trans hrρ),
+    hint r hr.le hrρ, hpt, hpr]
+  have hJ0 : 0 ≤ ∫ s in (0 : ℝ)..r, I s := by
+    rw [← hpr]
+    exact setIntegral_nonneg (PDE.isOpen_euclideanBall _ _).measurableSet fun x _ => sq_nonneg _
+  have htd : t ^ d = c ^ d * r ^ d := by rw [hc, div_pow]; field_simp
+  rw [htd]
+  calc (c ^ d * r ^ d * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal)⁻¹ *
+        ∫ s in (0 : ℝ)..t, I s
+      ≤ (c ^ d * r ^ d * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal)⁻¹ *
+          (c ^ (d + 4) * ∫ s in (0 : ℝ)..r, I s) :=
+        mul_le_mul_of_nonneg_left hball (inv_nonneg.2 (by positivity))
+    _ = c ^ 4 * ((r ^ d * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal)⁻¹ *
+          ∫ s in (0 : ℝ)..r, I s) := by
+        rw [pow_add]
+        field_simp
+
 end QSH
