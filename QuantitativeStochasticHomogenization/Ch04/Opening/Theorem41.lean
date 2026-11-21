@@ -92,6 +92,7 @@ section Estimate
 
 variable {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P] {S : HomogenizationData P}
 
+omit [IsProbabilityMeasure P] in
 /-- Almost surely, the Gaussian average of `∇φ_e` is the combination of those of the coordinate
 correctors, and all of them are integrable. -/
 theorem ae_integral_heatKernel_grad_eq (hlin : HasLinearCorrectorGradients S)
@@ -122,14 +123,14 @@ theorem ae_integral_heatKernel_grad_eq (hlin : HasLinearCorrectorGradients S)
       (S.corrector (unitVector i)).grad a y)) := fun i => (hint i).smul (e i)
   have hsum : Integrable (fun y => ∑ i, e i • (heatKernel z r y •
       (S.corrector (unitVector i)).grad a y)) :=
-    integrable_finset_sum _ fun i _ => hint' i
+    integrable_finsetSum _ fun i _ => hint' i
   have hcongr : (fun y => heatKernel z r y • (S.corrector e).grad a y) =ᵐ[volume]
       fun y => ∑ i, e i • (heatKernel z r y • (S.corrector (unitVector i)).grad a y) := by
     filter_upwards [hle] with y hy
     rw [hy, Finset.smul_sum]
     exact Finset.sum_congr rfl fun i _ => smul_comm _ _ _
   refine ⟨hsum.congr hcongr.symm, ?_⟩
-  rw [integral_congr_ae hcongr, integral_finset_sum _ fun i _ => hint' i]
+  rw [integral_congr_ae hcongr, integral_finsetSum _ fun i _ => hint' i]
   exact Finset.sum_congr rfl fun i _ => integral_smul _ _
 
 /-- **Theorem 4.1, (4.2), with `s = 1`**, for one law. -/
