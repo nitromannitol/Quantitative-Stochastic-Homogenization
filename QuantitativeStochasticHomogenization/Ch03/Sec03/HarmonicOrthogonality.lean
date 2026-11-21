@@ -168,11 +168,11 @@ theorem taylorRemainder_props {R : ℝ} (hR : 0 < R) {v : Vec d → ℝ}
     intro x
     simp [PDE.euclideanCoordLaplacian, PDE.euclideanCoordSecondDeriv, hcd]
   have hdv : DifferentiableAt ℝ v 0 := PDE.differentiableAt_of_contDiffOn_top hopen hv h0
-  refine ⟨hv.sub hℓs.contDiffOn, fun y hy => ?_, by simp [hℓ], ?_⟩
+  refine ⟨hv.sub hℓs.contDiffOn, fun y hy => ?_, by simp, ?_⟩
   · have h := PDE.euclideanCoordLaplacian_sub_const_mul hopen hv hℓs.contDiffOn 1 hy
     have e : (fun z => v z - 1 * ℓ z) = fun z => v z - (v 0 + L z) := by
       funext z
-      simp
+      simp [hℓ]
     rw [e] at h
     rw [h, hharm y hy, hΔℓ y]
     ring
