@@ -6,8 +6,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.AverageMeasurability
 If the energy density of a measurable field `G` is integrable against `Φ_{z,r}`, so are `G` and its
 flux `aG`, since `|G| ≤ (1 + G·aG)/2` and `|aG| ≤ Λ|G|` (`integrable_averages_of_energy`).
 Consequently the energy bound below the scale gives the almost sure integrability of the three
-averages (`averagesIntegrable_of_energyBound`) and of the trial (`trialIntegrable_of_energyBound`),
-and (5.58) holds without these hypotheses (`estimate558_of_heatIdentityBound`).
+averages (`averagesIntegrable_of_energyBound`) and of the trial (`trialIntegrable_of_energyBound`).
 -/
 
 open MeasureTheory Filter
@@ -114,37 +113,5 @@ theorem trialIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
     ring
   rw [hfun]
   exact ((h3.const_mul _).sub (integrable_dot_left p h2)).add (integrable_dot_left q h1)
-
-/-- **(5.58) and Theorem 4.6 (ii)** as in `estimate558_of_heat`, without the integrability of the
-averages and of the trial (consequences of the energy bound). -/
-theorem estimate558_of_heatIdentityBound {P : Measure (CoefficientField d Λ)}
-    [IsProbabilityMeasure P] (hd : 2 ≤ d) (S : HomogenizationData P) (hΛ : 0 < Λ)
-    (hμ : ∀ (n : ℕ) (ξ : Vec d),
-      AEStronglyMeasurable (fun a : CoefficientField d Λ => dirichletEnergy a (triadicCube d n) ξ) P)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
-    (hrate : ∀ τ : ℝ, 0 < τ → τ < d → ∃ C μ : ℝ, 0 < C ∧ 0 < μ ∧
-      GaussianCorrectorRate P S τ C μ)
-    (hN : ∀ τ : ℝ, 0 < τ → τ < d → ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN)
-    (hexp : ∀ β : ℝ, 0 < β → β ≤ d → ExpectedAveragesEstimate P S β)
-    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
-      Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
-    (hmeasF : ∀ ξ : Vec d, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
-      fluxAverage S w.2 w.1.1 w.1.2 ξ)
-    {Ck : ℝ} (hheat : HeatIdentityBound P S Ck)
-    (h411 : LocalizationEstimates P localSigma J1Heat)
-    (h412 : FluctuationEstimates P localSigma J1Heat) {s : ℝ} (hs0 : 0 < s) (hs2 : s < 2) :
-    ExpectationJ1Estimate P S.homogenized d ∧
-      ∃ C : ℝ, 0 < C ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
-        euclideanNorm p < 1 → euclideanNorm q < 1 →
-        OsBound P (fun a => |J1Heat a z r p q - homogenizedJ1 S.homogenized p q|) s
-          (C * r ^ (-((d : ℝ) / 2))) := by
-  obtain ⟨CN, -, hN1⟩ := hN 1 one_pos (by
-    have : (2 : ℝ) ≤ d := by exact_mod_cast hd
-    linarith)
-  exact estimate558_of_heat hd S hΛ hμ hspan hrate hN hexp
-    (averagesIntegrable_of_energyBound S hΛ.le hN1) (trialIntegrable_of_energyBound S hΛ.le hN1)
-    hmeasJ hmeasL hmeasF hheat h411 h412 hs0 hs2
 
 end QSH
