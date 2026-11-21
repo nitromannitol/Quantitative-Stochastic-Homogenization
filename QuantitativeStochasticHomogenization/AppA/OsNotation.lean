@@ -1843,6 +1843,294 @@ theorem osBound_of_log_integral_exp_le [IsProbabilityMeasure P] {X : Ω → ℝ}
         rw [← Real.exp_add, neg_mul, hlu]
         ring_nf
 
+/-- For `s ∈ (0, 1)` and `t_s = ((1 - s)/s)^{1/s}`, the function `y ↦ exp((y + t_s)^s)` is convex
+on `[0, ∞)`; this is the function used in the proof of Lemma A.4 for `s < 1`. -/
+theorem convexOn_exp_add_rpow {s : ℝ} (hs0 : 0 < s) (hs1 : s < 1) :
+    ConvexOn ℝ (Set.Ici 0) fun y : ℝ => Real.exp ((y + ((1 - s) / s) ^ s⁻¹) ^ s) := by
+  set a : ℝ := (1 - s) / s with hadef
+  set t : ℝ := a ^ s⁻¹ with htdef
+  have ha : 0 < a := div_pos (by linarith) hs0
+  have ht : 0 < t := Real.rpow_pos_of_pos ha _
+  have hts : t ^ s = a := by
+    rw [htdef, ← Real.rpow_mul ha.le, inv_mul_cancel₀ hs0.ne', Real.rpow_one]
+  have hderiv : ∀ y : ℝ, 0 < y + t → HasDerivAt (fun y : ℝ => Real.exp ((y + t) ^ s))
+      (Real.exp ((y + t) ^ s) * (1 * s * (y + t) ^ (s - 1))) y := fun y hy =>
+    (((hasDerivAt_id' y).add_const t).rpow_const (Or.inl hy.ne')).exp
+  refine MonotoneOn.convexOn_of_deriv (convex_Ici 0)
+    (Real.continuous_exp.comp ((Real.continuous_rpow_const hs0.le).comp
+      (continuous_id.add continuous_const))).continuousOn ?_ ?_
+  · rw [interior_Ici]
+    intro y hy
+    exact (hderiv y (by linarith [Set.mem_Ioi.1 hy])).differentiableAt.differentiableWithinAt
+  · rw [interior_Ici]
+    intro x hx y hy hxy
+    have hx0 : 0 < x := hx
+    have hu : 0 < x + t := by linarith
+    have hv : 0 < y + t := by linarith
+    rw [(hderiv x hu).deriv, (hderiv y hv).deriv]
+    set L := Real.log (x + t) with hL
+    set M := Real.log (y + t) with hM
+    have hLM : L ≤ M := Real.log_le_log hu (by linarith)
+    have e1 : (x + t) ^ s = Real.exp (s * L) := by rw [Real.rpow_def_of_pos hu, mul_comm]
+    have e2 : (x + t) ^ (s - 1) = Real.exp ((s - 1) * L) := by
+      rw [Real.rpow_def_of_pos hu, mul_comm]
+    have e3 : (y + t) ^ s = Real.exp (s * M) := by rw [Real.rpow_def_of_pos hv, mul_comm]
+    have e4 : (y + t) ^ (s - 1) = Real.exp ((s - 1) * M) := by
+      rw [Real.rpow_def_of_pos hv, mul_comm]
+    have h2 : a ≤ Real.exp (s * L) := by
+      rw [← e1, ← hts]
+      exact Real.rpow_le_rpow ht.le (by linarith) hs0.le
+    rw [e1, e2, e3, e4]
+    have h1 : Real.exp (s * L) * (1 + s * (M - L)) ≤ Real.exp (s * M) := by
+      calc Real.exp (s * L) * (1 + s * (M - L))
+          ≤ Real.exp (s * L) * Real.exp (s * (M - L)) := by
+            have := Real.add_one_le_exp (s * (M - L))
+            exact mul_le_mul_of_nonneg_left (by linarith) (Real.exp_pos _).le
+        _ = Real.exp (s * M) := by
+            rw [← Real.exp_add]
+            ring_nf
+    have has : a * s = 1 - s := by
+      rw [hadef]
+      field_simp
+    have h3 : (1 - s) * (M - L) ≤ Real.exp (s * L) * (s * (M - L)) := by
+      have h := mul_le_mul_of_nonneg_right h2 (mul_nonneg hs0.le (sub_nonneg.2 hLM))
+      rwa [← mul_assoc, has] at h
+    have key : Real.exp (s * L) + (s - 1) * L ≤ Real.exp (s * M) + (s - 1) * M := by
+      nlinarith [h1, h3]
+    have h4 : Real.exp (Real.exp (s * L)) * Real.exp ((s - 1) * L) ≤
+        Real.exp (Real.exp (s * M)) * Real.exp ((s - 1) * M) := by
+      rw [← Real.exp_add, ← Real.exp_add]
+      exact Real.exp_le_exp.2 key
+    have h5 := mul_le_mul_of_nonneg_left h4 hs0.le
+    calc Real.exp (Real.exp (s * L)) * (1 * s * Real.exp ((s - 1) * L))
+        = s * (Real.exp (Real.exp (s * L)) * Real.exp ((s - 1) * L)) := by ring
+      _ ≤ s * (Real.exp (Real.exp (s * M)) * Real.exp ((s - 1) * M)) := h5
+      _ = Real.exp (Real.exp (s * M)) * (1 * s * Real.exp ((s - 1) * M)) := by ring
+
+/-- **Lemma A.4** for `s ∈ (0, 1)`, with `C_s = (1 + (1 - s)/(s log 2))^{1/s}`: under the
+hypotheses of `osBound_integral` on a probability space, `x ↦ X(x)` is almost surely
+`μ`-integrable and `∫ X dμ ≤ O_s(C_s ∫ θ dμ)`. The proof is the one of the book: Jensen's
+inequality for the convex function `y ↦ exp((y + t_s)^s)`, the subadditivity of `y ↦ y^s`, and
+the passage from `E[exp((∫ X dμ)^s)] ≤ 2 exp(t_s^s)` to the bound by Hölder's inequality. -/
+theorem osBound_integral_of_lt_one [IsProbabilityMeasure P] {E : Type*} [MeasurableSpace E]
+    {μ : Measure E} [SFinite μ] {X : E → Ω → ℝ} {θ : E → ℝ} {s : ℝ} (hs1 : s < 1)
+    (hXm : Measurable (Function.uncurry X)) (hX0 : ∀ x ω, 0 ≤ X x ω) (hθm : Measurable θ)
+    (hθi : Integrable θ μ) (hθ : 0 < ∫ x, θ x ∂μ) (hX : ∀ x, OsBound P (X x) s (θ x)) :
+    (∀ᵐ ω ∂P, Integrable (fun x => X x ω) μ) ∧
+      OsBound P (fun ω => ∫ x, X x ω ∂μ) s
+        ((1 + (1 - s) / (s * Real.log 2)) ^ s⁻¹ * ∫ x, θ x ∂μ) := by
+  obtain ⟨x₀⟩ : Nonempty E := by
+    by_contra h
+    rw [not_nonempty_iff] at h
+    rw [Measure.eq_zero_of_isEmpty μ, integral_zero_measure] at hθ
+    exact lt_irrefl _ hθ
+  have hs0 : 0 < s := (hX x₀).2.1
+  set m : ℝ := ∫ x, θ x ∂μ with hmdef
+  have hθpos : ∀ x, 0 < θ x := fun x => (hX x).2.2.1
+  set w : E → NNReal := fun x => Real.toNNReal (θ x / m) with hwdef
+  have hwm : Measurable w := (hθm.div_const m).real_toNNReal
+  set ν : Measure E := μ.withDensity fun x => (w x : ℝ≥0∞) with hνdef
+  have hν1 : ν Set.univ = 1 := by
+    rw [hνdef, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ]
+    have e : ∫⁻ x, (w x : ℝ≥0∞) ∂μ = ENNReal.ofReal (∫ x, θ x / m ∂μ) := by
+      rw [ofReal_integral_eq_lintegral_ofReal (hθi.div_const m)
+        (Filter.Eventually.of_forall fun x => (div_pos (hθpos x) hθ).le)]
+      rfl
+    rw [e, integral_div, div_self hθ.ne', ENNReal.ofReal_one]
+  have : IsProbabilityMeasure ν := ⟨hν1⟩
+  set a : ℝ := (1 - s) / s with hadef
+  set t : ℝ := a ^ s⁻¹ with htdef
+  have ha : 0 < a := div_pos (by linarith) hs0
+  have ht : 0 < t := Real.rpow_pos_of_pos ha _
+  have hts : t ^ s = a := by
+    rw [htdef, ← Real.rpow_mul ha.le, inv_mul_cancel₀ hs0.ne', Real.rpow_one]
+  set g : Ω → E → ℝ := fun ω x => (θ x)⁻¹ * X x ω with hgdef
+  set R : Ω → ℝ≥0∞ := fun ω => ∫⁻ x, ENNReal.ofReal (Real.exp (g ω x ^ s)) ∂ν with hRdef
+  have hFm : Measurable fun p : E × Ω =>
+      ENNReal.ofReal (Real.exp (((θ p.1)⁻¹ * X p.1 p.2) ^ s)) := by
+    have h : Measurable fun p : E × Ω => (θ p.1)⁻¹ * X p.1 p.2 :=
+      (hθm.comp measurable_fst).inv.mul hXm
+    exact ENNReal.measurable_ofReal.comp (h.pow_const s).exp
+  have hRm : Measurable R := hFm.lintegral_prod_left'
+  have hg0 : ∀ ω x, 0 ≤ g ω x := fun ω x => mul_nonneg (inv_nonneg.2 (hθpos x).le) (hX0 x ω)
+  have hgm : ∀ ω, Measurable (g ω) := fun ω =>
+    hθm.inv.mul (hXm.comp measurable_prodMk_right)
+  have hφgm : ∀ ω, Measurable fun x => Real.exp (g ω x ^ s) := fun ω => ((hgm ω).pow_const s).exp
+  have hRint : ∫⁻ ω, R ω ∂P ≤ 2 := by
+    have hswap : ∫⁻ ω, R ω ∂P = ∫⁻ x, ∫⁻ ω, ENNReal.ofReal (Real.exp (g ω x ^ s)) ∂P ∂ν :=
+      lintegral_lintegral_swap (hFm.comp measurable_swap).aemeasurable
+    have hin : ∀ x, ∫⁻ ω, ENNReal.ofReal (Real.exp (g ω x ^ s)) ∂P ≤ 2 := by
+      intro x
+      refine le_trans (le_of_eq (lintegral_congr fun ω => ?_)) (hX x).2.2.2
+      simp only [hgdef, max_eq_left (hX0 x ω)]
+    calc ∫⁻ ω, R ω ∂P = ∫⁻ x, ∫⁻ ω, ENNReal.ofReal (Real.exp (g ω x ^ s)) ∂P ∂ν := hswap
+      _ ≤ ∫⁻ _x, (2 : ℝ≥0∞) ∂ν := lintegral_mono hin
+      _ = 2 := by rw [lintegral_const, hν1, mul_one]
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, 1 ≤ s * k := by
+    refine ⟨⌈s⁻¹⌉₊, ?_⟩
+    calc (1 : ℝ) = s * s⁻¹ := (mul_inv_cancel₀ hs0.ne').symm
+      _ ≤ s * ⌈s⁻¹⌉₊ := mul_le_mul_of_nonneg_left (Nat.le_ceil _) hs0.le
+  have hkpos : (0 : ℝ) < k.factorial := by exact_mod_cast Nat.factorial_pos k
+  have hfac : ∀ y : ℝ, 0 ≤ y → y ≤ (k.factorial : ℝ) * Real.exp (y ^ s) := by
+    intro y hy
+    rcases le_total y 1 with h | h
+    · have h1 : (1 : ℝ) ≤ k.factorial := by
+        exact_mod_cast Nat.succ_le_of_lt (Nat.factorial_pos k)
+      calc y ≤ 1 := h
+        _ ≤ (k.factorial : ℝ) * 1 := by linarith
+        _ ≤ (k.factorial : ℝ) * Real.exp (y ^ s) :=
+            mul_le_mul_of_nonneg_left (Real.one_le_exp (Real.rpow_nonneg hy s)) hkpos.le
+    · have hys : 0 ≤ y ^ s := Real.rpow_nonneg hy s
+      have h1 := Real.pow_div_factorial_le_exp (x := y ^ s) hys k
+      have h2 : y ≤ (y ^ s) ^ k := by
+        rw [← Real.rpow_natCast, ← Real.rpow_mul hy]
+        calc y = y ^ (1 : ℝ) := (Real.rpow_one y).symm
+          _ ≤ y ^ (s * k) := Real.rpow_le_rpow_of_exponent_le h hk
+      rw [div_le_iff₀ hkpos] at h1
+      calc y ≤ (y ^ s) ^ k := h2
+        _ ≤ Real.exp (y ^ s) * k.factorial := h1
+        _ = (k.factorial : ℝ) * Real.exp (y ^ s) := mul_comm _ _
+  have hsub : ∀ y : ℝ, 0 ≤ y → Real.exp ((y + t) ^ s) ≤ Real.exp (t ^ s) * Real.exp (y ^ s) := by
+    intro y hy
+    rw [← Real.exp_add]
+    refine Real.exp_le_exp.2 ?_
+    have := Real.rpow_add_le_add_rpow hy ht.le hs0.le hs1.le
+    linarith
+  have hpt : ∀ ω, ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s)) ≤
+      ENNReal.ofReal (Real.exp (t ^ s)) * R ω := by
+    intro ω
+    by_cases hR : R ω = ⊤
+    · rw [hR, ENNReal.mul_top (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne']
+      exact le_top
+    have hφgi : Integrable (fun x => Real.exp (g ω x ^ s)) ν := by
+      refine ⟨(hφgm ω).aestronglyMeasurable, ?_⟩
+      rw [hasFiniteIntegral_iff_ofReal (Filter.Eventually.of_forall fun x => (Real.exp_pos _).le)]
+      exact lt_top_iff_ne_top.2 hR
+    have hgi : Integrable (g ω) ν :=
+      (hφgi.const_mul (k.factorial : ℝ)).mono' (hgm ω).aestronglyMeasurable
+        (Filter.Eventually.of_forall fun x => by
+          rw [Real.norm_eq_abs, abs_of_nonneg (hg0 ω x)]
+          exact hfac _ (hg0 ω x))
+    have hΦm : Measurable fun x => Real.exp ((g ω x + t) ^ s) :=
+      (((hgm ω).add_const t).pow_const s).exp
+    have hΦi : Integrable (fun x => Real.exp ((g ω x + t) ^ s)) ν :=
+      (hφgi.const_mul (Real.exp (t ^ s))).mono' hΦm.aestronglyMeasurable
+        (Filter.Eventually.of_forall fun x => by
+          rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+          exact hsub _ (hg0 ω x))
+    have hcont : ContinuousOn (fun y : ℝ => Real.exp ((y + t) ^ s)) (Set.Ici 0) :=
+      (Real.continuous_exp.comp ((Real.continuous_rpow_const hs0.le).comp
+        (continuous_id.add continuous_const))).continuousOn
+    have hjen := (convexOn_exp_add_rpow hs0 hs1).map_integral_le (μ := ν) hcont isClosed_Ici
+      (Filter.Eventually.of_forall fun x => Set.mem_Ici.2 (hg0 ω x)) hgi hΦi
+    have hmean : ∫ x, g ω x ∂ν = m⁻¹ * ∫ x, X x ω ∂μ := by
+      rw [hνdef, integral_withDensity_eq_integral_smul hwm, ← integral_const_mul]
+      refine integral_congr_ae (Filter.Eventually.of_forall fun x => ?_)
+      have h1 := (hθpos x).ne'
+      have h2 := hθ.ne'
+      simp only [hwdef, hgdef, NNReal.smul_def, smul_eq_mul,
+        Real.coe_toNNReal _ (div_pos (hθpos x) hθ).le]
+      field_simp
+    rw [hmean] at hjen
+    have hY0 : 0 ≤ m⁻¹ * ∫ x, X x ω ∂μ :=
+      mul_nonneg (inv_nonneg.2 hθ.le) (integral_nonneg fun x => hX0 x ω)
+    calc ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s))
+        ≤ ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ + t) ^ s)) :=
+          ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2
+            (Real.rpow_le_rpow hY0 (by linarith) hs0.le))
+      _ ≤ ENNReal.ofReal (∫ x, Real.exp ((g ω x + t) ^ s) ∂ν) := ENNReal.ofReal_le_ofReal hjen
+      _ ≤ ENNReal.ofReal (∫ x, Real.exp (t ^ s) * Real.exp (g ω x ^ s) ∂ν) :=
+          ENNReal.ofReal_le_ofReal (integral_mono hΦi (hφgi.const_mul _)
+            fun x => hsub _ (hg0 ω x))
+      _ = ENNReal.ofReal (Real.exp (t ^ s)) * R ω := by
+          rw [integral_const_mul, ENNReal.ofReal_mul (Real.exp_pos _).le,
+            ofReal_integral_eq_lintegral_ofReal hφgi
+              (Filter.Eventually.of_forall fun x => (Real.exp_pos _).le)]
+  have hRfin : ∀ᵐ ω ∂P, R ω < ⊤ :=
+    ae_lt_top' hRm.aemeasurable (ne_top_of_le_ne_top ENNReal.ofNat_ne_top hRint)
+  have hXint : ∀ᵐ ω ∂P, Integrable (fun x => X x ω) μ := by
+    filter_upwards [hRfin] with ω hω
+    have hXωm : Measurable fun x => X x ω := hXm.comp measurable_prodMk_right
+    refine ⟨hXωm.aestronglyMeasurable, ?_⟩
+    rw [hasFiniteIntegral_iff_ofReal (Filter.Eventually.of_forall fun x => hX0 x ω)]
+    have hle : ∀ x, ENNReal.ofReal (X x ω) ≤ ENNReal.ofReal (m * k.factorial) *
+        ((w x : ℝ≥0∞) * ENNReal.ofReal (Real.exp (g ω x ^ s))) := by
+      intro x
+      change ENNReal.ofReal (X x ω) ≤ ENNReal.ofReal (m * k.factorial) *
+        (ENNReal.ofReal (θ x / m) * ENNReal.ofReal (Real.exp (g ω x ^ s)))
+      rw [← ENNReal.ofReal_mul (div_pos (hθpos x) hθ).le,
+        ← ENNReal.ofReal_mul (mul_pos hθ hkpos).le]
+      refine ENNReal.ofReal_le_ofReal ?_
+      have h1 := (hθpos x).ne'
+      have h2 := hθ.ne'
+      have hgx : X x ω = θ x * g ω x := by
+        simp only [hgdef]
+        field_simp
+      rw [hgx, show m * k.factorial * (θ x / m * Real.exp (g ω x ^ s)) =
+          θ x * (k.factorial * Real.exp (g ω x ^ s)) by field_simp]
+      exact mul_le_mul_of_nonneg_left (hfac _ (hg0 ω x)) (hθpos x).le
+    have heq : ∫⁻ x, ENNReal.ofReal (m * k.factorial) *
+        ((w x : ℝ≥0∞) * ENNReal.ofReal (Real.exp (g ω x ^ s))) ∂μ =
+        ENNReal.ofReal (m * k.factorial) * R ω := by
+      rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+      congr 1
+      simp only [hRdef, hνdef]
+      exact (lintegral_withDensity_eq_lintegral_mul μ hwm.coe_nnreal_ennreal
+        (ENNReal.measurable_ofReal.comp (hφgm ω))).symm
+    calc ∫⁻ x, ENNReal.ofReal (X x ω) ∂μ
+        ≤ ∫⁻ x, ENNReal.ofReal (m * k.factorial) *
+            ((w x : ℝ≥0∞) * ENNReal.ofReal (Real.exp (g ω x ^ s))) ∂μ := lintegral_mono hle
+      _ = ENNReal.ofReal (m * k.factorial) * R ω := heq
+      _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top hω
+  refine ⟨hXint, ?_⟩
+  have hIm : Measurable fun ω => ∫ x, X x ω ∂μ :=
+    (hXm.stronglyMeasurable.integral_prod_left (μ := μ)).measurable
+  have hl2 : 0 < Real.log 2 := Real.log_pos one_lt_two
+  set r : ℝ := Real.log 2 / (Real.log 2 + t ^ s) with hrdef
+  have hts0 : 0 < t ^ s := by rw [hts]; exact ha
+  have hr0 : 0 < r := div_pos hl2 (by linarith)
+  have hr1 : r ≤ 1 := (div_le_one (by linarith)).2 (by linarith)
+  have hC0 : 0 < 1 + (1 - s) / (s * Real.log 2) := by
+    have : 0 < (1 - s) / (s * Real.log 2) := div_pos (by linarith) (mul_pos hs0 hl2)
+    linarith
+  set C : ℝ := (1 + (1 - s) / (s * Real.log 2)) ^ s⁻¹ with hCdef
+  have hC : 0 < C := Real.rpow_pos_of_pos hC0 _
+  have hCr : C⁻¹ ^ s = r := by
+    rw [hCdef, Real.inv_rpow (Real.rpow_nonneg hC0.le _), ← Real.rpow_mul hC0.le,
+      inv_mul_cancel₀ hs0.ne', Real.rpow_one, hrdef, hts, hadef]
+    field_simp
+  refine ⟨hIm, hs0, mul_pos hC hθ, ?_⟩
+  have hYm : Measurable fun ω => ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s)) :=
+    ENNReal.measurable_ofReal.comp (((measurable_const.mul hIm).pow_const s).exp)
+  have hpt2 : ∀ ω, ENNReal.ofReal (Real.exp (((C * m)⁻¹ * max (∫ x, X x ω ∂μ) 0) ^ s)) =
+      ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s)) ^ r * 1 ^ (1 - r) := by
+    intro ω
+    have hI0 : 0 ≤ ∫ x, X x ω ∂μ := integral_nonneg fun x => hX0 x ω
+    rw [ENNReal.one_rpow, mul_one, max_eq_left hI0,
+      ENNReal.ofReal_rpow_of_nonneg (Real.exp_pos _).le hr0.le, ← Real.exp_mul, mul_inv, mul_assoc,
+      Real.mul_rpow (inv_nonneg.2 hC.le) (mul_nonneg (inv_nonneg.2 hθ.le) hI0), hCr, mul_comm]
+  have hfinal : (ENNReal.ofReal (Real.exp (t ^ s)) * 2) ^ r = 2 := by
+    rw [← ENNReal.ofReal_ofNat 2, ← ENNReal.ofReal_mul (Real.exp_pos _).le,
+      ENNReal.ofReal_rpow_of_nonneg (by positivity) hr0.le,
+      Real.rpow_def_of_pos (by positivity), Real.log_mul (Real.exp_pos _).ne' two_ne_zero,
+      Real.log_exp, show (t ^ s + Real.log 2) * r = Real.log 2 by
+        rw [hrdef]
+        field_simp
+        ring, Real.exp_log two_pos]
+  calc ∫⁻ ω, ENNReal.ofReal (Real.exp (((C * m)⁻¹ * max (∫ x, X x ω ∂μ) 0) ^ s)) ∂P
+      = ∫⁻ ω, ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s)) ^ r * 1 ^ (1 - r) ∂P :=
+        lintegral_congr fun ω => hpt2 ω
+    _ ≤ (∫⁻ ω, ENNReal.ofReal (Real.exp ((m⁻¹ * ∫ x, X x ω ∂μ) ^ s)) ∂P) ^ r *
+          (∫⁻ _ω, (1 : ℝ≥0∞) ∂P) ^ (1 - r) :=
+        ENNReal.lintegral_mul_norm_pow_le hYm.aemeasurable aemeasurable_const hr0.le
+          (by linarith) (by ring)
+    _ ≤ (ENNReal.ofReal (Real.exp (t ^ s)) * 2) ^ r * 1 := by
+        rw [lintegral_const, measure_univ, mul_one, ENNReal.one_rpow, mul_one, mul_one]
+        refine ENNReal.rpow_le_rpow ((lintegral_mono hpt).trans ?_) hr0.le
+        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+        gcongr
+    _ = 2 := by rw [mul_one, hfinal]
+
 /-- **Lemma A.10**, with `C = 1`: for `s ∈ (1, 2]`, let `μ` be an s-finite measure on `E`, `θ` a
 positive, measurable and integrable function with `∫ θ dμ > 0`, and `(X(x))_{x ∈ E}` a jointly
 measurable family of random variables with `X(x) = 𝒪_s(θ(x))` for every `x`. Then `x ↦ X(x)` is
