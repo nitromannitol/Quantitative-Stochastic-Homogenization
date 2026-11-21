@@ -301,7 +301,8 @@ theorem exists_blockBound_layer (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < s
       rw [sum_indicator_cellAt_finset z hL0 T f x]
       by_cases hfx : f x = 0
       · simp [hfx]
-      · simp only [cellIndex_mem_layerCells hL0 hN1 (hfsupp x hfx), ↓reduceIte]
+      · have hmem : cellIndex L (x - z) ∈ T := cellIndex_mem_layerCells hL0 hN1 (hfsupp x hfx)
+        simp only [hmem, ↓reduceIte]
     have hik : ∀ k, Integrable fun x => w k x * X.field r a x := fun k =>
       X.integrable_mul r a (hfi.indicator (measurableSet_cellAt z L k))
     show R ^ (-(d : ℝ)) * ∑ k ∈ T, ∫ x, w k x * X.field r a x =
