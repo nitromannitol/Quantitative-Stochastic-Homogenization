@@ -162,7 +162,7 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
       ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
-        ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
+        ∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y) s
         (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))))
     {R r r₁ R' : ℝ} {n : ℕ} (hR2 : 1 ≤ R / 2) (hRR₁ : R / 2 ≤ R₁) (hr₁ : 1 ≤ r₁)
     (hr₁r : r₁ < r) (hr₁lo : (R / 2) ^ η₁ ≤ r₁) (hr₁hi : r₁ ≤ (R / 2) ^ η₂)
@@ -182,7 +182,7 @@ theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF :
   have hR'0 : 0 < R' := zero_lt_one.trans_le hR'1
   set ρ : ℝ := Real.sqrt (r ^ 2 - r₁ ^ 2) with hρdef
   have hρ : 0 < ρ := Real.sqrt_pos.mpr (by nlinarith)
-  set g : Vec d → ℝ := heatSmooth f ρ with hgdef
+  set g : Vec d → ℝ := heatWeightAverage f ρ with hgdef
   have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR0.le hfz
   have hgm : Measurable g := measurable_heatSmooth hf ρ
   have hgi : Integrable g := integrable_heatSmooth hfi hf hρ

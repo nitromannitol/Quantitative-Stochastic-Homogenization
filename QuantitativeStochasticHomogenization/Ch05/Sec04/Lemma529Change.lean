@@ -79,14 +79,14 @@ theorem centeredOsBound_zero' {P : Measure Ω} [IsProbabilityMeasure P] {s θ : 
 /-- The heat average of the indicator of a cube: `0 ≤ g ≤ 1`, and `1 - g` is at most
 `2^{d/2} exp(-(L/2)²/(8ρ²))` on the cube of side `R - L`. -/
 theorem heatSmooth_cube_bounds (z : Vec d) {R L ρ : ℝ} (hρ : 0 < ρ) (hL : 0 ≤ L) (x : Vec d) :
-    0 ≤ heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ∧
-      heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤ 1 ∧
-      (x ∈ cube z (R - L) → 1 - heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤
+    0 ≤ heatWeightAverage ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ∧
+      heatWeightAverage ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤ 1 ∧
+      (x ∈ cube z (R - L) → 1 - heatWeightAverage ((cube z R).indicator fun _ => (1 : ℝ)) ρ x ≤
         2 ^ ((d : ℝ) / 2) * Real.exp (-((L / 2) ^ 2 / (8 * ρ ^ 2)))) := by
   have hm := measurableSet_cube z R
-  have e : heatSmooth ((cube z R).indicator fun _ => (1 : ℝ)) ρ x =
+  have e : heatWeightAverage ((cube z R).indicator fun _ => (1 : ℝ)) ρ x =
       ∫ y in cube z R, heatKernel x ρ y := by
-    unfold heatSmooth
+    unfold heatWeightAverage
     rw [← integral_indicator hm]
     congr 1
     funext y
@@ -151,7 +151,7 @@ theorem centeredOsBound_change_step [IsProbabilityMeasure P] (X : CenteredLocalF
       ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
-        ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
+        ∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y) s
         (Cf * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))))
     {R b r r₁ : ℝ} (hR : 1 ≤ R) (hb0 : 0 ≤ b) (hb1 : b ≤ 1) (hr₁ : 1 ≤ r₁) (hr₁r : r₁ < r)
     (hlo : R ^ (b * η₁) ≤ r₁) (hhi : r₁ ≤ R ^ (b / (1 + δ)))
@@ -188,7 +188,7 @@ theorem centeredOsBound_change_step [IsProbabilityMeasure P] (X : CenteredLocalF
   have hL0 : 0 < L := Real.rpow_pos_of_pos hR0 b
   have hRR' : R ≤ R + L := by linarith
   have hR'0 : 0 < R + L := by linarith
-  set g : Vec d → ℝ := heatSmooth f ρ with hgdef
+  set g : Vec d → ℝ := heatWeightAverage f ρ with hgdef
   have hfi := integrable_of_abs_le_one_of_closedCube hfm hf1 hR0.le hfz
   have hgm : Measurable g := measurable_heatSmooth hfm ρ
   have hgi : Integrable g := integrable_heatSmooth hfi hfm hρ

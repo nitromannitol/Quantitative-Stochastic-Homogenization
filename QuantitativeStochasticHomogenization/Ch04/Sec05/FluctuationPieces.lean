@@ -95,7 +95,7 @@ theorem centeredOsBound_block_additivity_defect [IsProbabilityMeasure P]
     one_mul]
 
 /-- The heat average of a weight, `g(y) = ∫ f(x) Φ_{x,ρ}(y) dx`. -/
-noncomputable def heatSmooth (f : Vec d → ℝ) (ρ : ℝ) (y : Vec d) : ℝ :=
+noncomputable def heatWeightAverage (f : Vec d → ℝ) (ρ : ℝ) (y : Vec d) : ℝ :=
   ∫ x, f x * heatKernel x ρ y
 
 theorem measurable_heatKernel_prod_swap (ρ : ℝ) :
@@ -106,15 +106,15 @@ theorem measurable_heatKernel_prod_swap (ρ : ℝ) :
   exact this.measurable
 
 theorem measurable_heatSmooth {f : Vec d → ℝ} (hf : Measurable f) (ρ : ℝ) :
-    Measurable (heatSmooth f ρ) := by
+    Measurable (heatWeightAverage f ρ) := by
   have hH : Measurable fun p : Vec d × Vec d => f p.2 * heatKernel p.2 ρ p.1 :=
     (hf.comp measurable_snd).mul (measurable_heatKernel_prod_swap ρ)
-  unfold heatSmooth
+  unfold heatWeightAverage
   exact hH.stronglyMeasurable.integral_prod_right'.measurable
 
 theorem abs_heatSmooth_le_one {f : Vec d → ℝ} (hf1 : ∀ x, |f x| ≤ 1) {ρ : ℝ} (hρ : 0 < ρ)
-    (y : Vec d) : |heatSmooth f ρ y| ≤ 1 := by
-  unfold heatSmooth
+    (y : Vec d) : |heatWeightAverage f ρ y| ≤ 1 := by
+  unfold heatWeightAverage
   refine (abs_integral_le_integral_abs).trans ?_
   calc ∫ x, |f x * heatKernel x ρ y| ≤ ∫ x, heatKernel x ρ y := by
         refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun x => abs_nonneg _)
@@ -143,7 +143,7 @@ theorem integrable_heatWeight {f : Vec d → ℝ} (hf : Integrable f) {ρ : ℝ}
 /-- **Fubini for heat averages**: `∫ f(x) ∫ Φ_{x,ρ}(y) G(y) dy dx = ∫ g(y) G(y) dy`. -/
 theorem integral_mul_heat_eq {f : Vec d → ℝ} (hf : Integrable f) {ρ : ℝ} (hρ : 0 < ρ)
     {G : Vec d → ℝ} (hG : Measurable G) {B : ℝ} (hGB : ∀ y, |G y| ≤ B) :
-    ∫ x, f x * ∫ y, heatKernel x ρ y * G y = ∫ y, heatSmooth f ρ y * G y := by
+    ∫ x, f x * ∫ y, heatKernel x ρ y * G y = ∫ y, heatWeightAverage f ρ y * G y := by
   have hint : Integrable (fun p : Vec d × Vec d => f p.1 * (heatKernel p.1 ρ p.2 * G p.2))
       (volume.prod volume) := by
     refine ((integrable_heatWeight hf hρ).const_mul B).mono' ?_ (Filter.Eventually.of_forall
@@ -163,7 +163,7 @@ theorem integral_mul_heat_eq {f : Vec d → ℝ} (hf : Integrable f) {ρ : ℝ} 
   rw [e1, integral_integral_swap hint]
   congr 1
   funext y
-  unfold heatSmooth
+  unfold heatWeightAverage
   rw [← integral_mul_const]
   congr 1
   funext x
@@ -171,16 +171,16 @@ theorem integral_mul_heat_eq {f : Vec d → ℝ} (hf : Integrable f) {ρ : ℝ} 
 
 theorem integral_abs_heatSmooth_le {f : Vec d → ℝ} (hf : Integrable f) {ρ : ℝ} (hρ : 0 < ρ)
     (S : Set (Vec d)) :
-    ∫ y in S, |heatSmooth f ρ y| ≤ ∫ x, |f x| * ∫ y in S, heatKernel x ρ y := by
+    ∫ y in S, |heatWeightAverage f ρ y| ≤ ∫ x, |f x| * ∫ y in S, heatKernel x ρ y := by
   have hint := integrable_heatWeight hf hρ
   have hintS : Integrable (fun p : Vec d × Vec d => |f p.1| * heatKernel p.1 ρ p.2)
       (volume.prod (volume.restrict S)) :=
     hint.mono_measure (Measure.prod_mono le_rfl Measure.restrict_le_self)
-  calc ∫ y in S, |heatSmooth f ρ y|
+  calc ∫ y in S, |heatWeightAverage f ρ y|
       ≤ ∫ y in S, ∫ x, |f x| * heatKernel x ρ y := by
         refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun y => abs_nonneg _)
           (hintS.integral_prod_right) (Filter.Eventually.of_forall fun y => ?_)
-        unfold heatSmooth
+        unfold heatWeightAverage
         refine (abs_integral_le_integral_abs).trans_eq ?_
         congr 1
         funext x
@@ -194,12 +194,12 @@ theorem integral_abs_heatSmooth_le {f : Vec d → ℝ} (hf : Integrable f) {ρ :
 /-! ### The far part -/
 
 theorem integrable_heatSmooth {f : Vec d → ℝ} (hf : Integrable f) (hfm : Measurable f) {ρ : ℝ}
-    (hρ : 0 < ρ) : Integrable (heatSmooth f ρ) := by
+    (hρ : 0 < ρ) : Integrable (heatWeightAverage f ρ) := by
   have hint := integrable_heatWeight hf hρ
   refine hint.integral_prod_right.mono' (measurable_heatSmooth hfm ρ).aestronglyMeasurable
     (Filter.Eventually.of_forall fun y => ?_)
   rw [Real.norm_eq_abs]
-  unfold heatSmooth
+  unfold heatWeightAverage
   refine (abs_integral_le_integral_abs).trans_eq ?_
   congr 1
   funext x
@@ -215,7 +215,7 @@ theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 
       (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) → ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
-        ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
+        ∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y) s
         (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) := by
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
   refine ⟨C₀, hC₀, ?_⟩
@@ -223,12 +223,12 @@ theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 
   have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR.le hfz
   set e : ℝ := 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) with hedef
   have he : 0 < e := by positivity
-  have hgm : Measurable (S.indicator (heatSmooth f ρ)) := (measurable_heatSmooth hf ρ).indicator hS
-  have hgi : Integrable (S.indicator (heatSmooth f ρ)) :=
+  have hgm : Measurable (S.indicator (heatWeightAverage f ρ)) := (measurable_heatSmooth hf ρ).indicator hS
+  have hgi : Integrable (S.indicator (heatWeightAverage f ρ)) :=
     (integrable_heatSmooth hfi hf hρ).indicator hS
-  have hint_g : ∫ y, |S.indicator (heatSmooth f ρ) y| ≤ R ^ d * e := by
-    have e1 : (fun y => |S.indicator (heatSmooth f ρ) y|) =
-        S.indicator (fun y => |heatSmooth f ρ y|) := by
+  have hint_g : ∫ y, |S.indicator (heatWeightAverage f ρ) y| ≤ R ^ d * e := by
+    have e1 : (fun y => |S.indicator (heatWeightAverage f ρ) y|) =
+        S.indicator (fun y => |heatWeightAverage f ρ y|) := by
       funext y
       by_cases hy : y ∈ S
       · rw [Set.indicator_of_mem hy, Set.indicator_of_mem hy]
@@ -246,11 +246,11 @@ theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 
       _ = (∫ x, |f x|) * e := integral_mul_const _ _
       _ ≤ R ^ d * e := mul_le_mul_of_nonneg_right
             (integral_abs_le_of_closedCube hf hf1 hR.le hfz) he.le
-  have hbound : ∀ a, |R ^ (-(d : ℝ)) * ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y| ≤
+  have hbound : ∀ a, |R ^ (-(d : ℝ)) * ∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y| ≤
       B * e := by
     intro a
     rw [abs_mul, abs_of_pos (Real.rpow_pos_of_pos hR _)]
-    calc R ^ (-(d : ℝ)) * |∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y|
+    calc R ^ (-(d : ℝ)) * |∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y|
         ≤ R ^ (-(d : ℝ)) * (B * (R ^ d * e)) :=
           mul_le_mul_of_nonneg_left ((abs_integral_mul_le (X.abs_le r₁) hgi a).trans
             (mul_le_mul_of_nonneg_left hint_g hB0.le)) (Real.rpow_nonneg hR.le _)

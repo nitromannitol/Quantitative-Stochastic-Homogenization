@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch05.Sec04.Lemma529Clt
 import QuantitativeStochasticHomogenization.Frozen.BlockCLT
+import QuantitativeStochasticHomogenization.Ch04.Sec06.HeatScaleSummation
 
 /-!
 # Lemma 5.29 for the localized energy
@@ -45,11 +46,6 @@ theorem clampAt_of_abs_le {M v : ℝ} (hv : |v| ≤ M) : clampAt M v = v := by
   unfold clampAt
   rw [abs_le] at hv
   rw [min_eq_right hv.2, max_eq_right hv.1]
-
-theorem osBound_zero {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
-    {s θ : ℝ} (hs : 0 < s) (hθ : 0 < θ) : OsBound P (fun _ => (0 : ℝ)) s θ := by
-  refine ⟨measurable_const, hs, hθ, ?_⟩
-  simp [Real.zero_rpow hs.ne']
 
 theorem familyJ1_of_lt_two {Λ δ γ α σ θ C₀ : ℝ} (W : LocalizedFamily d Λ δ γ α σ θ C₀)
     (a : CoefficientField d Λ) (z : Vec d) {r : ℝ} (hr : r < 2) (p q : Vec d) :

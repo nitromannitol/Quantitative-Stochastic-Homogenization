@@ -154,7 +154,7 @@ theorem exists_blockBound_step (hd : 1 ≤ d)
       ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
-        ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
+        ∫ y, S.indicator (heatWeightAverage f ρ) y * X.field r₁ a y) s
         (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) :=
     fun r₁ => hfar P X r₁
   have hstep := centeredOsBound_block_step hd hF hmono X hA hβ hC0 hfarX (r := r)

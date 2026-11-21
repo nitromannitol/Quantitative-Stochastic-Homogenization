@@ -1,6 +1,7 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec01.GramSpace
 import QuantitativeStochasticHomogenization.Ch04.Sec05.GaussianMasses
 import QuantitativeStochasticHomogenization.Ch05.Sec03HeuristicScalingLimit
+import QuantitativeStochasticHomogenization.Ch04.Sec04.CorrectedSpanEnergy
 
 /-!
 # Section 5.3: the coarsened coefficients on the Gram space
@@ -27,13 +28,6 @@ namespace QSH
 variable {d : ℕ} {Λ : ℝ}
 
 open BaseExponent
-
-theorem HarmonicA1.aemeasurable_grad {a : CoefficientField d Λ} (w : HarmonicA1 a) :
-    AEMeasurable w.grad volume := by
-  refine aemeasurable_pi_iff.mpr fun i => ?_
-  have h := ((w.weak_gradient i).2.1).aestronglyMeasurable
-  rw [Measure.restrict_univ] at h
-  exact h.aemeasurable
 
 /-- **The gradients of `A₁` form a linear family** ((4.12), Theorem 3.8 with `k = 1`): there is a
 linear family `ξ ↦ G ξ` such that every element of `A₁` has gradient `G ξ` for some `ξ`, every

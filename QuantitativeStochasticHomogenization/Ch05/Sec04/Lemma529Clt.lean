@@ -103,13 +103,13 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) →
 theorem abs_heatSmooth_le_of_mem_cellAt {f : Vec d → ℝ} (hf1 : ∀ x, |f x| ≤ 1) {z : Vec d}
     {R ρ : ℝ} (hR : 0 < R) (hρ : 0 < ρ) (hρR : ρ ≤ R) (hfz : ∀ x ∉ closedCube z R, f x = 0)
     {k : LatticeIndex d} {y : Vec d} (hy : y ∈ cellAt z R k) :
-    |heatSmooth f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * ∏ i, shiftedGaussian (k i) := by
+    |heatWeightAverage f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * ∏ i, shiftedGaussian (k i) := by
   set S : ℝ := ∑ i, (max (|(k i : ℝ)| - 1) 0) ^ 2 with hSdef
   have hS : 0 ≤ S := Finset.sum_nonneg fun i _ => sq_nonneg _
   set t : ℝ := R * Real.sqrt S with htdef
   have ht : 0 ≤ t := by positivity
-  have h1 : |heatSmooth f ρ y| ≤ ∫ x, (closedCube z R).indicator (fun x => heatKernel x ρ y) x := by
-    unfold heatSmooth
+  have h1 : |heatWeightAverage f ρ y| ≤ ∫ x, (closedCube z R).indicator (fun x => heatKernel x ρ y) x := by
+    unfold heatWeightAverage
     refine (abs_integral_le_integral_abs).trans (integral_mono_of_nonneg
       (Filter.Eventually.of_forall fun x => abs_nonneg _)
       ((integrable_heatKernel_center y hρ).indicator (measurableSet_closedCube z R))
@@ -139,7 +139,7 @@ theorem abs_heatSmooth_le_of_mem_cellAt {f : Vec d → ℝ} (hf1 : ∀ x, |f x| 
     rw [hsum, et, neg_le_neg_iff, div_le_div_iff₀ (by norm_num) (by positivity)]
     have hρ2 : ρ ^ 2 ≤ R ^ 2 := pow_le_pow_left₀ hρ.le hρR 2
     nlinarith
-  calc |heatSmooth f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) :=
+  calc |heatWeightAverage f ρ y| ≤ 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) :=
         (h1.trans_eq h2).trans h3
     _ ≤ 2 ^ ((d : ℝ) / 2) * ∏ i, shiftedGaussian (k i) :=
         mul_le_mul_of_nonneg_left h4 (by positivity)
@@ -186,7 +186,7 @@ theorem exists_blockBound_all_scales (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 
       _ = r := Real.sqrt_sq (by linarith)
       _ ≤ R := hr2
   have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR0.le hfz
-  set g : Vec d → ℝ := heatSmooth f ρ with hgdef
+  set g : Vec d → ℝ := heatWeightAverage f ρ with hgdef
   have hgm : Measurable g := measurable_heatSmooth hf ρ
   have hgi : Integrable g := integrable_heatSmooth hfi hf hρ
   have hT1 := centeredOsBound_block_additivity_defect X hr₁1 hr₁r hR0 hf hf1 hfz
