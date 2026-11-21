@@ -142,7 +142,7 @@ theorem foldr_integral_comp_sub_heatKernel {t : ℝ} (ht : 0 < t) {w : Vec d →
       exact ⟨C, fun v => by simpa using hC v⟩
     exact coordinateDerivative_integral_comp_sub hK ⟨C0, hC0⟩ hK1 hw j x
 
-theorem foldr_comp_sub (l : List (Fin d)) {f : Vec d → ℝ} (hf : ContDiff ℝ ∞ f) (z : Vec d) :
+theorem foldr_comp_sub (l : List (Fin d)) (f : Vec d → ℝ) (z : Vec d) :
     l.foldr coordinateDerivative (fun x => f (x - z)) =
       fun x => l.foldr coordinateDerivative f (x - z) := by
   induction l with
@@ -166,7 +166,7 @@ theorem foldr_euclideanHeatKernel_semigroup {t s : ℝ} (ht : 0 < t) (hs : 0 < s
   have h2 : (fun x => ∫ y, euclideanHeatKernel (d := d) t (x - y) *
       euclideanHeatKernel s (y - z)) = fun x => euclideanHeatKernel (t + s) (x - z) :=
     funext fun x => integral_euclideanHeatKernel_mul ht hs x z
-  rw [h2, foldr_comp_sub l (contDiff_euclideanHeatKernel (t + s)) z] at h1
+  rw [h2, foldr_comp_sub l (euclideanHeatKernel (t + s)) z] at h1
   exact h1
 
 end QSH
