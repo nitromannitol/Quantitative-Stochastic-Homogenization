@@ -150,6 +150,22 @@ of each module names the source files and commits.
   (`TrialExpectationEstimate`), which are hypotheses, together with the inputs of Proposition 4.3,
   the almost sure integrability of the trial (`TrialIntegrable`) and the joint measurability of
   `(a, x) ↦ J₁(Φ_{x,r}, p, q)`.
+- **The trial gap estimate (Step 2 of the route of Proposition 4.10).** On a linear family of
+  gradients spanning `A₁`, the functional of (4.8) is `-½ ξ·Aξ + l·ξ` (`j1Functional_fieldOf`),
+  `J₁ = ½ l·A⁻¹l` and the gap to the trial at a slope `k` is `½ (k - c)·A(k - c)`
+  (`J1_sub_j1Functional_fieldOf`); the averaged gradient `m` of the maximizer is the polarization
+  vector of `J₁` ((4.16), `integral_maximizer_eq_polarizationVector`), whose fluctuations are
+  bounded by `Fluc(s, α)` (`polarizationVector_fluctuation`). The comparison of the expectations of
+  the gaps at the deterministic slopes `E[m]` and `c*` gives `|E[m] - c*| ≤ C r^{-α}`, and
+  `trialGapEstimate_of_linearAverages` gives the trial gap estimate `O_{s/2}(C r^{-2α})` from the
+  linear estimate of the gradient averages (`LinearAverageEstimate`, the output of Step 1, through
+  the heat identity, in the route), the expectation of the trial at deterministic slopes
+  (`TrialObjectiveExpectation`, from the cell averages of the stationary fields), the energy of
+  the corrected fields below the scale (`GaussianEnergyBound`) and Proposition 3.21; these are
+  hypotheses. `proposition410_of_linearAverages` and `estimate558_of_linearAverages` state
+  Proposition 4.10 and (5.58) from them. The finite sums, squares and means of `O_s` variables at
+  every exponent used here are `osBound_finset_sum_of_pos`, `OsBound.sq`, `OsBound.integral_sq_le`
+  and `OsBound.integral_le_factorial_mul`.
 - **Remark 4.18, (4.70), and Theorem 4.6 (ii).** `ExpectationEstimates` states (4.70);
   `expectationJ1Estimate_of_trialGap` proves it from the trial, with the mean bound
   `OsBound.integral_le_factorial_mul` for `O_t` variables with `t < 1`.
