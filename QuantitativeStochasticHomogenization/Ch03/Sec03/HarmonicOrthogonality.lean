@@ -258,4 +258,24 @@ theorem integral_sq_taylorRemainder_le (hd : 0 < d) {R r : ℝ} {v : Vec d → �
   rw [hsplit, hcross]
   linarith
 
+/-- **The harmonic expansion for smooth harmonic functions**:
+`⨍_{B_t} (v - v(0) - Dv(0) y)² ≤ (t/r)⁴ ⨍_{B_r} v²` for `0 < t < r < R`. -/
+theorem integralAverage_sq_taylorRemainder_le (hd : 0 < d) {R t r : ℝ} {v : Vec d → ℝ}
+    (hv : ContDiffOn ℝ (⊤ : ℕ∞) v (PDE.euclideanBall 0 R))
+    (hharm : ∀ y ∈ PDE.euclideanBall (0 : Vec d) R, PDE.euclideanCoordLaplacian v y = 0)
+    (ht : 0 < t) (htr : t < r) (hrR : r < R) :
+    PDE.integralAverage (PDE.euclideanBall (0 : Vec d) t)
+        (fun y => (v y - (v 0 + fderiv ℝ v 0 y)) ^ 2) ≤
+      (t / r) ^ 4 * PDE.integralAverage (PDE.euclideanBall (0 : Vec d) r) (fun y => v y ^ 2) := by
+  have hr : 0 < r := ht.trans htr
+  obtain ⟨hws, hwh, hw0, hdw0⟩ := taylorRemainder_props (hr.trans hrR) hv hharm
+  have h1 := integralAverage_sq_le_four hd (hws.of_le (by simp)) hwh hw0 hdw0 ht htr hrR
+  have h2 : PDE.integralAverage (PDE.euclideanBall (0 : Vec d) r)
+        (fun y => (v y - (v 0 + fderiv ℝ v 0 y)) ^ 2) ≤
+      PDE.integralAverage (PDE.euclideanBall (0 : Vec d) r) (fun y => v y ^ 2) := by
+    unfold PDE.integralAverage
+    exact mul_le_mul_of_nonneg_left (integral_sq_taylorRemainder_le hd hv hharm hr hrR)
+      (inv_nonneg.2 ENNReal.toReal_nonneg)
+  exact h1.trans (mul_le_mul_of_nonneg_left h2 (by positivity))
+
 end QSH
