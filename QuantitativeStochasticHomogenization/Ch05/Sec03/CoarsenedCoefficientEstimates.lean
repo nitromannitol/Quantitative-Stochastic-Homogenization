@@ -67,8 +67,8 @@ theorem euclideanNorm_mulVec_unitVector_le (A : Mat d) {δ : ℝ}
 
 theorem le_zero_of_forall_le_rpow (hd : 0 < d) {η C₀ : ℝ}
     (h : ∀ r : ℝ, 1 ≤ r → η ≤ C₀ * r ^ (-(d : ℝ) / 2)) : η ≤ 0 := by
-  by_contra hη
-  push_neg at hη
+  by_contra hη'
+  have hη := not_le.mp hη'
   have hlim : Tendsto (fun r : ℝ => C₀ * r ^ (-((d : ℝ) / 2))) atTop (𝓝 (C₀ * 0)) :=
     (tendsto_rpow_neg_atTop (by positivity)).const_mul C₀
   rw [mul_zero] at hlim
@@ -168,5 +168,177 @@ theorem norm_toEuclideanCLM_le_of_energyEstimate {P : Measure (CoefficientField 
     _ = 2 * Λ * d ^ 2 := by
         simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
         ring
+
+/-! ## Lemma 5.24 -/
+
+/-- The bound `2Λd²` on `|ā|`. -/
+def lemma524Delta (d : ℕ) (Λ : ℝ) : ℝ := 2 * Λ * d ^ 2
+
+/-- The scale `t` of the polarization loads. -/
+def lemma524Scale (d : ℕ) (Λ : ℝ) : ℝ := 1 / (4 + 2 * lemma524Delta d Λ)
+
+/-- The constant `√Λ · 4 (1 + Λ + δ) · (2 t⁻²)²` of the quadratic bound. -/
+def lemma524Quadratic (d : ℕ) (Λ : ℝ) : ℝ :=
+  Real.sqrt Λ * (4 * (1 + Λ + lemma524Delta d Λ)) * (2 * (lemma524Scale d Λ ^ 2)⁻¹) ^ 2
+
+/-- The constant of Lemma 5.24. -/
+def lemma524Constant (d : ℕ) (Λ C₀ : ℝ) : ℝ :=
+  (lemma524Scale d Λ ^ 2)⁻¹ * (5 * d ^ 2 * C₀) + lemma524Quadratic d Λ * (5 * d ^ 2 * C₀) ^ 2
+
+theorem lemma524Constant_pos {d : ℕ} (hd : 0 < d) {Λ C₀ : ℝ} (hΛ : 0 ≤ Λ) (hC₀ : 0 < C₀) :
+    0 < lemma524Constant d Λ C₀ := by
+  have hδ : 0 ≤ lemma524Delta d Λ := by unfold lemma524Delta; positivity
+  have ht : 0 < lemma524Scale d Λ := by unfold lemma524Scale; positivity
+  have hK : 0 ≤ lemma524Quadratic d Λ := by unfold lemma524Quadratic; positivity
+  have hd' : (0 : ℝ) < d := by exact_mod_cast hd
+  unfold lemma524Constant
+  positivity
+
+/-- **Lemma 5.24, (5.63)–(5.64), with `s = 1`**, for one law and one symmetric matrix `A`
+satisfying (5.58). -/
+theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P] {A : Mat d}
+    (hA : A.transpose = A) {C₀ : ℝ} (hC₀ : 0 < C₀) (h558 : EnergyEstimate P A C₀)
+    (hJm : ∀ (z : Vec d) (r : ℝ) (p q : Vec d), AEMeasurable (fun a => J1Heat a z r p q) P)
+    (hdim : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
+    (hDm : ∀ (z : Vec d) (r : ℝ), AEMeasurable (fun a => coarseFluxDefect a A z r) P)
+    (z : Vec d) (r : ℝ) (hr : 1 ≤ r) :
+    AEOsBound P (fun a => matrixSize (coarsenedCoefficient a A z r)) 1
+        (lemma524Constant d Λ C₀ * r ^ (-(d : ℝ) / 2)) ∧
+      AEOsBound P (fun a => coarseFluxDefect a A z r) (1 / 2)
+        (lemma524Constant d Λ C₀ * r ^ (-(d : ℝ))) := by
+  have hd0 : 0 < d := by omega
+  have hd' : (0 : ℝ) < d := by exact_mod_cast hd0
+  have hΛ0 : 0 ≤ Λ := by linarith
+  have hr0 : 0 < r := by linarith
+  set δ := lemma524Delta d Λ with hδdef
+  set t := lemma524Scale d Λ with htdef
+  set θ := C₀ * r ^ (-(d : ℝ) / 2) with hθdef
+  have hδ : ‖Matrix.toEuclideanCLM (𝕜 := ℝ) A‖ ≤ δ :=
+    norm_toEuclideanCLM_le_of_energyEstimate hd0 hΛ0 hA h558
+  have hδ0 : 0 ≤ δ := (norm_nonneg _).trans hδ
+  have ht0 : 0 < t := by rw [htdef, lemma524Scale]; positivity
+  have h2t : 2 * t < 1 := by
+    rw [htdef, lemma524Scale, ← hδdef, mul_one_div, div_lt_one (by positivity)]
+    linarith
+  have htδ : t * δ < 1 := by
+    rw [htdef, lemma524Scale, ← hδdef, one_div_mul_eq_div, div_lt_one (by positivity)]
+    linarith
+  have hθ0 : 0 < θ := by rw [hθdef]; positivity
+  -- the loads of the polarization lie in the unit ball
+  have hball : ∀ c : ℝ, 0 ≤ c → ∀ v : Vec d, c * euclideanNorm v < 1 →
+      euclideanNorm (c • v) < 1 := fun c hc v hv => by
+    rwa [euclideanNorm_smul, abs_of_nonneg hc]
+  have hsum2 : ∀ j k : Fin d, t * euclideanNorm (unitVector j + unitVector k) < 1 := fun j k => by
+    have := euclideanNorm_add_le (unitVector j) (unitVector k)
+    rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+    nlinarith
+  have hdiff2 : ∀ j k : Fin d, t * euclideanNorm (unitVector j - unitVector k) < 1 :=
+    fun j k => by
+      have := euclideanNorm_sub_le (unitVector j) (unitVector k)
+      rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+      nlinarith
+  have hAj : ∀ j : Fin d, t * euclideanNorm (A.mulVec (unitVector j)) < 1 := fun j => by
+    have := euclideanNorm_mulVec_unitVector_le A hδ j
+    nlinarith
+  have he : ∀ k : Fin d, t * euclideanNorm (unitVector k) < 1 := fun k => by
+    rw [euclideanNorm_unitVector]; linarith
+  have h0 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
+  -- the sum `Y` of the errors is `O_1(5 d² C₀ r^{-d/2})`
+  have hterm : ∀ j k : Fin d,
+      AEOsBound P (fun a => polarizationTerm a A z r t j k) 1 (5 * θ) := fun j k => by
+    have e1 := h558 z r hr _ _ (hball t ht0.le _ (hsum2 j k)) (hball t ht0.le _ (hAj j))
+    have e2 := h558 z r hr _ _ (hball t ht0.le _ (hdiff2 j k)) (hball t ht0.le _ (hAj j))
+    have e3 := h558 z r hr _ _ (hball t ht0.le _ (he k)) (hball t ht0.le _ (he j))
+    have e4 := h558 z r hr _ _ (hball t ht0.le _ (he k)) h0
+    have e5 := h558 z r hr _ _ h0 (hball t ht0.le _ (he j))
+    have hs := ((((e1.add e2 le_rfl).add e3 le_rfl).add e4 le_rfl).add e5 le_rfl)
+    exact hs.mono_scale (le_of_eq (by ring))
+  have hY : AEOsBound P (fun a => polarizationError a A z r t) 1 (5 * d ^ 2 * C₀ *
+      r ^ (-(d : ℝ) / 2)) := by
+    have hne : (Finset.univ : Finset (Fin d)).Nonempty := Finset.univ_nonempty_iff.mpr ⟨⟨0, hd0⟩⟩
+    have hinner : ∀ j ∈ (Finset.univ : Finset (Fin d)),
+        AEOsBound P (fun a => ∑ k ∈ Finset.univ, polarizationTerm a A z r t j k) 1
+          (∑ _k ∈ (Finset.univ : Finset (Fin d)), 5 * θ) := fun j _ =>
+      aeOsBound_finset_sum _ hne le_rfl fun k _ => hterm j k
+    have houter := aeOsBound_finset_sum _ hne le_rfl hinner
+    refine houter.mono_scale (le_of_eq ?_)
+    simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, hθdef]
+    ring
+  have hY0 : ∀ a : CoefficientField d Λ, 0 ≤ polarizationError a A z r t :=
+    fun a => polarizationError_nonneg a A z r t
+  -- the deterministic bounds hold almost surely
+  have hdet : ∀ᵐ a ∂P, matrixSize (coarsenedCoefficient a A z r) ≤
+        (t ^ 2)⁻¹ * polarizationError a A z r t ∧
+      coarseFluxDefect a A z r ≤ lemma524Quadratic d Λ * polarizationError a A z r t ^ 2 := by
+    filter_upwards [hdim z r hr] with a ⟨G, hspan, hreal, hG2⟩
+    obtain ⟨h1, h2⟩ := polarization_bounds a A z hr0 G hspan hreal hG2 hA ht0.ne' hδ
+    refine ⟨h1, h2.trans (le_of_eq ?_)⟩
+    rw [abs_of_nonneg hΛ0, lemma524Quadratic, ← hδdef, ← htdef]
+    ring
+  have hcc : ∀ j k : Fin d, AEMeasurable (fun a => coarsenedCoefficient a A z r j k) P :=
+    fun j k => ((hJm z r _ _).sub (hJm z r _ _)).div_const 2
+  have hsize : AEMeasurable (fun a => matrixSize (coarsenedCoefficient a A z r)) P :=
+    Real.continuous_sqrt.measurable.comp_aemeasurable (Finset.aemeasurable_fun_sum _ fun j _ =>
+      Finset.aemeasurable_fun_sum _ fun k _ => (hcc j k).pow_const 2)
+  have hrpow : (r ^ (-(d : ℝ) / 2)) ^ 2 = r ^ (-(d : ℝ)) := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hr0.le]
+    norm_num
+  have hC1 : (t ^ 2)⁻¹ * (5 * d ^ 2 * C₀) ≤ lemma524Constant d Λ C₀ := by
+    have hK : 0 ≤ lemma524Quadratic d Λ * (5 * d ^ 2 * C₀) ^ 2 := by
+      unfold lemma524Quadratic; positivity
+    rw [lemma524Constant, ← htdef]
+    linarith
+  have hC2 : lemma524Quadratic d Λ * (5 * d ^ 2 * C₀) ^ 2 ≤ lemma524Constant d Λ C₀ := by
+    have hK : 0 ≤ (t ^ 2)⁻¹ * (5 * d ^ 2 * C₀) := by positivity
+    rw [lemma524Constant, ← htdef]
+    linarith
+  have hrp : 0 ≤ r ^ (-(d : ℝ) / 2) := Real.rpow_nonneg hr0.le _
+  have hrp' : 0 ≤ r ^ (-(d : ℝ)) := Real.rpow_nonneg hr0.le _
+  constructor
+  · have h1 := (hY.const_mul (inv_pos.mpr (pow_pos ht0 2))).of_le_ae hsize
+      (hdet.mono fun a ha => ha.1)
+    refine h1.mono_scale ?_
+    calc (t ^ 2)⁻¹ * (5 * d ^ 2 * C₀ * r ^ (-(d : ℝ) / 2))
+        = (t ^ 2)⁻¹ * (5 * d ^ 2 * C₀) * r ^ (-(d : ℝ) / 2) := by ring
+      _ ≤ lemma524Constant d Λ C₀ * r ^ (-(d : ℝ) / 2) :=
+          mul_le_mul_of_nonneg_right hC1 hrp
+  · have hK0 : 0 < lemma524Quadratic d Λ := by
+      unfold lemma524Quadratic
+      have : 0 < Real.sqrt Λ := Real.sqrt_pos.mpr (by linarith)
+      have : 0 < lemma524Scale d Λ := ht0
+      positivity
+    have h2 := ((hY.sq (Eventually.of_forall hY0)).const_mul hK0).of_le_ae (hDm z r)
+      (hdet.mono fun a ha => ha.2)
+    refine h2.mono_scale ?_
+    calc lemma524Quadratic d Λ * (5 * d ^ 2 * C₀ * r ^ (-(d : ℝ) / 2)) ^ 2
+        = lemma524Quadratic d Λ * (5 * d ^ 2 * C₀) ^ 2 * (r ^ (-(d : ℝ) / 2)) ^ 2 := by ring
+      _ = lemma524Quadratic d Λ * (5 * d ^ 2 * C₀) ^ 2 * r ^ (-(d : ℝ)) := by rw [hrpow]
+      _ ≤ lemma524Constant d Λ C₀ * r ^ (-(d : ℝ)) := mul_le_mul_of_nonneg_right hC2 hrp'
+
+/-- **`QSH.Frozen.coarsenedCoefficientEstimates`** (Lemma 5.24 with `s = 1`) from (5.58) with a
+constant `C₀(d, Λ)`, the structure (4.12) of `A₁` against the masks `Φ_{z,r}`, and the almost sure
+measurability of `J₁(Φ_{z,r}, p, q)` and of the flux defect. -/
+theorem coarsenedCoefficientEstimates_of
+    (h558 : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C₀ : ℝ, 0 < C₀ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ S : HomogenizationData P,
+        EnergyEstimate P S.homogenized C₀)
+    (hJm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ (z : Vec d) (r : ℝ) (p q : Vec d),
+        AEMeasurable (fun a => J1Heat a z r p q) P)
+    (hdim : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+        ∀ᵐ a ∂P, LinearA1Gradients a (heatKernel z r))
+    (hDm : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ),
+      LawHypotheses P → ∀ S : HomogenizationData P, ∀ (z : Vec d) (r : ℝ),
+        AEMeasurable (fun a => coarseFluxDefect a S.homogenized z r) P) :
+    QSH.Frozen.coarsenedCoefficientEstimates := by
+  intro d hd Λ hΛ
+  obtain ⟨C₀, hC₀, hC⟩ := h558 d hd Λ hΛ
+  refine ⟨lemma524Constant d Λ C₀, lemma524Constant_pos (by omega) (by linarith) hC₀, ?_⟩
+  intro P hP S z r hr
+  have := hP.1
+  exact coarsenedCoefficient_aeOsBound hd hΛ S.symmetric hC₀ (hC P hP S)
+    (hJm d hd Λ hΛ P hP) (hdim d hd Λ hΛ P hP) (hDm d hd Λ hΛ P hP S) z r hr
 
 end QSH
