@@ -4,10 +4,10 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.AveragesFromEnergy
 # The energy bound below the scale from Proposition 3.21
 
 The mask `Φ_{z,r}` is at most `(R/r)^d Φ_{z,R}` for `r ≤ R` (`heatKernel_le_mul`). Above the
-scale of Proposition 3.21 the averaged energy is at most `(Λ + 2C) |ξ|²`; below it, comparing with
-the mask at the scale gives `(X/r)^d (Λ + 2C) |ξ|²`. Hence Proposition 3.21 with the bounds on `ā`
-gives the energy bound below the scale (`gaussianEnergyBound_of_rate`), and (5.58) holds without
-it and without the integrability of the averages and of the trial
+scale of Proposition 3.21 the averaged energy is at most `(K + 2C) |ξ|²` when `ξ·āξ ≤ K |ξ|²`;
+below it, comparing with the mask at the scale gives `(X/r)^d (K + 2C) |ξ|²`. Hence Proposition
+3.21 gives the energy bound below the scale (`gaussianEnergyBound_of_rate`), and (5.58) holds
+without it and without the integrability of the averages and of the trial
 (`estimate558_of_heatIdentityBound`).
 -/
 
@@ -44,9 +44,11 @@ theorem heatKernel_le_mul (z : Vec d) {r R : ℝ} (hr : 0 < r) (hrR : r ≤ R) (
   exact mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hexp
     (Real.rpow_nonneg (by positivity) _)) (pow_nonneg (div_nonneg hR.le hr.le) _)
 
-/-- **The energy bound below the scale from Proposition 3.21** and the bounds on `ā`. -/
+/-- **The energy bound below the scale from Proposition 3.21** and an upper bound
+`ξ·āξ ≤ K |ξ|²`. -/
 theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P]
-    (S : HomogenizationData P) (hA : HomogenizedMatrixBounds S.homogenized Λ) {τ C μ : ℝ}
+    (S : HomogenizationData P) {K : ℝ}
+    (hK : ∀ ξ : Vec d, dot ξ (S.homogenized.mulVec ξ) ≤ K * euclideanSq ξ) {τ C μ : ℝ}
     (hτ : 0 < τ) (hμ : 0 ≤ μ) (hrate : GaussianCorrectorRate P S τ C μ) :
     ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN := by
   obtain ⟨X, hXm, hX⟩ := hrate
@@ -56,7 +58,7 @@ theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsPro
     osBound_max (hX z).1 (osBound_of_le_const measurable_const hτ one_pos
       (Eventually.of_forall fun _ => le_rfl))
   have hCM : 0 < CM := (hX'os 0).scale_pos
-  set CE : ℝ := Λ + 2 * C with hCEdef
+  set CE : ℝ := K + 2 * C with hCEdef
   have hCN0 : 0 ≤ max CM CE := le_max_of_le_left hCM.le
   refine ⟨max CM CE, lt_max_of_lt_left hCM, fun a z => max (X a z) 1, hXm.max measurable_const,
     fun a z => le_max_right _ _, fun z => (hX'os z).mono_scale (le_max_left _ _), fun z => ?_⟩
@@ -79,7 +81,7 @@ theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsPro
     rw [euclideanNorm_sq] at h6
     have h6' := (abs_le.mp h6).2
     have h7 : 2 * (C * R ^ (-μ)) * euclideanSq ξ ≤ 2 * C * euclideanSq ξ := by nlinarith
-    have h8 := (hA ξ).2
+    have h8 := hK ξ
     rw [hCEdef]
     nlinarith
   by_cases hXr : X a z ≤ r
@@ -171,7 +173,7 @@ theorem estimate558_of_heatIdentityBound {P : Measure (CoefficientField d Λ)}
   have hN : ∀ τ : ℝ, 0 < τ → τ < d → ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN :=
     fun τ hτ0 hτd => by
       obtain ⟨C, μ, -, hμ', hr⟩ := hrate τ hτ0 hτd
-      exact gaussianEnergyBound_of_rate S hA hτ0 hμ'.le hr
+      exact gaussianEnergyBound_of_rate S (fun ξ => (hA ξ).2) hτ0 hμ'.le hr
   have hd1 : (1 : ℝ) < d := by
     have : (2 : ℝ) ≤ d := by exact_mod_cast hd
     linarith
