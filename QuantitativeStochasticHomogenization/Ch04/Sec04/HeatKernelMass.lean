@@ -141,4 +141,44 @@ theorem setIntegral_compl_ball_heatKernel_le (z : Vec d) {r : ℝ} (hr : r ≠ 0
               ring
           _ = _ := by rw [key, mul_one]
 
+variable {Λ : ℝ} {z : Vec d} {T r : ℝ}
+
+/-- **Lemma 4.22 with the tail and the Gaussian mass**: the Gaussian mass hypotheses are
+discharged by `setIntegral_compl_ball_heatKernel_le`; it remains to assume that the mass bound
+`2^{d/2} exp(-T²/(8r²))` is small compared with the linear coefficient. -/
+theorem abs_J1Heat_sub_localizedJ1_le_of_tail' {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ)
+    (hr : r ≠ 0) (hT : 0 ≤ T) {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C) (p q : Vec d)
+    {η κ : ℝ} (hη : 0 ≤ η) (hκ : 0 ≤ κ)
+    (hsmall : linearCoefficient d Λ p q ^ 2 / 2 *
+      ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2))) ≤ 1 / 4)
+    (hint : ∀ w : HarmonicA1 a, Integrable (fun x => heatKernel z r x *
+      (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+        dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))))
+    (hint2 : ∀ w : HarmonicA1 a,
+      IntegrableOn (fun x => heatKernel z r x * euclideanSq (w.grad x)) (ball z T)ᶜ volume)
+    (houter : ∀ w : HarmonicA1 a,
+      ∫ x in (ball z T)ᶜ, heatKernel z r x * euclideanSq (w.grad x) ≤
+        κ * ∫ x in ball z T, heatKernel z r x * euclideanSq (w.grad x))
+    (hAV : ∀ w : HarmonicA1 a,
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      ∃ c : Vec d, ‖(fun k => scaleLp hr (w.ballGrad z T k)) -
+        (fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k))‖ ≤ η)
+    (hVA : ∀ c : Vec d,
+      ‖(fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      ∃ w : HarmonicA1 a,
+        ‖(fun k => scaleLp hr (pairCombination (fun i => (W.coordinate i).toPair) c k)) -
+          (fun k => scaleLp hr (w.ballGrad z T k))‖ ≤ η) :
+    |J1Heat a z r p q - localizedJ1 W r p q| ≤
+      (((d : ℝ) * Λ / 2 + linearCoefficient d Λ p q / 2) *
+          (κ * (d * (2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) ^ 2)) +
+        linearCoefficient d Λ p q / 2 *
+          ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2)))) +
+      ((d : ℝ) ^ 2 * Λ * (2 * (2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) +
+        η) / 2 + tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖) * η :=
+  abs_J1Heat_sub_localizedJ1_le_of_tail hΛ hr W p q hη hκ
+    (integrable_heatKernel z hr).integrableOn (setIntegral_compl_ball_heatKernel_le z hr T hT)
+    hsmall hint hint2 houter hAV hVA
+
 end QSH
