@@ -201,4 +201,115 @@ theorem dirichletEnergy_le (a : CoefficientField d Λ) {U : Set (Vec d)} (hU0 : 
   simp only [add_zero]
   nlinarith
 
+/-- Jensen's inequality for set averages: `(⨍_U h)² ≤ ⨍_U h²`. -/
+theorem sq_setAverage_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hU : volume U ≠ ⊤)
+    {h : Vec d → ℝ} (hh : IntegrableOn h U volume)
+    (hh2 : IntegrableOn (fun x => h x ^ 2) U volume) :
+    (⨍ x in U, h x ∂volume) ^ 2 ≤ ⨍ x in U, h x ^ 2 ∂volume := by
+  have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hU
+  set m := ⨍ x in U, h x ∂volume with hm
+  have hmV : ∫ x in U, h x = volume.real U * m := by
+    rw [hm, setAverage_eq, smul_eq_mul]; field_simp
+  have hcI : IntegrableOn (fun _ : Vec d => m) U volume := integrableOn_const hU
+  have hsq : IntegrableOn (fun x => (h x - m) ^ 2) U volume := by
+    have : (fun x => (h x - m) ^ 2) = fun x => h x ^ 2 - 2 * m * h x + m ^ 2 := by
+      funext x; ring
+    rw [this]
+    exact (hh2.sub (hh.const_mul _)).add (integrableOn_const hU)
+  have h0 : 0 ≤ ∫ x in U, (h x - m) ^ 2 := integral_nonneg fun x => sq_nonneg _
+  have hexp : ∫ x in U, (h x - m) ^ 2 = (∫ x in U, h x ^ 2) - volume.real U * m ^ 2 := by
+    have : (fun x => (h x - m) ^ 2) = fun x => h x ^ 2 - 2 * m * h x + m ^ 2 := by
+      funext x; ring
+    have i1 : IntegrableOn (fun x => h x ^ 2 - 2 * m * h x) U volume := hh2.sub (hh.const_mul _)
+    have i2 : IntegrableOn (fun x => 2 * m * h x) U volume := hh.const_mul _
+    have i3 : IntegrableOn (fun _ : Vec d => m ^ 2) U volume := integrableOn_const hU
+    rw [this, integral_add i1 i3, integral_sub hh2 i2, integral_const_mul, hmV, setIntegral_const,
+      smul_eq_mul]
+    ring
+  rw [setAverage_eq, smul_eq_mul]
+  rw [hexp] at h0
+  rw [le_inv_mul_iff₀ hV]
+  linarith
+
+/-- **`½|e|² ≤ μ(U, e)`**: from `a ≥ I`, Jensen's inequality and the vanishing of the mean of the
+gradient of a function of `H¹₀(U)`. -/
+theorem le_dirichletEnergy (a : CoefficientField d Λ) {U : Set (Vec d)} (hU0 : volume U ≠ 0)
+    (hU : volume U ≠ ⊤) (e : Vec d) :
+    (1 / 2 : ℝ) * euclideanSq e ≤ dirichletEnergy a U e := by
+  have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hU
+  refine le_csInf ⟨_, _, _, H01_zero U, rfl⟩ ?_
+  rintro E ⟨u, g, hu, rfl⟩
+  have hfin : IsFiniteMeasure (volume.restrict U) :=
+    ⟨by rw [Measure.restrict_apply_univ]; exact hU.lt_top⟩
+  have hg : MemLp g 2 (volume.restrict U) := hu.2.1
+  have hgi : ∀ i, IntegrableOn (fun x => g x i) U volume := fun i =>
+    (MemLp.eval hg i).integrable one_le_two
+  have hgi2 : ∀ i, IntegrableOn (fun x => g x i ^ 2) U volume := fun i =>
+    (MemLp.eval hg i).integrable_sq
+  have hmean : ∀ i, ⨍ x in U, g x i ∂volume = 0 := fun i => by
+    rw [setAverage_eq, setIntegral_eq_zero_of_H01 hU hu i, smul_zero]
+  -- the components of `e + g`
+  have hci : ∀ i, IntegrableOn (fun x => (e + g x) i) U volume := fun i =>
+    (integrableOn_const hU : IntegrableOn (fun _ : Vec d => e i) U volume).add (hgi i)
+  have hci2 : ∀ i, IntegrableOn (fun x => (e + g x) i ^ 2) U volume := fun i => by
+    have : (fun x => (e + g x) i ^ 2) = fun x => e i ^ 2 + 2 * e i * g x i + g x i ^ 2 := by
+      funext x; simp only [Pi.add_apply]; ring
+    rw [this]
+    exact ((integrableOn_const hU : IntegrableOn (fun _ : Vec d => e i ^ 2) U volume).add
+      ((hgi i).const_mul _)).add (hgi2 i)
+  have hS : IntegrableOn (fun x => euclideanSq (e + g x)) U volume := by
+    simp only [euclideanSq, dot, ← sq]
+    exact integrable_finsetSum _ fun i _ => hci2 i
+  -- the energy density is integrable
+  have hgm : AEStronglyMeasurable g (volume.restrict U) := hg.aestronglyMeasurable
+  have ham : ∀ i j, AEStronglyMeasurable (fun x => a.field x i j) (volume.restrict U) :=
+    fun i j => (a.locally_integrable i j).aestronglyMeasurable.restrict
+  have hfm : AEStronglyMeasurable
+      (fun x => (1 / 2 : ℝ) * dot (e + g x) ((a x).mulVec (e + g x))) (volume.restrict U) := by
+    have hcomp : ∀ i, AEStronglyMeasurable (fun x => (e + g x) i) (volume.restrict U) := fun i =>
+      aestronglyMeasurable_const.add ((continuous_apply i).comp_aestronglyMeasurable hgm)
+    simp only [dot, Matrix.mulVec, dotProduct]
+    exact aestronglyMeasurable_const.mul (Finset.aestronglyMeasurable_fun_sum _ fun i _ =>
+      (hcomp i).mul (Finset.aestronglyMeasurable_fun_sum _ fun j _ => (ham i j).mul (hcomp j)))
+  have hfint : IntegrableOn (fun x => (1 / 2 : ℝ) * dot (e + g x) ((a x).mulVec (e + g x)))
+      U volume := by
+    refine (hS.const_mul ((1 / 2 : ℝ) * |Λ|)).mono' hfm (Filter.Eventually.of_forall fun x => ?_)
+    have h1 := (a.elliptic x (e + g x)).2
+    have h0 := energyDensity_nonneg a e (g x) x
+    rw [Real.norm_eq_abs, abs_of_nonneg h0]
+    have : Λ * euclideanSq (e + g x) ≤ |Λ| * euclideanSq (e + g x) :=
+      mul_le_mul_of_nonneg_right (le_abs_self Λ) (euclideanSq_nonneg _)
+    nlinarith
+  -- the chain of inequalities
+  have hlow : ⨍ x in U, (1 / 2 : ℝ) * euclideanSq (e + g x) ∂volume ≤
+      ⨍ x in U, (1 / 2 : ℝ) * dot (e + g x) ((a x).mulVec (e + g x)) ∂volume := by
+    rw [setAverage_eq, setAverage_eq, smul_eq_mul, smul_eq_mul]
+    refine mul_le_mul_of_nonneg_left (integral_mono (hS.const_mul _) hfint fun x => ?_)
+      (inv_nonneg.mpr hV.le)
+    have := (a.elliptic x (e + g x)).1
+    simp only
+    linarith
+  have hjensen : (1 / 2 : ℝ) * euclideanSq e ≤
+      ⨍ x in U, (1 / 2 : ℝ) * euclideanSq (e + g x) ∂volume := by
+    have hsplit : ⨍ x in U, (1 / 2 : ℝ) * euclideanSq (e + g x) ∂volume =
+        (1 / 2 : ℝ) * ∑ i, ⨍ x in U, (e + g x) i ^ 2 ∂volume := by
+      simp only [setAverage_eq, smul_eq_mul, euclideanSq, dot, ← sq]
+      rw [integral_const_mul, integral_finsetSum _ fun i _ => hci2 i]
+      simp only [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun i _ => by ring
+    rw [hsplit]
+    refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+    simp only [euclideanSq, dot, ← sq]
+    refine Finset.sum_le_sum fun i _ => ?_
+    have hj := sq_setAverage_le hU0 hU (hci i) (hci2 i)
+    have hav : ⨍ x in U, (e + g x) i ∂volume = e i := by
+      simp only [Pi.add_apply]
+      have ic : IntegrableOn (fun _ : Vec d => e i) U volume := integrableOn_const hU
+      rw [setAverage_eq, smul_eq_mul, integral_add ic (hgi i), setIntegral_const, smul_eq_mul,
+        setIntegral_eq_zero_of_H01 hU hu i, add_zero]
+      field_simp
+    rw [hav] at hj
+    exact hj
+  exact hjensen.trans hlow
+
 end QSH
