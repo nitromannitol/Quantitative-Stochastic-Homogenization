@@ -186,8 +186,7 @@ theorem corrected_averages_eq_sum (S : HomogenizationData P) (a : CoefficientFie
       rw [Matrix.smul_mulVec, dot_eq_dotProduct, dotProduct_smul, two_smul, ← dot_eq_dotProduct]
       nlinarith
     have hcs := dot_mulVec_sq_le h2A hcoer (unitVector k) (unitVector j)
-    simp only [Matrix.smul_mulVec, dot_eq_dotProduct, dotProduct_smul, smul_eq_mul,
-      two_smul, Matrix.add_mulVec, dotProduct_add] at hcs
+    simp only [dot_eq_dotProduct, two_smul, Matrix.add_mulVec, dotProduct_add] at hcs
     have hk := (hAξ (unitVector k)).2
     have hj := (hAξ (unitVector j)).2
     have hek : euclideanSq (unitVector k : Vec d) = 1 := by
@@ -217,11 +216,11 @@ theorem corrected_averages_eq_sum (S : HomogenizationData P) (a : CoefficientFie
       have e : (Pm.transpose.mulVec q - q) k = dot q (Pm.mulVec (unitVector k) - unitVector k) := by
         simp only [Pi.sub_apply, Matrix.mulVec, dotProduct, Matrix.transpose_apply, dot,
           unitVector, Pi.single_apply, mul_ite, mul_one, mul_zero, Finset.sum_ite_eq',
-          Finset.mem_univ, if_true]
-        simp only [Finset.mul_sum, mul_sub, Finset.sum_sub_distrib]
+          Finset.mem_univ, ite_true]
+        simp only [mul_sub, Finset.sum_sub_distrib]
         congr 1
         · exact Finset.sum_congr rfl fun i _ => by ring
-        · simp [Pi.single_apply]
+        · simp
       rw [e]
       refine (abs_dot_le _ _).trans ?_
       have := hPclose (unitVector k)
