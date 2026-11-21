@@ -300,4 +300,157 @@ theorem tendsto_integral_mul_heatConv_zero {f ψ : Vec d → ℝ} (hfm : Measura
     simp only [Function.comp]
     rw [heatConv_eq_heatKernelConvolution (by positivity)]
 
+/-- **Duality of the heat semigroup** between a field with Gaussian moments and a smooth compactly
+supported test. -/
+theorem integral_mul_heatConv_comm {f ψ : Vec d → ℝ} (hfm : Measurable f)
+    (hmom : HasGaussianMoments f) (hψ : IsSmoothCompact ψ) {t : ℝ} (ht : 0 < t) :
+    Integrable (fun x => ψ x * heatConv t f x) ∧
+    ∫ y, f y * heatConv t ψ y = ∫ x, ψ x * heatConv t f x := by
+  have hψc : Continuous ψ := hψ.1.continuous
+  obtain ⟨ρ, -, hρ⟩ := hψ.exists_support_ball
+  obtain ⟨B, hB⟩ := hmom t ht ρ
+  set F : Vec d × Vec d → ℝ := fun p => ψ p.1 * euclideanHeatKernel t (p.1 - p.2) * f p.2 with hF
+  have hFm : Measurable F :=
+    ((hψc.measurable.comp measurable_fst).mul ((measurable_euclideanHeatKernel_joint (d := d)).comp
+      (measurable_const.prodMk (measurable_fst.sub measurable_snd)))).mul (hfm.comp measurable_snd)
+  have hFint : Integrable F (volume.prod volume) := by
+    refine (integrable_prod_iff hFm.aestronglyMeasurable).mpr ⟨Eventually.of_forall fun x => ?_, ?_⟩
+    · obtain ⟨B', hB'⟩ := hmom t ht (euclideanNorm x)
+      have h := ((hB' x le_rfl).1).const_mul |ψ x|
+      refine (integrable_norm_iff ?_).mp (h.congr (Eventually.of_forall fun y => ?_))
+      · exact (hFm.comp (measurable_const.prodMk measurable_id)).aestronglyMeasurable
+      · simp only [hF, Real.norm_eq_abs, abs_mul, abs_of_nonneg (euclideanHeatKernel_nonneg ht.le _)]
+        ring
+    · refine ((hψc.abs.integrable_of_hasCompactSupport hψ.2.abs).const_mul B).mono'
+        (hFm.norm.stronglyMeasurable.integral_prod_right').aestronglyMeasurable
+        (Eventually.of_forall fun x => ?_)
+      rw [Real.norm_eq_abs, abs_of_nonneg (integral_nonneg fun y => norm_nonneg _)]
+      by_cases hx : ψ x = 0
+      · simp [hF, hx]
+      calc ∫ y, ‖F (x, y)‖ = |ψ x| * ∫ y, euclideanHeatKernel t (x - y) * |f y| := by
+            rw [← integral_const_mul]
+            congr 1
+            funext y
+            simp only [hF, Real.norm_eq_abs, abs_mul,
+              abs_of_nonneg (euclideanHeatKernel_nonneg ht.le _)]
+            ring
+        _ ≤ |ψ x| * B := mul_le_mul_of_nonneg_left (hB x (hρ x hx)).2 (abs_nonneg _)
+        _ = B * |ψ x| := by ring
+  have hswap := integral_integral_swap
+    (f := fun x y => ψ x * euclideanHeatKernel t (x - y) * f y) hFint
+  refine ⟨?_, ?_⟩
+  · refine hFint.integral_prod_left.congr (Eventually.of_forall fun x => ?_)
+    simp only [hF, heatConv]
+    rw [← integral_const_mul]
+    congr 1
+    funext y
+    ring
+  · have hL : ∫ x, ψ x * heatConv t f x = ∫ x, ∫ y, F (x, y) := by
+      congr 1
+      funext x
+      rw [heatConv, ← integral_const_mul]
+      congr 1
+      funext y
+      simp only [hF]
+      ring
+    have hR : ∫ y, f y * heatConv t ψ y = ∫ y, ∫ x, F (x, y) := by
+      congr 1
+      funext y
+      rw [heatConv, ← integral_const_mul]
+      congr 1
+      funext x
+      simp only [hF]
+      rw [show y - x = -(x - y) by abel, euclideanHeatKernel_neg]
+      ring
+    rw [hL, hR]
+    exact hswap.symm
+
+/-- **Large-time limit.** If `f - c` has a pairing bound at large scales and Gaussian moments,
+then `∫ f (Φ_t * ψ) → c ∫ ψ` along `t = n + 1`. -/
+theorem tendsto_integral_mul_heatConv_atTop {f ψ : Vec d → ℝ} (hfm : Measurable f)
+    (hmom : HasGaussianMoments f) (hψ : IsSmoothCompact ψ) {c R₀ A κ : ℝ}
+    (hF : HasScalePairingBound (fun y => f y - c) R₀ A κ) (hR₀ : 0 < R₀) (hA : 0 ≤ A)
+    (hκ : 0 < κ) (hmomc : HasGaussianMoments fun y => f y - c) :
+    Tendsto (fun n : ℕ => ∫ y, f y * heatConv ((n + 1 : ℕ) : ℝ) ψ y) atTop
+      (𝓝 (c * ∫ x, ψ x)) := by
+  have hψc : Continuous ψ := hψ.1.continuous
+  have hψint : Integrable ψ := hψc.integrable_of_hasCompactSupport hψ.2
+  obtain ⟨ρ, -, hρ⟩ := hψ.exists_support_ball
+  obtain ⟨C, hC, hdecay⟩ := exists_heatConv_le d
+  have hFm : Measurable fun y => f y - c := hfm.sub measurable_const
+  -- the decomposition `Φ_t * f = Φ_t * (f - c) + c`
+  have hsplit : ∀ {t : ℝ}, 0 < t → ∀ x, heatConv t f x =
+      (∫ y, euclideanHeatKernel t (x - y) * (f y - c)) + c := by
+    intro t ht x
+    obtain ⟨B', hB'⟩ := hmom t ht (euclideanNorm x)
+    have hint : Integrable fun y => euclideanHeatKernel t (x - y) * f y := by
+      refine (hB' x le_rfl).1.mono' ((((measurable_euclideanHeatKernel_joint (d := d)).comp
+        (measurable_const.prodMk (measurable_const.sub measurable_id))).mul
+          hfm).aestronglyMeasurable) (Eventually.of_forall fun y => ?_)
+      rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (euclideanHeatKernel_nonneg ht.le _)]
+    have hk := integrable_euclideanHeatKernel_sub (d := d) ht x
+    rw [heatConv]
+    simp only [mul_sub]
+    rw [integral_sub hint (hk.mul_const c), integral_mul_const,
+      integral_euclideanHeatKernel_sub ht x]
+    ring
+  have hlim : Tendsto (fun n : ℕ => C * A * R₀ ^ κ * (((n + 1 : ℕ) : ℝ)) ^ (-(κ / 2)) *
+      ∫ x, |ψ x|) atTop (𝓝 0) := by
+    have h1 : Tendsto (fun n : ℕ => (((n + 1 : ℕ) : ℝ))) atTop atTop := by
+      exact tendsto_natCast_atTop_atTop.comp (tendsto_add_atTop_nat 1)
+    have h2 := ((tendsto_rpow_neg_atTop (show 0 < κ / 2 by positivity)).comp h1).const_mul
+      (C * A * R₀ ^ κ)
+    have h3 := h2.mul_const (∫ x, |ψ x|)
+    simpa [mul_assoc] using h3
+  have hmain : ∀ᶠ n : ℕ in atTop, |(∫ y, f y * heatConv ((n + 1 : ℕ) : ℝ) ψ y) -
+      c * ∫ x, ψ x| ≤ C * A * R₀ ^ κ * (((n + 1 : ℕ) : ℝ)) ^ (-(κ / 2)) * ∫ x, |ψ x| := by
+    obtain ⟨N, hN⟩ := exists_nat_ge (max (R₀ ^ 2) (ρ ^ 2))
+    filter_upwards [eventually_ge_atTop N] with n hn
+    set T : ℝ := ((n + 1 : ℕ) : ℝ) with hT
+    have hT0 : 0 < T := by positivity
+    have hTN : max (R₀ ^ 2) (ρ ^ 2) ≤ T := by
+      have : (N : ℝ) ≤ n := by exact_mod_cast hn
+      rw [hT]
+      push_cast
+      linarith
+    obtain ⟨hint, hdual⟩ := integral_mul_heatConv_comm hfm hmom hψ hT0
+    rw [hdual]
+    have hint2 : Integrable fun x => ψ x * c := hψint.mul_const c
+    have heq : (∫ x, ψ x * heatConv T f x) - c * ∫ x, ψ x =
+        ∫ x, ψ x * ∫ y, euclideanHeatKernel T (x - y) * (f y - c) := by
+      have hfun : (fun x => ψ x * heatConv T f x) = fun x =>
+          ψ x * (∫ y, euclideanHeatKernel T (x - y) * (f y - c)) + ψ x * c := by
+        funext x
+        rw [hsplit hT0 x, mul_add]
+      rw [hfun]
+      have hint3 : Integrable fun x => ψ x * ∫ y, euclideanHeatKernel T (x - y) * (f y - c) := by
+        refine (hint.sub hint2).congr (Eventually.of_forall fun x => ?_)
+        simp only [Pi.sub_apply]
+        rw [hsplit hT0 x]
+        ring
+      rw [integral_add hint3 hint2, integral_mul_const]
+      ring
+    rw [heq]
+    calc |∫ x, ψ x * ∫ y, euclideanHeatKernel T (x - y) * (f y - c)|
+        ≤ ∫ x, |ψ x| * (C * A * R₀ ^ κ * T ^ (-(κ / 2))) := by
+          refine (abs_integral_le_integral_abs).trans (integral_mono_of_nonneg
+            (Eventually.of_forall fun x => abs_nonneg _)
+            (hψint.abs.mul_const _) (Eventually.of_forall fun x => ?_))
+          simp only
+          rw [abs_mul]
+          by_cases hx : ψ x = 0
+          · simp [hx]
+          refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+          have hxρ := hρ x hx
+          exact hdecay hF hR₀ hA hκ.le hFm hmomc T x ((le_max_left _ _).trans hTN)
+            ((pow_le_pow_left₀ (Real.sqrt_nonneg _) hxρ 2).trans ((le_max_right _ _).trans hTN))
+      _ = C * A * R₀ ^ κ * T ^ (-(κ / 2)) * ∫ x, |ψ x| := by
+          rw [integral_mul_const]
+          ring
+  refine tendsto_iff_norm_sub_tendsto_zero.mpr (squeeze_zero' (Eventually.of_forall fun n =>
+    norm_nonneg _) ?_ hlim)
+  filter_upwards [hmain] with n hn
+  rw [Real.norm_eq_abs]
+  exact hn
+
 end QSH
