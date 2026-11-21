@@ -238,7 +238,7 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
     [IsProbabilityMeasure P] (hd : 1 ≤ d) (n : ℕ) {F : Ω → Vec d → ℝ}
     (hFm : Measurable (Function.uncurry F)) {ε C₁ C₂ : ℝ} (hε : 0 < ε) (hC₁ : 0 < C₁)
     (hC₂ : 0 < C₂)
-    (hFg : ∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → ∀ y,
+    (hFg : ∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → τ ≤ 2 → ∀ y,
       Integrable (fun x => F a x * euclideanHeatKernel τ (x - y)))
     {R : Ω → ℝ} (hRo : OsBound P R 1 C₁)
     (hR : ∀ᵐ a ∂P, (∫⁻ x, ‖F a x‖ₑ ^ (2 : ℝ) *
@@ -398,7 +398,7 @@ theorem heatScaleEstimate_of_gaussian {Ω : Type*} [MeasurableSpace Ω] {P : Mea
       have hFg' : ∀ᵐ a ∂P, ∀ y, Integrable (fun x => F a x *
           euclideanHeatKernel (s / 2 + 2 * (s / 2)) (x - y)) := by
         filter_upwards [hFg] with a ha y
-        exact ha _ (by positivity) y
+        exact ha _ (by positivity) (by linarith [hs.2]) y
       have h := ae_eLpNorm_heatDerivativeAverage_le_large hFm (countIndex w)
         (youngConstant_nonneg _) hs0 (fun G hG => youngConstant_spec _ (half_pos hs0) hs2 G hG)
         hFg' hint

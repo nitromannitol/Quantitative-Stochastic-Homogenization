@@ -1,13 +1,14 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.HeatScaleBounds
+import QuantitativeStochasticHomogenization.Ch04.Sec06.GaussianMoments
 
 /-!
 # Section 4.6: (4.126) from Gaussian estimates of the corrector fields
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
 (4.126). The Gaussian estimate of a random field at the scale `ε` (`GaussianFieldEstimate`) asks
-for a jointly measurable version of the field with Gaussian moments at every center, a Gaussian
-`L²` norm `O_1(C₁)` at the unit scale, and Gaussian averages `O_1(C₂ ε^{d/2} t^{-d/4})` at every
-center for the heat times `ε² ≤ t ≤ 1/2`. For the rescaled corrector gradient these are the energy
+for a jointly measurable version of the field with a Gaussian `L²` norm `O_1(C₁)` at the unit scale
+(which gives the Gaussian moments of the field, `GaussianMoments`), and Gaussian averages
+`O_1(C₂ ε^{d/2} t^{-d/4})` at every center for the heat times `ε² ≤ t ≤ 1/2`. For the rescaled corrector gradient these are the energy
 estimate and the estimate (4.2) of the averages at the radii `√t/ε ≥ 1`; for the rescaled flux they
 are the energy estimate and (4.3). From these estimates for the `2d` components of the two fields,
 `negativeSobolevCorrector_of_gaussian` gives the frozen statement for every integer `m > d/2`.
@@ -27,8 +28,6 @@ version `F'` agreeing with `F` almost everywhere in space for every sample. -/
 def GaussianFieldEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (F : Ω → Vec d → ℝ)
     (C₁ C₂ ε : ℝ) : Prop :=
   ∃ F' : Ω → Vec d → ℝ, Measurable (Function.uncurry F') ∧ (∀ a, F' a =ᵐ[volume] F a) ∧
-    (∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → ∀ y,
-      Integrable (fun x => F' a x * euclideanHeatKernel τ (x - y))) ∧
     (∃ R : Ω → ℝ, OsBound P R 1 C₁ ∧ ∀ᵐ a ∂P, (∫⁻ x, ‖F' a x‖ₑ ^ (2 : ℝ) *
       ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)) ∧
     ∀ t : ℝ, ε ^ 2 ≤ t → t ≤ 1 / 2 → ∀ u,
@@ -57,42 +56,18 @@ theorem HeatScaleEstimate.congr {Ω : Type*} [MeasurableSpace Ω] {P : Measure �
     simp_rw [heq]
     exact hY k w hk s hs
 
-theorem integrable_mul_exp_of_euclideanHeatKernel (hd : 1 ≤ d) {G : Vec d → ℝ}
-    (hGm : AEStronglyMeasurable G volume)
-    (hG : Integrable (fun x => G x * euclideanHeatKernel (4 * d) (x - 0))) :
-    Integrable (fun x => G x * Real.exp (-(‖x‖ ^ 2) / 16)) := by
-  have hdpos : (0 : ℝ) < d := by exact_mod_cast hd
-  set c := (4 * Real.pi * (4 * d)) ^ (-(d : ℝ) / 2) with hc
-  have hc0 : 0 < c := Real.rpow_pos_of_pos (by positivity) _
-  refine (hG.norm.const_mul c⁻¹).mono' (hGm.mul (by fun_prop : Continuous fun x : Vec d =>
-    Real.exp (-(‖x‖ ^ 2) / 16)).aestronglyMeasurable) (Eventually.of_forall fun x => ?_)
-  rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_mul, abs_mul, abs_of_pos (Real.exp_pos _),
-    abs_of_nonneg (euclideanHeatKernel_nonneg (by positivity) _), sub_zero]
-  unfold euclideanHeatKernel
-  rw [← hc]
-  have he : Real.exp (-(‖x‖ ^ 2) / 16) ≤ Real.exp (-(euclideanSq x) / (4 * (4 * d))) := by
-    refine Real.exp_le_exp.mpr ?_
-    have h1 := euclideanSq_le_card_mul_norm_sq x
-    rw [div_le_div_iff₀ (by norm_num) (by positivity)]
-    nlinarith
-  calc |G x| * Real.exp (-(‖x‖ ^ 2) / 16)
-      ≤ |G x| * Real.exp (-(euclideanSq x) / (4 * (4 * d))) :=
-        mul_le_mul_of_nonneg_left he (abs_nonneg _)
-    _ = c⁻¹ * (|G x| * (c * Real.exp (-(euclideanSq x) / (4 * (4 * d))))) := by
-        field_simp
-    _ = _ := rfl
+theorem lintegral_lt_top_of_rpow_le {X : ℝ≥0∞} {r : ℝ} (h : X ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal r) :
+    X < ⊤ :=
+  (ENNReal.rpow_lt_top_iff_of_pos (by norm_num)).mp (h.trans_lt ENNReal.ofReal_lt_top)
 
 theorem GaussianFieldEstimate.ae_hasGaussianMoment {Ω : Type*} [MeasurableSpace Ω]
     {P : Measure Ω} (hd : 1 ≤ d) {F : Ω → Vec d → ℝ} {C₁ C₂ ε : ℝ}
     (h : GaussianFieldEstimate P F C₁ C₂ ε) : ∀ᵐ a ∂P, HasGaussianMoment (F a) := by
-  obtain ⟨F', hFm, hF, hFg, -, -⟩ := h
-  filter_upwards [hFg] with a ha
+  obtain ⟨F', hFm, hF, ⟨R, -, hR⟩, -⟩ := h
+  filter_upwards [hR] with a ha
   have hFa : AEStronglyMeasurable (F' a) volume :=
     (hFm.comp (measurable_const.prodMk measurable_id)).aestronglyMeasurable
-  have hdpos : (0 : ℝ) < 4 * d := by
-    have : (0 : ℝ) < d := by exact_mod_cast hd
-    positivity
-  have hi := integrable_mul_exp_of_euclideanHeatKernel hd hFa (ha (4 * d) hdpos 0)
+  have hi := integrable_mul_exp_of_energy hd hFa (lintegral_lt_top_of_rpow_le ha)
   refine ⟨hFa.congr (hF a), hi.congr ?_⟩
   filter_upwards [hF a] with x hx
   rw [hx]
@@ -128,7 +103,13 @@ theorem negativeSobolevCorrector_of_gaussian
   have hscale : ∀ {F : CoefficientField d Λ → Vec d → ℝ}, GaussianFieldEstimate P F C₁ C₂ ε →
       HeatScaleEstimate P (m - 1) F (heatScaleCoefficient d (m - 1) *
         ((C₁ + gaussSquareConstant d * C₂) * 2 ^ ((d : ℝ) / 4))) ε := fun {F} hF => by
-    obtain ⟨F', hFm, hFF, hFg, ⟨R, hRo, hR⟩, hA⟩ := hF
+    obtain ⟨F', hFm, hFF, ⟨R, hRo, hR⟩, hA⟩ := hF
+    have hFg : ∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → τ ≤ 2 → ∀ y,
+        Integrable (fun x => F' a x * euclideanHeatKernel τ (x - y)) := by
+      filter_upwards [hR] with a ha τ hτ hτ2 y
+      exact integrable_mul_euclideanHeatKernel_of_energy hd1
+        (hFm.comp (measurable_const.prodMk measurable_id)).aestronglyMeasurable
+        (lintegral_lt_top_of_rpow_le ha) hτ hτ2 y
     exact (heatScaleEstimate_of_gaussian hd1 (m - 1) hFm hε hC₁ hC₂ hFg hRo hR hA).congr hFF
   refine ⟨?_, hscale hG, hscale hFl⟩
   filter_upwards [hG.ae_hasGaussianMoment hd1, hFl.ae_hasGaussianMoment hd1] with a h1 h2

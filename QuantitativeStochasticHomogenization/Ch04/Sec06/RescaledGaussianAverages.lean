@@ -89,12 +89,10 @@ theorem osBound_abs_heatAverage_rescaled {Ω : Type*} [MeasurableSpace Ω] {P : 
       show (1 : ℝ) / 2 * (-(d : ℝ) / 2) = -(d : ℝ) / 4 by ring]
     ring
 
-/-- **The Gaussian energy estimate** of a random field: Gaussian moments at every center and a
-Gaussian `L²` norm `O_1(C₁)` at the unit scale. -/
+/-- **The Gaussian energy estimate** of a random field: a Gaussian `L²` norm `O_1(C₁)` at the unit
+scale. -/
 def GaussianEnergyEstimate {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) (F : Ω → Vec d → ℝ)
     (C₁ : ℝ) : Prop :=
-  (∀ᵐ a ∂P, ∀ τ : ℝ, 0 < τ → ∀ y,
-    Integrable (fun x => F a x * euclideanHeatKernel τ (x - y))) ∧
   ∃ R : Ω → ℝ, OsBound P R 1 C₁ ∧ ∀ᵐ a ∂P, (∫⁻ x, ‖F a x‖ₑ ^ (2 : ℝ) *
     ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)
 
@@ -126,14 +124,14 @@ theorem negativeSobolevCorrector_of_averages
   obtain ⟨S, hS⟩ := hP P hPl
   refine ⟨S, fun e he ε hε hε2 j => ?_⟩
   obtain ⟨hE1, Fl, hFlm, hFl, hE3, hen⟩ := hS e he
-  obtain ⟨⟨hGg, hGe⟩, ⟨hFg, hFe⟩⟩ := hen ε hε hε2 j
+  obtain ⟨hGe, hFe⟩ := hen ε hε hε2 j
   have hεi : ε⁻¹ ≠ 0 := inv_ne_zero hε.ne'
   constructor
-  · refine ⟨fun a x => (S.corrector e).grad a (ε⁻¹ • x) j, ?_, fun a => ae_eq_refl _, hGg, hGe,
+  · refine ⟨fun a x => (S.corrector e).grad a (ε⁻¹ • x) j, ?_, fun a => ae_eq_refl _, hGe,
       fun t ht _ u => osBound_abs_heatAverage_rescaled (S.corrector e).measurable_grad hE1 hε j ht u⟩
     exact (measurable_pi_apply j).comp ((S.corrector e).measurable_grad.comp
       (measurable_fst.prodMk (measurable_snd.const_smul ε⁻¹)))
-  · refine ⟨fun a x => Fl a (ε⁻¹ • x) j, ?_, fun a => ?_, hFg, hFe,
+  · refine ⟨fun a x => Fl a (ε⁻¹ • x) j, ?_, fun a => ?_, hFe,
       fun t ht _ u => osBound_abs_heatAverage_rescaled hFlm hE3 hε j ht u⟩
     · exact (measurable_pi_apply j).comp (hFlm.comp
         (measurable_fst.prodMk (measurable_snd.const_smul ε⁻¹)))
@@ -199,7 +197,7 @@ theorem negativeSobolevCorrector_of_flux_averages
         rw [integral_congr_ae (heq a)]
       rw [hfun]
       exact hos
-  · obtain ⟨hG, ⟨hFg, R, hRo, hR⟩⟩ := hen ε hε hε2 j
+  · obtain ⟨hG, R, hRo, hR⟩ := hen ε hε hε2 j
     have hεi : ε⁻¹ ≠ 0 := inv_ne_zero hε.ne'
     have heq : ∀ a : CoefficientField d Λ, (fun x => Fl a (ε⁻¹ • x) j) =ᵐ[volume] fun x =>
         ((a (ε⁻¹ • x)).mulVec (e + (S.corrector e).grad a (ε⁻¹ • x)) -
@@ -208,11 +206,7 @@ theorem negativeSobolevCorrector_of_flux_averages
         (hFl a)
       filter_upwards [h1] with x hx
       simp only [hx]
-    refine ⟨hG, ⟨?_, R, hRo, ?_⟩⟩
-    · filter_upwards [hFg] with a ha τ hτ y
-      refine (ha τ hτ y).congr ?_
-      filter_upwards [heq a] with x hx
-      rw [hx]
+    refine ⟨hG, R, hRo, ?_⟩
     · filter_upwards [hR] with a ha
       refine le_of_eq_of_le ?_ ha
       congr 1
