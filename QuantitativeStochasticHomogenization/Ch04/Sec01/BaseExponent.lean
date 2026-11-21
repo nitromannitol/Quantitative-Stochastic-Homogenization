@@ -86,13 +86,15 @@ def GaussianAverageBounds (a : CoefficientField d Λ) (A : Mat d) (G : Vec d →
       2 * ε * euclideanNorm ξ ^ 2
 
 /-- **Proposition 3.21** for the corrected fields of `S`, at the exponent `τ`, with constant `C`
-and rate `μ`, at every center: for each `z` a random scale `X ≤ O_τ(C)` such that almost surely
-the bounds (3.101)–(3.103) hold with error `C r^{-μ}` at the masks `Φ_{z,r}`, `r ≥ max(X, 1)`. -/
+and rate `μ`, at every center: a jointly measurable family of random scales `X(·, z) ≤ O_τ(C)` such
+that, for every `z`, almost surely the bounds (3.101)–(3.103) hold with error `C r^{-μ}` at the
+masks `Φ_{z,r}`, `r ≥ max(X(·, z), 1)`. -/
 def GaussianCorrectorRate (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
     (τ C μ : ℝ) : Prop :=
-  ∀ z : Vec d, ∃ X : CoefficientField d Λ → ℝ, OsBound P X τ C ∧
-    ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r → X a ≤ r →
-      GaussianAverageBounds a S.homogenized (correctedField S a) z r (C * r ^ (-μ))
+  ∃ X : CoefficientField d Λ → Vec d → ℝ, Measurable (Function.uncurry X) ∧
+    ∀ z : Vec d, OsBound P (fun a => X a z) τ C ∧
+      ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r → X a z ≤ r →
+        GaussianAverageBounds a S.homogenized (correctedField S a) z r (C * r ^ (-μ))
 
 /-! ## The homogenized energy -/
 
@@ -156,35 +158,39 @@ theorem abs_J1Heat_sub_homogenizedJ1_le (S : HomogenizationData P) (a : Coeffici
 
 /-- **Proposition 4.3**, (4.10), at every center. Given the structure (4.12) of `A₁` almost
 surely, the bounds on `ā` and Proposition 3.21 at the exponent `τ` with constant `C` and rate
-`μ`, there is `C'` such that for every `z` a random scale `1 ≤ X ≤ O_τ(C')` satisfies, almost
-surely, `|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ 7 C r^{-μ} (|p|² + |q|²)` for all
-`r ≥ X` and all `p, q`. -/
+`μ`, there are `C'` and a jointly measurable family of random scales `1 ≤ X(·, z) ≤ O_τ(C')`
+such that for every `z`, almost surely,
+`|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ 7 C r^{-μ} (|p|² + |q|²)` for all
+`r ≥ X(·, z)` and all `p, q`. -/
 theorem proposition43 [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hA : HomogenizedMatrixBounds S.homogenized Λ)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) {τ C μ : ℝ} (hτ : 0 < τ) (hC : 0 < C)
     (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ C μ) :
-    ∃ C' : ℝ, 0 < C' ∧ ∀ z : Vec d, ∃ X : CoefficientField d Λ → ℝ,
-      OsBound P X τ C' ∧ (∀ a, 1 ≤ X a) ∧
-      ∀ᵐ a ∂P, ∀ r : ℝ, X a ≤ r → ∀ p q : Vec d,
-        |J1Heat a z r p q - homogenizedJ1 S.homogenized p q| ≤
-          7 * (C * r ^ (-μ)) * (euclideanNorm p ^ 2 + euclideanNorm q ^ 2) := by
+    ∃ C' : ℝ, 0 < C' ∧ ∃ X : CoefficientField d Λ → Vec d → ℝ,
+      Measurable (Function.uncurry X) ∧ (∀ a z, 1 ≤ X a z) ∧ ∀ z : Vec d,
+        OsBound P (fun a => X a z) τ C' ∧
+        ∀ᵐ a ∂P, ∀ r : ℝ, X a z ≤ r → ∀ p q : Vec d,
+          |J1Heat a z r p q - homogenizedJ1 S.homogenized p q| ≤
+            7 * (C * r ^ (-μ)) * (euclideanNorm p ^ 2 + euclideanNorm q ^ 2) := by
   set r₀ : ℝ := max 1 ((5 * C) ^ μ⁻¹) with hr₀
   have hr₀1 : 1 ≤ r₀ := le_max_left _ _
   have hr₀0 : 0 < r₀ := zero_lt_one.trans_le hr₀1
   have hlog : 0 < Real.log 2 ^ τ⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
-  refine ⟨(2 : ℝ) ^ τ⁻¹ * max C (r₀ / Real.log 2 ^ τ⁻¹),
-    mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hC), fun z => ?_⟩
-  obtain ⟨X, hX, hgood⟩ := hrate z
+  obtain ⟨X, hXm, hXz⟩ := hrate
   have hconst : OsBound P (fun _ => r₀) τ (r₀ / Real.log 2 ^ τ⁻¹) :=
     osBound_of_le_const measurable_const hτ hr₀0 (Filter.Eventually.of_forall fun _ => le_rfl)
-  refine ⟨fun a => max (X a) r₀, osBound_max hX hconst,
-    fun a => hr₀1.trans (le_max_right _ _), ?_⟩
+  refine ⟨(2 : ℝ) ^ τ⁻¹ * max C (r₀ / Real.log 2 ^ τ⁻¹),
+    mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hC),
+    fun a z => max (X a z) r₀, hXm.max measurable_const,
+    fun a z => hr₀1.trans (le_max_right _ _), fun z => ?_⟩
+  obtain ⟨hX, hgood⟩ := hXz z
+  refine ⟨osBound_max hX hconst, ?_⟩
   filter_upwards [hgood, hspan] with a ha hsp
   intro r hr p q
   have hr₀r : r₀ ≤ r := (le_max_right _ _).trans hr
   have hr1 : 1 ≤ r := hr₀1.trans hr₀r
   have hr0 : 0 < r := zero_lt_one.trans_le hr1
-  have hXr : X a ≤ r := (le_max_left _ _).trans hr
+  have hXr : X a z ≤ r := (le_max_left _ _).trans hr
   have h5C : 5 * C ≤ r ^ μ := by
     have h1 : (5 * C) ^ μ⁻¹ ≤ r := (le_max_right _ _).trans hr₀r
     have h2 := Real.rpow_le_rpow (Real.rpow_nonneg (by positivity) _) h1 hμ.le
@@ -220,7 +226,7 @@ theorem flucJ1_of_gaussianCorrectorRate [IsProbabilityMeasure P] (S : Homogeniza
     (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S s C μ)
     (hmeas : ∀ (z : Vec d) (r : ℝ) (p q : Vec d), Measurable fun a : CoefficientField d Λ => J1Heat a z r p q) :
     FlucJ1 P s (min μ 1) := by
-  obtain ⟨C', hC', hX⟩ := proposition43 S hA hspan (zero_lt_one.trans_le hs) hC hμ hrate
+  obtain ⟨C', hC', X, -, hX1, hX⟩ := proposition43 S hA hspan (zero_lt_one.trans_le hs) hC hμ hrate
   set K : ℝ := 2 * |Λ| + 3 with hK
   have hK0 : 0 < K := by positivity
   set L : ℝ := Real.log 2 ^ s⁻¹ with hL
@@ -228,7 +234,7 @@ theorem flucJ1_of_gaussianCorrectorRate [IsProbabilityMeasure P] (S : Homogeniza
   refine ⟨K * C' + (28 * C + 2 * K * C') / L, by positivity, ?_⟩
   intro z r hr p q hp hq
   have hr0 : 0 < r := zero_lt_one.trans_le hr
-  obtain ⟨X, hXos, hX1, hgood⟩ := hX z
+  obtain ⟨hXos, hgood⟩ := hX z
   have hp2 : euclideanSq p ≤ 1 := by
     rw [← euclideanNorm_sq]; nlinarith [euclideanNorm_nonneg p]
   have hq2 : euclideanSq q ≤ 1 := by
@@ -248,21 +254,21 @@ theorem flucJ1_of_gaussianCorrectorRate [IsProbabilityMeasure P] (S : Homogeniza
   have hJint : Integrable (fun a => J1Heat a z r p q) P :=
     Integrable.of_bound hm.aestronglyMeasurable (|Λ| + 1)
       (Filter.Eventually.of_forall fun a => by simpa [Real.norm_eq_abs] using hJK a)
-  have hXint := hXos.integrable_and_integral_le hs fun a => (zero_le_one.trans (hX1 a))
+  have hXint := hXos.integrable_and_integral_le hs fun a => (zero_le_one.trans (hX1 a z))
   -- the distance to the homogenized energy
   set δ : ℝ := 14 * C * r ^ (-μ) with hδ
   have hδ0 : 0 ≤ δ := by positivity
-  have hZ : ∀ᵐ a ∂P, |J1Heat a z r p q - c| ≤ δ + K * (X a / r) := by
+  have hZ : ∀ᵐ a ∂P, |J1Heat a z r p q - c| ≤ δ + K * (X a z / r) := by
     filter_upwards [hgood] with a ha
-    by_cases hXr : X a ≤ r
+    by_cases hXr : X a z ≤ r
     · have h1 := ha r hXr p q
       have h2 : euclideanNorm p ^ 2 + euclideanNorm q ^ 2 ≤ 2 := by
         rw [euclideanNorm_sq, euclideanNorm_sq]; linarith
       have h3 : 0 ≤ C * r ^ (-μ) := mul_nonneg hC.le (Real.rpow_nonneg hr0.le _)
-      have h4 : 0 ≤ K * (X a / r) :=
-        mul_nonneg hK0.le (div_nonneg (zero_le_one.trans (hX1 a)) hr0.le)
+      have h4 : 0 ≤ K * (X a z / r) :=
+        mul_nonneg hK0.le (div_nonneg (zero_le_one.trans (hX1 a z)) hr0.le)
       nlinarith
-    · have h1 : 1 ≤ X a / r := by
+    · have h1 : 1 ≤ X a z / r := by
         rw [le_div_iff₀ hr0]; linarith
       have h2 : |J1Heat a z r p q - c| ≤ K := by
         have := abs_sub (J1Heat a z r p q) c
@@ -272,14 +278,14 @@ theorem flucJ1_of_gaussianCorrectorRate [IsProbabilityMeasure P] (S : Homogeniza
   have hE : |(∫ a, J1Heat a z r p q ∂P) - c| ≤ δ + K * (2 * C') / r := by
     have hsub : (∫ a, J1Heat a z r p q ∂P) - c = ∫ a, (J1Heat a z r p q - c) ∂P := by
       rw [integral_sub hJint (integrable_const c), integral_const, probReal_univ, one_smul]
-    have hXr : Integrable (fun a => δ + K * (X a / r)) P :=
+    have hXr : Integrable (fun a => δ + K * (X a z / r)) P :=
       (integrable_const δ).add ((hXint.1.div_const r).const_mul K)
     calc |(∫ a, J1Heat a z r p q ∂P) - c|
         = |∫ a, (J1Heat a z r p q - c) ∂P| := by rw [hsub]
       _ ≤ ∫ a, |J1Heat a z r p q - c| ∂P := abs_integral_le_integral_abs
-      _ ≤ ∫ a, (δ + K * (X a / r)) ∂P :=
+      _ ≤ ∫ a, (δ + K * (X a z / r)) ∂P :=
           integral_mono_ae (hJint.sub (integrable_const c)).abs hXr hZ
-      _ = δ + K * (∫ a, X a ∂P) / r := by
+      _ = δ + K * (∫ a, X a z ∂P) / r := by
           rw [integral_add (integrable_const δ) ((hXint.1.div_const r).const_mul K),
             integral_const, probReal_univ, one_smul, integral_const_mul, integral_div]
           ring
@@ -290,13 +296,13 @@ theorem flucJ1_of_gaussianCorrectorRate [IsProbabilityMeasure P] (S : Homogeniza
   set D : ℝ := 2 * δ + K * (2 * C') / r with hD
   have hD0 : 0 < D := by positivity
   have hbound : ∀ᵐ a ∂P, |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P| ≤
-      K / r * X a + D := by
+      K / r * X a z + D := by
     filter_upwards [hZ] with a ha
     have h1 := abs_sub_le (J1Heat a z r p q) c (∫ a', J1Heat a' z r p q ∂P)
     rw [abs_sub_comm c] at h1
-    have h2 : K * (X a / r) = K / r * X a := by ring
+    have h2 : K * (X a z / r) = K / r * X a z := by ring
     linarith
-  have hos1 : OsBound P (fun a => K / r * X a) s (K / r * C') := hXos.const_mul (by positivity)
+  have hos1 : OsBound P (fun a => K / r * X a z) s (K / r * C') := hXos.const_mul (by positivity)
   have hos2 : OsBound P (fun _ => D) s (D / L) :=
     osBound_of_le_const measurable_const (zero_lt_one.trans_le hs) hD0
       (Filter.Eventually.of_forall fun _ => le_rfl)
