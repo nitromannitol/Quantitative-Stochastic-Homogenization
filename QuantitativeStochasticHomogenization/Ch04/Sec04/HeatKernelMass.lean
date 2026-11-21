@@ -181,4 +181,36 @@ theorem abs_J1Heat_sub_localizedJ1_le_of_tail' {a : CoefficientField d Λ} (hΛ 
     (integrable_heatKernel_mask z hr).integrableOn (setIntegral_compl_ball_heatKernel_le z hr T hT)
     hsmall hint hint2 houter hAV hVA
 
+/-- **Uniform bound on the localized energy**: `0 ≤ J₁^{(δ)}(z, r, p, q) ≤ c₀²/2` with
+`c₀ = (∑|p_k|) d Λ + ∑ |q_k|`, for every localized basis. -/
+theorem localizedJ1_mem_Icc_linearCoefficient {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ)
+    (hr : r ≠ 0) {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C) (p q : Vec d) :
+    0 ≤ localizedJ1 W r p q ∧ localizedJ1 W r p q ≤ linearCoefficient d Λ p q ^ 2 / 2 := by
+  obtain ⟨h0, h1⟩ := localizedJ1_mem_Icc hΛ hr W p q
+  refine ⟨h0, h1.trans ?_⟩
+  have hc0 : 0 ≤ linearCoefficient d Λ p q := by
+    unfold linearCoefficient
+    exact add_nonneg (mul_nonneg (mul_nonneg (Finset.sum_nonneg fun k _ => abs_nonneg _)
+      (Nat.cast_nonneg d)) hΛ) (Finset.sum_nonneg fun k _ => abs_nonneg _)
+  have hL : tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ ≤ linearCoefficient d Λ p q := by
+    unfold tupleLinearConstant
+    rw [show linearCoefficient d Λ p q = ((∑ k, |p k|) * d * Λ + ∑ k, |q k|) from rfl]
+    exact mul_le_of_le_one_right hc0 (norm_sqrtHeatLp_le_one z T hr)
+  have hL0 : 0 ≤ tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ :=
+    mul_nonneg hc0 (norm_nonneg _)
+  have := pow_le_pow_left₀ hL0 hL 2
+  linarith
+
+/-- The extended localized energy of a localized family is uniformly bounded. -/
+theorem abs_familyJ1_le {δ γ α σ θ C₀ : ℝ} (hΛ : 0 ≤ Λ) (W : LocalizedFamily d Λ δ γ α σ θ C₀)
+    (a : CoefficientField d Λ) (x : Vec d) (r : ℝ) (p q : Vec d) :
+    |familyJ1 W a x r p q| ≤ linearCoefficient d Λ p q ^ 2 / 2 := by
+  unfold familyJ1
+  split_ifs with hr
+  · have h := localizedJ1_mem_Icc_linearCoefficient hΛ (by linarith : r ≠ 0) (W a x r hr) p q
+    rw [abs_of_nonneg h.1]
+    exact h.2
+  · simp only [abs_zero]
+    positivity
+
 end QSH
