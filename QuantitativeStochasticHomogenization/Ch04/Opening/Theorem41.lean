@@ -240,7 +240,7 @@ theorem correctedField_unitVector {P : Measure (CoefficientField d Λ)} (S : Hom
   rw [correctedField, Finset.sum_eq_single i]
   · simp [unitVector, correctedCoordinate]
   · intro j _ hj
-    simp [unitVector, Pi.single_apply, hj]
+    simp [unitVector, hj]
   · simp
 
 /-- The coordinate estimate from the linear estimate `|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-d/2})`
