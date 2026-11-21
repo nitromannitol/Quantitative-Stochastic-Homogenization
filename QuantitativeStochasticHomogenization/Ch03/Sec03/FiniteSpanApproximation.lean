@@ -8,6 +8,10 @@ the normalized `L²(U)` norm by linear combinations of finitely many square-inte
 `fᵢ`, then `u` is almost everywhere on `U` equal to one of these combinations: the span of the
 `fᵢ` in `L²(U)` is finite dimensional, hence closed. This is the step "`E(t) = 0` implies that
 `u` is a corrected affine function on `E_t`" of the first-order proof of Theorem 3.8, `k = 1`.
+
+If moreover `u` is such a combination on each set of an increasing cover of the space, then it is
+one combination everywhere: the coefficient spaces of the combinations vanishing on `U n` decrease,
+so their dimensions are eventually constant, and beyond that index all of them coincide.
 -/
 
 open MeasureTheory Filter
@@ -86,5 +90,58 @@ theorem exists_ae_eq_sum_of_forall_scalarRms_lt {ι : Type*} [Fintype ι] {U : S
   rw [hz] at hx
   simp only [Pi.zero_apply] at hx
   linarith
+
+/-- The coefficients of the combinations of `f` vanishing almost everywhere on `U`. -/
+def vanishingCoefficients {ι : Type*} [Fintype ι] (U : Set (Vec d)) (f : ι → Vec d → ℝ) :
+    Submodule ℝ (ι → ℝ) where
+  carrier := {c | ∀ᵐ x ∂(volume.restrict U), ∑ i, c i * f i x = 0}
+  zero_mem' := by simp
+  add_mem' := by
+    intro c c' hc hc'
+    simp only [Set.mem_ofPred_eq] at hc hc' ⊢
+    filter_upwards [hc, hc'] with x hx hx'
+    simp only [Pi.add_apply, add_mul, Finset.sum_add_distrib, hx, hx', add_zero]
+  smul_mem' := by
+    intro r c hc
+    simp only [Set.mem_ofPred_eq] at hc ⊢
+    filter_upwards [hc] with x hx
+    simp only [Pi.smul_apply, smul_eq_mul, mul_assoc, ← Finset.mul_sum, hx, mul_zero]
+
+/-- **One combination on an increasing cover.** -/
+theorem exists_ae_eq_sum_of_forall_restrict {ι : Type*} [Fintype ι] {U : ℕ → Set (Vec d)}
+    (hmono : Monotone U) (hcover : ⋃ n, U n = Set.univ) {u : Vec d → ℝ}
+    {f : ι → Vec d → ℝ}
+    (h : ∀ n, ∃ c : ι → ℝ, ∀ᵐ x ∂(volume.restrict (U n)), u x = ∑ i, c i * f i x) :
+    ∃ c : ι → ℝ, ∀ᵐ x ∂(volume : Measure (Vec d)), u x = ∑ i, c i * f i x := by
+  classical
+  set K : ℕ → Submodule ℝ (ι → ℝ) := fun n => vanishingCoefficients (U n) f with hKdef
+  have hK : ∀ {n m : ℕ}, n ≤ m → K m ≤ K n := by
+    intro n m hnm c hc
+    have hc' : ∀ᵐ x ∂(volume.restrict (U m)), ∑ i, c i * f i x = 0 := hc
+    exact ae_restrict_of_ae_restrict_of_subset (hmono hnm) hc'
+  obtain ⟨N, hN⟩ : ∃ N, ∀ n, Module.finrank ℝ (K N) ≤ Module.finrank ℝ (K n) := by
+    have hex : ∃ k, ∃ n, Module.finrank ℝ (K n) = k := ⟨_, 0, rfl⟩
+    obtain ⟨N, hNk⟩ := Nat.find_spec hex
+    exact ⟨N, fun n => hNk ▸ Nat.find_min' hex ⟨n, rfl⟩⟩
+  obtain ⟨c, hc⟩ := h N
+  refine ⟨c, ?_⟩
+  have hall : ∀ n, ∀ᵐ x ∂(volume.restrict (U n)), u x = ∑ i, c i * f i x := by
+    intro n
+    rcases le_total n N with hnN | hNn
+    · exact ae_restrict_of_ae_restrict_of_subset (hmono hnN) hc
+    · obtain ⟨c', hc'⟩ := h n
+      have hEq : K n = K N := Submodule.eq_of_le_of_finrank_le (hK hNn) (hN n)
+      have hmem : c' - c ∈ K N := by
+        show ∀ᵐ x ∂(volume.restrict (U N)), ∑ i, (c' - c) i * f i x = 0
+        filter_upwards [hc, ae_restrict_of_ae_restrict_of_subset (hmono hNn) hc'] with x hx hx'
+        simp only [Pi.sub_apply, sub_mul, Finset.sum_sub_distrib]
+        linarith
+      rw [← hEq] at hmem
+      have hmem' : ∀ᵐ x ∂(volume.restrict (U n)), ∑ i, (c' - c) i * f i x = 0 := hmem
+      filter_upwards [hc', hmem'] with x hx hx'
+      simp only [Pi.sub_apply, sub_mul, Finset.sum_sub_distrib] at hx'
+      linarith
+  have hU := (ae_restrict_iUnion_iff U _).2 hall
+  rwa [hcover, Measure.restrict_univ] at hU
 
 end QSH
