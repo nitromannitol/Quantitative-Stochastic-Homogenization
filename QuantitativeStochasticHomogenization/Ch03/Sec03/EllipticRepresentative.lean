@@ -118,4 +118,59 @@ theorem isWeakDivergenceFormHarmonicOn_toH1FunctionOn {Λ : ℝ} (hΛ : 1 ≤ Λ
   rw [e, h]
   simp [PDE.vecDot]
 
+theorem isOpenBoundedConvexDomain_matrixEllipsoid {M : Mat d} (hdet : M.det ≠ 0) {R : ℝ}
+    (hR : 0 < R) : PDE.IsOpenBoundedConvexDomain (matrixEllipsoid M R) := by
+  have himg : matrixEllipsoid M R = (matrixCLE M hdet).toHomeomorph '' ball 0 R := rfl
+  refine ⟨?_, ?_, ?_⟩
+  · rw [himg]
+    exact (matrixCLE M hdet).toHomeomorph.isOpenMap _ (isOpen_ball_zero R)
+  · refine ⟨ellipsoidRadius M * R + 1, by
+      have := one_le_ellipsoidRadius M
+      positivity, fun x hx i => ?_⟩
+    have h := matrixEllipsoid_subset_ball M R hx
+    have h' : euclideanNorm (x - 0) < ellipsoidRadius M * R := h
+    rw [sub_zero] at h'
+    have := coordinate_abs_le_euclideanNorm x i
+    linarith
+  · have hc : Convex ℝ (ball (0 : Vec d) R) := by
+      rw [ball_zero_eq_pdeEuclideanBall hR]
+      exact PDE.convex_euclideanBall 0 R
+    exact hc.linear_image (Matrix.toLin' M)
+
+/-- **Caccioppoli inequality on ellipsoids**: `∫_{E_r} |∇v|² ≤ 4Λ K² ∫_{E_R} (v - k)²` with
+`K = ‖(M⁻¹)ᵀ‖_F · 32 / (R - r)`. -/
+theorem caccioppoli_matrixEllipsoid {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : CoefficientField d Λ)
+    {M : Mat d} (hdet : M.det ≠ 0) {r R : ℝ} (hr : 0 < r) (hrR : r < R) {v : Vec d → ℝ}
+    {g : Vec d → Vec d} (hv : MemLp v 2 (volume.restrict (matrixEllipsoid M R)))
+    (hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict (matrixEllipsoid M R)))
+    (hw : HasWeakGradient (matrixEllipsoid M R) v g)
+    (hdiv : HasWeakDivergence (matrixEllipsoid M R) (fun x => (a x).mulVec (g x)) (fun _ => 0))
+    (k : ℝ) :
+    ∫ x in matrixEllipsoid M r, euclideanSq (g x) ≤
+      4 * Λ * (Real.sqrt (∑ i, ∑ j, (M⁻¹).transpose i j ^ 2) * (32 / (R - r))) ^ 2 *
+        ∫ x in matrixEllipsoid M R, (v x - k) ^ 2 := by
+  have hR : 0 < R := hr.trans hrR
+  have hU := isOpenBoundedConvexDomain_matrixEllipsoid hdet hR
+  have hUm : MeasurableSet (matrixEllipsoid M R) := hU.1.measurableSet
+  have hrm : MeasurableSet (matrixEllipsoid M r) :=
+    (isOpenBoundedConvexDomain_matrixEllipsoid hdet hr).1.measurableSet
+  have hsol := isWeakDivergenceFormHarmonicOn_toH1FunctionOn hΛ a hUm hv hg hw hdiv
+  have hEll := isEllipticFieldOn_ellipticFieldOf hΛ a hUm
+  have h := PDE.caccioppoli_coefficient_energy_on_inner (k := k) hU hrm hUm hEll one_pos
+    (by linarith) hsol (ellipsoidCutoff hdet hr hrR) subset_rfl
+  simp only [div_one] at h
+  have hsub : matrixEllipsoid M r ⊆ matrixEllipsoid M R := matrixEllipsoid_mono M hrR.le
+  have hint : IntegrableOn (fun x => PDE.vecDot (g x) (PDE.matVecMul (ellipticFieldOf a x) (g x)))
+      (matrixEllipsoid M r) :=
+    (PDE.integrableOn_vecDot_of_memVectorL2On hg
+      (PDE.memVectorL2On_matVecMul_of_isEllipticFieldOn hEll hg)).mono_set hsub
+  have hle : ∫ x in matrixEllipsoid M r, euclideanSq (g x) ≤
+      ∫ x in matrixEllipsoid M r, PDE.vecDot (g x) (PDE.matVecMul (ellipticFieldOf a x) (g x)) := by
+    refine integral_mono_of_nonneg (Eventually.of_forall fun x => euclideanSq_nonneg _) hint
+      (Eventually.of_forall fun x => ?_)
+    have h1 := (isEllipticMatrix_ellipticFieldOf hΛ a x).2.2.1 (g x)
+    rw [one_mul] at h1
+    exact h1
+  exact hle.trans h
+
 end QSH
