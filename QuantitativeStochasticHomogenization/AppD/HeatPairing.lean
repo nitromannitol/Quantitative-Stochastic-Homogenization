@@ -100,6 +100,56 @@ theorem abs_foldr_euclideanHeatKernel_sub_le {s : ℝ} (hs : 0 < s) (l : List (F
   refine Finset.sum_congr rfl fun i _ => ?_
   ring
 
+theorem integrable_uncurry_mul_comp_sub {s : ℝ} (hs : 0 < s) (l : List (Fin d)) {F : Vec d → ℝ}
+    (hFm : AEStronglyMeasurable F volume)
+    (hF : Integrable (fun x => F x * euclideanHeatKernel (4 * s) x)) {φ : Vec d → ℝ}
+    (hφ : Continuous φ) (hcφ : HasCompactSupport φ) :
+    Integrable (Function.uncurry fun x y =>
+      F x * (l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s) (x - y) * φ y))
+      ((volume : Measure (Vec d)).prod volume) := by
+  set K := l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s) with hK
+  have hKc : Continuous K :=
+    (foldr_coordinateDerivative_contDiff (contDiff_euclideanHeatKernel s) l).continuous
+  obtain ⟨R, hR⟩ := hcφ.isCompact.isBounded.subset_closedBall 0
+  obtain ⟨C, hC, hb⟩ := abs_foldr_euclideanHeatKernel_sub_le hs l R
+  have hφi : Integrable φ := hφ.integrable_of_hasCompactSupport hcφ
+  have hg : Integrable (fun p : Vec d × Vec d => (C * |F p.1 * euclideanHeatKernel (4 * s) p.1|) *
+      |φ p.2|) ((volume : Measure (Vec d)).prod volume) :=
+    ((hF.abs.const_mul C)).mul_prod hφi.abs
+  refine hg.mono' ?_ (Eventually.of_forall fun p => ?_)
+  · exact (hFm.comp_fst).mul ((hKc.comp (continuous_fst.sub continuous_snd)).mul
+      (hφ.comp continuous_snd)).aestronglyMeasurable
+  · simp only [Function.uncurry, Real.norm_eq_abs, abs_mul]
+    by_cases hy : p.2 ∈ tsupport φ
+    · have hyR : ‖p.2‖ ≤ R := by
+        have := hR hy
+        simpa [Metric.mem_closedBall, dist_zero_right] using this
+      have h1 := hb p.1 p.2 hyR
+      have h2 := euclideanHeatKernel_nonneg (by positivity : (0 : ℝ) ≤ 4 * s) p.1
+      rw [abs_of_nonneg h2]
+      have h3 := abs_nonneg (F p.1)
+      have h4 := abs_nonneg (φ p.2)
+      calc |F p.1| * (|K (p.1 - p.2)| * |φ p.2|)
+          ≤ |F p.1| * (C * euclideanHeatKernel (4 * s) p.1 * |φ p.2|) := by gcongr
+        _ = C * (|F p.1| * euclideanHeatKernel (4 * s) p.1) * |φ p.2| := by ring
+    · rw [image_eq_zero_of_notMem_tsupport hy]
+      simp
+
+theorem convolution_eq_integral_comp_sub (K φ : Vec d → ℝ) (x : Vec d) :
+    (K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] φ) x = ∫ y, K (x - y) * φ y := by
+  simp [convolution_eq_swap]
+
+theorem integrable_mul_convolution {s : ℝ} (hs : 0 < s) (l : List (Fin d)) {F : Vec d → ℝ}
+    (hFm : AEStronglyMeasurable F volume)
+    (hF : Integrable (fun x => F x * euclideanHeatKernel (4 * s) x)) {φ : Vec d → ℝ}
+    (hφ : Continuous φ) (hcφ : HasCompactSupport φ) :
+    Integrable (fun x => F x * ((l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s)) ⋆[
+      ContinuousLinearMap.lsmul ℝ ℝ, volume] φ) x) := by
+  refine (integrable_uncurry_mul_comp_sub hs l hFm hF hφ hcφ).integral_prod_left.congr
+    (Eventually.of_forall fun x => ?_)
+  simp only [Function.uncurry_apply_pair]
+  rw [convolution_eq_integral_comp_sub, integral_const_mul]
+
 /-- **Pairing a field with a heat-smoothed test function**:
 `∫ F (∂^l Φ(s) ∗ φ) = ∫ φ(y) ∫ F(x) ∂^l Φ(s)(x - y) dx dy` for a field with the Gaussian moment
 `∫ |F| Φ(4s) < ∞` and a continuous compactly supported `φ`. -/
@@ -111,41 +161,12 @@ theorem integral_mul_convolution_eq {s : ℝ} (hs : 0 < s) (l : List (Fin d)) {F
       ContinuousLinearMap.lsmul ℝ ℝ, volume] φ) x =
       ∫ y, φ y * ∫ x, F x * l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s) (x - y) := by
   set K := l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s) with hK
-  have hKc : Continuous K :=
-    (foldr_coordinateDerivative_contDiff (contDiff_euclideanHeatKernel s) l).continuous
-  obtain ⟨R, hR⟩ := hcφ.isCompact.isBounded.subset_closedBall 0
-  obtain ⟨C, hC, hb⟩ := abs_foldr_euclideanHeatKernel_sub_le hs l R
-  have hconv : ∀ x, (K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] φ) x = ∫ y, K (x - y) * φ y :=
-    fun x => by simp [convolution_eq_swap]
-  have hφi : Integrable φ := hφ.integrable_of_hasCompactSupport hcφ
-  have hint : Integrable (Function.uncurry fun x y => F x * (K (x - y) * φ y))
-      ((volume : Measure (Vec d)).prod volume) := by
-    have hg : Integrable (fun p : Vec d × Vec d => (C * |F p.1 * euclideanHeatKernel (4 * s) p.1|) *
-        |φ p.2|) ((volume : Measure (Vec d)).prod volume) :=
-      ((hF.abs.const_mul C)).mul_prod hφi.abs
-    refine hg.mono' ?_ (Eventually.of_forall fun p => ?_)
-    · exact (hFm.comp_fst).mul ((hKc.comp (continuous_fst.sub continuous_snd)).mul
-        (hφ.comp continuous_snd)).aestronglyMeasurable
-    · simp only [Function.uncurry, Real.norm_eq_abs, abs_mul]
-      by_cases hy : p.2 ∈ tsupport φ
-      · have hyR : ‖p.2‖ ≤ R := by
-          have := hR hy
-          simpa [Metric.mem_closedBall, dist_zero_right] using this
-        have h1 := hb p.1 p.2 hyR
-        have h2 := euclideanHeatKernel_nonneg (by positivity : (0 : ℝ) ≤ 4 * s) p.1
-        rw [abs_of_nonneg h2]
-        have h3 := abs_nonneg (F p.1)
-        have h4 := abs_nonneg (φ p.2)
-        calc |F p.1| * (|K (p.1 - p.2)| * |φ p.2|)
-            ≤ |F p.1| * (C * euclideanHeatKernel (4 * s) p.1 * |φ p.2|) := by gcongr
-          _ = C * (|F p.1| * euclideanHeatKernel (4 * s) p.1) * |φ p.2| := by ring
-      · rw [image_eq_zero_of_notMem_tsupport hy]
-        simp
+  have hint := integrable_uncurry_mul_comp_sub hs l hFm hF hφ hcφ
   calc ∫ x, F x * (K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] φ) x
       = ∫ x, ∫ y, F x * (K (x - y) * φ y) := by
         refine integral_congr_ae (Eventually.of_forall fun x => ?_)
         simp only
-        rw [hconv x, integral_const_mul]
+        rw [convolution_eq_integral_comp_sub, integral_const_mul]
     _ = ∫ y, ∫ x, F x * (K (x - y) * φ y) := integral_integral_swap hint
     _ = ∫ y, φ y * ∫ x, F x * K (x - y) := by
         refine integral_congr_ae (Eventually.of_forall fun y => ?_)
