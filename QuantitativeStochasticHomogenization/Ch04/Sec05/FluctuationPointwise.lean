@@ -92,15 +92,16 @@ theorem sum_indicator_cellAt_add (z : Vec d) {L : ℝ} (hL : 0 < L) (N : ℕ) (h
 
 /-- **Step 3 of the proof of Proposition 4.12, (4.115)**: under the hypotheses of (4.117), the
 fields themselves are `𝒪_s(C R^{-β})` at every point. -/
-theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
-    (hF : HasUnitRange P F) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2)
+theorem exists_centeredOsBound_field (hd : 1 ≤ d)
+    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2)
     (hB0 : 0 < B) (hA0 : 0 < A) {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2)
     (hδ : 0 < δ) (hη₁ : 0 < η₁) (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1)
     (hα : β < η₁ * α) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R → ∀ z : Vec d,
+    ∃ C : ℝ, 0 < C ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
+      ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R → ∀ z : Vec d,
       CenteredOsBound P (fun a => X.field R a z) s (C * R ^ (-β)) := by
   classical
-  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound hd hF hmono hs1 hs2 hB0 hA0 hβ0 hβ hδ hη₁ hη₁₂
+  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound (Ω := Ω) hd hmono hs1 hs2 hB0 hA0 hβ0 hβ hδ hη₁ hη₁₂
     hη₂ hα
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
   obtain ⟨Ce, hCe, hexp⟩ := exists_exp_neg_rpow_le (c := 1 / 8) (κ := 2) (by norm_num)
@@ -117,7 +118,7 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
     C₀ * B * R₃ ^ β with hCdef
   have hR₃ : 0 < R₃ := by positivity
   have hC1 : 0 ≤ A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) := by positivity
-  refine ⟨C, by positivity, fun X R hR z => ?_⟩
+  refine ⟨C, by positivity, fun P _ hF X R hR z => ?_⟩
   have hR0 : 0 < R := zero_lt_one.trans_le hR
   have hRβ : 0 ≤ R ^ (-β) := Real.rpow_nonneg hR0.le _
   by_cases hRs : R < R₃
@@ -191,7 +192,7 @@ theorem exists_centeredOsBound_field [IsProbabilityMeasure P] (hd : 1 ≤ d)
       (fun a => ∫ y, (cellAt z R k).indicator (heatKernel z ρ) y * X.field r a y) s
       (cellMax ρ k * (R ^ d * (Cb * R ^ (-β)))) := by
     intro k _
-    have h1 := centeredOsBound_of_rpow_neg_mul hR0 (hBlock X R R hR le_rfl r le_rfl
+    have h1 := centeredOsBound_of_rpow_neg_mul hR0 (hBlock P hF X R R hR le_rfl r le_rfl
       (Real.rpow_le_rpow_of_exponent_le hR hη₁₂.le) _ (w k) (hwm k) (hw1 k) (hwz k))
     have h2 := h1.const_mul (cellMax_pos hρ k)
     convert h2 using 1

@@ -23,14 +23,15 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) →
   {s δ α B A : ℝ}
 
 /-- **The induction step (4.118).** -/
-theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
+theorem exists_blockBound_step (hd : 1 ≤ d)
     (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) (hA0 : 0 < A)
     {η₁ η₂ β : ℝ} (hβ : β ≤ (d : ℝ) / 2) (hδ : 0 < δ) (hη₁ : 0 < η₁)
     (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1) (hα : β < η₁ * α) :
     ∃ ε R₀ K C₁ : ℝ, 0 < ε ∧ 1 ≤ R₀ ∧ 0 < K ∧ 0 < C₁ ∧
+      ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
       ∀ (X : CenteredLocalFields P F s δ α B A) (R₁ C : ℝ), R₀ ≤ R₁ → C₁ ≤ C →
       BlockBound X η₁ η₂ β R₁ C → BlockBound X η₁ η₂ β (2 * R₁) (C * (1 + K * R₁ ^ (-ε))) := by
-  obtain ⟨C₀, hC₀, hfar⟩ := exists_centeredOsBound_far_block (P := P) (F := F) (δ := δ)
+  obtain ⟨C₀, hC₀, hfar⟩ := exists_centeredOsBound_far_block (Ω := Ω) (F := F) (δ := δ)
     (α := α) (A := A) hs1 hs2 hB0
   have hη₂0 : 0 < η₂ := hη₁.trans hη₁₂
   set ε : ℝ := min (η₁ * α - β) (min ((1 - η₂ * (1 + δ)) / 4) ((1 - η₁ / η₂) / 2)) with hεdef
@@ -64,7 +65,7 @@ theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : Has
     have := hA0
     have := hB0
     positivity
-  refine ⟨ε, R₀, K, C₁, hε, by linarith, hK, hC₁, fun X R₁ C hR₁ hC hA => ?_⟩
+  refine ⟨ε, R₀, K, C₁, hε, by linarith, hK, hC₁, fun P _ hF X R₁ C hR₁ hC hA => ?_⟩
   have hC0 : 0 ≤ C := hC₁.le.trans hC
   have hR₁0 : 0 < R₁ := by linarith
   have hfac : 1 ≤ 1 + K * R₁ ^ (-ε) := by
@@ -155,7 +156,7 @@ theorem exists_blockBound_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : Has
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
         ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
         (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) :=
-    fun r₁ => hfar X r₁
+    fun r₁ => hfar P X r₁
   have hstep := centeredOsBound_block_step hd hF hmono X hA hβ hC0 hfarX (r := r)
     hR2 (by linarith) hr₁ hr₁r le_rfl hr₁hi hsep hR'1 hR'R₁ hr₁lo' hr₁hi' hρ₁ hn hn' z hf hf1
     hfz
@@ -246,15 +247,14 @@ theorem prod_one_add_le_exp {K R₀ ε : ℝ} (hK : 0 ≤ K) (hR₀ : 0 < R₀) 
         exact mul_le_mul_of_nonneg_left hg (mul_nonneg hK (Real.rpow_nonneg hR₀.le _))
 
 /-- **The statement (4.117)** of the proof of Proposition 4.12. -/
-theorem exists_blockBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
-    (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) (hA0 : 0 < A)
+theorem exists_blockBound (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) (hA0 : 0 < A)
     {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2) (hδ : 0 < δ) (hη₁ : 0 < η₁)
     (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1) (hα : β < η₁ * α) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (R₁ : ℝ),
-      BlockBound X η₁ η₂ β R₁ C := by
+    ∃ C : ℝ, 0 < C ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
+      ∀ (X : CenteredLocalFields P F s δ α B A) (R₁ : ℝ), BlockBound X η₁ η₂ β R₁ C := by
   obtain ⟨ε, R₀, K, C₁, hε, hR₀, hK, hC₁, hstep⟩ :=
-    exists_blockBound_step hd hF hmono hs1 hs2 hB0 hA0 hβ hδ hη₁ hη₁₂ hη₂ hα
-  obtain ⟨Cb, hCb, hbase⟩ := exists_blockBound_base (P := P) (F := F) (δ := δ) (α := α)
+    exists_blockBound_step (Ω := Ω) hd hmono hs1 hs2 hB0 hA0 hβ hδ hη₁ hη₁₂ hη₂ hα
+  obtain ⟨Cb, hCb, hbase⟩ := exists_blockBound_base (Ω := Ω) (F := F) (δ := δ) (α := α)
     (A := A) hs1 hs2 hB0
   have hR₀0 : 0 < R₀ := by linarith
   set C₂ : ℝ := max C₁ (Cb * B * R₀ ^ β) with hC₂def
@@ -267,16 +267,16 @@ theorem exists_blockBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitR
   have hcge : ∀ n, C₂ ≤ c n := fun n =>
     le_mul_of_one_le_right hC₂.le (Finset.one_le_prod₀ fun j _ => hfac j)
   set C : ℝ := C₂ * Real.exp (K * R₀ ^ (-ε) * (1 - (2 : ℝ) ^ (-ε))⁻¹) with hCdef
-  refine ⟨C, by positivity, fun X R₁ => ?_⟩
+  refine ⟨C, by positivity, fun P _ hF X R₁ => ?_⟩
   have hind : ∀ n : ℕ, BlockBound X η₁ η₂ β (2 ^ n * R₀) (c n) := by
     intro n
     induction n with
     | zero =>
       simp only [pow_zero, one_mul, hcdef, Finset.range_zero, Finset.prod_empty, mul_one]
-      exact hbase X η₁ η₂ β R₀ C₂ hβ0.le (le_max_right _ _)
+      exact hbase P X η₁ η₂ β R₀ C₂ hβ0.le (le_max_right _ _)
     | succ n ih =>
       have hR : R₀ ≤ 2 ^ n * R₀ := le_mul_of_one_le_left hR₀0.le (one_le_pow₀ one_le_two)
-      have h := hstep X (2 ^ n * R₀) (c n) hR ((le_max_left _ _).trans (hcge n)) ih
+      have h := hstep P hF X (2 ^ n * R₀) (c n) hR ((le_max_left _ _).trans (hcge n)) ih
       rw [show 2 * (2 ^ n * R₀) = 2 ^ (n + 1) * R₀ by ring] at h
       simpa only [hcdef, Finset.prod_range_succ, mul_assoc] using h
   obtain ⟨n, hn⟩ := exists_nat_ge R₁

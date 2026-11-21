@@ -324,8 +324,8 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
   obtain ⟨C₁, C₂, hC₁, hC₂, hadd⟩ := exists_additive_truncatedField (P := P) (d := d) hs1 hs2
   set A : ℝ := C₁ * (CL + CA) + C₂ * CL with hAdef
   have hA0 : 0 < A := by positivity
-  obtain ⟨Cf, hCf, hfield⟩ := exists_centeredOsBound_field (P := P) (F := F) (δ := δ) (α := α)
-    (B := 2 * M') (A := A) hd hF hmono hs1 hs2 (by positivity) hA0 hβ0 hβd hδ hη₁ hη₁₂ hη₂ hβη
+  obtain ⟨Cf, hCf, hfield⟩ := exists_centeredOsBound_field (Ω := Ω) (F := F) (δ := δ) (α := α)
+    (B := 2 * M') (A := A) hd hmono hs1 hs2 (by positivity) hA0 hβ0 hβd hδ hη₁ hη₁₂ hη₂ hβη
   have hl2 : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
   set C' : ℝ := CL + (8 : ℝ) ^ s⁻¹ * (4 * Cf) + 2 * CL / Real.log 2 ^ s⁻¹ with hC'def
   refine ⟨C', by positivity, fun z R hR p q hp hq => ?_⟩
@@ -356,7 +356,7 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
       additive := hadd J hM'.le p q Jδ hα0.le hCL hCA (fun a z r => hJb' a z r p q hp hq)
         (fun r => hJm r p q) hJδm (fun r hr z => (hJδ r hr).2 z)
         (fun z r₁ r hr₁ hr => (hA z r₁ r hr₁ hr p q hp hq).2) }
-  have hX := hfield X R hR z
+  have hX := hfield P hF X R hR z
   have hJzm : Measurable fun a => J a z R p q :=
     (hJm R p q).comp (measurable_id.prodMk measurable_const)
   have hJzi : Integrable (fun a => J a z R p q) P :=

@@ -209,7 +209,8 @@ theorem integrable_heatSmooth {f : Vec d → ℝ} (hf : Integrable f) (hfm : Mea
 Euclidean distance at least `t` from every `x ∈ closedCube z R`, the centered block
 `R^{-d} ∫_S g X(r₁)` is `𝒪_s(C(s) B 2^{d/2} exp(-t²/(8ρ²)))`. -/
 theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) :
-    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ [IsProbabilityMeasure P] (X : CenteredLocalFields P F s δ α B A) (r₁ : ℝ)
+    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P]
+      (X : CenteredLocalFields P F s δ α B A) (r₁ : ℝ)
       {z : Vec d} {R ρ t : ℝ}, 0 < R → 0 < ρ → 0 ≤ t → ∀ {f : Vec d → ℝ}, Measurable f →
       (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) → ∀ {S : Set (Vec d)}, MeasurableSet S →
       (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
@@ -218,7 +219,7 @@ theorem exists_centeredOsBound_far_block (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 
         (C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))) := by
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
   refine ⟨C₀, hC₀, ?_⟩
-  intro _ X r₁ z R ρ t hR hρ ht f hf hf1 hfz S hS hfar
+  intro P _ X r₁ z R ρ t hR hρ ht f hf hf1 hfz S hS hfar
   have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR.le hfz
   set e : ℝ := 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))) with hedef
   have he : 0 < e := by positivity

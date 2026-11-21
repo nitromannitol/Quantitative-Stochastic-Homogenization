@@ -82,11 +82,12 @@ theorem integral_block_eq_zero [IsProbabilityMeasure P] (X : CenteredLocalFields
 
 /-- **The base case**: for `R₁ ≥ 1` the statement `A(R₁, C)` holds for every
 `C ≥ C(s) B R₁^β`, where `B` bounds the fields. -/
-theorem exists_blockBound_base [IsProbabilityMeasure P] (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) :
-    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (η₁ η₂ β R₁ C : ℝ), 0 ≤ β →
+theorem exists_blockBound_base (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B) :
+    ∃ C₀ : ℝ, 0 < C₀ ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P]
+      (X : CenteredLocalFields P F s δ α B A) (η₁ η₂ β R₁ C : ℝ), 0 ≤ β →
       C₀ * B * R₁ ^ β ≤ C → BlockBound X η₁ η₂ β R₁ C := by
   obtain ⟨C₀, hC₀, h₀⟩ := exists_centeredOsBound_of_abs_le hs1 hs2
-  refine ⟨C₀, hC₀, fun X η₁ η₂ β R₁ C hβ hC => ?_⟩
+  refine ⟨C₀, hC₀, fun P _ X η₁ η₂ β R₁ C hβ hC => ?_⟩
   intro R hR1 hRR r _ _ z f hf hf1 hfz
   have hR0 : 0 < R := zero_lt_one.trans_le hR1
   have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR0.le hfz

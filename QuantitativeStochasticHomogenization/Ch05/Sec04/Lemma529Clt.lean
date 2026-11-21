@@ -146,29 +146,29 @@ theorem abs_heatSmooth_le_of_mem_cellAt {f : Vec d → ℝ} (hf1 : ∀ x, |f x| 
 
 /-- **Lemma 5.29 (i), (5.90)**, for centered local additive fields: the block estimate holds for
 all scales `r ∈ [R^{η₁}, R]`. -/
-theorem exists_blockBound_all_scales [IsProbabilityMeasure P] (hd : 1 ≤ d)
-    (hF : HasUnitRange P F) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B)
+theorem exists_blockBound_all_scales (hd : 1 ≤ d) (hmono : Monotone F) (hs1 : 1 < s) (hs2 : s ≤ 2) (hB0 : 0 < B)
     (hA0 : 0 < A) {η₁ η₂ β : ℝ} (hβ0 : 0 < β) (hβ : β ≤ (d : ℝ) / 2) (hδ : 0 < δ)
     (hη₁ : 0 < η₁) (hη₁₂ : η₁ < η₂) (hη₂ : η₂ * (1 + δ) < 1) (hα : β < η₁ * α) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R →
+    ∃ C : ℝ, 0 < C ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
+      ∀ (X : CenteredLocalFields P F s δ α B A) (R : ℝ), 1 ≤ R →
       ∀ r : ℝ, R ^ η₁ ≤ r → r ≤ R → ∀ (z : Vec d) (f : Vec d → ℝ), Measurable f →
       (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) →
       CenteredOsBound P (fun a => R ^ (-(d : ℝ)) * ∫ x, f x * X.field r a x) s (C * R ^ (-β)) := by
   classical
-  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound hd hF hmono hs1 hs2 hB0 hA0 hβ0 hβ hδ hη₁ hη₁₂
+  obtain ⟨Cb, hCb, hBlock⟩ := exists_blockBound (Ω := Ω) hd hmono hs1 hs2 hB0 hA0 hβ0 hβ hδ hη₁ hη₁₂
     hη₂ hα
-  obtain ⟨C₀, hC₀, hfar⟩ := exists_centeredOsBound_far_block (P := P) (F := F) (δ := δ)
+  obtain ⟨C₀, hC₀, hfar⟩ := exists_centeredOsBound_far_block (Ω := Ω) (F := F) (δ := δ)
     (α := α) (A := A) hs1 hs2 hB0
   obtain ⟨Ce, hCe, hexp⟩ := exists_exp_neg_rpow_le (c := 1 / 8) (κ := 2) (by norm_num)
     (by norm_num) β
   set G : ℝ := 2 ^ ((d : ℝ) / 2) * shiftedGaussianConst ^ d with hGdef
   have hG : 0 ≤ G := by have := shiftedGaussianConst_nonneg; positivity
   set C : ℝ := Cb + A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) with hCdef
-  refine ⟨C, by positivity, fun X R hR r hr1 hr2 z f hf hf1 hfz => ?_⟩
+  refine ⟨C, by positivity, fun P _ hF X R hR r hr1 hr2 z f hf hf1 hfz => ?_⟩
   have hR0 : 0 < R := zero_lt_one.trans_le hR
   have hRβ : 0 ≤ R ^ (-β) := Real.rpow_nonneg hR0.le _
   by_cases hrR : r ≤ R ^ η₂
-  · refine (hBlock X R R hR le_rfl r hr1 hrR z f hf hf1 hfz).mono_scale ?_
+  · refine (hBlock P hF X R R hR le_rfl r hr1 hrR z f hf hf1 hfz).mono_scale ?_
     refine mul_le_mul_of_nonneg_right ?_ hRβ
     have : 0 ≤ A + Cb * G + C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) := by positivity
     rw [hCdef]
@@ -217,7 +217,7 @@ theorem exists_blockBound_all_scales [IsProbabilityMeasure P] (hd : 1 ≤ d)
       (fun a => R ^ (-(d : ℝ)) * ∫ y, (cellAt z R k).indicator g y * X.field r₁ a y) s
       (m k * (Cb * R ^ (-β))) := by
     intro k _
-    have h1 := (hBlock X R R hR le_rfl r₁ le_rfl
+    have h1 := (hBlock P hF X R R hR le_rfl r₁ le_rfl
       (Real.rpow_le_rpow_of_exponent_le hR hη₁₂.le) _ (w k) (hwm k) (hw1 k) (hwz k)).const_mul
       (hm k)
     convert h1 using 1
@@ -249,7 +249,7 @@ theorem exists_blockBound_all_scales [IsProbabilityMeasure P] (hd : 1 ≤ d)
       calc |y i - z i| = |(y i - x i) + (x i - z i)| := by ring_nf
         _ ≤ |y i - x i| + |x i - z i| := abs_add_le _ _
     nlinarith
-  have hT4 := hfar X r₁ hR0 hρ (by positivity) hf hf1 hfz hSm hfarS
+  have hT4 := hfar P X r₁ hR0 hρ (by positivity) hf hf1 hfz hSm hfarS
   rw [← hgdef] at hT4
   have hT4le : C₀ * (B * 2 ^ ((d : ℝ) / 2) * Real.exp (-(((N : ℝ) * R) ^ 2 / (8 * ρ ^ 2)))) ≤
       C₀ * (B * 2 ^ ((d : ℝ) / 2) * Ce) * R ^ (-β) := by
