@@ -145,4 +145,22 @@ theorem convolution_foldr_coordinateDerivative {χ : Vec d → ℝ} (hχ : ContD
       ih (contDiff_coordinateDerivative hK j), List.reverse_cons, List.foldr_append]
     rfl
 
+theorem contDiff_euclideanHeatKernel (t : ℝ) : ContDiff ℝ ∞ (euclideanHeatKernel (d := d) t) := by
+  unfold euclideanHeatKernel euclideanSq dot
+  fun_prop
+
+/-- **`Φ(t) ∗ ∂^β χ = ∂^β Φ(t) ∗ χ`** for a smooth compactly supported `χ`. -/
+theorem heatSmooth_multiIndexDerivative {m : ℕ} {t : ℝ} (ht : 0 < t) {χ : Vec d → ℝ}
+    (hχ : ContDiff ℝ ∞ χ) (hcχ : HasCompactSupport χ) (β : Fin d → Fin (m + 1)) :
+    heatSmooth t (multiIndexDerivative β χ) =
+      (multiIndexDerivative β (euclideanHeatKernel (d := d) t) ⋆[ContinuousLinearMap.lsmul ℝ ℝ,
+        volume] χ) := by
+  unfold heatSmooth multiIndexDerivative
+  rw [convolution_foldr_coordinateDerivative hχ hcχ _ (contDiff_euclideanHeatKernel t)]
+  congr 1
+  rw [euclideanHeatKernel_eq_prodFun ht,
+    foldr_coordinateDerivative_prodFun (fun _ => contDiff_heatKernel1 t),
+    foldr_coordinateDerivative_prodFun (fun _ => contDiff_heatKernel1 t)]
+  simp only [List.count_reverse]
+
 end QSH
