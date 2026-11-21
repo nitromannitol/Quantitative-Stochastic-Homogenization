@@ -148,4 +148,128 @@ theorem j1Functional_fieldOf (a : CoefficientField d Λ) (mask : Vec d → ℝ)
   rw [h4]
   ring
 
+/-! ## The maximizer and the gap to a trial -/
+
+theorem energyMatrix_transpose (a : CoefficientField d Λ) (mask : Vec d → ℝ)
+    (W : Fin d → Vec d → Vec d) : (energyMatrix a mask W).transpose = energyMatrix a mask W := by
+  ext i j
+  simp only [Matrix.transpose_apply, energyMatrix, Matrix.of_apply]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun x => ?_)
+  simp only
+  rw [dot_mulVec_comm (a.symmetric x)]
+
+theorem loadVector_add_right (a : CoefficientField d Λ) (mask : Vec d → ℝ)
+    (W : Fin d → Vec d → Vec d) (p q h : Vec d) :
+    loadVector a mask W p (q + h) = loadVector a mask W p q + loadVector a mask W 0 h := by
+  funext j
+  simp only [loadVector, Pi.add_apply, dot_eq_dotProduct, add_dotProduct, zero_dotProduct, neg_zero,
+    zero_add]
+  ring
+
+/-- The maximizing slope `c = A⁻¹ l`. -/
+def maximizerSlope (a : CoefficientField d Λ) (mask : Vec d → ℝ) (W : Fin d → Vec d → Vec d)
+    (p q : Vec d) : Vec d :=
+  (energyMatrix a mask W)⁻¹.mulVec (loadVector a mask W p q)
+
+/-- Completing the square: `-½ ξ·Aξ + l·ξ = (-½ c·Ac + l·c) - ½ (ξ - c)·A(ξ - c)` for `c = A⁻¹l`. -/
+theorem quadratic_eq_sub {A : Mat d} (hAsymm : A.transpose = A) (hA : IsUnit A.det)
+    (l ξ : Vec d) :
+    -(1 / 2 : ℝ) * dot ξ (A.mulVec ξ) + dot l ξ =
+      (-(1 / 2 : ℝ) * dot (A⁻¹.mulVec l) (A.mulVec (A⁻¹.mulVec l)) + dot l (A⁻¹.mulVec l)) -
+        (1 / 2 : ℝ) * dot (ξ - A⁻¹.mulVec l) (A.mulVec (ξ - A⁻¹.mulVec l)) := by
+  set c := A⁻¹.mulVec l with hc
+  have hy : A.mulVec c = l := mulVec_inv_mulVec hA l
+  have hs := dot_mulVec_comm hAsymm ξ c
+  rw [hy] at hs
+  have hc1 : dot l ξ = dot ξ l := dotProduct_comm _ _
+  simp only [Matrix.mulVec_sub, hy, dot_eq_dotProduct, sub_dotProduct, dotProduct_sub] at hs hc1 ⊢
+  have hc2 : c ⬝ᵥ l = l ⬝ᵥ c := dotProduct_comm _ _
+  linarith
+
+theorem dot_inv_mulVec_comm {A : Mat d} (hAsymm : A.transpose = A) (l l' : Vec d) :
+    dot l (A⁻¹.mulVec l') = dot l' (A⁻¹.mulVec l) := by
+  have h : A⁻¹.transpose = A⁻¹ := by rw [Matrix.transpose_nonsing_inv, hAsymm]
+  exact dot_mulVec_comm h l l'
+
+/-- **`J₁` on a linear family spanning `A₁`**: if the gradients of `A₁` are exactly the fields
+`G ξ` up to null sets, the family is integrable and the energy matrix `A` is invertible with
+`ξ·Aξ ≥ 0`, then `J₁(Ψ, p, q) = ½ l·A⁻¹l` and, for every slope `k`, the gap to the trial `G k` is
+`J₁(Ψ, p, q) - L(k) = ½ (k - c)·A(k - c)` with `c = A⁻¹l`. -/
+theorem J1_sub_j1Functional_fieldOf (a : CoefficientField d Λ) (mask : Vec d → ℝ)
+    (W : Fin d → Vec d → Vec d) (hW : IntegrableFamily a mask W)
+    (hspan : ∀ w : HarmonicA1 a, ∃ ξ : Vec d, w.grad =ᵐ[volume] fieldOf W ξ)
+    (hreal : ∀ ξ : Vec d, ∃ w : HarmonicA1 a, w.grad =ᵐ[volume] fieldOf W ξ)
+    (hA : IsUnit (energyMatrix a mask W).det)
+    (hpsd : ∀ ξ : Vec d, 0 ≤ dot ξ ((energyMatrix a mask W).mulVec ξ)) (p q : Vec d) :
+    J1 a mask p q = (1 / 2 : ℝ) * dot (loadVector a mask W p q) (maximizerSlope a mask W p q) ∧
+      ∀ k : Vec d, J1 a mask p q - j1Functional a mask p q (fieldOf W k) =
+        (1 / 2 : ℝ) * dot (k - maximizerSlope a mask W p q)
+          ((energyMatrix a mask W).mulVec (k - maximizerSlope a mask W p q)) := by
+  set A := energyMatrix a mask W with hAdef
+  set l := loadVector a mask W p q with hl
+  set c := maximizerSlope a mask W p q with hcdef
+  have hcA : c = A⁻¹.mulVec l := rfl
+  have hAsymm : A.transpose = A := energyMatrix_transpose a mask W
+  have hy : A.mulVec c = l := mulVec_inv_mulVec hA l
+  have hval : ∀ ξ, j1Functional a mask p q (fieldOf W ξ) =
+      -(1 / 2 : ℝ) * dot ξ (A.mulVec ξ) + dot l ξ := j1Functional_fieldOf a mask W hW p q
+  have hsq : ∀ ξ, j1Functional a mask p q (fieldOf W ξ) =
+      j1Functional a mask p q (fieldOf W c) - (1 / 2 : ℝ) * dot (ξ - c) (A.mulVec (ξ - c)) := by
+    intro ξ
+    rw [hval, hval, quadratic_eq_sub hAsymm hA l ξ, ← hcA]
+  have hcval : j1Functional a mask p q (fieldOf W c) = (1 / 2 : ℝ) * dot l c := by
+    rw [hval, hy, show dot c l = dot l c from dotProduct_comm _ _]
+    ring
+  -- the supremum
+  have hJ : J1 a mask p q = j1Functional a mask p q (fieldOf W c) := by
+    rw [J1_eq_sSup_j1Functional]
+    have hmem : j1Functional a mask p q (fieldOf W c) ∈
+        {e : ℝ | ∃ w : HarmonicA1 a, e = j1Functional a mask p q w.grad} := by
+      obtain ⟨w, hw⟩ := hreal c
+      exact ⟨w, (j1Functional_congr_ae a mask p q hw).symm⟩
+    have hub : ∀ e ∈ {e : ℝ | ∃ w : HarmonicA1 a, e = j1Functional a mask p q w.grad},
+        e ≤ j1Functional a mask p q (fieldOf W c) := by
+      rintro e ⟨w, rfl⟩
+      obtain ⟨ξ, hξ⟩ := hspan w
+      rw [j1Functional_congr_ae a mask p q hξ, hsq ξ]
+      linarith [hpsd (ξ - c)]
+    exact le_antisymm (csSup_le ⟨_, hmem⟩ hub) (le_csSup ⟨_, hub⟩ hmem)
+  refine ⟨hJ.trans hcval, fun k => ?_⟩
+  rw [hJ, hsq k]
+  ring
+
+/-- **The averaged gradient of the maximizer is the derivative of `J₁` in `q`** ((4.16),
+(4.21)): `h·∫ Ψ G c = J₁(Ψ, p, q + h) - J₁(Ψ, p, q) - J₁(Ψ, 0, h)`. -/
+theorem dot_integral_fieldOf_maximizer (a : CoefficientField d Λ) (mask : Vec d → ℝ)
+    (W : Fin d → Vec d → Vec d) (hW : IntegrableFamily a mask W)
+    (hspan : ∀ w : HarmonicA1 a, ∃ ξ : Vec d, w.grad =ᵐ[volume] fieldOf W ξ)
+    (hreal : ∀ ξ : Vec d, ∃ w : HarmonicA1 a, w.grad =ᵐ[volume] fieldOf W ξ)
+    (hA : IsUnit (energyMatrix a mask W).det)
+    (hpsd : ∀ ξ : Vec d, 0 ≤ dot ξ ((energyMatrix a mask W).mulVec ξ)) (p q h : Vec d) :
+    dot h (∫ x, mask x • fieldOf W (maximizerSlope a mask W p q) x) =
+      J1 a mask p (q + h) - J1 a mask p q - J1 a mask 0 h := by
+  set A := energyMatrix a mask W
+  have hAsymm : A.transpose = A := energyMatrix_transpose a mask W
+  have hJ := fun p q => (J1_sub_j1Functional_fieldOf a mask W hW hspan hreal hA hpsd p q).1
+  rw [hJ p (q + h), hJ p q, hJ 0 h]
+  simp only [maximizerSlope, loadVector_add_right a mask W p q h, Matrix.mulVec_add]
+  -- the gradient average of the maximizer
+  set c := A⁻¹.mulVec (loadVector a mask W p q) with hc
+  have hint : ∀ j, Integrable fun x => c j • (mask x • W j x) := fun j => (hW.grad j).smul (c j)
+  have hlin : (∫ x, mask x • fieldOf W c x) = ∑ j, c j • ∫ x, mask x • W j x := by
+    have : (fun x => mask x • fieldOf W c x) = fun x => ∑ j, c j • (mask x • W j x) := by
+      funext x
+      simp only [fieldOf, Finset.smul_sum, smul_comm (mask x)]
+    rw [this, integral_finsetSum _ fun j _ => hint j]
+    exact Finset.sum_congr rfl fun j _ => integral_smul _ _
+  have hdot : dot h (∫ x, mask x • fieldOf W c x) = dot (loadVector a mask W 0 h) c := by
+    rw [hlin, dot_eq_sum (loadVector a mask W 0 h) c]
+    simp only [dot_eq_dotProduct, dotProduct_sum, dotProduct_smul, smul_eq_mul, loadVector,
+      zero_dotProduct, neg_zero, zero_add]
+  rw [hdot]
+  have hsymm := dot_inv_mulVec_comm hAsymm (loadVector a mask W p q) (loadVector a mask W 0 h)
+  simp only [dot_eq_dotProduct, add_dotProduct, dotProduct_add] at hsymm ⊢
+  have e1 : loadVector a mask W 0 h ⬝ᵥ c = c ⬝ᵥ loadVector a mask W 0 h := dotProduct_comm _ _
+  linarith
+
 end QSH
