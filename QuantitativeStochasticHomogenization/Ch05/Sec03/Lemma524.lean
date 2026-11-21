@@ -154,6 +154,108 @@ theorem abs_coarsenedCoefficient_le (hA : A.transpose = A) {t : ℝ} (ht : t ≠
   unfold polarizationTerm
   nlinarith
 
+theorem abs_inner_mixed_le {t : ℝ} (ht : t ≠ 0) (j k : Fin d) :
+    |⟪(WithLp.toLp 2 (unitVector j) : EuclideanSpace ℝ (Fin d)),
+        ((heatGramFamily a z hr G hreal hG2).U ∘L ((heatGramFamily a z hr G hreal hG2).V)† - 1)
+          (WithLp.toLp 2 (unitVector k))⟫_ℝ| ≤
+      (t ^ 2)⁻¹ * polarizationTerm a A z r t j k := by
+  set F := heatGramFamily a z hr G hreal hG2 with hF
+  have hJ1 : J1Heat a z r (unitVector k) 0 = gramEnergy F.U F.V (WithLp.toLp 2 (unitVector k)) 0 := by
+    rw [J1Heat_eq_gramEnergy a z hr G hspan hreal hG2, WithLp.toLp_zero]
+  have hJ2 : J1Heat a z r 0 (unitVector j) = gramEnergy F.U F.V 0 (WithLp.toLp 2 (unitVector j)) := by
+    rw [J1Heat_eq_gramEnergy a z hr G hspan hreal hG2, WithLp.toLp_zero]
+  have hJ3 : J1Heat a z r (unitVector k) (unitVector j) =
+      gramEnergy F.U F.V (WithLp.toLp 2 (unitVector k)) (WithLp.toLp 2 (unitVector j)) :=
+    J1Heat_eq_gramEnergy a z hr G hspan hreal hG2 _ _
+  have hentry : ⟪(WithLp.toLp 2 (unitVector j) : EuclideanSpace ℝ (Fin d)),
+      (F.U ∘L (F.V)† - 1) (WithLp.toLp 2 (unitVector k))⟫_ℝ =
+      (J1Heat a z r (unitVector k) 0 - homogenizedJ1 A (unitVector k) 0) +
+        (J1Heat a z r 0 (unitVector j) - homogenizedJ1 A 0 (unitVector j)) -
+        (J1Heat a z r (unitVector k) (unitVector j) -
+          homogenizedJ1 A (unitVector k) (unitVector j)) := by
+    rw [ContinuousLinearMap.sub_apply, one_apply_eq_self, inner_sub_right,
+      inner_comp_adjoint_eq_gramEnergy, inner_toLp_toLp_eq_dot, hJ1, hJ2, hJ3]
+    have hQ := homogenizedJ1_mixed A (unitVector k) (unitVector j)
+    have hc : dot (unitVector j) (unitVector k) = dot (unitVector k) (unitVector j) :=
+      dotProduct_comm _ _
+    linarith
+  have h1 := energyError_eq_smul a A z hr G hspan hreal hG2 ht (unitVector k) 0
+  have h2 := energyError_eq_smul a A z hr G hspan hreal hG2 ht 0 (unitVector j)
+  have h3 := energyError_eq_smul a A z hr G hspan hreal hG2 ht (unitVector k) (unitVector j)
+  rw [smul_zero] at h1 h2
+  rw [hentry]
+  have htri : |(J1Heat a z r (unitVector k) 0 - homogenizedJ1 A (unitVector k) 0) +
+        (J1Heat a z r 0 (unitVector j) - homogenizedJ1 A 0 (unitVector j)) -
+        (J1Heat a z r (unitVector k) (unitVector j) -
+          homogenizedJ1 A (unitVector k) (unitVector j))| ≤
+      energyError a A z r (unitVector k) 0 + energyError a A z r 0 (unitVector j) +
+        energyError a A z r (unitVector k) (unitVector j) :=
+    (abs_sub _ _).trans (add_le_add (abs_add_le _ _) le_rfl)
+  rw [h1, h2, h3] at htri
+  have hE := energyError_nonneg a A z r
+  have hti : 0 ≤ (t ^ 2)⁻¹ := by positivity
+  have hE12 : 0 ≤ (t ^ 2)⁻¹ * (energyError a A z r (t • (unitVector j + unitVector k))
+      (t • A.mulVec (unitVector j)) + energyError a A z r (t • (unitVector j - unitVector k))
+      (t • A.mulVec (unitVector j))) := mul_nonneg hti (add_nonneg (hE _ _) (hE _ _))
+  unfold polarizationTerm
+  nlinarith
+
+/-- **The deterministic Lemma 5.24**: on a coefficient field for which the gradients of `A₁` form
+a linear family, `|b_r(z)| ≤ t⁻² Y` and the flux defect is at most `C Y²`, where `Y` is the sum of
+the errors of (5.58) at the loads scaled by `t`. -/
+theorem polarization_bounds (hA : A.transpose = A) {t δ : ℝ} (ht : t ≠ 0)
+    (hδ : ‖Matrix.toEuclideanCLM (𝕜 := ℝ) A‖ ≤ δ) :
+    matrixSize (coarsenedCoefficient a A z r) ≤ (t ^ 2)⁻¹ * polarizationError a A z r t ∧
+      coarseFluxDefect a A z r ≤
+        Real.sqrt |Λ| * (4 * (1 + |Λ| + δ)) * (2 * ((t ^ 2)⁻¹ * polarizationError a A z r t)) ^ 2 := by
+  set F := heatGramFamily a z hr G hreal hG2 with hF
+  set Y := polarizationError a A z r t with hY
+  set D := Matrix.toEuclideanCLM (𝕜 := ℝ) A with hD
+  have hY0 : 0 ≤ Y := polarizationError_nonneg a A z r t
+  have hti : 0 ≤ (t ^ 2)⁻¹ := by positivity
+  have hδ0 : 0 ≤ δ := (norm_nonneg _).trans hδ
+  have hcc : ∑ j : Fin d, ∑ k : Fin d, |coarsenedCoefficient a A z r j k| ≤ (t ^ 2)⁻¹ * Y := by
+    rw [hY, polarizationError, Finset.mul_sum]
+    refine Finset.sum_le_sum fun j _ => ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum fun k _ =>
+      abs_coarsenedCoefficient_le a A z hr G hspan hreal hG2 hA ht j k
+  have hmix : ∑ j : Fin d, ∑ k : Fin d,
+      |⟪(WithLp.toLp 2 (unitVector j) : EuclideanSpace ℝ (Fin d)),
+        (F.U ∘L (F.V)† - 1) (WithLp.toLp 2 (unitVector k))⟫_ℝ| ≤ (t ^ 2)⁻¹ * Y := by
+    rw [hY, polarizationError, Finset.mul_sum]
+    refine Finset.sum_le_sum fun j _ => ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum fun k _ => abs_inner_mixed_le a A z hr G hspan hreal hG2 ht j k
+  have hb : ‖coarsenedOperator F.U F.V D‖ ≤ (t ^ 2)⁻¹ * Y := by
+    refine (opNorm_le_sum_abs_inner (EuclideanSpace.basisFun (Fin d) ℝ) _).trans ?_
+    simp only [← toLp_unitVector]
+    refine le_of_eq_of_le ?_ hcc
+    refine Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => ?_
+    rw [coarsenedCoefficient_eq_inner a A z hr G hspan hreal hG2 hA]
+  have hC : ‖F.U ∘L (F.V)† - 1‖ ≤ (t ^ 2)⁻¹ * Y := by
+    refine (opNorm_le_sum_abs_inner (EuclideanSpace.basisFun (Fin d) ℝ) _).trans ?_
+    simp only [← toLp_unitVector]
+    exact hmix
+  have hdim : Module.finrank ℝ F.H ≤ Module.finrank ℝ (EuclideanSpace ℝ (Fin d)) := by
+    rw [finrank_euclideanSpace_fin]
+    exact F.finrank_H_le
+  have hsq := norm_sub_add_coarsenedOperator_comp_le_sq hdim F.norm_U_le F.norm_V_le hδ
+  have hdef := coarseFluxDefect_le a A z hr G hspan hreal hG2 hA
+  refine ⟨(matrixSize_le_sum_abs _).trans hcc, hdef.trans ?_⟩
+  have hT : ‖coarsenedOperator F.U F.V D‖ + ‖F.U ∘L (F.V)† - 1‖ ≤ 2 * ((t ^ 2)⁻¹ * Y) := by
+    linarith
+  have hT0 : 0 ≤ ‖coarsenedOperator F.U F.V D‖ + ‖F.U ∘L (F.V)† - 1‖ := by positivity
+  have hT2 : (‖coarsenedOperator F.U F.V D‖ + ‖F.U ∘L (F.V)† - 1‖) ^ 2 ≤
+      (2 * ((t ^ 2)⁻¹ * Y)) ^ 2 := pow_le_pow_left₀ hT0 hT 2
+  have hK : 0 ≤ 4 * (1 + |Λ| + δ * 1) := by positivity
+  calc ‖F.V - (D + coarsenedOperator F.U F.V D) ∘L F.U‖ * Real.sqrt |Λ|
+      ≤ 4 * (1 + |Λ| + δ * 1) * (‖coarsenedOperator F.U F.V D‖ + ‖F.U ∘L (F.V)† - 1‖) ^ 2 *
+          Real.sqrt |Λ| := mul_le_mul_of_nonneg_right hsq (Real.sqrt_nonneg _)
+    _ ≤ 4 * (1 + |Λ| + δ * 1) * (2 * ((t ^ 2)⁻¹ * Y)) ^ 2 * Real.sqrt |Λ| := by
+        gcongr
+    _ = Real.sqrt |Λ| * (4 * (1 + |Λ| + δ)) * (2 * ((t ^ 2)⁻¹ * Y)) ^ 2 := by ring
+
 end Heat
 
 end QSH
