@@ -359,13 +359,86 @@ theorem a1BallEnergy_eq (a : CoefficientField d Λ) (hr : r ≠ 0) (p q : Vec d)
   funext k
   exact (hx k).symm
 
-/-- **Lemma 4.22**: if every gradient of `A₁` is, after rescaling by `√Φ_{z,r}` on `B_T(z)`,
-`η`-close to the rescaled span of a localized basis and conversely (on the bounded parts), and
-the energies of `A₁` on `ℝ^d` and on `B_T(z)` differ by at most `τ`, then
+/-- The whole-space and ball suprema of the energies of `A₁` differ by at most `τ` when the
+near maximizers on `ℝ^d` lie in the bounded part, where the two energies differ by at most `τ`. -/
+theorem abs_sSup_a1Energy_sub_le {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0)
+    (p q : Vec d) {τ : ℝ}
+    (htail : ∀ w : HarmonicA1 a,
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      |a1Energy a z r p q w - a1BallEnergy a z T r p q w| ≤ τ)
+    (hnear : ∀ w : HarmonicA1 a, -(1 / 4 : ℝ) ≤ a1Energy a z r p q w →
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1) :
+    |sSup (Set.range (a1Energy a z r p q)) - sSup (Set.range (a1BallEnergy a z T r p q))| ≤ τ := by
+  set L := tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖
+  have hE := isConcaveEnergy_tuple (z := z) (T := T) a hΛ hr p q
+  have hball : ∀ w : HarmonicA1 a, a1BallEnergy a z T r p q w ≤ L ^ 2 / 2 := fun w => by
+    rw [a1BallEnergy_eq a hr p q w]; exact hE.energy_le _
+  have hballnorm : ∀ w : HarmonicA1 a, -(1 / 2 : ℝ) ≤ a1BallEnergy a z T r p q w →
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤ 2 * L + 1 := fun w hw => by
+    rw [a1BallEnergy_eq a hr p q w] at hw; exact hE.norm_le_of_energy_ge hw
+  have hzero : a1Energy a z r p q (zeroHarmonicA1' a) = 0 := by
+    simp [a1Energy, zeroHarmonicA1', dot]
+  have hzeroB : a1BallEnergy a z T r p q (zeroHarmonicA1' a) = 0 := by
+    simp [a1BallEnergy, zeroHarmonicA1', dot]
+  have hbddB : BddAbove (Set.range (a1BallEnergy a z T r p q)) :=
+    ⟨L ^ 2 / 2, by rintro _ ⟨w, rfl⟩; exact hball w⟩
+  have hbddE : BddAbove (Set.range (a1Energy a z r p q)) := by
+    refine ⟨max (-(1 / 4 : ℝ)) (L ^ 2 / 2 + τ), ?_⟩
+    rintro _ ⟨w, rfl⟩
+    by_cases hw : -(1 / 4 : ℝ) ≤ a1Energy a z r p q w
+    · have h1 := (abs_le.1 (htail w (hnear w hw))).2
+      have h2 := hball w
+      exact le_max_of_le_right (by linarith)
+    · exact le_max_of_le_left (le_of_lt (not_le.1 hw))
+  have hneE : (Set.range (a1Energy a z r p q)).Nonempty := ⟨_, zeroHarmonicA1' a, rfl⟩
+  have hneB : (Set.range (a1BallEnergy a z T r p q)).Nonempty := ⟨_, zeroHarmonicA1' a, rfl⟩
+  have hsupE0 : 0 ≤ sSup (Set.range (a1Energy a z r p q)) :=
+    hzero ▸ le_csSup hbddE ⟨zeroHarmonicA1' a, rfl⟩
+  have hsupB0 : 0 ≤ sSup (Set.range (a1BallEnergy a z T r p q)) :=
+    hzeroB ▸ le_csSup hbddB ⟨zeroHarmonicA1' a, rfl⟩
+  rw [abs_sub_le_iff]
+  constructor
+  · refine le_of_forall_pos_lt_add fun ε hε => ?_
+    set ε' := min ε (1 / 4)
+    have hε' : 0 < ε' := lt_min hε (by norm_num)
+    obtain ⟨_, ⟨w, rfl⟩, hw⟩ := exists_lt_of_lt_csSup hneE
+      (show sSup (Set.range (a1Energy a z r p q)) - ε' < _ by linarith)
+    have hw' : -(1 / 4 : ℝ) ≤ a1Energy a z r p q w := by
+      have : ε' ≤ 1 / 4 := min_le_right _ _
+      linarith
+    have h1 := (abs_le.1 (htail w (hnear w hw'))).2
+    have h2 := le_csSup hbddB ⟨w, rfl⟩
+    have : ε' ≤ ε := min_le_left _ _
+    linarith
+  · refine le_of_forall_pos_lt_add fun ε hε => ?_
+    set ε' := min ε (1 / 4)
+    have hε' : 0 < ε' := lt_min hε (by norm_num)
+    obtain ⟨_, ⟨w, rfl⟩, hw⟩ := exists_lt_of_lt_csSup hneB
+      (show sSup (Set.range (a1BallEnergy a z T r p q)) - ε' < _ by linarith)
+    have hw' : -(1 / 2 : ℝ) ≤ a1BallEnergy a z T r p q w := by
+      have : ε' ≤ 1 / 4 := min_le_right _ _
+      linarith
+    have h1 := (abs_le.1 (htail w (hballnorm w hw'))).1
+    have h2 := le_csSup hbddE ⟨w, rfl⟩
+    have : ε' ≤ ε := min_le_left _ _
+    linarith
+
+/-- **Lemma 4.22**: if the gradients of `A₁` of bounded weighted norm are, after rescaling by
+`√Φ_{z,r}` on `B_T(z)`, `η`-close to the rescaled span of a localized basis and conversely, the
+energies of the bounded part of `A₁` on `ℝ^d` and on `B_T(z)` differ by at most `τ`, and the
+near maximizers on `ℝ^d` lie in the bounded part, then
 `|J₁(Φ_{z,r}, p, q) - J₁^{(δ)}(z, r, p, q)| ≤ τ + C η`. -/
 theorem abs_J1Heat_sub_localizedJ1_le {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0)
     {S σ θ C : ℝ} (W : LocalizedBasis a z T S σ θ C) (p q : Vec d) {η τ : ℝ} (hη : 0 ≤ η)
-    (htail : ∀ w : HarmonicA1 a, |a1Energy a z r p q w - a1BallEnergy a z T r p q w| ≤ τ)
+    (htail : ∀ w : HarmonicA1 a,
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
+      |a1Energy a z r p q w - a1BallEnergy a z T r p q w| ≤ τ)
+    (hnear : ∀ w : HarmonicA1 a, -(1 / 4 : ℝ) ≤ a1Energy a z r p q w →
+      ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+        2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1)
     (hAV : ∀ w : HarmonicA1 a,
       ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
         2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 →
@@ -421,11 +494,7 @@ theorem abs_J1Heat_sub_localizedJ1_le {a : CoefficientField d Λ} (hΛ : 0 ≤ �
     congr 1
     funext c
     exact pairEnergy_eq_tuple a hr p q _
-  have hbdd : BddAbove (Set.range (a1BallEnergy a z T r p q)) := by
-    rw [hrangeA]
-    exact ⟨L ^ 2 / 2, by rintro _ ⟨g, -, rfl⟩; exact hE.energy_le g⟩
-  have : Nonempty (HarmonicA1 a) := ⟨zeroHarmonicA1' a⟩
-  have htailsup := abs_sSup_range_sub_le hbdd htail
+  have htailsup := abs_sSup_a1Energy_sub_le hΛ hr p q htail hnear
   rw [J1Heat_eq_sSup_range, hrangeV]
   rw [hrangeA] at htailsup
   calc |sSup (Set.range (a1Energy a z r p q)) - sSup (E '' V)|
