@@ -205,4 +205,60 @@ theorem integral_dot_gradient_eq_zero_of_hasWeakDivergence {q : Vec d → Vec d}
       atTop (𝓝 0) := hlim2.congr fun n => (hcut n).symm
   exact tendsto_nhds_unique hlim1 h3
 
+private theorem coordinateDerivative_comp_sub {f : Vec d → ℝ} (hf : Differentiable ℝ f)
+    (x y : Vec d) (k : Fin d) :
+    coordinateDerivative k (fun y => f (x - y)) y = -coordinateDerivative k f (x - y) := by
+  unfold coordinateDerivative
+  have h : HasFDerivAt (fun y => f (x - y))
+      ((fderiv ℝ f (x - y)).comp (-(ContinuousLinearMap.id ℝ (Vec d)))) y :=
+    (hf (x - y)).hasFDerivAt.comp y ((hasFDerivAt_id y).const_sub x)
+  rw [h.fderiv]
+  simp
+
+/-- **The divergence term of the heat formula vanishes.** For a weakly divergence-free field `g`
+with Gaussian moments, `∑ₖ ∫ ∂ₖ∂ⱼΦ_t(x - y) gₖ(y) dy = 0`. -/
+theorem sum_heatHessianConv_eq_zero_of_hasWeakDivergence {g : Vec d → Vec d}
+    (hg : HasWeakDivergence Set.univ g (fun _ => 0)) (hgm : ∀ k, Measurable fun y => g y k)
+    (hmom : ∀ k, HasGaussianMoments fun y => g y k) {t : ℝ} (ht : 0 < t) (j : Fin d)
+    (x : Vec d) :
+    ∑ k, heatHessianConv t j k (fun y => g y k) x = 0 := by
+  set f : Vec d → ℝ := coordinateDerivative j (euclideanHeatKernel t) with hf
+  have hfc : ContDiff ℝ (⊤ : ℕ∞) f := contDiff_coordinateDerivative (contDiff_euclideanHeatKernel t) j
+  have hfd : Differentiable ℝ f := (hfc.of_le (by simp)).differentiable one_ne_zero
+  set ψ : Vec d → ℝ := fun y => f (x - y) with hψ
+  have hψc : ContDiff ℝ (⊤ : ℕ∞) ψ := hfc.comp (contDiff_const.sub contDiff_id)
+  have hgradψ : ∀ y k, gradient ψ y k = -coordinateDerivative k f (x - y) := fun y k =>
+    coordinateDerivative_comp_sub hfd x y k
+  have hint : ∀ k, Integrable (fun y => euclideanHeatKernel (2 * t) (x - y) * |g y k|) := by
+    intro k
+    obtain ⟨B, hB⟩ := hmom k (2 * t) (by positivity) (euclideanNorm x)
+    exact (hB x le_rfl).1
+  have hzero := integral_dot_gradient_eq_zero_of_hasWeakDivergence hg hgm hψc (x₀ := x)
+    (s := 2 * t) (B := (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / Real.sqrt t))
+    (B' := Real.sqrt d * ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / t))) (by positivity)
+    (fun y => abs_heatGrad_le ht j (x - y))
+    (fun y => by
+      have h := euclideanNorm_gradient_heatGrad_le (d := d) ht j (x - y)
+      have heq : gradient ψ y = -gradient f (x - y) := by
+        funext k
+        rw [hgradψ y k]
+        rfl
+      rw [heq]
+      have hneg : euclideanNorm (-gradient f (x - y)) = euclideanNorm (gradient f (x - y)) := by
+        unfold euclideanNorm euclideanSq dot
+        simp
+      rw [hneg]
+      exact h) hint
+  have hsum : ∑ k, heatHessianConv t j k (fun y => g y k) x =
+      -∫ y, dot (g y) (gradient ψ y) := by
+    unfold heatHessianConv
+    rw [← integral_finsetSum _ fun k _ =>
+      (hmom k).integrable_heatHessian_mul ht j k (hgm k) x, ← integral_neg]
+    congr 1
+    funext y
+    unfold dot
+    rw [← Finset.sum_neg_distrib]
+    exact Finset.sum_congr rfl fun k _ => by rw [hgradψ y k]; ring
+  rw [hsum, hzero, neg_zero]
+
 end QSH
