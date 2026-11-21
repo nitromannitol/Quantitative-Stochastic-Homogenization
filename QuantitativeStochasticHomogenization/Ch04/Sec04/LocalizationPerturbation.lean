@@ -502,4 +502,79 @@ theorem abs_J1Heat_sub_localizedJ1_le {a : CoefficientField d Λ} (hΛ : 0 ≤ �
         |sSup (E '' A) - sSup (E '' V)| := abs_sub_le _ _ _
     _ ≤ _ := add_le_add htailsup habs
 
+/-! ## Near maximizers on the whole space lie in the bounded part -/
+
+/-- The coefficient `c₀ = (∑|p_k|) d Λ + ∑ |q_k|` of the linear part of the integrand. -/
+def linearCoefficient (d : ℕ) (Λ : ℝ) (p q : Vec d) : ℝ := (∑ k, |p k|) * d * Λ + ∑ k, |q k|
+
+theorem energy_integrand_le (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (p q : Vec d) (x : Vec d)
+    (g : Vec d) :
+    -(1 / 2 : ℝ) * dot g ((a x).mulVec g) - dot p ((a x).mulVec g) + dot q g ≤
+      linearCoefficient d Λ p q ^ 2 / 2 := by
+  have hquad : euclideanSq g ≤ dot g ((a x).mulVec g) := (a.elliptic x g).1
+  have hgk : ∀ k, |g k| ≤ euclideanNorm g := fun k => abs_apply_le_euclideanNorm g k
+  have hp : |dot p ((a x).mulVec g)| ≤ (∑ k, |p k|) * d * Λ * euclideanNorm g := by
+    simp only [dot, Matrix.mulVec, dotProduct]
+    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+    calc ∑ k, |p k * ∑ l, a x k l * g l| ≤ ∑ k, |p k| * (d * (Λ * euclideanNorm g)) := by
+          refine Finset.sum_le_sum fun k _ => ?_
+          rw [abs_mul]
+          refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+          refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+          calc ∑ l, |a x k l * g l| ≤ ∑ _l : Fin d, Λ * euclideanNorm g := by
+                refine Finset.sum_le_sum fun l _ => ?_
+                rw [abs_mul]
+                exact mul_le_mul (a.abs_apply_le x k l) (hgk l) (abs_nonneg _) hΛ
+            _ = d * (Λ * euclideanNorm g) := by simp
+      _ = (∑ k, |p k|) * d * Λ * euclideanNorm g := by rw [← Finset.sum_mul]; ring
+  have hq : |dot q g| ≤ (∑ k, |q k|) * euclideanNorm g := by
+    simp only [dot]
+    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+    calc ∑ k, |q k * g k| ≤ ∑ k, |q k| * euclideanNorm g := by
+          refine Finset.sum_le_sum fun k _ => ?_
+          rw [abs_mul]
+          exact mul_le_mul_of_nonneg_left (hgk k) (abs_nonneg _)
+      _ = (∑ k, |q k|) * euclideanNorm g := by rw [← Finset.sum_mul]
+  have hsq : euclideanSq g = euclideanNorm g ^ 2 := (euclideanNorm_sq g).symm
+  have hn := euclideanNorm_nonneg g
+  unfold linearCoefficient
+  nlinarith [abs_le.1 hp, abs_le.1 hq,
+    sq_nonneg (euclideanNorm g - ((∑ k, |p k|) * d * Λ + ∑ k, |q k|))]
+
+/-- **Near maximizers on `ℝ^d` lie in the bounded part** when the Gaussian mass outside the ball
+is small and the energies are integrable. -/
+theorem norm_scaled_ballGrad_le_of_near {a : CoefficientField d Λ} (hΛ : 0 ≤ Λ) (hr : r ≠ 0)
+    (p q : Vec d) {ε₀ : ℝ}
+    (hΦ : IntegrableOn (heatKernel z r) (ball z T)ᶜ volume)
+    (hmass : ∫ x in (ball z T)ᶜ, heatKernel z r x ≤ ε₀)
+    (hε₀ : linearCoefficient d Λ p q ^ 2 / 2 * ε₀ ≤ 1 / 4)
+    (w : HarmonicA1 a)
+    (hint : Integrable (fun x => heatKernel z r x *
+      (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+        dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))))
+    (hw : -(1 / 4 : ℝ) ≤ a1Energy a z r p q w) :
+    ‖(fun k => scaleLp hr (w.ballGrad z T k))‖ ≤
+      2 * tupleLinearConstant d Λ p q ‖sqrtHeatLp z T hr‖ + 1 := by
+  have hE := isConcaveEnergy_tuple (z := z) (T := T) a hΛ hr p q
+  have hsplit := integral_add_compl (measurableSet_ball z T) hint
+  have hout : (∫ x in (ball z T)ᶜ, heatKernel z r x *
+      (-(1 / 2 : ℝ) * dot (w.grad x) ((a x).mulVec (w.grad x)) -
+        dot p ((a x).mulVec (w.grad x)) + dot q (w.grad x))) ≤
+      linearCoefficient d Λ p q ^ 2 / 2 * ε₀ := by
+    calc _ ≤ ∫ x in (ball z T)ᶜ, heatKernel z r x * (linearCoefficient d Λ p q ^ 2 / 2) := by
+          refine setIntegral_mono_on hint.integrableOn (hΦ.mul_const _)
+            (measurableSet_ball z T).compl fun x _ => ?_
+          exact mul_le_mul_of_nonneg_left (energy_integrand_le a hΛ p q x _)
+            (heatKernel_pos z hr x).le
+      _ = linearCoefficient d Λ p q ^ 2 / 2 * ∫ x in (ball z T)ᶜ, heatKernel z r x := by
+          rw [integral_mul_const]; ring
+      _ ≤ linearCoefficient d Λ p q ^ 2 / 2 * ε₀ :=
+          mul_le_mul_of_nonneg_left hmass (by positivity)
+  have hball : -(1 / 2 : ℝ) ≤ a1BallEnergy a z T r p q w := by
+    unfold a1Energy at hw
+    unfold a1BallEnergy
+    linarith
+  rw [a1BallEnergy_eq a hr p q w] at hball
+  exact hE.norm_le_of_energy_ge hball
+
 end QSH
