@@ -161,11 +161,15 @@ of each module names the source files and commits.
   scales `r ≥ 1` under the energy bound (`averagesIntegrable_of_energyBound`,
   `trialIntegrable_of_energyBound`). The energy bound below the scale follows from Proposition 3.21
   and the bounds on `ā` (`gaussianEnergyBound_of_rate`), by `Φ_{z,r} ≤ (R/r)^d Φ_{z,R}` for `r ≤ R`
-  (`heatKernel_le_mul`). `estimate558_of_heatIdentityBound` is (5.58) without these hypotheses;
-  its inputs are the structure (4.12) of `A₁`, the measurability of the Dirichlet energies,
-  Proposition 3.21 at every exponent `τ ∈ (0, d)`, the expectations (1) of the averages, the
-  measurability of `J₁`, of the trial and of the flux averages, `HeatIdentityBound`, and the
-  conclusions of Propositions 4.11 and 4.12.
+  (`heatKernel_le_mul`); `estimate558_of_heatIdentityBound` is (5.58) without these hypotheses.
+- **The bounds `I ≤ ā ≤ Λ I` from the expectations (1).** Jensen's inequality for the heat kernel
+  average and for the expectation (`euclideanSq_integral_le`), with `|av|² ≤ Λ v·av`
+  (`euclideanSq_coefficient_mulVec_le`), gives `|E P ξ|² ≤ E[E ξ]` and `|E F ξ|² ≤ Λ E[E ξ]`; the
+  limit `r → ∞` in (1) gives `|ξ|² ≤ ξ·āξ` and `|āξ|² ≤ Λ ξ·āξ`
+  (`homogenizedMatrixBounds_of_expectedAverages`). `estimate558_of_heatBound_and_rate` is (5.58)
+  from the structure (4.12) of `A₁`, Proposition 3.21 at every exponent `τ ∈ (0, d)`, the
+  expectations (1) of the averages, the measurability of `J₁`, of the trial and of the flux
+  averages, `HeatIdentityBound`, and the conclusions of Propositions 4.11 and 4.12.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
