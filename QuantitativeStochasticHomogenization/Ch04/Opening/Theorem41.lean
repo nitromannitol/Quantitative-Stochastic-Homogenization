@@ -253,7 +253,7 @@ theorem coordinateGradientEstimate_of_linearAverage {P : Measure (CoefficientFie
     CoordinateGradientEstimate S s (2 * C) := fun i z r hr => by
   have hr0 : 0 < r := by linarith
   have hb := h z r hr (unitVector i)
-  rw [euclideanNorm_unitVector] at hb
+  rw [euclideanNorm_unitVector_eq_one] at hb
   refine (hb.aeOsBound_of_ae_eq ?_).mono_scale (le_of_eq (by rw [neg_div]; ring))
   filter_upwards [hen] with a ha
   have hint : Integrable (fun y => heatKernel z r y • (S.corrector (unitVector i)).grad a y) := by

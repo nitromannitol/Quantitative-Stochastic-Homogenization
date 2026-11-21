@@ -31,7 +31,7 @@ theorem euclideanSq_sum_le {ι : Type*} (s : Finset ι) (v : ι → Vec d) :
   have := sq_sum_le_card_mul_sum_sq (s := s) (f := fun i => v i k)
   simpa [sq] using this
 
-theorem euclideanSq_smul (c : ℝ) (v : Vec d) : euclideanSq (c • v) = c ^ 2 * euclideanSq v := by
+theorem euclideanSq_smul_eq_sq_mul (c : ℝ) (v : Vec d) : euclideanSq (c • v) = c ^ 2 * euclideanSq v := by
   simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
   exact Finset.sum_congr rfl fun i _ => by ring
 
@@ -50,7 +50,7 @@ def correctedFieldFamily (a : CoefficientField d Λ) : Vec d →ₗ[ℝ] Vec d �
     simp only [correctedField, Pi.smul_apply, smul_eq_mul, RingHom.id_apply, Finset.smul_sum,
       mul_smul]
 
-theorem measurable_correctedField (a : CoefficientField d Λ) (ξ : Vec d) :
+theorem measurable_correctedField_apply (a : CoefficientField d Λ) (ξ : Vec d) :
     Measurable (correctedField S a ξ) := by
   unfold correctedField correctedCoordinate
   exact Finset.measurable_fun_sum _ fun i _ => (measurable_const.add
@@ -65,7 +65,7 @@ theorem linearA1Gradients_of_corrected {a : CoefficientField d Λ}
     (z : Vec d) {r : ℝ} (hr : 0 < r) : LinearA1Gradients a (heatKernel z r) := by
   refine ⟨correctedFieldFamily S a, fun w => hcorr.1 w, fun ξ => hcorr.2 ξ, fun ξ => ?_⟩
   have hm : AEMeasurable (correctedFieldFamily S a ξ) volume :=
-    (measurable_correctedField S a ξ).aemeasurable
+    (measurable_correctedField_apply S a ξ).aemeasurable
   have hbound : Integrable (fun x => (d : ℝ) * ∑ i, ξ i ^ 2 *
       (heatKernel z r x * euclideanSq (unitVector i + (S.corrector (unitVector i)).grad a x))) :=
     (integrable_finsetSum _ fun i _ => (hint i z r hr).const_mul _).const_mul _
@@ -73,7 +73,7 @@ theorem linearA1Gradients_of_corrected {a : CoefficientField d Λ}
     (((integrable_heatKernel z hr).aestronglyMeasurable.aemeasurable.mul
       (aemeasurable_dot hm hm)).aestronglyMeasurable) (Filter.Eventually.of_forall fun x => ?_)
   have h2 := euclideanSq_sum_le Finset.univ (fun i => ξ i • correctedCoordinate S a i x)
-  simp only [Finset.card_univ, Fintype.card_fin, euclideanSq_smul] at h2
+  simp only [Finset.card_univ, Fintype.card_fin, euclideanSq_smul_eq_sq_mul] at h2
   have hk := heatKernel_nonneg z r x
   rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg hk (euclideanSq_nonneg _))]
   change heatKernel z r x * euclideanSq (∑ i, ξ i • correctedCoordinate S a i x) ≤ _

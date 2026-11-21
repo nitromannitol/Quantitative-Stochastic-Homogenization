@@ -341,17 +341,17 @@ theorem defectAt_le_of_gramEnergyAt_le (ξ : Vec d) (hξ : gramEnergyAt S z r a 
     defectAt S z r A a ξ ≤
       |Λ| + ‖Matrix.toEuclideanCLM (𝕜 := ℝ) (A + coarsenedCoefficient a A z r)‖ := by
   have hm : AEMeasurable (correctedField S a ξ) volume :=
-    (measurable_correctedField S a ξ).aemeasurable
+    (measurable_correctedField_apply S a ξ).aemeasurable
   have hG2 := integrable_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ
   have hE := integral_heatKernel_mul_euclideanSq_correctedField S z hr hint ξ
   have hu : euclideanSq (∑ i, ξ i • columnAverage S z r a i) ≤ 1 := by
     rw [← integral_heatKernel_smul_correctedField S z hr hint ξ]
-    refine (euclideanSq_integral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+    refine (euclideanSq_maskIntegral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
       (integral_heatKernel z hr).le hm hG2).trans ?_
     rw [hE]; exact hξ
   have hv : euclideanSq (∑ i, ξ i • columnFlux S z r a i) ≤ Λ ^ 2 := by
     rw [← integral_heatKernel_smul_flux_correctedField S z hr hint ξ]
-    refine (euclideanSq_integral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
+    refine (euclideanSq_maskIntegral_le (heatKernel_nonneg z r) (integrable_heatKernel z hr)
       (integral_heatKernel z hr).le (aemeasurable_mulVec a hm)
       (integrable_mask_mul_euclideanSq_mulVec a (heatKernel_nonneg z r)
         (integrable_heatKernel z hr) hm hG2)).trans ?_

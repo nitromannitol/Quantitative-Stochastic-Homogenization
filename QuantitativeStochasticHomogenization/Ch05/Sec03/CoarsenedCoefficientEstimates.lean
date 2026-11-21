@@ -48,7 +48,7 @@ theorem euclideanSq_unitVector_eq_one (j : Fin d) : euclideanSq (unitVector j) =
   rw [Matrix.one_mulVec, Matrix.one_apply_eq] at h
   exact h
 
-theorem euclideanNorm_unitVector (j : Fin d) : euclideanNorm (unitVector j) = 1 := by
+theorem euclideanNorm_unitVector_eq_one (j : Fin d) : euclideanNorm (unitVector j) = 1 := by
   rw [euclideanNorm, euclideanSq_unitVector_eq_one, Real.sqrt_one]
 
 theorem euclideanNorm_mulVec_unitVector_le (A : Mat d) {δ : ℝ}
@@ -59,7 +59,7 @@ theorem euclideanNorm_mulVec_unitVector_le (A : Mat d) {δ : ℝ}
       ≤ ‖Matrix.toEuclideanCLM (𝕜 := ℝ) A‖ * ‖(WithLp.toLp 2 (unitVector j) :
           EuclideanSpace ℝ (Fin d))‖ := ContinuousLinearMap.le_opNorm _ _
     _ ≤ δ * 1 := by
-        rw [norm_toLp, euclideanNorm_unitVector]
+        rw [norm_toLp, euclideanNorm_unitVector_eq_one]
         exact mul_le_mul_of_nonneg_right hδ zero_le_one
     _ = δ := mul_one δ
 
@@ -128,13 +128,13 @@ theorem norm_toEuclideanCLM_le_of_energyEstimate {P : Measure (CoefficientField 
     have hnp : euclideanNorm vp ≤ 1 / 2 := by
       rw [hvp, euclideanNorm_smul_eq_abs_mul]
       have := euclideanNorm_add_le (unitVector j) (unitVector k)
-      rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+      rw [euclideanNorm_unitVector_eq_one, euclideanNorm_unitVector_eq_one] at this
       rw [abs_of_pos (by norm_num : (0 : ℝ) < 1 / 4)]
       linarith
     have hnm : euclideanNorm vm ≤ 1 / 2 := by
       rw [hvm, euclideanNorm_smul_eq_abs_mul]
       have := euclideanNorm_sub_le (unitVector j) (unitVector k)
-      rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+      rw [euclideanNorm_unitVector_eq_one, euclideanNorm_unitVector_eq_one] at this
       rw [abs_of_pos (by norm_num : (0 : ℝ) < 1 / 4)]
       linarith
     have hsp : euclideanSq vp ≤ 1 / 4 := by
@@ -232,18 +232,18 @@ theorem coarsenedCoefficient_aeOsBound (hd : 2 ≤ d) (hΛ : 1 < Λ)
     rwa [euclideanNorm_smul_eq_abs_mul, abs_of_nonneg hc]
   have hsum2 : ∀ j k : Fin d, t * euclideanNorm (unitVector j + unitVector k) < 1 := fun j k => by
     have := euclideanNorm_add_le (unitVector j) (unitVector k)
-    rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+    rw [euclideanNorm_unitVector_eq_one, euclideanNorm_unitVector_eq_one] at this
     nlinarith
   have hdiff2 : ∀ j k : Fin d, t * euclideanNorm (unitVector j - unitVector k) < 1 :=
     fun j k => by
       have := euclideanNorm_sub_le (unitVector j) (unitVector k)
-      rw [euclideanNorm_unitVector, euclideanNorm_unitVector] at this
+      rw [euclideanNorm_unitVector_eq_one, euclideanNorm_unitVector_eq_one] at this
       nlinarith
   have hAj : ∀ j : Fin d, t * euclideanNorm (A.mulVec (unitVector j)) < 1 := fun j => by
     have := euclideanNorm_mulVec_unitVector_le A hδ j
     nlinarith
   have he : ∀ k : Fin d, t * euclideanNorm (unitVector k) < 1 := fun k => by
-    rw [euclideanNorm_unitVector]; linarith
+    rw [euclideanNorm_unitVector_eq_one]; linarith
   have h0 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
   -- the sum `Y` of the errors is `O_1(5 d² C₀ r^{-d/2})`
   have hterm : ∀ j k : Fin d,

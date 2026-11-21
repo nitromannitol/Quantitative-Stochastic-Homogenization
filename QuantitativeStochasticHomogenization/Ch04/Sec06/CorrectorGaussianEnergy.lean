@@ -200,7 +200,7 @@ theorem euclideanSq_mulVec_le_of_bounds {A : Mat d} {Λ : ℝ} (hsymm : A.transp
       nlinarith
     exact le_of_mul_le_mul_left h2 hpos
 
-theorem euclideanNorm_homogenized_mulVec_le {A : Mat d} {Λ : ℝ} (hΛ : 0 ≤ Λ)
+theorem euclideanNorm_mulVec_le_of_homogenizedBounds {A : Mat d} {Λ : ℝ} (hΛ : 0 ≤ Λ)
     (hsymm : A.transpose = A) (hA : HomogenizedMatrixBounds A Λ) {e : Vec d}
     (he : euclideanNorm e < 1) : euclideanNorm (A.mulVec e) ≤ Λ := by
   have h1 := euclideanSq_mulVec_le_of_bounds hsymm hA e
@@ -240,6 +240,6 @@ theorem negativeSobolevCorrector_of_corrector_energy_bounds
   obtain ⟨S, hā, hS⟩ := hP P hPl
   refine ⟨S, fun e he => ?_⟩
   obtain ⟨hE2, hE3, hen⟩ := hS e he
-  exact ⟨hE2, hE3, euclideanNorm_homogenized_mulVec_le (by linarith) S.symmetric hā he, hen⟩
+  exact ⟨hE2, hE3, euclideanNorm_mulVec_le_of_homogenizedBounds (by linarith) S.symmetric hā he, hen⟩
 
 end QSH

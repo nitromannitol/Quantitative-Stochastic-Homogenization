@@ -150,7 +150,7 @@ theorem integrable_mask_mul_euclideanSq_mulVec (a : CoefficientField d Λ)
     _ = Λ ^ 2 * (mask x * euclideanSq (g x)) := by ring
 
 /-- Jensen's inequality for a mask of mass at most one: `|∫ Ψ F|² ≤ ∫ Ψ |F|²`. -/
-theorem euclideanSq_integral_le (hmask0 : ∀ x, 0 ≤ mask x) (hmask : Integrable mask)
+theorem euclideanSq_maskIntegral_le (hmask0 : ∀ x, 0 ≤ mask x) (hmask : Integrable mask)
     (hmass : ∫ x, mask x ≤ 1) {F : Vec d → Vec d} (hF : AEMeasurable F volume)
     (hF2 : Integrable (fun x => mask x * euclideanSq (F x))) :
     euclideanSq (∫ x, mask x • F x) ≤ ∫ x, mask x * euclideanSq (F x) := by
@@ -420,7 +420,7 @@ theorem norm_gradientAverage_le (ξ : F.Space) : ‖F.gradientAverage ξ‖ ≤ 
   have h1 : ‖F.gradientAverage (F.toSpace ξ)‖ ^ 2 ≤ ‖F.toSpace ξ‖ ^ 2 := by
     rw [show ‖F.gradientAverage (F.toSpace ξ)‖ ^ 2 = euclideanSq (∫ x, F.mask x • F.field ξ x)
       from norm_toLp_sq _, F.norm_toSpace_sq ξ]
-    exact (euclideanSq_integral_le F.mask_nonneg F.integrable_mask F.integral_mask_le
+    exact (euclideanSq_maskIntegral_le F.mask_nonneg F.integrable_mask F.integral_mask_le
       (F.aemeasurable_field ξ) (F.integrable_sq ξ)).trans (F.energy_le_form ξ)
   exact (pow_le_pow_iff_left₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).mp h1
 
@@ -431,7 +431,7 @@ theorem norm_fluxAverage_le (ξ : F.Space) : ‖F.fluxAverage ξ‖ ≤ |Λ| * �
     rw [show ‖F.fluxAverage (F.toSpace ξ)‖ ^ 2 =
         euclideanSq (∫ x, F.mask x • (F.coeff x).mulVec (F.field ξ x)) from norm_toLp_sq _,
       mul_pow, sq_abs, F.norm_toSpace_sq ξ]
-    refine (euclideanSq_integral_le F.mask_nonneg F.integrable_mask F.integral_mask_le
+    refine (euclideanSq_maskIntegral_le F.mask_nonneg F.integrable_mask F.integral_mask_le
       (aemeasurable_mulVec F.coeff (F.aemeasurable_field ξ)) (F.integrable_sq_flux ξ)).trans ?_
     calc ∫ x, F.mask x * euclideanSq ((F.coeff x).mulVec (F.field ξ x))
         ≤ ∫ x, Λ ^ 2 * (F.mask x * euclideanSq (F.field ξ x)) :=

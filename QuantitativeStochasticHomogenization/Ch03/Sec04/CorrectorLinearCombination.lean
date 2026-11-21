@@ -275,7 +275,7 @@ def Corrector.ofEq {P : Measure (CoefficientField d Λ)} {u e : Vec d} (φ : Cor
   harmonic := h ▸ φ.harmonic
   sublinear := φ.sublinear
 
-theorem sum_smul_unitVector (e : Vec d) : ∑ i, e i • unitVector i = e := by
+theorem sum_smul_unitVector_eq (e : Vec d) : ∑ i, e i • unitVector i = e := by
   funext k
   simp [unitVector, Pi.single_apply]
 
@@ -284,7 +284,7 @@ theorem sum_smul_unitVector (e : Vec d) : ∑ i, e i • unitVector i = e := by
 def HomogenizationData.linearize {P : Measure (CoefficientField d Λ)}
     (S : HomogenizationData P) : HomogenizationData P where
   corrector e := (Corrector.linearCombination (fun i : Fin d => S.corrector (unitVector i))
-    (fun i => e i)).ofEq (sum_smul_unitVector e)
+    (fun i => e i)).ofEq (sum_smul_unitVector_eq e)
   homogenized := S.homogenized
   symmetric := S.symmetric
   variational_limit := S.variational_limit
