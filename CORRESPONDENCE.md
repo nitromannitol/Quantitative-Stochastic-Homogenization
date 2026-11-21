@@ -117,6 +117,20 @@ of each module names the source files and commits.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
+- **The bounds `½|e|² ≤ μ(U, e) ≤ ½Λ|e|²`** (`le_dirichletEnergy`, `dirichletEnergy_le`, in
+  `Ch01/Sec02/DirichletEnergyBounds.lean`), for a measurable set of finite positive volume: the
+  lower bound uses `∫_U g = 0` for `g` the gradient of a function of `H¹₀(U)`
+  (`setIntegral_eq_zero_of_H01`, by the approximation in the definition of `H¹₀(U)` and
+  `∫ ∂ᵢφ = 0`) and Jensen's inequality (`sq_setAverage_le`). Consequently
+  `homogenizedMatrixBounds_of_aestronglyMeasurable`: `I ≤ ā ≤ Λ I` for a homogenization datum, given
+  the almost sure measurability of `a ↦ μ(□ₙ, ξ)`, which the limit (1.22) (a Bochner integral)
+  needs.
+- **Lemma 4.13 (deterministic step).** `corrected_averages_eq_sum`: at a good scale the averaged
+  gradient and flux of `eⱼ + ∇φ_{eⱼ}` are combinations, with coefficients bounded by
+  `2 √d (Λ + 1)`, of the averaged gradients and fluxes of the maximizers at the loads `(0, eᵢ/2)`,
+  which are polarization vectors of `J₁` (`integral_maximizer_eq_polarizationVector`,
+  `integral_flux_maximizer_eq_fluxPolarizationVector`). The probabilistic step of Lemma 4.13 is
+  not formalized.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
