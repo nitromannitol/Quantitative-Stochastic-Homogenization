@@ -114,3 +114,46 @@ of each module names the source files and commits.
   distance larger than one, which needs a family that is jointly measurable in the coefficients
   and the center. `LocFieldEstimate` states localization by such a family and implies
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
+
+## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
+
+- **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
+  coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
+  constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
+  for the form of `a`).
+- **Proposition 4.3.** The deterministic part is `abs_J1_sub_homogenizedJ1_le`: if the gradients of
+  `A₁` are exactly the fields `G ξ` of a family ((4.12)) and the functional of (4.8) at `G ξ` is
+  within `ε (|ξ|² + |ξ| (|p| + |q|))` of `-½ ξ·āξ - p·āξ + q·ξ` ((4.11)) with `ε ≤ 1/5`, then (4.10)
+  holds with the constant `7ε`; the proof is the two-sided argument of the book with the explicit
+  threshold `1/5` in place of nondegeneracy. (4.11) follows from the bounds on the three averages
+  (`abs_j1Functional_sub_le_of_averages`). `proposition43` is the random statement at every center,
+  with a jointly measurable family of scales; its inputs are explicit hypotheses: the structure
+  (4.12) of `A₁` (`GradientsOfA1AreCorrected`, from Theorem 3.8), the bounds `I ≤ ā ≤ Λ I`
+  (`HomogenizedMatrixBounds`), and Proposition 3.21 at every center for the corrected fields
+  `∑ ξᵢ (eᵢ + ∇φ_{eᵢ})`, including the cross terms of the energy matrix (`GaussianCorrectorRate`).
+  The book takes the scale of Proposition 3.21 at the origin and translates it (Definition 4.5).
+- **Step 2 of the proof of Theorem 4.6.** `flucJ1_of_gaussianCorrectorRate` gives
+  `Fluc(s, min(μ, 1))` for `s ≥ 1` from Proposition 4.3 and the bound (4.24), and `flucJ1_base` is
+  the initial exponent required by `additiveStructure_J1`. The measurability of
+  `a ↦ J₁(Φ_{z,r}, p, q)` is a hypothesis.
+- **Proposition 4.10.** The proof follows a route different from Lemmas 4.13–4.18: the trial at the
+  deterministic slope `c* = -p + ā⁻¹q` (`homogenizedSlope`). The functional of (4.8) at a fixed
+  field is averaged by the heat semigroup (`j1Functional_heatKernel_eq_integral`), and
+  `J₁(Φ_{z,R}) ≤ ∫ Φ_{z,√(R²-r²)} J₁(Φ_{·,r})` (`J1Heat_le_integral_heatKernel_mul`), so the
+  additivity defect lies between `0` and the average of the trial gap
+  (`additivityDefect_le_trialGap`). A bound `O_t(C r^{-β})` on the trial gap at every center
+  (`TrialGapEstimate`) gives `Add(t, β)` by Lemma A.4 (`addJ1_of_trialGapEstimate`), and with
+  Proposition 4.3 at an exponent `τ > s d/2` it gives `Add(s, α + η)` with
+  `η = min(μ/2, τ/s - d/2)` (`addJ1_improved_of_trialGap`, from `Δ ≤ √(2δ) √G + B`).
+  `proposition410` proves the conclusion `ImprovementOfAdditivity` and (4.70) from the trial gap
+  estimate `O_{s/2}(C r^{-2α})` under `Fluc(s, α)` and the expectation of the trial
+  (`TrialExpectationEstimate`), which are hypotheses, together with the inputs of Proposition 4.3,
+  the almost sure integrability of the trial (`TrialIntegrable`) and the joint measurability of
+  `(a, x) ↦ J₁(Φ_{x,r}, p, q)`.
+- **Remark 4.18, (4.70), and Theorem 4.6 (ii).** `ExpectationEstimates` states (4.70);
+  `expectationJ1Estimate_of_trialGap` proves it from the trial, with the mean bound
+  `OsBound.integral_le_factorial_mul` for `O_t` variables with `t < 1`.
+- **(5.58).** `theorem46_expectation_and_558`, `estimate558` and `estimate558_of_trialGap`:
+  `|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ O_s(C r^{-d/2})` for every `s ∈ (0, 2)`, with
+  Theorem 4.6 (ii), from Theorem 4.6 (iii) (`additiveStructure_J1`) and (4.70); for `s < 1` the
+  triangle inequality is replaced by `X + Y ≤ 2 max(X, Y)`.
