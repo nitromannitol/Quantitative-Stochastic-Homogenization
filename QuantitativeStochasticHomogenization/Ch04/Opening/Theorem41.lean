@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch05.Sec03.CoarsenedCoefficientEstimates
 import QuantitativeStochasticHomogenization.Frozen.AveragedCorrectorGradient
+import QuantitativeStochasticHomogenization.Ch03.Sec04.CorrectorLinearCombination
 
 /-!
 # Theorem 4.1, (4.2), with `s = 1`
@@ -186,5 +187,48 @@ theorem averagedCorrectorGradient_of
   have := hPl.1
   exact ⟨S, fun e he z r hr =>
     averagedCorrectorGradient_osBound hlin hen hs hest hd0 he z hr⟩
+
+/-! ## Correctors linear in the direction -/
+
+section Linearize
+
+variable {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P)
+
+theorem hasLinearCorrectorGradients_linearize : HasLinearCorrectorGradients S.linearize :=
+  fun e => Filter.Eventually.of_forall fun a => Filter.Eventually.of_forall fun x => by
+    rw [HomogenizationData.linearize_grad]
+    exact Finset.sum_congr rfl fun i _ => by rw [HomogenizationData.linearize_grad_unitVector]
+
+theorem linearize_grad_unitVector_eq (i : Fin d) (a : CoefficientField d Λ) :
+    (S.linearize.corrector (unitVector i)).grad a = (S.corrector (unitVector i)).grad a :=
+  funext fun x => HomogenizationData.linearize_grad_unitVector S i a x
+
+theorem HasGaussianCorrectorEnergy.linearize (h : HasGaussianCorrectorEnergy S) :
+    HasGaussianCorrectorEnergy S.linearize := by
+  filter_upwards [h] with a ha i z r hr
+  rw [linearize_grad_unitVector_eq]
+  exact ha i z r hr
+
+theorem CoordinateGradientEstimate.linearize {s C : ℝ} (h : CoordinateGradientEstimate S s C) :
+    CoordinateGradientEstimate S.linearize s C := fun i z r hr => by
+  simp only [linearize_grad_unitVector_eq]
+  exact h i z r hr
+
+end Linearize
+
+/-- **`QSH.Frozen.averagedCorrectorGradient`** (Theorem 4.1, (4.2), with `s = 1`) from
+homogenization data with the finite Gaussian energy of the corrected coordinates and the estimate
+of their Gaussian averages at the rate `r^{-d/2}` for one exponent `s ≥ 1`; the correctors are
+replaced by the combinations of the coordinate correctors (`HomogenizationData.linearize`). -/
+theorem averagedCorrectorGradient_of_coordinate
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ s C₁ : ℝ, 1 ≤ s ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∃ S : HomogenizationData P,
+        HasGaussianCorrectorEnergy S ∧ CoordinateGradientEstimate S s C₁) :
+    QSH.Frozen.averagedCorrectorGradient := by
+  refine averagedCorrectorGradient_of fun d hd Λ hΛ => ?_
+  obtain ⟨s, C₁, hs, hC₁, hP⟩ := h d hd Λ hΛ
+  refine ⟨s, C₁, hs, hC₁, fun P hPl => ?_⟩
+  obtain ⟨S, hen, hest⟩ := hP P hPl
+  exact ⟨S.linearize, hasLinearCorrectorGradients_linearize S, hen.linearize, hest.linearize⟩
 
 end QSH

@@ -204,7 +204,7 @@ theorem tendsto_sublinear_finsetSum {ι : Type*} [Fintype ι] {f : ι → Vec d 
       (𝓝 0) := fun i => by simpa using (hs i).pow 2
   have hsum : Tendsto (fun R : ℝ => (Fintype.card ι : ℝ) *
       ∑ i, c i ^ 2 * (R⁻¹ * Real.sqrt (ballOscillation (f i) R)) ^ 2) atTop (𝓝 0) := by
-    have := (tendsto_finset_sum (Finset.univ : Finset ι) fun i _ => (hsq i).const_mul (c i ^ 2))
+    have := (tendsto_finsetSum (Finset.univ : Finset ι) fun i _ => (hsq i).const_mul (c i ^ 2))
       |>.const_mul (Fintype.card ι : ℝ)
     simpa using this
   have hup : Tendsto (fun R : ℝ => Real.sqrt ((Fintype.card ι : ℝ) *
