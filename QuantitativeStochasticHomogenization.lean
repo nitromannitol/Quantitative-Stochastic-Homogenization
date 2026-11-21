@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Front.Assumptions
+import QuantitativeStochasticHomogenization.Front.Assumptions.MeasurableVersion
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch01.Sec01BriefIntroduction
 import QuantitativeStochasticHomogenization.Ch01.Sec02SubadditiveQuantity
