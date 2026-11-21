@@ -235,4 +235,55 @@ theorem euclideanNorm_finset_sum_le (s : Finset (Fin d)) (w : Fin d → Vec d) :
     rw [Finset.sum_insert hi, Finset.sum_insert hi]
     exact (euclideanNorm_add_le _ _).trans (by linarith)
 
+section GoodCommutator
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **The commutator at a good scale against a matrix `D₀` matching the means**: if
+`D₀ (E Bᵢ) = E Cᵢ` with `Bᵢ = 2 m(0, eᵢ/2)`, `Cᵢ = 2 f(0, eᵢ/2)`, and `|D₀ w| ≤ K₀ |w|`, then
+`|F eⱼ - D₀ P eⱼ| ≤ 2 √d (Λ + 1) ∑ᵢ (|Cᵢ - E Cᵢ| + K₀ |Bᵢ - E Bᵢ|)`. -/
+theorem commutator_good_le (S : HomogenizationData P) (a : CoefficientField d Λ)
+    (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : GradientsOfA1AreCorrected S a) (y : Vec d) (r : ℝ) {ε : ℝ} (hε0 : 0 ≤ ε)
+    (hε : ε ≤ 1 / 4) (hεd : Real.sqrt d * ε ≤ 1 / 2)
+    (havg : GaussianAverageBounds a S.homogenized (correctedField S a) y r ε)
+    (D₀ : Mat d) {K₀ : ℝ} (hK₀ : 0 ≤ K₀) (hD₀op : ∀ w, euclideanNorm (D₀.mulVec w) ≤ K₀ * euclideanNorm w)
+    (mB mC : Fin d → Vec d) (hD₀m : ∀ i, D₀.mulVec (mB i) = mC i) (j : Fin d) :
+    euclideanNorm (fluxAverage S a y r (unitVector j) -
+        D₀.mulVec (gradientAverage S a y r (unitVector j))) ≤
+      2 * (Real.sqrt d * (Λ + 1)) * ∑ i,
+        (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) - mC i) +
+          K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+            mB i)) := by
+  obtain ⟨q, hq, hPj, hFj⟩ := corrected_averages_eq_sum S a hΛ hA hspan y r hε0 hε hεd havg j
+  set Bv : Fin d → Vec d := fun i => (2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
+  set Cv : Fin d → Vec d :=
+    fun i => (2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
+  rw [hPj, hFj]
+  have hexp : (∑ i, q i • Cv i) - D₀.mulVec (∑ i, q i • Bv i) =
+      ∑ i, q i • ((Cv i - mC i) - D₀.mulVec (Bv i - mB i)) := by
+    rw [Matrix.mulVec_sum, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [Matrix.mulVec_smul, Matrix.mulVec_sub, hD₀m i, ← smul_sub]
+    congr 1
+    abel
+  rw [hexp]
+  refine (euclideanNorm_finset_sum_le _ _).trans ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun i _ => ?_
+  rw [euclideanNorm_smul]
+  have h1 : |q i| ≤ 2 * (Real.sqrt d * (Λ + 1)) := (abs_apply_le_euclideanNorm q i).trans hq
+  have h2 : euclideanNorm ((Cv i - mC i) - D₀.mulVec (Bv i - mB i)) ≤
+      euclideanNorm (Cv i - mC i) + K₀ * euclideanNorm (Bv i - mB i) :=
+    (euclideanNorm_sub_le _ _).trans (by linarith [hD₀op (Bv i - mB i)])
+  have h3 : 0 ≤ euclideanNorm ((Cv i - mC i) - D₀.mulVec (Bv i - mB i)) := euclideanNorm_nonneg _
+  have h4 : 0 ≤ euclideanNorm (Cv i - mC i) + K₀ * euclideanNorm (Bv i - mB i) :=
+    add_nonneg (euclideanNorm_nonneg _) (mul_nonneg hK₀ (euclideanNorm_nonneg _))
+  calc |q i| * euclideanNorm ((Cv i - mC i) - D₀.mulVec (Bv i - mB i))
+      ≤ 2 * (Real.sqrt d * (Λ + 1)) * (euclideanNorm (Cv i - mC i) +
+          K₀ * euclideanNorm (Bv i - mB i)) :=
+        mul_le_mul h1 h2 h3 (by positivity)
+
+end GoodCommutator
+
 end QSH
