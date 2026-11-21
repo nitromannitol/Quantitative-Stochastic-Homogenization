@@ -161,12 +161,13 @@ def TrialObjectiveExpectation (P : Measure (CoefficientField d Λ)) (S : Homogen
         homogenizedJ1Objective S.homogenized p q k| ≤ C * (1 + euclideanSq k) * r ^ (-β)
 
 /-- **The energy of the corrected fields below the scale**: a jointly measurable family of scales
-`1 ≤ X(·, z) ≤ O_τ(C)` with `∫ Φ_{z,r} G ξ·aG ξ ≤ C (1 + (X/r)^d) |ξ|²` almost surely. -/
+`1 ≤ X(·, z) ≤ O_τ(C)` with, for every center `z`, almost surely
+`∫ Φ_{z,r} G ξ·aG ξ ≤ C (1 + (X/r)^d) |ξ|²` for `r ≥ 1`. -/
 def GaussianEnergyBound (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
     (τ C : ℝ) : Prop :=
   ∃ X : CoefficientField d Λ → Vec d → ℝ, Measurable (Function.uncurry X) ∧
     (∀ a z, 1 ≤ X a z) ∧ (∀ z, OsBound P (fun a => X a z) τ C) ∧
-    ∀ᵐ a ∂P, ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+    ∀ z : Vec d, ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r → ∀ ξ : Vec d,
       Integrable (fun x => heatKernel z r x *
         dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
       (∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ≤

@@ -168,8 +168,8 @@ theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData
       (∫ x, heatKernel z r x * dot (correctedField S a (unitVector l) x)
           ((a x).mulVec (correctedField S a (unitVector l) x))) ≤
         CN * (1 + (XN a z / r) ^ d) * euclideanSq (unitVector l : Vec d) := by
-    filter_upwards [hint, hXNe] with a ha hb
-    exact fun l => ⟨ha z r hr (unitVector l), (hb z r hr (unitVector l)).2⟩
+    filter_upwards [hint z, hXNe z] with a ha hb
+    exact fun l => ⟨ha r hr (unitVector l), (hb r hr (unitVector l)).2⟩
   by_cases hrR : R ≤ r
   · -- large scales
     have hr₁r : r₁ ≤ r := le_trans (le_max_left _ _) hrR

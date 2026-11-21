@@ -83,9 +83,10 @@ theorem averagesIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
     (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) :
     AveragesIntegrable P S := by
   obtain ⟨X, -, -, -, hXe⟩ := hN
-  filter_upwards [hXe] with a ha
-  intro z r hr ξ
-  have hE := (ha z r hr ξ).1
+  intro z
+  filter_upwards [hXe z] with a ha
+  intro r hr ξ
+  have hE := (ha r hr ξ).1
   have hg : Measurable fun x : Vec d => (a, x) := measurable_const.prodMk measurable_id
   have hGm := (measurable_correctedField S ξ).comp hg
   obtain ⟨h1, h2⟩ := integrable_averages_of_energy a hΛ z (zero_lt_one.trans_le hr)
@@ -96,9 +97,10 @@ theorem averagesIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
 theorem trialIntegrable_of_energyBound {P : Measure (CoefficientField d Λ)}
     (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) :
     TrialIntegrable P S := by
-  filter_upwards [averagesIntegrable_of_energyBound S hΛ hN] with a ha
-  intro z R hR p q
-  obtain ⟨h1, h2, h3⟩ := ha z R hR (homogenizedSlope S.homogenized p q)
+  intro z
+  filter_upwards [averagesIntegrable_of_energyBound S hΛ hN z] with a ha
+  intro R hR p q
+  obtain ⟨h1, h2, h3⟩ := ha R hR (homogenizedSlope S.homogenized p q)
   have hfun : (fun x => heatKernel z R x *
       j1Integrand a p q (correctedField S a (homogenizedSlope S.homogenized p q)) x) = fun x =>
         -(1 / 2 : ℝ) * (heatKernel z R x *

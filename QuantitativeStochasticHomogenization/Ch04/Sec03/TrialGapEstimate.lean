@@ -469,7 +469,7 @@ theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : Homogen
     (by nlinarith [mul_nonneg hCN.le hB0]) hB.ge M hM1 hMos ?_ hF h4 hE
   intro r hr p q hp hq y
   have hr0 : 0 < r := zero_lt_one.trans_le hr
-  filter_upwards [hspan, (hXg y).2, hXNb] with a hsa hga hNa
+  filter_upwards [hspan, (hXg y).2, hXNb y] with a hsa hga hNa
   intro k hk
   have hgood : max (Xg a y) r₀ ≤ r →
       GaussianAverageBounds a S.homogenized (correctedField S a) y r (min (C * r ^ (-μ)) (1 / 4)) := by
@@ -487,7 +487,7 @@ theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : Homogen
   have hMa : M a y = max (max (Xg a y) r₀) (XN a y) := by rw [hM]
   have h := trialGap_pos_le S a hΛ hA hsa y hr (min_le_right _ _) hgood
     (hMa ▸ le_max_left _ _) (hMa ▸ le_max_right _ _) (zero_le_one.trans (hXN1 a y)) hCN.le
-    hp.le hq.le k (hNa y r hr k).1 (hNa y r hr k).2
+    hp.le hq.le k (hNa r hr k).1 (hNa r hr k).2
   have hMd : 0 ≤ (M a y / r) ^ d :=
     pow_nonneg (div_nonneg (zero_le_one.trans (hM1 a y)) hr0.le) _
   have hK : (2 * (Λ + 1) + 2 * CN * euclideanSq k) * (M a y / r) ^ d ≤
