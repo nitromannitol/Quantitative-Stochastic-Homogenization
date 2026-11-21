@@ -69,4 +69,35 @@ theorem abs_iteratedDeriv_heatKernel1_sub_le {s : ℝ} (hs : 0 < s) (k : ℕ) (R
     _ ≤ c * (C * (Real.exp (R ^ 2 / (8 * s)) * Real.exp (-(x ^ 2 / (16 * s))))) := by gcongr
     _ = c * C * Real.exp (R ^ 2 / (8 * s)) * Real.exp (-(x ^ 2 / (16 * s))) := by ring
 
+/-- **Gaussian decay of the derivatives of the heat kernel**: for `‖y‖ ≤ R`,
+`|∂^l Φ(s)(x - y)| ≤ C Φ(4s)(x)`. -/
+theorem abs_foldr_euclideanHeatKernel_sub_le {s : ℝ} (hs : 0 < s) (l : List (Fin d)) (R : ℝ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ x y : Vec d, ‖y‖ ≤ R →
+      |l.foldr coordinateDerivative (euclideanHeatKernel (d := d) s) (x - y)| ≤
+        C * euclideanHeatKernel (4 * s) x := by
+  have hb := fun i : Fin d => abs_iteratedDeriv_heatKernel1_sub_le hs (l.count i) R
+  choose C hC hCb using hb
+  set c := (4 * Real.pi * (4 * s)) ^ (-(d : ℝ) / 2) with hcdef
+  have hc : 0 < c := Real.rpow_pos_of_pos (by positivity) _
+  have hCp : 0 ≤ ∏ i, C i := Finset.prod_nonneg fun i _ => hC i
+  refine ⟨(∏ i, C i) * c⁻¹, by positivity, fun x y hy => ?_⟩
+  rw [euclideanHeatKernel_eq_prodFun hs, foldr_coordinateDerivative_prodFun
+    (fun _ => contDiff_heatKernel1 s), prodFun, Finset.abs_prod]
+  have hprod : ∏ i, |iteratedDeriv (l.count i) (heatKernel1 s) ((x - y) i)| ≤
+      ∏ i, (C i * Real.exp (-((x i) ^ 2 / (16 * s)))) :=
+    Finset.prod_le_prod₀ (fun i _ => abs_nonneg _) fun i _ =>
+      hCb i (x i) (y i) (by
+        have := (norm_le_pi_norm y i).trans hy
+        rwa [Real.norm_eq_abs] at this)
+  refine hprod.trans (le_of_eq ?_)
+  rw [Finset.prod_mul_distrib, ← Real.exp_sum]
+  unfold euclideanHeatKernel
+  rw [mul_assoc]
+  congr 1
+  rw [← mul_assoc, inv_mul_cancel₀ hc.ne', one_mul]
+  congr 1
+  simp only [euclideanSq, dot, Finset.sum_div, ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  ring
+
 end QSH
