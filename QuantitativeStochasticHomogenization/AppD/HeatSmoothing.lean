@@ -76,4 +76,73 @@ theorem multiIndexDerivative_smooth {m : ℕ} {ψ : Vec d → ℝ} (hψ : ContDi
     ContDiff ℝ ∞ (multiIndexDerivative β ψ) ∧ HasCompactSupport (multiIndexDerivative β ψ) :=
   foldr_coordinateDerivative_smooth hψ hcψ _
 
+/-! ## Moving the derivatives onto the kernel -/
+
+theorem integrable_mul_comp_sub_of_compact {K : Vec d → ℝ} (hK : Continuous K) {χ : Vec d → ℝ}
+    (hχ : Continuous χ) (hcχ : HasCompactSupport χ) (x : Vec d) :
+    Integrable (fun s => K s * χ (x - s)) := by
+  have hc : HasCompactSupport (fun s => χ (x - s)) :=
+    hcχ.comp_homeomorph (Homeomorph.subLeft x)
+  exact hK.locallyIntegrable.integrable_smul_right_of_hasCompactSupport
+    (hχ.comp (continuous_const.sub continuous_id)) hc
+
+/-- **One derivative moves onto the kernel**: `K ∗ ∂ⱼχ = ∂ⱼK ∗ χ` for a `C¹` kernel `K` and a smooth
+compactly supported `χ`. -/
+theorem convolution_coordinateDerivative {K : Vec d → ℝ} (hK : ContDiff ℝ 1 K) {χ : Vec d → ℝ}
+    (hχ : ContDiff ℝ ∞ χ) (hcχ : HasCompactSupport χ) (j : Fin d) :
+    (K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] coordinateDerivative j χ) =
+      (coordinateDerivative j K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] χ) := by
+  funext x
+  simp only [convolution_def, ContinuousLinearMap.lsmul_apply, smul_eq_mul]
+  set g : Vec d → ℝ := fun s => χ (x - s) with hg
+  have hχ1 : ContDiff ℝ 1 χ := hχ.of_le (by simp)
+  have hgd : ∀ s, HasFDerivAt g
+      ((fderiv ℝ χ (x - s)).comp (-(ContinuousLinearMap.id ℝ (Vec d)))) s := fun s => by
+    have h1 := (hχ1.differentiable one_ne_zero (x - s)).hasFDerivAt
+    have h2 : HasFDerivAt (fun s : Vec d => x - s) (-(ContinuousLinearMap.id ℝ (Vec d))) s :=
+      (hasFDerivAt_id s).const_sub x
+    exact h1.comp s h2
+  have hfg : ∀ s, fderiv ℝ g s (unitVector j) = -coordinateDerivative j χ (x - s) := fun s => by
+    rw [(hgd s).fderiv, ContinuousLinearMap.comp_apply, neg_apply,
+      ContinuousLinearMap.id_apply, map_neg]
+    rfl
+  have hKc : Continuous K := hK.continuous
+  have hdK : Continuous (coordinateDerivative j K) :=
+    (hK.continuous_fderiv one_ne_zero).clm_apply continuous_const
+  have hdχ : Continuous (coordinateDerivative j χ) :=
+    (hχ1.continuous_fderiv one_ne_zero).clm_apply continuous_const
+  have hibp := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable (μ := volume) (f := K) (g := g)
+    (v := unitVector j)
+    (integrable_mul_comp_sub_of_compact hdK hχ.continuous hcχ x)
+    (by
+      simp only [hfg]
+      have := integrable_mul_comp_sub_of_compact hKc hdχ
+        (hasCompactSupport_coordinateDerivative hcχ j) x
+      simpa [mul_neg] using this.neg)
+    (integrable_mul_comp_sub_of_compact hKc hχ.continuous hcχ x)
+    (fun s _ => (hK.differentiable one_ne_zero) s)
+    (fun s _ => (hgd s).differentiableAt)
+  simp only [hfg, mul_neg, integral_neg] at hibp
+  have := neg_inj.mp hibp
+  exact this
+
+theorem foldr_coordinateDerivative_contDiff {K : Vec d → ℝ} (hK : ContDiff ℝ ∞ K)
+    (l : List (Fin d)) : ContDiff ℝ ∞ (l.foldr coordinateDerivative K) := by
+  induction l with
+  | nil => exact hK
+  | cons j l ih => exact contDiff_coordinateDerivative ih j
+
+/-- **All the derivatives move onto the kernel**: `K ∗ ∂_{j₁} ⋯ ∂_{jₙ} χ = ∂_{jₙ} ⋯ ∂_{j₁} K ∗ χ`. -/
+theorem convolution_foldr_coordinateDerivative {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ)
+    (hcχ : HasCompactSupport χ) (l : List (Fin d)) {K : Vec d → ℝ} (hK : ContDiff ℝ ∞ K) :
+    (K ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] l.foldr coordinateDerivative χ) =
+      ((l.reverse.foldr coordinateDerivative K) ⋆[ContinuousLinearMap.lsmul ℝ ℝ, volume] χ) := by
+  induction l generalizing K with
+  | nil => rfl
+  | cons j l ih =>
+    have hs := foldr_coordinateDerivative_smooth hχ hcχ l
+    rw [List.foldr_cons, convolution_coordinateDerivative (hK.of_le (by simp)) hs.1 hs.2 j,
+      ih (contDiff_coordinateDerivative hK j), List.reverse_cons, List.foldr_append]
+    rfl
+
 end QSH
