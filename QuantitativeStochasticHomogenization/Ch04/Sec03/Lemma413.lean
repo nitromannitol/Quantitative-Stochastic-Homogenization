@@ -424,21 +424,71 @@ theorem rpow_half_mul_sq_rpow {X B r α : ℝ} (hX : 0 ≤ X) (hB : 0 ≤ B) (hr
     rw [← Real.sqrt_eq_rpow, Real.sqrt_sq h1]]
   ring
 
-/-- The scale of the commutator bound of Lemma 4.13 at one large scale `r`. -/
-def commutatorScale (d : ℕ) (Λ s α CF CM CN τ η r : ℝ) : ℝ :=
+/-- The scale of the commutator bound of Lemma 4.13 as a linear function of the size `u` of the
+fluctuations, the size `v` of the bad part and the error `w` of the expectations. -/
+def commutatorScaleOf (d : ℕ) (Λ s CN τ CMd u v w : ℝ) : ℝ :=
   let cs : ℝ := 2 * (2 : ℝ) ^ s⁻¹
-  let ct : ℝ := 2 * (2 : ℝ) ^ (s / 2)⁻¹
-  let σh : ℝ := (ct ^ d * (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ)
   let K₀ : ℝ := 2 * Λ * Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1)))
   let Kq : ℝ := 2 * (Real.sqrt d * (Λ + 1))
-  let θY : ℝ := Kq * ((2 * (2 : ℝ) ^ s⁻¹) ^ d * (cs * (σh + K₀ * σh)))
-  let mY : ℝ := Kq * (d * (momentConstant s * σh + K₀ * (momentConstant s * σh)))
-  let θB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * ((2 * Real.exp 1 - 1) ^ s⁻¹ * (CM / r) ^ ((d : ℝ) / 2))
-  let mB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * (momentConstant (τ / ((d : ℝ) / 2)) *
-    (CM / r) ^ ((d : ℝ) / 2))
-  let θN : ℝ := Real.sqrt CN * (cs * (1 / Real.log 2 ^ s⁻¹ +
-    (2 * Real.exp 1 - 1) ^ s⁻¹ * CM ^ ((d : ℝ) / 2)))
-  cs * (cs * (θY + θB) + Real.sqrt d * (η + Real.sqrt d * (mY + mB) + K₀ * η) * θN)
+  let θY : ℝ := Kq * ((2 * (2 : ℝ) ^ s⁻¹) ^ d * (cs * (u + K₀ * u)))
+  let mY : ℝ := Kq * (d * (momentConstant s * u + K₀ * (momentConstant s * u)))
+  let θB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * ((2 * Real.exp 1 - 1) ^ s⁻¹ * v)
+  let mB : ℝ := (Λ + K₀) * Real.sqrt CN * 2 * (momentConstant (τ / ((d : ℝ) / 2)) * v)
+  let θN : ℝ := Real.sqrt CN * (cs * (1 / Real.log 2 ^ s⁻¹ + (2 * Real.exp 1 - 1) ^ s⁻¹ * CMd))
+  cs * (cs * (θY + θB) + Real.sqrt d * (w + Real.sqrt d * (mY + mB) + K₀ * w) * θN)
+
+/-- The scale of the commutator bound of Lemma 4.13 at one large scale `r`. -/
+def commutatorScale (d : ℕ) (Λ s α CF CM CN τ η r : ℝ) : ℝ :=
+  commutatorScaleOf d Λ s CN τ (CM ^ ((d : ℝ) / 2))
+    (((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d *
+      (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ))
+    ((CM / r) ^ ((d : ℝ) / 2)) η
+
+theorem commutatorScaleOf_mono {Λ s CN τ CMd u v w u' v' w' : ℝ} (hΛ : 0 ≤ Λ) (hCMd : 0 ≤ CMd)
+    (hu : u ≤ u') (hv : v ≤ v') (hw : w ≤ w') :
+    commutatorScaleOf d Λ s CN τ CMd u v w ≤ commutatorScaleOf d Λ s CN τ CMd u' v' w' := by
+  have hm1 := (momentConstant_pos s).le
+  have hm2 := (momentConstant_pos (τ / ((d : ℝ) / 2))).le
+  have hl : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
+  have he : 0 ≤ 2 * Real.exp 1 - 1 := by linarith [Real.add_one_le_exp (1 : ℝ)]
+  have hK₀ : 0 ≤ 2 * Λ * Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1))) := by positivity
+  have hθN : 0 ≤ Real.sqrt CN * (2 * (2 : ℝ) ^ s⁻¹ * (1 / Real.log 2 ^ s⁻¹ +
+      (2 * Real.exp 1 - 1) ^ s⁻¹ * CMd)) := by positivity
+  simp only [commutatorScaleOf]
+  gcongr
+
+theorem commutatorScaleOf_smul {Λ s CN τ CMd u v w ρ : ℝ} :
+    commutatorScaleOf d Λ s CN τ CMd (ρ * u) (ρ * v) (ρ * w) =
+      ρ * commutatorScaleOf d Λ s CN τ CMd u v w := by
+  simp only [commutatorScaleOf]
+  ring
+
+/-- **The scale of Lemma 4.13 is of order `r^{-α}`** when the error of the expectations is
+`C_E r^{-α}` and `α ≤ d/2`. -/
+theorem commutatorScale_le {Λ s α CF CM CN τ CE r : ℝ} (hΛ : 0 ≤ Λ) (hCF : 0 < CF) (hCM : 0 ≤ CM)
+    (hr : 1 ≤ r) (hα : α ≤ (d : ℝ) / 2) :
+    commutatorScale d Λ s α CF CM CN τ (CE * r ^ (-α)) r ≤
+      commutatorScale d Λ s α CF CM CN τ CE 1 * r ^ (-α) := by
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  have hσ : ∀ r' : ℝ, 0 < r' → ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d *
+      (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r' ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ) =
+      r' ^ (-α) * (((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * 8 ^ 2) ^ (1 / 2 : ℝ) *
+        ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * CF)) := by
+    intro r' hr'
+    rw [show (2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d *
+        (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r' ^ (-α))) ^ 2) =
+        ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * 8 ^ 2) * (((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * CF) * r' ^ (-α)) ^ 2
+        by ring, rpow_half_mul_sq_rpow (by positivity) (by positivity) hr']
+    ring
+  have hv : (CM / r) ^ ((d : ℝ) / 2) ≤ r ^ (-α) * CM ^ ((d : ℝ) / 2) := by
+    rw [Real.div_rpow hCM hr0.le, div_eq_mul_inv, mul_comm, ← Real.rpow_neg hr0.le]
+    exact mul_le_mul_of_nonneg_right (Real.rpow_le_rpow_of_exponent_le hr (neg_le_neg hα))
+      (Real.rpow_nonneg hCM _)
+  unfold commutatorScale
+  rw [hσ r hr0, hσ 1 one_pos, Real.one_rpow, div_one, one_mul]
+  refine le_trans (commutatorScaleOf_mono hΛ (Real.rpow_nonneg hCM _) le_rfl hv
+    (le_of_eq (mul_comm _ _))) (le_of_eq ?_)
+  rw [commutatorScaleOf_smul, mul_comm]
 
 /-- The fluctuation part of the commutator bound: the sum over `i` of the fluctuations of
 `Cᵢ = 2 f(0, eᵢ/2)` and `K₀`-times those of `Bᵢ = 2 m(0, eᵢ/2)`, under `Fluc(s, α)`. -/
@@ -691,7 +741,7 @@ theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
   have := commutator_assembly hd hK₀.le hη hD₀op (fun l a => gradientAverage S a y r (unitVector l))
     (fun l a => fluxAverage S a y r (unitVector l)) hPm hFm hPi hFi hEP hEF hYo hYi hYm hY0
     hBo hBi hBm hB0 hN hpt j hPN
-  simp only [commutatorScale]
+  simp only [commutatorScale, commutatorScaleOf]
   exact this
 
 end Large
