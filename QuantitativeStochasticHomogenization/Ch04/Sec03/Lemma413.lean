@@ -290,4 +290,58 @@ theorem averages_le_of_energy (S : HomogenizationData P) (a : CoefficientField d
 
 end EnergyBounds
 
+section Pointwise
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **The commutator against `D₀`, pointwise**: almost surely, outside `Bad` (good scales) by the
+fluctuations of the polarization vectors, and on `Bad` by the energy bound,
+`|F eₗ - D₀ P eₗ| ≤ 2√d(Λ+1) ∑ᵢ (|Cᵢ - E Cᵢ| + K₀ |Bᵢ - E Bᵢ|) + 1_Bad (Λ + K₀) √C_N (1 + (X/r)^{d/2})`. -/
+theorem commutator_matching_le (S : HomogenizationData P) (hΛ : 0 ≤ Λ)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (y : Vec d) {r : ℝ} (hr : 0 < r) {ε : ℝ}
+    (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4) (hεd : Real.sqrt d * ε ≤ 1 / 2)
+    {Bad : Set (CoefficientField d Λ)}
+    (hgood : ∀ᵐ a ∂P, a ∉ Bad → GaussianAverageBounds a S.homogenized (correctedField S a) y r ε)
+    {CN : ℝ} (hCN : 0 ≤ CN) (XN : CoefficientField d Λ → ℝ) (hXN : ∀ a, 0 ≤ XN a)
+    (havg : ∀ᵐ a ∂P, ∀ l : Fin d,
+      (Integrable (fun x => heatKernel y r x • correctedField S a (unitVector l) x) ∧
+        Integrable (fun x => heatKernel y r x • (a x).mulVec (correctedField S a (unitVector l) x)) ∧
+        Integrable (fun x => heatKernel y r x * dot (correctedField S a (unitVector l) x)
+          ((a x).mulVec (correctedField S a (unitVector l) x)))) ∧
+      (∫ x, heatKernel y r x * dot (correctedField S a (unitVector l) x)
+          ((a x).mulVec (correctedField S a (unitVector l) x))) ≤
+        CN * (1 + (XN a / r) ^ d) * euclideanSq (unitVector l : Vec d))
+    (D₀ : Mat d) {K₀ : ℝ} (hK₀ : 0 ≤ K₀)
+    (hD₀op : ∀ w, euclideanNorm (D₀.mulVec w) ≤ K₀ * euclideanNorm w)
+    (mB mC : Fin d → Vec d) (hD₀m : ∀ i, D₀.mulVec (mB i) = mC i) :
+    ∀ᵐ a ∂P, ∀ l : Fin d,
+      euclideanNorm (fluxAverage S a y r (unitVector l) -
+          D₀.mulVec (gradientAverage S a y r (unitVector l))) ≤
+        2 * (Real.sqrt d * (Λ + 1)) * ∑ i,
+          (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+              mC i) +
+            K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+              mB i)) +
+        Bad.indicator (fun a => (Λ + K₀) * (Real.sqrt CN * (1 + (XN a / r) ^ ((d : ℝ) / 2)))) a := by
+  filter_upwards [hgood, hspan, havg] with a hga hsa hav
+  intro l
+  have hY0 : 0 ≤ 2 * (Real.sqrt d * (Λ + 1)) * ∑ i,
+      (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) - mC i) +
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) - mB i)) :=
+    mul_nonneg (by positivity) (Finset.sum_nonneg fun i _ =>
+      add_nonneg (euclideanNorm_nonneg _) (mul_nonneg hK₀ (euclideanNorm_nonneg _)))
+  by_cases hab : a ∈ Bad
+  · rw [Set.indicator_of_mem hab]
+    obtain ⟨hP, hF⟩ := averages_le_of_energy S a hΛ y hr hCN (hXN a) l (hav l).1 (hav l).2
+    have h1 := euclideanNorm_sub_le (fluxAverage S a y r (unitVector l))
+      (D₀.mulVec (gradientAverage S a y r (unitVector l)))
+    have h2 := (hD₀op (gradientAverage S a y r (unitVector l))).trans
+      (mul_le_mul_of_nonneg_left hP hK₀)
+    nlinarith
+  · rw [Set.indicator_of_notMem hab, add_zero]
+    exact commutator_good_le S a hΛ hA hsa y r hε0 hε hεd (hga hab) D₀ hK₀ hD₀op mB mC hD₀m l
+
+end Pointwise
+
 end QSH
