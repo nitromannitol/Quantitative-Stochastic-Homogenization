@@ -181,7 +181,7 @@ theorem gradientAverage_eq_sum (S : HomogenizationData P) (a : CoefficientField 
   have hcf : ∀ i x, correctedField S a (unitVector i) x = correctedCoordinate S a i x := by
     intro i x
     simp only [correctedField, unitVector]
-    rw [Finset.sum_eq_single i (fun j _ hj => by rw [Pi.single_apply, if_neg hj, zero_smul])
+    rw [Finset.sum_eq_single i (fun j _ hj => by simp [Pi.single_apply, hj])
       (by simp)]
     simp
   have hi' : ∀ i, Integrable (fun x => heatKernel z r x • correctedCoordinate S a i x) := fun i => by
