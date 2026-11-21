@@ -156,4 +156,74 @@ theorem integral_heatKernel_mul_le_of_ball_growth {f : Vec d → ℝ} (hf0 : ∀
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hsum_le hc0) hA
     _ = heatShellConstant d k * A := rfl
 
+/-- **Lemmas 4.21-4.22 at a coefficient field from first-order correctors and ball estimates**:
+`abs_J1Heat_sub_localizedJ1_le_of_correctors` with the Gaussian closeness of the localized
+coordinates to the corrected gradients `W_i + ∑_j b_{ij} W_j` replaced by ball estimates with
+polynomial growth, `∫_{B_T ∩ B_t} |∇w_i - W_i - ∑_j b_{ij} W_j|² ≤ A (t/r)^k |B_t|` for `t ≥ r`;
+then `ρ = (heatShellConstant d k · A)^{1/2}`. -/
+theorem abs_J1Heat_sub_localizedJ1_le_of_ball_growth {Λ : ℝ} {a : CoefficientField d Λ}
+    (hΛ : 0 ≤ Λ) (hd : 0 < d) (hr : 0 < r) (hrT : r ≤ T) {S σ θ C : ℝ}
+    {B : LocalizedBasis a z T S σ θ C} {p q : Vec d} {E ε A : ℝ}
+    (hsmall : linearCoefficient d Λ p q ^ 2 / 2 *
+      ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2))) ≤ 1 / 4)
+    (φ : Fin d → Vec d → ℝ) (g : Fin d → Vec d → Vec d)
+    (hφg : ∀ i, HasWeakGradient Set.univ (φ i) (g i))
+    (hloc : ∀ i, ∀ R : ℝ, 0 < R → MemLp (φ i) 2 (volume.restrict (ball 0 R)) ∧
+      MemLp (g i) 2 (volume.restrict (ball 0 R)))
+    (harm : ∀ i, HasWeakDivergence Set.univ (fun x => (a x).mulVec (unitVector i + g i x))
+      (fun _ => 0))
+    (c : Fin d → ℝ)
+    (hosc : ∀ i, ∫ x in ball z r, (φ i x - c i) ^ 2 ≤ ε ^ 2 * r ^ 2 * volume.real (ball z r))
+    (hε : (d : ℝ) * ε ^ 2 ≤ (1 / 4 : ℝ) ^ d / 16) (hE0 : 0 ≤ E)
+    (hW : ∀ i, Integrable (fun x => heatKernel z (Real.sqrt 2 * r) x *
+      euclideanSq (unitVector i + g i x)))
+    (hE : ∀ i, ∫ x, heatKernel z (Real.sqrt 2 * r) x * euclideanSq (unitVector i + g i x) ≤ E)
+    (hrep : ∀ w : HarmonicA1 a, ∃ ξ : Vec d,
+      ∀ᵐ x, w.grad x = ∑ i, ξ i • (unitVector i + g i x))
+    (hWmem : ∀ ξ : Vec d, ∃ w : HarmonicA1 a,
+      ∀ᵐ x, w.grad x = ∑ i, ξ i • (unitVector i + g i x))
+    (b : Fin d → Fin d → ℝ) (hb : ∑ i, ∑ j, b i j ^ 2 ≤ 1 / 4) (hA : 0 ≤ A) (k : ℕ)
+    (hgrowth : ∀ i, ∀ t : ℝ, r ≤ t → ∫ x in ball z T ∩ ball z t,
+      euclideanSq ((B.coordinate i).grad x -
+        ((unitVector i + g i x) + ∑ j, b i j • (unitVector j + g j x))) ≤
+          A * (t / r) ^ k * volume.real (ball z t))
+    (hρ : Real.sqrt (heatShellConstant d k * A) ≤ Real.sqrt (heatGramConstant d / 4) / d / 2) :
+    |J1Heat a z r p q - localizedJ1 B r p q| ≤
+      localizationErrorBound d Λ p q
+        (2 * (2 * linearCoefficient d Λ p q + 1) * Real.sqrt (heatShellConstant d k * A) /
+          (Real.sqrt (heatGramConstant d / 4) / d))
+        ((2 : ℝ) ^ ((d : ℝ) / 2) * Real.exp (-(T ^ 2) / (8 * r ^ 2)) *
+          (d * E / heatGramConstant d)) T r := by
+  let uT := fun i => localCorrectedCoordinate a z T i 0 (φ i) (g i) (hφg i) (hloc i) (harm i)
+  have hWk : ∀ j k', MemLp (fun x => (unitVector j + g j x) k') 2 (ballMeasure z T) :=
+    fun j k' => (uT j).memLp_grad k'
+  have hGk : ∀ i k', MemLp (fun x => ((B.coordinate i).grad x -
+      ((unitVector i + g i x) + ∑ j, b i j • (unitVector j + g j x))) k') 2
+        (ballMeasure z T) := by
+    intro i k'
+    refine MemLp.ae_eq (Eventually.of_forall fun x => ?_)
+      (((B.coordinate i).memLp_grad k').sub ((hWk i k').add
+        (memLp_finsetSum Finset.univ fun j _ => (hWk j k').const_mul (b i j))))
+    simp only [Pi.sub_apply, Pi.add_apply, Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+  have hfi : ∀ i, IntegrableOn (fun x => euclideanSq ((B.coordinate i).grad x -
+      ((unitVector i + g i x) + ∑ j, b i j • (unitVector j + g j x)))) (ball z T) := by
+    intro i
+    refine (integrable_finsetSum Finset.univ fun k' _ => (hGk i k').integrable_sq).congr
+      (Eventually.of_forall fun x => ?_)
+    simp only [euclideanSq, dot, sq]
+  have hclose : ∀ i, ∫ x in ball z T, heatKernel z r x *
+      euclideanSq ((B.coordinate i).grad x -
+        ((unitVector i + g i x) + ∑ j, b i j • (unitVector j + g j x))) ≤
+        Real.sqrt (heatShellConstant d k * A) ^ 2 := by
+    intro i
+    have hc0 : 0 ≤ heatShellConstant d k := by
+      unfold heatShellConstant heatShellSum
+      exact mul_nonneg (mul_nonneg (by positivity) measureReal_nonneg)
+        (tsum_nonneg fun j => by positivity)
+    rw [Real.sq_sqrt (mul_nonneg hc0 hA)]
+    exact integral_heatKernel_mul_le_of_ball_growth (fun x => zero_le_euclideanSq _) (hfi i) hr
+      hA k (hgrowth i)
+  exact abs_J1Heat_sub_localizedJ1_le_of_correctors hΛ hd hr hrT hsmall φ g hφg hloc harm c hosc
+    hε hE0 hW hE hrep hWmem b hb (Real.sqrt_nonneg _) hclose hρ
+
 end QSH
