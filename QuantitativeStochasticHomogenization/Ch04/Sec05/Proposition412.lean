@@ -283,4 +283,136 @@ theorem exists_additive_truncatedField [IsProbabilityMeasure P] {s : ℝ} (hs1 :
     rw [f1, f2 a, f3, f4, f5, truncatedField_of_one_le hr1, hTdef]
     ring
 
+/-- **Proposition 4.12** (fluctuation estimates): for a jointly measurable field `J` bounded on
+the unit balls of `p, q`, local σ-algebras of unit range of dependence and the localization by
+measurable fields, for `s ∈ (1, 2]`, `β ∈ (0, d/2]` and `α, δ > 0` with `α > β(1+δ)`,
+`Add(s, α)` and `Loc(s, δ, α)` imply `Fluc(s, β)`. -/
+theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 1 ≤ d)
+    (hF : HasUnitRange P F) (hmono : Monotone F) (hFle : ∀ U, F U ≤ (inferInstance : MeasurableSpace Ω))
+    {J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ} {M : ℝ}
+    (hJb : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M)
+    (hJm : ∀ r p q, Measurable fun w : Ω × Vec d => J w.1 w.2 r p q) :
+    FluctuationEstimatesFor P J (LocFieldEstimate P F J) := by
+  intro s β α δ hs1 hs2 hβ0 hβd hδ hβα hAdd hLoc
+  obtain ⟨CA, hCA, hA⟩ := hAdd
+  obtain ⟨CL, hCL, hL⟩ := hLoc
+  set M' : ℝ := max M 1 with hM'def
+  have hM' : 0 < M' := lt_max_of_lt_right one_pos
+  have hJb' : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M' :=
+    fun a z r p q hp hq => (hJb a z r p q hp hq).trans (le_max_left _ _)
+  have hβδ : 0 < β * (1 + δ) := mul_pos hβ0 (by linarith)
+  have hα0 : 0 < α := by linarith
+  have hβα' : β ≤ α := by nlinarith
+  set c : ℝ := (1 + δ)⁻¹ with hcdef
+  have hc0 : 0 < c := by positivity
+  have hcα : β / α < c := by
+    rw [div_lt_iff₀ hα0, hcdef, ← div_eq_inv_mul, lt_div_iff₀ (by linarith)]
+    exact hβα
+  set η₁ : ℝ := (β / α + c) / 2 with hη₁def
+  set η₂ : ℝ := (η₁ + c) / 2 with hη₂def
+  have hβα0 : 0 < β / α := div_pos hβ0 hα0
+  have hη₁ : 0 < η₁ := by positivity
+  have hη₁c : η₁ < c := by linarith
+  have hη₁₂ : η₁ < η₂ := by linarith
+  have hη₂c : η₂ < c := by linarith
+  have hη₂ : η₂ * (1 + δ) < 1 := by
+    have h := mul_lt_mul_of_pos_right hη₂c (by linarith : (0 : ℝ) < 1 + δ)
+    rwa [hcdef, inv_mul_cancel₀ (by linarith)] at h
+  have hβη : β < η₁ * α := by
+    have h1 : β / α < η₁ := by linarith
+    rwa [div_lt_iff₀ hα0] at h1
+  obtain ⟨C₁, C₂, hC₁, hC₂, hadd⟩ := exists_additive_truncatedField (P := P) (d := d) hs1 hs2
+  set A : ℝ := C₁ * (CL + CA) + C₂ * CL with hAdef
+  have hA0 : 0 < A := by positivity
+  obtain ⟨Cf, hCf, hfield⟩ := exists_centeredOsBound_field (P := P) (F := F) (δ := δ) (α := α)
+    (B := 2 * M') (A := A) hd hF hmono hs1 hs2 (by positivity) hA0 hβ0 hβd hδ hη₁ hη₁₂ hη₂ hβη
+  have hl2 : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
+  set C' : ℝ := CL + (8 : ℝ) ^ s⁻¹ * (4 * Cf) + 2 * CL / Real.log 2 ^ s⁻¹ with hC'def
+  refine ⟨C', by positivity, fun z R hR p q hp hq => ?_⟩
+  have hR0 : 0 < R := zero_lt_one.trans_le hR
+  have hsel : ∀ r : ℝ, ∃ Jδ : Ω → Vec d → ℝ, 1 ≤ r →
+      (∀ U : Set (Vec d), MeasurableSet U →
+        @Measurable (Ω × Vec d) ℝ
+          (@Prod.instMeasurableSpace Ω (Vec d) (F (euclideanThickening (r ^ (1 + δ)) U)) _) _
+          (fun w => U.indicator (Jδ w.1) w.2)) ∧
+      ∀ z : Vec d, OsBound P (fun a => |J a z r p q - Jδ a z|) s (CL * r ^ (-α)) := by
+    intro r
+    by_cases hr : 1 ≤ r
+    · obtain ⟨Jδ, h1, h2⟩ := hL r hr p q hp hq
+      exact ⟨Jδ, fun _ => ⟨h1, h2⟩⟩
+    · exact ⟨fun _ _ => 0, fun h => absurd h hr⟩
+  choose Jδ hJδ using hsel
+  have hJδm : ∀ r, 1 ≤ r → Measurable fun w : Ω × Vec d => Jδ r w.1 w.2 := by
+    intro r hr
+    have h := (hJδ r hr).1 Set.univ MeasurableSet.univ
+    simp only [Set.indicator_univ] at h
+    exact measurable_prod_of_le (hFle _) h
+  let X : CenteredLocalFields P F s δ α (2 * M') A :=
+    { field := truncatedField P M' Jδ
+      abs_le := abs_truncatedField_le hM'.le Jδ
+      measurable := measurable_truncatedField hJδm
+      isLocal := isLocal_truncatedField hM'.le (fun r hr => (hJδ r hr).1) hJδm
+      centered := integral_truncatedField hM'.le hJδm
+      additive := hadd J hM'.le p q Jδ hα0.le hCL hCA (fun a z r => hJb' a z r p q hp hq)
+        (fun r => hJm r p q) hJδm (fun r hr z => (hJδ r hr).2 z)
+        (fun z r₁ r hr₁ hr => (hA z r₁ r hr₁ hr p q hp hq).2) }
+  have hX := hfield X R hR z
+  have hJzm : Measurable fun a => J a z R p q :=
+    (hJm R p q).comp (measurable_id.prodMk measurable_const)
+  have hJzi : Integrable (fun a => J a z R p q) P :=
+    integrable_of_abs_le_of_measurable hJzm fun a => hJb' a z R p q hp hq
+  refine ⟨hJzi, ?_⟩
+  have O1 := (hJδ R hR).2 z
+  obtain ⟨hInt, he⟩ := O1.integrable_and_integral_le hs1.le fun a => abs_nonneg _
+  set e : ℝ := ∫ a, |J a z R p q - Jδ R a z| ∂P with hedef
+  have O2 := hX.osBound_abs
+  have hc2 : 0 < 2 * (CL * R ^ (-α)) := by positivity
+  have O3 : OsBound P (fun _ : Ω => e) s (2 * (CL * R ^ (-α)) / Real.log 2 ^ s⁻¹) :=
+    osBound_of_le_const measurable_const (by linarith) hc2 (Filter.Eventually.of_forall
+      fun _ => he)
+  have hsum := osBound_add (osBound_add O1 O2 hs1.le) O3 hs1.le
+  have hRαβ : R ^ (-α) ≤ R ^ (-β) := Real.rpow_le_rpow_of_exponent_le hR (by linarith)
+  have hRβ : 0 ≤ R ^ (-β) := Real.rpow_nonneg hR0.le _
+  refine (hsum.mono_scale ?_).of_le
+    (continuous_abs.measurable.comp (hJzm.sub measurable_const)) fun a => ?_
+  · have h1 : CL * R ^ (-α) ≤ CL * R ^ (-β) := mul_le_mul_of_nonneg_left hRαβ hCL.le
+    have h3 : 2 * (CL * R ^ (-α)) / Real.log 2 ^ s⁻¹ ≤ 2 * CL / Real.log 2 ^ s⁻¹ * R ^ (-β) := by
+      rw [div_mul_eq_mul_div, mul_assoc]
+      exact div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_left h1 (by norm_num)) hl2.le
+    calc CL * R ^ (-α) + (8 : ℝ) ^ s⁻¹ * (4 * (Cf * R ^ (-β))) +
+          2 * (CL * R ^ (-α)) / Real.log 2 ^ s⁻¹
+        ≤ CL * R ^ (-β) + (8 : ℝ) ^ s⁻¹ * (4 * (Cf * R ^ (-β))) +
+          2 * CL / Real.log 2 ^ s⁻¹ * R ^ (-β) := by linarith
+      _ = C' * R ^ (-β) := by rw [hC'def]; ring
+  · show |J a z R p q - ∫ a', J a' z R p q ∂P| ≤
+      |J a z R p q - Jδ R a z| + |X.field R a z| + e
+    have hXa : X.field R a z = clampAt M' (Jδ R a z) - ∫ a', clampAt M' (Jδ R a' z) ∂P :=
+      truncatedField_of_one_le hR a z
+    have hcm : Measurable fun a' => clampAt M' (Jδ R a' z) :=
+      (continuous_clampAt M').measurable.comp ((hJδm R hR).comp measurable_prodMk_right)
+    have hci : Integrable (fun a' => clampAt M' (Jδ R a' z)) P :=
+      integrable_of_abs_le_of_measurable hcm fun a' => abs_clampAt_le hM'.le _
+    have hmean : |(∫ a', clampAt M' (Jδ R a' z) ∂P) - ∫ a', J a' z R p q ∂P| ≤ e := by
+      rw [← integral_sub hci hJzi]
+      refine (abs_integral_le_integral_abs).trans (integral_mono_of_nonneg
+        (Filter.Eventually.of_forall fun _ => abs_nonneg _) hInt
+        (Filter.Eventually.of_forall fun a' => ?_))
+      have := abs_clampAt_sub_le (v := Jδ R a' z) (hJb' a' z R p q hp hq)
+      rw [abs_sub_comm (Jδ R a' z)] at this
+      exact this
+    have hpt := abs_clampAt_sub_le (v := Jδ R a z) (hJb' a z R p q hp hq)
+    rw [abs_sub_comm (Jδ R a z)] at hpt
+    rw [hXa]
+    calc |J a z R p q - ∫ a', J a' z R p q ∂P|
+        = |(J a z R p q - clampAt M' (Jδ R a z)) +
+            (clampAt M' (Jδ R a z) - ∫ a', clampAt M' (Jδ R a' z) ∂P) +
+            ((∫ a', clampAt M' (Jδ R a' z) ∂P) - ∫ a', J a' z R p q ∂P)| := by ring_nf
+      _ ≤ |J a z R p q - clampAt M' (Jδ R a z)| +
+            |clampAt M' (Jδ R a z) - ∫ a', clampAt M' (Jδ R a' z) ∂P| +
+            |(∫ a', clampAt M' (Jδ R a' z) ∂P) - ∫ a', J a' z R p q ∂P| := abs_add_three _ _ _
+      _ ≤ |J a z R p q - Jδ R a z| +
+            |clampAt M' (Jδ R a z) - ∫ a', clampAt M' (Jδ R a' z) ∂P| + e := by
+          rw [abs_sub_comm (J a z R p q)]
+          linarith
+
 end QSH
