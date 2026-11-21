@@ -51,8 +51,7 @@ theorem integrable_euclideanSq_of_memLp {μ : Measure (Vec d)} {g : Vec d → Ve
   exact integrable_finsetSum _ fun i _ => (MemLp.eval hg i).integrable_sq
 
 /-- **The mean of the gradient of a function of `H¹₀(U)` vanishes.** -/
-theorem setIntegral_eq_zero_of_H01 {U : Set (Vec d)} (hUm : MeasurableSet U)
-    (hU : volume U ≠ ⊤) {u : Vec d → ℝ} {g : Vec d → Vec d} (hu : H01 U u g) (i : Fin d) :
+theorem setIntegral_eq_zero_of_H01 {U : Set (Vec d)} (hU : volume U ≠ ⊤) {u : Vec d → ℝ} {g : Vec d → Vec d} (hu : H01 U u g) (i : Fin d) :
     ∫ x in U, g x i = 0 := by
   obtain ⟨-, hg, -, v, hv, -, hconv⟩ := hu
   have hfin : IsFiniteMeasure (volume.restrict U) := ⟨by rw [Measure.restrict_apply_univ]; exact hU.lt_top⟩
@@ -143,5 +142,63 @@ theorem setIntegral_eq_zero_of_H01 {U : Set (Vec d)} (hUm : MeasurableSet U)
   · have := key 1 one_pos
     rw [← hV0', mul_zero] at this
     linarith
+
+/-! ## The bounds on `μ(U, e)` -/
+
+theorem isSpatialTest_zero (U : Set (Vec d)) : IsSpatialTest U (fun _ => 0) :=
+  ⟨contDiff_const, HasCompactSupport.zero, by simp⟩
+
+theorem H01_zero (U : Set (Vec d)) : H01 U (fun _ => 0) (fun _ => 0) := by
+  refine ⟨MemLp.zero, MemLp.zero, fun i => ⟨locallyIntegrableOn_zero, locallyIntegrableOn_zero,
+    fun φ _ => by simp⟩, fun _ => fun _ => 0, fun _ => isSpatialTest_zero U, by simp, ?_⟩
+  have h : ∀ x, gradient (fun _ : Vec d => (0 : ℝ)) x = 0 := fun x => by
+    funext i; simp [gradient, coordinateDerivative]
+  simp [h, euclideanSq, dot]
+
+theorem setAverage_nonneg_of_nonneg {U : Set (Vec d)} {f : Vec d → ℝ} (hf : ∀ x, 0 ≤ f x) :
+    0 ≤ ⨍ x in U, f x ∂volume := by
+  rw [setAverage_eq, smul_eq_mul]
+  exact mul_nonneg (inv_nonneg.mpr measureReal_nonneg) (integral_nonneg hf)
+
+theorem energyDensity_nonneg (a : CoefficientField d Λ) (e g : Vec d) (x : Vec d) :
+    0 ≤ (1 / 2 : ℝ) * dot (e + g) ((a x).mulVec (e + g)) :=
+  mul_nonneg (by norm_num) ((euclideanSq_nonneg _).trans (a.elliptic x _).1)
+
+theorem setAverage_le_of_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hU : volume U ≠ ⊤)
+    {f : Vec d → ℝ} {K : ℝ} (hK : 0 ≤ K) (hf : ∀ x, f x ≤ K) :
+    ⨍ x in U, f x ∂volume ≤ K := by
+  have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hU
+  rw [setAverage_eq, smul_eq_mul]
+  by_cases hint : IntegrableOn f U volume
+  · have h1 : ∫ x in U, f x ≤ ∫ _x in U, K :=
+      integral_mono hint (integrableOn_const hU) hf
+    rw [setIntegral_const, smul_eq_mul] at h1
+    calc (volume.real U)⁻¹ * ∫ x in U, f x ≤ (volume.real U)⁻¹ * (volume.real U * K) :=
+          mul_le_mul_of_nonneg_left h1 (inv_nonneg.mpr hV.le)
+      _ = K := by field_simp
+  · rw [integral_undef hint, mul_zero]
+    exact hK
+
+/-- **`μ(U, e) ≤ ½Λ|e|²`**, from the trial `u = 0`. -/
+theorem dirichletEnergy_le (a : CoefficientField d Λ) {U : Set (Vec d)} (hU0 : volume U ≠ 0)
+    (hU : volume U ≠ ⊤) (hΛ : 0 ≤ Λ) (e : Vec d) :
+    dirichletEnergy a U e ≤ (1 / 2 : ℝ) * Λ * euclideanSq e := by
+  have hmem : (⨍ x in U, (1 / 2 : ℝ) * dot (e + (fun _ : Vec d => (0 : Vec d)) x)
+      ((a x).mulVec (e + (fun _ : Vec d => (0 : Vec d)) x)) ∂volume) ∈
+      {E : ℝ | ∃ (u : Vec d → ℝ) (g : Vec d → Vec d), H01 U u g ∧
+        E = ⨍ x in U, (1 / 2 : ℝ) * dot (e + g x) ((a x).mulVec (e + g x)) ∂volume} :=
+    ⟨_, _, H01_zero U, rfl⟩
+  have hbdd : BddBelow {E : ℝ | ∃ (u : Vec d → ℝ) (g : Vec d → Vec d), H01 U u g ∧
+      E = ⨍ x in U, (1 / 2 : ℝ) * dot (e + g x) ((a x).mulVec (e + g x)) ∂volume} := by
+    refine ⟨0, ?_⟩
+    rintro E ⟨u, g, -, rfl⟩
+    exact setAverage_nonneg_of_nonneg fun x => energyDensity_nonneg a e (g x) x
+  refine (csInf_le hbdd hmem).trans ?_
+  have hK : 0 ≤ (1 / 2 : ℝ) * Λ * euclideanSq e := by
+    have := euclideanSq_nonneg e; positivity
+  refine setAverage_le_of_le hU0 hU hK fun x => ?_
+  have := (a.elliptic x e).2
+  simp only [add_zero]
+  nlinarith
 
 end QSH
