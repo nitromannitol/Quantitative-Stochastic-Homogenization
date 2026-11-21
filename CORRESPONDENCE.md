@@ -116,3 +116,15 @@ of each module names the source files and commits.
   deduced from (5.58) and `0 ≤ J₁(Φ, p, 0) ≤ Λ|p|²` (`norm_toEuclideanCLM_le_of_energyEstimate`).
 - Appendix A for almost surely measurable random variables (`AppA/AlmostSureOsBound.lean`):
   `AEOsBound P X s θ` holds if and only if `X` agrees almost surely with a measurable `Y ≤ O_s(θ)`.
+
+## Chapter 4, opening: Theorem 4.1 (`Ch04/Opening/Theorem41.lean`)
+
+- **Theorem 4.1, (4.2), with `s = 1`** (`averagedCorrectorGradient_of`). The book derives (4.2)
+  from Theorem 4.6. Here (4.2) is deduced from the estimate `|∫ Φ_{z,r} ∇φ_{eᵢ}| ≤ O_s(C r^{-d/2})`
+  in the coordinate directions for one exponent `s ≥ 1` (`CoordinateGradientEstimate`), which is
+  the linear estimate obtained in the proof of the improvement of additivity once the exponent
+  `d/2` is reached, from the linearity of the corrector gradients in the direction
+  (`HasLinearCorrectorGradients`, a property of the construction of Lemma 3.16 by projection), and
+  from the finite energy of the corrected coordinates against the masks
+  (`HasGaussianCorrectorEnergy`, from Lemma 3.17). The exponent is lowered to `1` by
+  `OsBound.mono_exponent`, with the constant `(2e - 1) d C`.
