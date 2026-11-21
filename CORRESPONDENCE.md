@@ -27,8 +27,15 @@ of each module names the source files and commits.
 - **Lemma A.3.** (i) `OsBound.of_mem_Icc` and (ii) `OsBound.mul`, as in the book. A rule that is
   not in the book, `OsBound.mono_exponent`, passes to a smaller exponent on a probability space:
   `X ≤ O_s(θ)` and `0 < s' ≤ s` give `X ≤ O_{s'}((2e - 1)^{1/s'} θ)`.
-- **Lemma A.4.** Only the case `s ≥ 1` with `C_s = 1` for finite sums is formalized
-  (`osBound_finset_sum`); the general measure and the case `s < 1` are not.
+- **Lemma A.4.** The case `s ≥ 1` with `C_s = 1` is `osBound_integral`, for an s-finite measure
+  `μ`, a positive measurable and integrable scale `θ` with `∫ θ dμ > 0`, and a jointly measurable
+  family; it also states that `x ↦ X(x)` is almost surely `μ`-integrable, so that `∫ X dμ` is a
+  Bochner integral. The proof is Jensen's inequality for the probability measure
+  `θ dμ / ∫ θ dμ`, as in the book. For finite sums there is also `osBound_finset_sum`. The case
+  `s ∈ (0, 1)` is `osBound_integral_of_lt_one`, on a probability space, with the explicit constant
+  `C_s = (1 + (1 - s)/(s log 2))^{1/s}`; the proof is the one of the book (the convex function
+  `y ↦ exp((y + t_s)^s)` is `convexOn_exp_add_rpow`), and the final choice of `σ` is made by
+  Hölder's inequality.
 - **(A.12), `CenteredOsBound P X s θ`.** The condition `log E[exp(λ θ⁻¹ X)] ≤ λ² ∨ |λ|^{s/(s-1)}` is
   stated as `E[exp(λ θ⁻¹ X)] ≤ exp(λ² ∨ |λ|^{s/(s-1)})` together with the integrability of
   `exp(λ θ⁻¹ X)` for every real `λ`; the measurability of `X`, `s ∈ (1, 2]` and `θ > 0` are part
@@ -41,11 +48,13 @@ of each module names the source files and commits.
   bounds of the moment generating function of the library CoarseGraining (quadratic for small
   parameters and mean zero, and the large-parameter regime) in place of Lemmas A.5 and A.8. The
   constant is chosen before the probability space, which ranges over a fixed universe.
-- **Lemma A.10.** `centeredOsBound_integral` is the case of a constant scale `θ` on a finite measure
-  `μ ≠ 0`, with the scale `μ(E) θ = ∫ θ dμ` and `C = 1`, for a jointly measurable family; the book
-  allows a measurable scale `θ(x)` and an arbitrary measure. `exists_centeredOsBound_integral_sub`
-  combines it with Lemma A.9 for the centered average of a bounded family with
-  `|V(x)| ≤ O_s(θ)`.
+- **Lemma A.10.** `centeredOsBound_integral_of_scale`, with `C = 1`, for an s-finite measure `μ`,
+  a positive measurable and integrable scale `θ` with `∫ θ dμ > 0`, and a jointly measurable
+  family; it also states that `x ↦ X(x)` is almost surely `μ`-integrable. The proof is Jensen's
+  inequality for `exp` and the probability measure `θ dμ / ∫ θ dμ`, not Lemmas A.4 and A.9.
+  `centeredOsBound_integral` is the case of a constant scale on a finite measure, and
+  `exists_centeredOsBound_integral_sub` combines it with Lemma A.9 for the centered average of a
+  bounded family with `|V(x)| ≤ O_s(θ)`.
 - **Lemma A.11.** `centeredOsBound_sum`, with `C = √2`, and `centeredOsBound_sum_of_eq_scale`, with
   `C = 1` for equal scales, for a family indexed by a finite type and independent in the sense of
   `iIndepFun`. The scales are positive (the book allows `θᵢ ≥ 0`).
@@ -58,7 +67,18 @@ of each module names the source files and commits.
   `(3R ℤ)^d`. The general forms are `centeredOsBound_lattice_sum` (measurable sets inside the
   cubes) and `centeredOsBound_sum_of_colouring` (any colouring with separated classes, with
   `C = (2N)^{1/2}` for `N` colours).
-- Lemmas A.5, A.7 and A.8 are not formalized.
+- **Lemma A.5.** (A.4) is `exists_log_integral_exp_le_of_osBound`, with the integrability of
+  `exp(λ X)` stated, and is proved from the large-parameter bound of the moment generating
+  function of the library CoarseGraining applied to `X₊`, not by the computation of the book.
+  (A.5) is `osBound_of_log_integral_exp_le`, with `C = 2 · 8^{1/s}`; it assumes the integrability
+  of `exp(λ X)` for `λ ≥ 1` and follows the book (the Chernoff bound at `λ = (x/2)^{s-1}`), with
+  `osBound_of_tail` in place of Lemma A.1 and Remark A.2.
+- **Lemma A.8.** `exists_abs_log_integral_exp_sub_le`: the bound is
+  `|log E[exp(λ X)] - E[X²] λ²/2| ≤ C |λ|³` (the book writes `C λ³`), with the integrability of
+  `exp(2|X|)`, `X²` and `exp(λ X)` stated. The proof is the second-order Taylor bound of `exp`
+  (`abs_exp_sub_quadratic_le`), `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`,
+  instead of the derivatives of `λ ↦ log E[exp(λ X)]`.
+- Lemma A.7 is not formalized.
 
 ## Chapter 4, opening (`Ch04/Opening.lean`)
 
