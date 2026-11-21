@@ -428,6 +428,76 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
     hm₀B hcB hA1 hA4 hA4i hA4E hpos hpi hpint hcomm (hpt r hr p q hp hq y) hE' hG₁ hG₂ hL₂
     hct hCf hG₂0 hCE hmeasG
 
+/-- **The trial gap estimate under `Fluc(s, α)`** from the linear estimate of Step 1, the
+expectation of the trial, the energy bound below the scale and Proposition 3.21 at an exponent
+`τ > s d/2` (Step 2 of the proof of Proposition 4.10 used here). -/
+theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
+      Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
+    {s α τ C μ CN : ℝ} (hd : 1 ≤ d) (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
+    (hτ : s * ((d : ℝ) / 2) < τ) (hC : 0 < C) (hμ : 0 < μ) (hCN : 0 < CN)
+    (hrate : GaussianCorrectorRate P S τ C μ) (hN : GaussianEnergyBound P S τ CN)
+    (hF : FlucJ1 P s α) (h4 : LinearAverageEstimate P S s α)
+    (hE : TrialObjectiveExpectation P S (2 * α)) :
+    TrialGapEstimate P S (s / 2) (2 * α) := by
+  obtain ⟨Xg, hXgm, hXg⟩ := hrate
+  obtain ⟨XN, hXNm, hXN1, hXNos, hXNb⟩ := hN
+  have hτ0 : 0 < τ := lt_of_le_of_lt (by positivity) hτ
+  obtain ⟨r₀, hr₀⟩ : ∃ c : ℝ, c = max 1 ((4 * C) ^ μ⁻¹) := ⟨_, rfl⟩
+  have hr₀1 : 1 ≤ r₀ := hr₀ ▸ le_max_left _ _
+  obtain ⟨M, hM⟩ : ∃ M : CoefficientField d Λ → Vec d → ℝ,
+      M = fun a y => max (max (Xg a y) r₀) (XN a y) := ⟨_, rfl⟩
+  have hM1 : ∀ a y, 1 ≤ M a y := fun a y => by
+    rw [hM]; exact hr₀1.trans ((le_max_right _ _).trans (le_max_left _ _))
+  have hLτ0 : 0 < Real.log 2 ^ τ⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
+  obtain ⟨CM, hCM⟩ : ∃ c : ℝ,
+      c = (2 : ℝ) ^ τ⁻¹ * max ((2 : ℝ) ^ τ⁻¹ * max C (r₀ / Real.log 2 ^ τ⁻¹)) CN := ⟨_, rfl⟩
+  have hCM0 : 0 < CM := by
+    rw [hCM]; exact mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_right hCN)
+  have hMos : ∀ y, OsBound P (fun a => M a y) τ CM := fun y => by
+    rw [hM, hCM]
+    exact osBound_max (osBound_max (hXg y).1 (osBound_of_le_const measurable_const hτ0
+      (zero_lt_one.trans_le hr₀1) (Filter.Eventually.of_forall fun _ => le_rfl))) (hXNos y)
+  obtain ⟨B, hB⟩ : ∃ c : ℝ, c = max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 := ⟨_, rfl⟩
+  have hB0 : 0 ≤ B := by rw [hB]; exact le_max_of_le_right (by norm_num)
+  refine trialGapEstimate_of_pointwise S hΛ hA hspan hmeasJ hmeasL (κ := 8 / 9 * (Λ + 1 / 2))
+    (K := 2 * (Λ + 1) + 2 * CN * B) (B := B) hd hs0 hα hτ hCM0 (by positivity)
+    (by nlinarith [mul_nonneg hCN.le hB0]) hB.ge M hM1 hMos ?_ hF h4 hE
+  intro r hr p q hp hq y
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  filter_upwards [hspan, (hXg y).2, hXNb] with a hsa hga hNa
+  intro k hk
+  have hgood : max (Xg a y) r₀ ≤ r →
+      GaussianAverageBounds a S.homogenized (correctedField S a) y r (min (C * r ^ (-μ)) (1 / 4)) := by
+    intro h
+    have hr₀r : r₀ ≤ r := (le_max_right _ _).trans h
+    have h4C : 4 * C ≤ r ^ μ := by
+      have h1 : (4 * C) ^ μ⁻¹ ≤ r := (hr₀ ▸ le_max_right 1 ((4 * C) ^ μ⁻¹)).trans hr₀r
+      have h2 := Real.rpow_le_rpow (Real.rpow_nonneg (by positivity) _) h1 hμ.le
+      rwa [Real.rpow_inv_rpow (by positivity) hμ.ne'] at h2
+    have hε : C * r ^ (-μ) ≤ 1 / 4 := by
+      rw [Real.rpow_neg hr0.le, ← div_eq_mul_inv, div_le_iff₀ (Real.rpow_pos_of_pos hr0 _)]
+      linarith
+    rw [min_eq_left hε]
+    exact hga r hr ((le_max_left _ _).trans h)
+  have hMa : M a y = max (max (Xg a y) r₀) (XN a y) := by rw [hM]
+  have h := trialGap_pos_le S a hΛ hA hsa y hr (min_le_right _ _) hgood
+    (hMa ▸ le_max_left _ _) (hMa ▸ le_max_right _ _) (zero_le_one.trans (hXN1 a y)) hCN.le
+    hp.le hq.le k (hNa y r hr k).1 (hNa y r hr k).2
+  have hMd : 0 ≤ (M a y / r) ^ d :=
+    pow_nonneg (div_nonneg (zero_le_one.trans (hM1 a y)) hr0.le) _
+  have hK : (2 * (Λ + 1) + 2 * CN * euclideanSq k) * (M a y / r) ^ d ≤
+      (2 * (Λ + 1) + 2 * CN * B) * (M a y / r) ^ d :=
+    mul_le_mul_of_nonneg_right (by nlinarith [mul_le_mul_of_nonneg_left hk hCN.le]) hMd
+  have := le_max_left (J1Heat a y r p q - j1Functional a (heatKernel y r) p q
+    (correctedField S a k)) 0
+  unfold trialValue gradientAverage
+  linarith
+
 end Estimate
 
 end QSH
