@@ -177,7 +177,9 @@ of each module names the source files and commits.
   (`homogenizedMatrixBounds_of_expectedAverages`). `estimate558_of_heatBound_and_rate` is (5.58)
   from the structure (4.12) of `A₁`, Proposition 3.21 at every exponent `τ ∈ (0, d)`, the
   expectations (1) of the averages, the measurability of `J₁`, of the trial and of the flux
-  averages, `HeatIdentityBound`, and the conclusions of Propositions 4.11 and 4.12.
+  averages, `HeatIdentityBound`, and the conclusions of Propositions 4.11 and 4.12. From the same
+  inputs, Theorem 4.6 (i) gives `Fluc(s, d/2)` (`flucJ1_half_dim_of_heat`), and Lemma 4.13 and
+  the linear estimate hold at the exponent `d/2` (`linearAverageEstimate_half_dim`).
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
