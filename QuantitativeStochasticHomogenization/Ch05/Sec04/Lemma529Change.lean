@@ -13,8 +13,8 @@ Regularity*, Lemma 5.29 (iii), for centered local additive fields: for `β ∈ [
 Lemma 5.29 (ii).
 
 The width of the layers is `R^b` with `b = max((1+β)/2, (1+η₁(1+δ))/2)`. The book takes
-`b = (1+β)/2`; Lemma 5.29 (ii) at the scale `R^{η₁}` needs `η₁(1+δ) ≤ b`, which `b = (1+β)/2`
-gives only when `η₁(1+2δ) ≤ 1`.
+`b = (1+β)/2`; Lemma 5.29 (ii) at the scale `R^{η₁}` needs `η₁(1+δ) ≤ b`, which holds for
+`b = (1+β)/2` and every `β ≥ η₁` only when `η₁(1+2δ) ≤ 1`.
 -/
 
 open MeasureTheory ProbabilityTheory
