@@ -129,4 +129,163 @@ theorem heat_weight_decomposition {z : Vec d} {R R' : ℝ} (hR' : 0 < R') {n : �
       simp only [hfr, ↓reduceIte]
       rw [Set.indicator_of_mem hD, zero_add]
 
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {F : Set (Vec d) → MeasurableSpace Ω}
+  {s δ α : ℝ}
+
+theorem CenteredLocalFields.integrable_mul (X : CenteredLocalFields P F s δ α) (r : ℝ) (a : Ω)
+    {w : Vec d → ℝ} (hw : Integrable w) : Integrable fun y => w y * X.field r a y :=
+  hw.mul_bdd ((X.measurable r).comp measurable_prodMk_left).aestronglyMeasurable
+    (Filter.Eventually.of_forall fun y => by rw [Real.norm_eq_abs]; exact X.abs_le r a y)
+
+theorem CenteredLocalFields.abs_heatAverage_le (X : CenteredLocalFields P F s δ α) (r : ℝ)
+    (a : Ω) (x : Vec d) {ρ : ℝ} (hρ : 0 < ρ) :
+    |∫ y, heatKernel x ρ y * X.field r a y| ≤ X.bound := by
+  refine (abs_integral_le_integral_abs).trans ?_
+  calc ∫ y, |heatKernel x ρ y * X.field r a y| ≤ ∫ y, heatKernel x ρ y * X.bound := by
+        refine integral_mono_of_nonneg (Filter.Eventually.of_forall fun y => abs_nonneg _)
+          ((integrable_heatKernel x hρ).mul_const _) (Filter.Eventually.of_forall fun y => ?_)
+        show |heatKernel x ρ y * X.field r a y| ≤ heatKernel x ρ y * X.bound
+        rw [abs_mul, abs_of_nonneg (heatKernel_nonneg x ρ y)]
+        exact mul_le_mul_of_nonneg_left (X.abs_le r a y) (heatKernel_nonneg x ρ y)
+    _ = X.bound := by rw [integral_mul_const, integral_heatKernel x hρ, one_mul]
+
+/-- **The induction step** (4.119), for `R/2 ∈ [1, R₁]`, `r₁ = (R/2)^{η₁} < r`, an auxiliary side
+`R'` with `n R' ≤ R/2 < (n+1) R'`, and the conditions on `r₁` and `R'` that make the induction
+hypothesis applicable at the sides `R/2` and `R'` and the neighbourhoods of radius `r₁^{1+δ}` of
+the large cubes separated. The scale is the sum of the four contributions: Step 1, the large
+cubes, the frame cells and the far part. -/
+theorem centeredOsBound_block_step [IsProbabilityMeasure P] (hd : 1 ≤ d) (hF : HasUnitRange P F)
+    (hmono : Monotone F) (X : CenteredLocalFields P F s δ α) {η₁ η₂ β R₁ C : ℝ}
+    (hA : BlockBound X η₁ η₂ β R₁ C) (hβ : β ≤ (d : ℝ) / 2) (hC : 0 ≤ C) {C₀ : ℝ}
+    (hfar : ∀ (r₁ : ℝ) {z : Vec d} {R ρ t : ℝ}, 0 < R → 0 < ρ → 0 ≤ t → ∀ {f : Vec d → ℝ},
+      Measurable f → (∀ x, |f x| ≤ 1) → (∀ x ∉ closedCube z R, f x = 0) →
+      ∀ {S : Set (Vec d)}, MeasurableSet S →
+      (∀ x ∈ closedCube z R, ∀ y ∈ S, t ≤ euclideanNorm (y - x)) →
+      CenteredOsBound P (fun a => R ^ (-(d : ℝ)) *
+        ∫ y, S.indicator (heatSmooth f ρ) y * X.field r₁ a y) s
+        (C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) * Real.exp (-(t ^ 2 / (8 * ρ ^ 2))))))
+    {R r r₁ R' : ℝ} {n : ℕ} (hR2 : 1 ≤ R / 2) (hRR₁ : R / 2 ≤ R₁) (hr₁ : 1 ≤ r₁)
+    (hr₁r : r₁ < r) (hr₁lo : (R / 2) ^ η₁ ≤ r₁) (hr₁hi : r₁ ≤ (R / 2) ^ η₂)
+    (hsep : 1 < R' - 2 * r₁ ^ (1 + δ)) (hR'1 : 1 ≤ R') (hR'R₁ : R' ≤ R₁)
+    (hr₁lo' : R' ^ η₁ ≤ r₁) (hr₁hi' : r₁ ≤ R' ^ η₂) (hρ₁ : r₁ ^ (1 + δ) ≤ R' / 2)
+    (hn : (n : ℝ) * R' ≤ R / 2) (hn' : R / 2 < ((n : ℝ) + 1) * R') (z : Vec d)
+    {f : Vec d → ℝ} (hf : Measurable f) (hf1 : ∀ x, |f x| ≤ 1)
+    (hfz : ∀ x ∉ closedCube z R, f x = 0) :
+    CenteredOsBound P (fun a => R ^ (-(d : ℝ)) * ∫ x, f x * X.field r a x) s
+      (X.addConst * r₁ ^ (-α) + C * R ^ (-β) +
+        R ^ (-(d : ℝ)) * (Real.sqrt (2 * 4 ^ d) * (Real.sqrt (latticeFrame d (n + 2) n).card *
+          (R' ^ d * (C * R' ^ (-β))))) +
+        C₀ * (X.bound * 2 ^ ((d : ℝ) / 2) *
+          Real.exp (-(R' ^ 2 / (8 * Real.sqrt (r ^ 2 - r₁ ^ 2) ^ 2))))) := by
+  classical
+  have hR0 : 0 < R := by linarith
+  have hR'0 : 0 < R' := zero_lt_one.trans_le hR'1
+  set ρ : ℝ := Real.sqrt (r ^ 2 - r₁ ^ 2) with hρdef
+  have hρ : 0 < ρ := Real.sqrt_pos.mpr (by nlinarith)
+  set g : Vec d → ℝ := heatSmooth f ρ with hgdef
+  have hfi := integrable_of_abs_le_one_of_closedCube hf hf1 hR0.le hfz
+  have hgm : Measurable g := measurable_heatSmooth hf ρ
+  have hgi : Integrable g := integrable_heatSmooth hfi hf hρ
+  have hg1 : ∀ y, |g y| ≤ 1 := abs_heatSmooth_le_one hf1 hρ
+  set U : Set (Vec d) := bigCubesAt z R R' with hUdef
+  set T : Finset (LatticeIndex d) := latticeFrame d (n + 2) n with hTdef
+  set S : Set (Vec d) := (boxAt z R' (n + 2))ᶜ with hSdef
+  have hSm : MeasurableSet S := (measurableSet_boxAt z hR'0 _).compl
+  have hT : T.Nonempty :=
+    ⟨0, Finset.mem_filter.mpr ⟨mem_latticeBox.mpr fun i => by
+      simp only [Pi.zero_apply, abs_zero]; positivity, ⟨0, hd⟩, Or.inl rfl⟩⟩
+  have hT1 := centeredOsBound_block_additivity_defect X hr₁ hr₁r hR0 hf hf1 hfz
+  have hT2 := centeredOsBound_sum_bigCubes hF hmono X hA hβ hC hR2 hRR₁ hr₁ hr₁lo hr₁hi hsep z
+    hgm hg1
+  have hcm : ∀ k, Measurable ((cellAt z R' k \ U).indicator g) := fun k =>
+    hgm.indicator ((measurableSet_cellAt z R' k).diff (measurableSet_bigCubesAt z R R'))
+  have hc1 : ∀ k y, |(cellAt z R' k \ U).indicator g y| ≤ 1 := by
+    intro k y
+    by_cases hy : y ∈ cellAt z R' k \ U
+    · rw [Set.indicator_of_mem hy]; exact hg1 y
+    · rw [Set.indicator_of_notMem hy, abs_zero]; exact zero_le_one
+  have hcz : ∀ k y, y ∉ closedCube (z + R' • latticeShift k) R' →
+      (cellAt z R' k \ U).indicator g y = 0 := fun k y hy =>
+    Set.indicator_of_notMem (fun h => hy (cellAt_subset_closedCube z R' k h.1)) _
+  have hT3 := (centeredOsBound_sum_cells hF hmono X hA hC hR'1 hR'R₁ hr₁ hr₁lo' hr₁hi' hρ₁ z T
+    hT hcm hc1 hcz).const_mul (Real.rpow_pos_of_pos hR0 (-(d : ℝ)))
+  have hfarS : ∀ x ∈ closedCube z R, ∀ y ∈ S, R' ≤ euclideanNorm (y - x) := by
+    intro x hx y hy
+    obtain ⟨i, hi⟩ := exists_le_abs_of_cellIndex_notMem hR'0 hy
+    have hxi := hx i
+    have h1 : |y i - x i| ≤ euclideanNorm (y - x) := by
+      simpa using abs_apply_le_euclideanNorm' (y - x) i
+    have h2 : |(y - z) i| ≤ |y i - x i| + |x i - z i| := by
+      simp only [Pi.sub_apply]
+      calc |y i - z i| = |(y i - x i) + (x i - z i)| := by ring_nf
+        _ ≤ |y i - x i| + |x i - z i| := abs_add_le _ _
+    push_cast at hi
+    nlinarith
+  have hT4 := hfar r₁ hR0 hρ hR'0.le hf hf1 hfz hSm hfarS
+  rw [← hgdef] at hT4
+  have hsum := ((hT1.add hT2).add hT3).add hT4
+  refine hsum.congr_ae (measurable_block X r hf _) (Filter.Eventually.of_forall fun a => ?_)
+  have hDint : Integrable fun x => f x * (X.field r a x -
+      ∫ y, heatKernel x ρ y * X.field r₁ a y) := by
+    refine hfi.mul_bdd (c := 2 * X.bound) ?_ (Filter.Eventually.of_forall fun x => ?_)
+    · exact (((X.measurable r).comp measurable_prodMk_left).sub
+        ((measurable_heatAverage _ (X.measurable r₁) ρ).comp measurable_prodMk_left)).aestronglyMeasurable
+    · rw [Real.norm_eq_abs]
+      refine (abs_sub _ _).trans ?_
+      have := X.abs_le r a x
+      have := X.abs_heatAverage_le r₁ a x hρ
+      linarith
+  have hHint : Integrable fun x => f x * ∫ y, heatKernel x ρ y * X.field r₁ a y := by
+    refine hfi.mul_bdd (c := X.bound) ?_ (Filter.Eventually.of_forall fun x => ?_)
+    · exact ((measurable_heatAverage _ (X.measurable r₁) ρ).comp
+        measurable_prodMk_left).aestronglyMeasurable
+    · rw [Real.norm_eq_abs]
+      exact X.abs_heatAverage_le r₁ a x hρ
+  have hsplit1 : ∫ x, f x * X.field r a x = (∫ x, f x * (X.field r a x -
+      ∫ y, heatKernel x ρ y * X.field r₁ a y)) +
+      ∫ x, f x * ∫ y, heatKernel x ρ y * X.field r₁ a y := by
+    rw [← integral_add hDint hHint]
+    congr 1
+    funext x
+    ring
+  have hfub := integral_mul_heat_eq hfi hρ (G := fun y => X.field r₁ a y)
+    ((X.measurable r₁).comp measurable_prodMk_left) (X.abs_le r₁ a)
+  have hpoint : (fun y => g y * X.field r₁ a y) = fun y =>
+      (∑ σ : Fin d → Bool, (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y) +
+      (∑ k ∈ T, (cellAt z R' k \ U).indicator g y * X.field r₁ a y) +
+      S.indicator g y * X.field r₁ a y := by
+    funext y
+    rw [heat_weight_decomposition hR'0 hn hn' g y, add_mul, add_mul, Finset.sum_mul,
+      Finset.sum_mul]
+  have hiσ : ∀ σ, Integrable fun y => (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y :=
+    fun σ => X.integrable_mul r₁ a (hgi.indicator (measurableSet_closedCube _ _))
+  have hik : ∀ k, Integrable fun y => (cellAt z R' k \ U).indicator g y * X.field r₁ a y :=
+    fun k => X.integrable_mul r₁ a (hgi.indicator ((measurableSet_cellAt z R' k).diff
+      (measurableSet_bigCubesAt z R R')))
+  have hiS : Integrable fun y => S.indicator g y * X.field r₁ a y :=
+    X.integrable_mul r₁ a (hgi.indicator hSm)
+  have hsplit2 : ∫ y, g y * X.field r₁ a y =
+      (∑ σ : Fin d → Bool, ∫ y, (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y) +
+      (∑ k ∈ T, ∫ y, (cellAt z R' k \ U).indicator g y * X.field r₁ a y) +
+      ∫ y, S.indicator g y * X.field r₁ a y := by
+    have hA1 : Integrable fun y => ∑ σ : Fin d → Bool,
+        (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y :=
+      integrable_finsetSum _ fun σ _ => hiσ σ
+    have hA2 : Integrable fun y => ∑ k ∈ T, (cellAt z R' k \ U).indicator g y * X.field r₁ a y :=
+      integrable_finsetSum _ fun k _ => hik k
+    rw [hpoint]
+    calc ∫ y, ((∑ σ : Fin d → Bool, (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y) +
+          (∑ k ∈ T, (cellAt z R' k \ U).indicator g y * X.field r₁ a y) +
+          S.indicator g y * X.field r₁ a y)
+        = (∫ y, ((∑ σ : Fin d → Bool, (bigCubeAt z R R' σ).indicator g y * X.field r₁ a y) +
+          (∑ k ∈ T, (cellAt z R' k \ U).indicator g y * X.field r₁ a y))) +
+          ∫ y, S.indicator g y * X.field r₁ a y := integral_add (hA1.add hA2) hiS
+      _ = _ := by
+        rw [integral_add hA1 hA2, integral_finsetSum _ fun σ _ => hiσ σ,
+          integral_finsetSum _ fun k _ => hik k]
+  show _ = R ^ (-(d : ℝ)) * ∫ x, f x * X.field r a x
+  beta_reduce
+  rw [hsplit1, hfub, hsplit2]
+  ring
+
 end QSH
