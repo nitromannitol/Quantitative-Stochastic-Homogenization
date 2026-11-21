@@ -246,4 +246,48 @@ theorem polarization_pair_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (
 
 end Polarizations
 
+section EnergyBounds
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **The averaged gradient and flux of a corrected coordinate from the energy bound**:
+`|P eₗ| ≤ √C_N (1 + (X/r)^{d/2})` and `|F eₗ| ≤ Λ √C_N (1 + (X/r)^{d/2})` when the averaged energy
+is at most `C_N (1 + (X/r)^d)`. -/
+theorem averages_le_of_energy (S : HomogenizationData P) (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ)
+    (y : Vec d) {r : ℝ} (hr : 0 < r) {CN X : ℝ} (hCN : 0 ≤ CN) (hX : 0 ≤ X) (l : Fin d)
+    (hint : Integrable (fun x => heatKernel y r x • correctedField S a (unitVector l) x) ∧
+      Integrable (fun x => heatKernel y r x • (a x).mulVec (correctedField S a (unitVector l) x)) ∧
+      Integrable (fun x => heatKernel y r x *
+        dot (correctedField S a (unitVector l) x) ((a x).mulVec (correctedField S a (unitVector l) x))))
+    (hE : (∫ x, heatKernel y r x * dot (correctedField S a (unitVector l) x)
+        ((a x).mulVec (correctedField S a (unitVector l) x))) ≤
+      CN * (1 + (X / r) ^ d) * euclideanSq (unitVector l : Vec d)) :
+    euclideanNorm (gradientAverage S a y r (unitVector l)) ≤
+        Real.sqrt CN * (1 + (X / r) ^ ((d : ℝ) / 2)) ∧
+      euclideanNorm (fluxAverage S a y r (unitVector l)) ≤
+        Λ * (Real.sqrt CN * (1 + (X / r) ^ ((d : ℝ) / 2))) := by
+  obtain ⟨h1, h2⟩ := euclideanSq_averages_le_energy a hΛ y hr hint.1 hint.2.1 hint.2.2
+  have hel : euclideanSq (unitVector l : Vec d) = 1 := by
+    rw [← euclideanNorm_sq, euclideanNorm_unitVector]; norm_num
+  rw [hel, mul_one] at hE
+  have ht : 0 ≤ X / r := div_nonneg hX hr.le
+  have hpow : ((X / r) ^ ((d : ℝ) / 2)) ^ 2 = (X / r) ^ d := by
+    rw [← Real.rpow_natCast ((X / r) ^ ((d : ℝ) / 2)), ← Real.rpow_mul ht, ← Real.rpow_natCast]
+    congr 1; push_cast; ring
+  have hp0 : 0 ≤ (X / r) ^ ((d : ℝ) / 2) := Real.rpow_nonneg ht _
+  have hN0 : 0 ≤ Real.sqrt CN * (1 + (X / r) ^ ((d : ℝ) / 2)) := by positivity
+  have hsq : CN * (1 + (X / r) ^ d) ≤ (Real.sqrt CN * (1 + (X / r) ^ ((d : ℝ) / 2))) ^ 2 := by
+    rw [mul_pow, Real.sq_sqrt hCN, ← hpow]
+    nlinarith [mul_nonneg hCN hp0]
+  constructor
+  · have := (h1.trans hE).trans hsq
+    rw [← euclideanNorm_sq] at this
+    exact abs_le_of_sq_le_sq' this hN0 |>.2
+  · have := (h2.trans (mul_le_mul_of_nonneg_left hE (sq_nonneg Λ))).trans
+      (mul_le_mul_of_nonneg_left hsq (sq_nonneg Λ))
+    rw [← euclideanNorm_sq, ← mul_pow] at this
+    exact abs_le_of_sq_le_sq' this (mul_nonneg hΛ hN0) |>.2
+
+end EnergyBounds
+
 end QSH
