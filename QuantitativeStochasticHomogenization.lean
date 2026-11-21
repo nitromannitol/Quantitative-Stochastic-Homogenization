@@ -86,6 +86,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec01.J1GaussianEnergy
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatFormula
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatGram
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatSharpBound
+import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatNorm
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatMeasurability
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1Quadratic
 import QuantitativeStochasticHomogenization.Ch04.Sec01.QuadraticEntryBounds
