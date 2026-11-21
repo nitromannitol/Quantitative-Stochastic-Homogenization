@@ -1,3 +1,4 @@
+import QuantitativeStochasticHomogenization.AppA.OsNotation
 import QuantitativeStochasticHomogenization.Ch04.Opening
 import QuantitativeStochasticHomogenization.Front.Notation
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatHessianCauchy
@@ -30,13 +31,6 @@ def HasGaussianMoments (f : Vec d → ℝ) : Prop :=
   ∀ s : ℝ, 0 < s → ∀ ρ : ℝ, ∃ B : ℝ, ∀ x : Vec d, euclideanNorm x ≤ ρ →
     Integrable (fun y => euclideanHeatKernel s (x - y) * |f y|) volume ∧
     ∫ y, euclideanHeatKernel s (x - y) * |f y| ≤ B
-
-theorem abs_apply_le_euclideanNorm (x : Vec d) (i : Fin d) : |x i| ≤ euclideanNorm x := by
-  rw [euclideanNorm, ← Real.sqrt_sq_eq_abs]
-  refine Real.sqrt_le_sqrt ?_
-  have h := Finset.single_le_sum (f := fun l => x l * x l) (fun l _ => mul_self_nonneg (x l))
-    (Finset.mem_univ i)
-  simpa [euclideanSq, dot, sq] using h
 
 theorem norm_le_euclideanNorm' (x : Vec d) : ‖x‖ ≤ euclideanNorm x :=
   (pi_norm_le_iff_of_nonneg (by unfold euclideanNorm; positivity)).mpr fun i => by

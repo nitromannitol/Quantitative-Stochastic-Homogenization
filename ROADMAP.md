@@ -6,36 +6,36 @@
 
 The numbered results below are those of the Springer edition of the book (Armstrong, Kuusi and Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*, Grundlehren der mathematischen Wissenschaften 352, 2019), read from its text: definitions, theorems, propositions, lemmas and corollaries, by chapter and section. The counter of a chapter is shared with remarks, examples and exercises, which are not listed, so the numbers are not consecutive. The numbering differs from that of the arXiv version (arXiv:1705.05300v2), in which exercises have their own counter: for instance Proposition 5.14 here is Proposition 5.9 there. The appendices have no sections and one module each. In Appendix A, A.2 is a remark and A.6 an exercise.
 
-A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)) and `proved`.
+A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 14 of them are in progress (moving from einstein-relation-lean) and none is proved yet.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 1 is in progress.
 
 ## Moving from einstein-relation-lean
 
-- In progress: the `O_s` calculus of Appendix A (Lemmas A.1, A.3–A.5 and A.7–A.12), Definitions 4.7–4.9, and Theorem 4.6, parts (i), (iii) and (iv), conditional on Propositions 4.10–4.12.
+- Moved: the `O_s` calculus of Appendix A (all its numbered results, Lemmas A.1, A.3–A.5 and A.7–A.12, proved), Definitions 4.7–4.9, Theorem 4.6, parts (i), (iii) and (iv), conditional on Propositions 4.10–4.12, and the semigroup property of the heat kernel (Chapter 4, opening).
 - Proved inside einstein-relation-lean and to move here later: Lemma 3.17, Lemma 6.1 and Proposition 6.2, in the form used as the sublinear corrector input, and Proposition 5.14 (the existence of white noise).
 
 ## Summary by chapter
 
-| Chapter | Title | Numbered results | In progress |
-| --- | --- | --- | --- |
-| 1 | Introduction and Qualitative Theory | 12 | 0 |
-| 2 | Convergence of the Subadditive Quantities | 12 | 0 |
-| 3 | Regularity on Large Scales | 23 | 0 |
-| 4 | Quantitative Description of First-Order Correctors | 25 | 4 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 0 |
-| 6 | Quantitative Two-Scale Expansions | 13 | 0 |
-| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 |
-| 8 | Estimates for Parabolic Problems | 19 | 0 |
-| 9 | Decay of the Parabolic Semigroup | 18 | 0 |
-| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 |
-| 11 | Nonlinear Equations | 12 | 0 |
-| Appendix A | The O_s Notation | 10 | 10 |
-| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 |
-| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 |
-| Appendix D | Sobolev Norms and Heat Flow | 5 | 0 |
-| Appendix E | Parabolic Green Functions | 7 | 0 |
-| | **Total** | **226** | **14** |
+| Chapter | Title | Numbered results | Proved or defined | In progress |
+| --- | --- | --- | --- | --- |
+| 1 | Introduction and Qualitative Theory | 12 | 0 | 0 |
+| 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
+| 3 | Regularity on Large Scales | 23 | 0 | 0 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 3 | 1 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 0 |
+| 6 | Quantitative Two-Scale Expansions | 13 | 0 | 0 |
+| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
+| 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
+| 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
+| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 | 0 |
+| 11 | Nonlinear Equations | 12 | 0 | 0 |
+| Appendix A | The O_s Notation | 10 | 10 | 0 |
+| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
+| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
+| Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
+| Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
+| | **Total** | **226** | **13** | **1** |
 
 ## Front matter
 
@@ -184,10 +184,10 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.6 | The additive structure of J₁ | in progress (moving from einstein-relation-lean): parts (i), (iii), (iv), conditional on Propositions 4.10–4.12; part (ii) not started |
-| Definition 4.7 | Add(s, α) | in progress (moving from einstein-relation-lean) |
-| Definition 4.8 | Fluc(s, α) | in progress (moving from einstein-relation-lean) |
-| Definition 4.9 | Loc(s, δ, α) | in progress (moving from einstein-relation-lean) |
+| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (ii) not started |
+| Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
+| Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
+| Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
 | Proposition 4.10 | Improvement of additivity | not started |
 | Proposition 4.11 | Localization estimates | not started |
 | Proposition 4.12 | Fluctuation estimates | not started |
@@ -502,16 +502,16 @@ Module `AppA/OsNotation.lean`.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma A.1 | Tail probability | in progress (moving from einstein-relation-lean) |
-| Lemma A.3 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.4 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.5 | Laplace transform | in progress (moving from einstein-relation-lean) |
-| Lemma A.7 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.8 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.9 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.10 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.11 |  | in progress (moving from einstein-relation-lean) |
-| Lemma A.12 |  | in progress (moving from einstein-relation-lean) |
+| Lemma A.1 | Tail probability | proved |
+| Lemma A.3 |  | proved |
+| Lemma A.4 |  | proved (see CORRESPONDENCE.md) |
+| Lemma A.5 | Laplace transform | proved (see CORRESPONDENCE.md) |
+| Lemma A.7 |  | proved (see CORRESPONDENCE.md) |
+| Lemma A.8 |  | proved (see CORRESPONDENCE.md) |
+| Lemma A.9 |  | proved (see CORRESPONDENCE.md) |
+| Lemma A.10 |  | proved (see CORRESPONDENCE.md) |
+| Lemma A.11 |  | proved |
+| Lemma A.12 |  | proved (see CORRESPONDENCE.md) |
 
 ## Appendix B: Function Spaces and Elliptic Equations on Lipschitz Domains
 

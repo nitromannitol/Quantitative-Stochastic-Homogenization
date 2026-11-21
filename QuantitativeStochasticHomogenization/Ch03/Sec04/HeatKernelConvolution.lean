@@ -32,15 +32,6 @@ theorem euclideanHeatKernel_nonneg {t : ℝ} (ht : 0 ≤ t) (x : Vec d) :
     0 ≤ euclideanHeatKernel t x := by
   exact mul_nonneg (Real.rpow_nonneg (by positivity) _) (Real.exp_pos _).le
 
-/-- Product representation of the Euclidean heat kernel. -/
-theorem euclideanHeatKernel_eq_prod (t : ℝ) (z : Vec d) :
-    euclideanHeatKernel t z =
-      (4 * Real.pi * t) ^ (-(d : ℝ) / 2) * ∏ i, Real.exp (-(z i * z i) / (4 * t)) := by
-  unfold euclideanHeatKernel
-  rw [← Real.exp_sum]
-  congr 2
-  simp only [euclideanSq, dot, neg_div, Finset.sum_div, Finset.sum_neg_distrib]
-
 /-- Absolute integrability of the heat kernel at positive times. -/
 theorem integrable_euclideanHeatKernel {t : ℝ} (ht : 0 < t) :
     Integrable (euclideanHeatKernel (d := d) t) := by
