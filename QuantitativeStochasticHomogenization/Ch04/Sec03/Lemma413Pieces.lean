@@ -182,4 +182,57 @@ theorem mean_polarization_near_inverse [IsProbabilityMeasure P] (S : Homogenizat
 
 end MeanNear
 
+/-- `∑ |vᵢ| ≤ √d |v|`. -/
+theorem sum_abs_le_sqrt_mul_euclideanNorm (v : Vec d) :
+    ∑ i, |v i| ≤ Real.sqrt d * euclideanNorm v := by
+  have h := Finset.sum_mul_sq_le_sq_mul_sq Finset.univ (fun _ => (1 : ℝ)) (fun i => |v i|)
+  simp only [one_pow, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one,
+    one_mul, sq_abs] at h
+  have h2 : (∑ i, v i ^ 2) = euclideanNorm v ^ 2 := by
+    rw [euclideanNorm_sq]; simp only [euclideanSq, dot, sq]
+  rw [h2] at h
+  have h0 : 0 ≤ ∑ i, |v i| := Finset.sum_nonneg fun i _ => abs_nonneg _
+  have h3 : 0 ≤ Real.sqrt d * euclideanNorm v :=
+    mul_nonneg (Real.sqrt_nonneg _) (euclideanNorm_nonneg v)
+  apply abs_le_of_sq_le_sq' _ h3 |>.2
+  rw [mul_pow, Real.sq_sqrt (Nat.cast_nonneg d)]
+  exact h
+
+/-- **Columns close imply operators close**: if `|B eᵢ - A eᵢ| ≤ δ` for all `i`, then
+`|(B - A) v| ≤ √d δ |v|`. -/
+theorem euclideanNorm_sub_mulVec_le_of_columns {A B : Mat d} {δ : ℝ} (hδ : 0 ≤ δ)
+    (h : ∀ i, euclideanNorm (B.mulVec (unitVector i) - A.mulVec (unitVector i)) ≤ δ) (v : Vec d) :
+    euclideanNorm ((B - A).mulVec v) ≤ Real.sqrt d * δ * euclideanNorm v := by
+  have hv : v = ∑ i, v i • (unitVector i : Vec d) := by
+    funext k; simp [unitVector, Pi.single_apply, Finset.sum_apply]
+  have hsum : (B - A).mulVec v = ∑ i, v i • (B.mulVec (unitVector i) - A.mulVec (unitVector i)) := by
+    conv_lhs => rw [hv]
+    rw [Matrix.mulVec_sum]
+    simp only [Matrix.mulVec_smul, Matrix.sub_mulVec]
+  rw [hsum]
+  have hnorm : ∀ (s : Finset (Fin d)) (w : Fin d → Vec d),
+      euclideanNorm (∑ i ∈ s, w i) ≤ ∑ i ∈ s, euclideanNorm (w i) := by
+    intro s w
+    induction s using Finset.induction_on with
+    | empty => simp [euclideanNorm, euclideanSq, dot]
+    | insert i s hi ih =>
+      rw [Finset.sum_insert hi, Finset.sum_insert hi]
+      exact (euclideanNorm_add_le _ _).trans (by linarith)
+  refine (hnorm _ _).trans ?_
+  calc ∑ i, euclideanNorm (v i • (B.mulVec (unitVector i) - A.mulVec (unitVector i)))
+      ≤ ∑ i, |v i| * δ := Finset.sum_le_sum fun i _ => by
+        rw [euclideanNorm_smul]; exact mul_le_mul_of_nonneg_left (h i) (abs_nonneg _)
+    _ = (∑ i, |v i|) * δ := by rw [Finset.sum_mul]
+    _ ≤ Real.sqrt d * euclideanNorm v * δ :=
+        mul_le_mul_of_nonneg_right (sum_abs_le_sqrt_mul_euclideanNorm v) hδ
+    _ = Real.sqrt d * δ * euclideanNorm v := by ring
+
+theorem euclideanNorm_finset_sum_le (s : Finset (Fin d)) (w : Fin d → Vec d) :
+    euclideanNorm (∑ i ∈ s, w i) ≤ ∑ i ∈ s, euclideanNorm (w i) := by
+  induction s using Finset.induction_on with
+  | empty => simp [euclideanNorm, euclideanSq, dot]
+  | insert i s hi ih =>
+    rw [Finset.sum_insert hi, Finset.sum_insert hi]
+    exact (euclideanNorm_add_le _ _).trans (by linarith)
+
 end QSH
