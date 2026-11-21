@@ -132,7 +132,7 @@ theorem heatTaylor {χ : Vec d → ℝ} (hχ : ContDiff ℝ ∞ χ) (hcχ : HasC
       x).mono Icc_subset_Ici_self
   have hQ : ContinuousOn (heatTaylorSum (m + 1) χ x) (Icc 0 1) := by
     unfold heatTaylorSum
-    exact continuousOn_finset_sum _ fun k _ =>
+    exact continuousOn_finsetSum _ fun k _ =>
       ((continuous_neg.pow k).div_const _).continuousOn.mul (hcont k)
   have hQ' : IntervalIntegrable (fun s : ℝ => (-s) ^ m / (m ! : ℝ) *
       heatPath (iterLaplacian (m + 1) χ) x s) volume 0 1 := by
