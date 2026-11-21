@@ -58,6 +58,14 @@ theorem AEOsBound.const_mul {X : Ω → ℝ} {s θ c : ℝ} (h : AEOsBound P X s
   obtain ⟨Y, hXY, hY⟩ := h.exists_osBound
   exact (hY.const_mul hc).aeOsBound_of_ae_eq (hXY.mono fun ω hω => by simp only [hω])
 
+theorem AEOsBound.add {X Y : Ω → ℝ} {s θ₁ θ₂ : ℝ} (hX : AEOsBound P X s θ₁)
+    (hY : AEOsBound P Y s θ₂) (hs : 1 ≤ s) : AEOsBound P (fun ω => X ω + Y ω) s (θ₁ + θ₂) := by
+  obtain ⟨X', hXX', hX'⟩ := hX.exists_osBound
+  obtain ⟨Y', hYY', hY'⟩ := hY.exists_osBound
+  refine (osBound_add hX' hY' hs).aeOsBound_of_ae_eq ?_
+  filter_upwards [hXX', hYY'] with ω h1 h2
+  rw [h1, h2]
+
 theorem aeOsBound_finset_sum {ι : Type*} (I : Finset ι) (hI : I.Nonempty) {X : ι → Ω → ℝ}
     {s : ℝ} {θ : ι → ℝ} (hs : 1 ≤ s) (hX : ∀ i ∈ I, AEOsBound P (X i) s (θ i)) :
     AEOsBound P (fun ω => ∑ i ∈ I, X i ω) s (∑ i ∈ I, θ i) := by
