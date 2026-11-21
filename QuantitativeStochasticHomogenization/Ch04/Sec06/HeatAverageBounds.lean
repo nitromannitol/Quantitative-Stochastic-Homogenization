@@ -122,4 +122,102 @@ theorem lintegral_euclideanHeatKernel_originBall_le {s : ℝ} (hs : 0 < s) (hs1 
             ≤ 2 ^ ((d : ℝ) / 2) * (Real.exp (1 / 16) * Real.exp (-(‖x‖ ^ 2) / 32)) := by gcongr
           _ = _ := by ring
 
+/-- **Young's inequality for the heat averages**: for `0 < s ≤ 1`,
+`‖Y_{β,s}(F)‖_{L²(B_1)} ≤ C_β (2s)^{-|β|/2} (∫ |F|² exp(-‖x‖²/32))^{1/2}`. -/
+theorem eLpNorm_heatDerivativeAverage_le {k : ℕ} (β : Fin d → Fin (k + 1)) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ s : ℝ, 0 < s → s ≤ 1 → ∀ F : Vec d → ℝ,
+      AEStronglyMeasurable F volume →
+      eLpNorm (heatDerivativeAverage β s F) 2 (volume.restrict (originBall d 1)) ≤
+        ENNReal.ofReal (C * (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (β i).val)) *
+          (∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) ^
+            (1 / 2 : ℝ) := by
+  obtain ⟨C₀, hC₀, hk⟩ := abs_multiIndexDerivative_euclideanHeatKernel_le (d := d) β
+  set Cw := 2 ^ ((d : ℝ) / 2) * Real.exp (1 / 16) with hCw
+  have hCw0 : 0 ≤ Cw := by positivity
+  refine ⟨C₀ * Real.sqrt Cw, by positivity, fun s hs hs1 F hFm => ?_⟩
+  set q := (Real.sqrt (2 * s))⁻¹ ^ (∑ i, (β i).val) with hq
+  have hq0 : 0 ≤ q := by positivity
+  set c := C₀ * q with hc
+  have hc0 : 0 ≤ c := mul_nonneg hC₀ hq0
+  have hs2 : 0 < 2 * s := by positivity
+  have hKc : Continuous (euclideanHeatKernel (d := d) (2 * s)) :=
+    (contDiff_euclideanHeatKernel (2 * s)).continuous
+  set ρ : Vec d → Vec d → ℝ≥0∞ := fun y x => ENNReal.ofReal (euclideanHeatKernel (2 * s) (x - y))
+    with hρ
+  have hρm : ∀ y, Measurable (ρ y) := fun y =>
+    ENNReal.measurable_ofReal.comp (hKc.measurable.comp (measurable_id.sub_const y))
+  have hρm' : ∀ x, Measurable (fun y => ρ y x) := fun x =>
+    ENNReal.measurable_ofReal.comp (hKc.measurable.comp (measurable_const.sub measurable_id))
+  have hρ1 : ∀ y, ∫⁻ x, ρ y x = 1 := fun y => lintegral_euclideanHeatKernel_sub hs2 y
+  have hg : AEMeasurable (fun x => ‖F x‖ₑ) volume := hFm.enorm
+  have hY : ∀ y, ‖heatDerivativeAverage β s F y‖ₑ ^ (2 : ℝ) ≤
+      ENNReal.ofReal c ^ (2 : ℝ) * ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ρ y x := fun y => by
+    have h1 : ‖heatDerivativeAverage β s F y‖ₑ ≤ ENNReal.ofReal c * ∫⁻ x, ‖F x‖ₑ * ρ y x := by
+      unfold heatDerivativeAverage
+      refine (enorm_integral_le_lintegral_enorm _).trans ?_
+      rw [← lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+      refine lintegral_mono fun x => ?_
+      rw [enorm_mul, mul_left_comm]
+      gcongr
+      calc ‖multiIndexDerivative β (euclideanHeatKernel (d := d) s) (x - y)‖ₑ
+          = ENNReal.ofReal |multiIndexDerivative β (euclideanHeatKernel (d := d) s) (x - y)| :=
+            Real.enorm_eq_ofReal_abs _
+        _ ≤ ENNReal.ofReal (c * euclideanHeatKernel (2 * s) (x - y)) :=
+            ENNReal.ofReal_le_ofReal (hk s hs (x - y))
+        _ = ENNReal.ofReal c * ρ y x := ENNReal.ofReal_mul hc0
+    calc ‖heatDerivativeAverage β s F y‖ₑ ^ (2 : ℝ)
+        ≤ (ENNReal.ofReal c * ∫⁻ x, ‖F x‖ₑ * ρ y x) ^ (2 : ℝ) :=
+          ENNReal.rpow_le_rpow h1 (by norm_num)
+      _ = ENNReal.ofReal c ^ (2 : ℝ) * (∫⁻ x, ‖F x‖ₑ * ρ y x) ^ (2 : ℝ) :=
+          ENNReal.mul_rpow_of_nonneg _ _ (by norm_num)
+      _ ≤ ENNReal.ofReal c ^ (2 : ℝ) * ((∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ρ y x) * ∫⁻ x, ρ y x) := by
+          gcongr
+          exact lintegral_mul_rpow_two_le hg (hρm y).aemeasurable
+      _ = _ := by rw [hρ1, mul_one]
+  have hc2 : ENNReal.ofReal c ^ (2 : ℝ) ≠ ⊤ :=
+    ENNReal.rpow_ne_top_of_nonneg (by norm_num) ENNReal.ofReal_ne_top
+  have hmeas : AEMeasurable (Function.uncurry fun y x => ‖F x‖ₑ ^ (2 : ℝ) * ρ y x)
+      ((volume.restrict (originBall d 1)).prod volume) := by
+    refine ((hg.pow_const (2 : ℝ)).comp_snd).mul ?_
+    exact (ENNReal.measurable_ofReal.comp (hKc.measurable.comp
+      (measurable_snd.sub measurable_fst))).aemeasurable
+  have hint : ∫⁻ y in originBall d 1, ‖heatDerivativeAverage β s F y‖ₑ ^ (2 : ℝ) ≤
+      ENNReal.ofReal c ^ (2 : ℝ) * (ENNReal.ofReal Cw *
+        ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) := by
+    calc ∫⁻ y in originBall d 1, ‖heatDerivativeAverage β s F y‖ₑ ^ (2 : ℝ)
+        ≤ ∫⁻ y in originBall d 1, ENNReal.ofReal c ^ (2 : ℝ) *
+          ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ρ y x := lintegral_mono fun y => hY y
+      _ = ENNReal.ofReal c ^ (2 : ℝ) * ∫⁻ y in originBall d 1,
+          ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ρ y x := lintegral_const_mul' _ _ hc2
+      _ = ENNReal.ofReal c ^ (2 : ℝ) * ∫⁻ x, ∫⁻ y in originBall d 1,
+          ‖F x‖ₑ ^ (2 : ℝ) * ρ y x := by rw [lintegral_lintegral_swap hmeas]
+      _ = ENNReal.ofReal c ^ (2 : ℝ) * ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) *
+          ∫⁻ y in originBall d 1, ρ y x := by
+          congr 1
+          exact lintegral_congr fun x => lintegral_const_mul _ (hρm' x)
+      _ ≤ ENNReal.ofReal c ^ (2 : ℝ) * ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) *
+          (ENNReal.ofReal Cw * ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32))) := by
+          gcongr with x
+          exact lintegral_euclideanHeatKernel_originBall_le hs hs1 x
+      _ = _ := by
+          congr 1
+          rw [← lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
+          exact lintegral_congr fun x => by ring
+  rw [eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num)
+    (aestronglyMeasurable_heatDerivativeAverage β s hFm).restrict]
+  have h2 : (2 : ℝ≥0∞).toReal = 2 := by norm_num
+  rw [h2]
+  calc (∫⁻ y in originBall d 1, ‖heatDerivativeAverage β s F y‖ₑ ^ (2 : ℝ)) ^ (1 / (2 : ℝ))
+      ≤ (ENNReal.ofReal c ^ (2 : ℝ) * (ENNReal.ofReal Cw *
+        ∫⁻ x, ‖F x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (Real.exp (-(‖x‖ ^ 2) / 32)))) ^ (1 / (2 : ℝ)) :=
+        ENNReal.rpow_le_rpow hint (by norm_num)
+    _ = _ := by
+        rw [ENNReal.mul_rpow_of_nonneg _ _ (by norm_num), ENNReal.mul_rpow_of_nonneg _ _ (by norm_num),
+          ← ENNReal.rpow_mul, ENNReal.ofReal_rpow_of_nonneg hCw0 (by norm_num), ← mul_assoc,
+          ← Real.sqrt_eq_rpow, show (2 : ℝ) * (1 / 2) = 1 by norm_num, ENNReal.rpow_one,
+          ← ENNReal.ofReal_mul hc0]
+        congr 2
+        rw [hc]
+        ring
+
 end QSH
