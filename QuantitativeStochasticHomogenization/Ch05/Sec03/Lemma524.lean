@@ -173,7 +173,7 @@ theorem abs_inner_mixed_le {t : ℝ} (ht : t ≠ 0) (j k : Fin d) :
         (J1Heat a z r 0 (unitVector j) - homogenizedJ1 A 0 (unitVector j)) -
         (J1Heat a z r (unitVector k) (unitVector j) -
           homogenizedJ1 A (unitVector k) (unitVector j)) := by
-    rw [ContinuousLinearMap.sub_apply, one_apply_eq_self, inner_sub_right,
+    rw [sub_apply, one_apply_eq_self, inner_sub_right,
       inner_comp_adjoint_eq_gramEnergy, inner_toLp_toLp_eq_dot, hJ1, hJ2, hJ3]
     have hQ := homogenizedJ1_mixed A (unitVector k) (unitVector j)
     have hc : dot (unitVector j) (unitVector k) = dot (unitVector k) (unitVector j) :=
