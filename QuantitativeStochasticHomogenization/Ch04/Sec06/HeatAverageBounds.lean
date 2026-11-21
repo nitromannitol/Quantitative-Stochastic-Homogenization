@@ -220,4 +220,82 @@ theorem eLpNorm_heatDerivativeAverage_le {k : ℕ} (β : Fin d → Fin (k + 1)) 
         rw [hc]
         ring
 
+/-! ## Splitting the heat time -/
+
+/-- The Gaussian average `A_t(u) = ∫ F(x) Φ(t)(x - u) dx`. -/
+def heatAverage (t : ℝ) (F : Vec d → ℝ) (u : Vec d) : ℝ :=
+  ∫ x, F x * euclideanHeatKernel t (x - u)
+
+theorem integrable_euclideanHeatKernel_mul {t s : ℝ} (ht : 0 < t) (hs : 0 < s) (x z : Vec d) :
+    Integrable (fun y => euclideanHeatKernel t (x - y) * euclideanHeatKernel s (y - z)) := by
+  by_contra h
+  have h1 := integral_euclideanHeatKernel_mul ht hs x z
+  rw [integral_undef h] at h1
+  have : 0 < euclideanHeatKernel (t + s) (x - z) :=
+    mul_pos (Real.rpow_pos_of_pos (by positivity) _) (Real.exp_pos _)
+  linarith
+
+/-- **Splitting the heat time**: `Y_{β,t+t'}(F) = Y_{β,t}(A_{t'}(F))`. -/
+theorem heatDerivativeAverage_add {t t' : ℝ} (ht : 0 < t) (ht' : 0 < t') {k : ℕ}
+    (β : Fin d → Fin (k + 1)) {F : Vec d → ℝ} (hFm : AEStronglyMeasurable F volume) (y : Vec d)
+    (hF : Integrable (fun x => F x * euclideanHeatKernel (t' + 2 * t) (x - y))) :
+    heatDerivativeAverage β (t + t') F y = heatDerivativeAverage β t (heatAverage t' F) y := by
+  obtain ⟨C₀, hC₀, hk⟩ := abs_multiIndexDerivative_euclideanHeatKernel_le (d := d) β
+  set q := (Real.sqrt (2 * t))⁻¹ ^ (∑ i, (β i).val) with hq
+  have hq0 : 0 ≤ q := by positivity
+  have h2t : 0 < 2 * t := by positivity
+  set K := multiIndexDerivative β (euclideanHeatKernel (d := d) t) with hK
+  have hKc : Continuous K := (foldr_coordinateDerivative_contDiff (contDiff_euclideanHeatKernel t) _).continuous
+  have hΦc : ∀ τ : ℝ, Continuous (euclideanHeatKernel (d := d) τ) := fun τ =>
+    (contDiff_euclideanHeatKernel τ).continuous
+  set G : Vec d × Vec d → ℝ := fun p => |F p.1| *
+    (euclideanHeatKernel t' (p.1 - p.2) * euclideanHeatKernel (2 * t) (p.2 - y)) with hG
+  have hGm : AEStronglyMeasurable G ((volume : Measure (Vec d)).prod volume) :=
+    (hFm.norm.comp_fst).mul (((hΦc t').comp (continuous_fst.sub continuous_snd)).mul
+      ((hΦc (2 * t)).comp (continuous_snd.sub continuous_const))).aestronglyMeasurable
+  have hG0 : ∀ p, 0 ≤ G p := fun p => mul_nonneg (abs_nonneg _)
+    (mul_nonneg (euclideanHeatKernel_nonneg ht'.le _) (euclideanHeatKernel_nonneg h2t.le _))
+  have hGi : Integrable G ((volume : Measure (Vec d)).prod volume) := by
+    refine (integrable_prod_iff hGm).mpr ⟨Eventually.of_forall fun x => by
+      simp only [hG]
+      exact (integrable_euclideanHeatKernel_mul ht' h2t x y).const_mul _, ?_⟩
+    refine hF.abs.congr (Eventually.of_forall fun x => ?_)
+    simp only [hG, Real.norm_eq_abs]
+    rw [abs_mul, abs_of_nonneg (euclideanHeatKernel_nonneg (by positivity) _)]
+    have h1 : ∀ u, |(|F x| * (euclideanHeatKernel t' (x - u) *
+        euclideanHeatKernel (2 * t) (u - y)))| = |F x| * (euclideanHeatKernel t' (x - u) *
+        euclideanHeatKernel (2 * t) (u - y)) := fun u =>
+      abs_of_nonneg (hG0 (x, u))
+    simp_rw [h1]
+    rw [integral_const_mul, integral_euclideanHeatKernel_mul ht' h2t x y]
+  have hint : Integrable (Function.uncurry fun x u =>
+      F x * (euclideanHeatKernel t' (x - u) * K (u - y)))
+      ((volume : Measure (Vec d)).prod volume) := by
+    refine (hGi.const_mul (C₀ * q)).mono' ?_ (Eventually.of_forall fun p => ?_)
+    · exact hFm.comp_fst.mul (((hΦc t').comp (continuous_fst.sub continuous_snd)).mul
+        (hKc.comp (continuous_snd.sub continuous_const))).aestronglyMeasurable
+    · simp only [Function.uncurry, hG, Real.norm_eq_abs]
+      rw [abs_mul, abs_mul, abs_of_nonneg (euclideanHeatKernel_nonneg ht'.le _)]
+      have hkp := hk t ht (p.2 - y)
+      have h3 := euclideanHeatKernel_nonneg ht'.le (p.1 - p.2)
+      calc |F p.1| * (euclideanHeatKernel t' (p.1 - p.2) * |K (p.2 - y)|)
+          ≤ |F p.1| * (euclideanHeatKernel t' (p.1 - p.2) *
+            (C₀ * q * euclideanHeatKernel (2 * t) (p.2 - y))) := by gcongr
+        _ = _ := by ring
+  unfold heatDerivativeAverage heatAverage
+  calc ∫ x, F x * multiIndexDerivative β (euclideanHeatKernel (d := d) (t + t')) (x - y)
+      = ∫ x, ∫ u, F x * (euclideanHeatKernel t' (x - u) * K (u - y)) := by
+        refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+        simp only
+        rw [multiIndexDerivative_euclideanHeatKernel_semigroup ht ht' β x y, integral_const_mul]
+    _ = ∫ u, ∫ x, F x * (euclideanHeatKernel t' (x - u) * K (u - y)) :=
+        integral_integral_swap hint
+    _ = _ := by
+        refine integral_congr_ae (Eventually.of_forall fun u => ?_)
+        simp only
+        rw [← integral_mul_const]
+        refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+        simp only
+        ring
+
 end QSH
