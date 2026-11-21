@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.RescaledGaussianAverages
 import QuantitativeStochasticHomogenization.Ch04.Sec01.GramSpace
+import QuantitativeStochasticHomogenization.Ch04.Sec01.BaseExponent
 
 /-!
 # Section 4.6: (4.126) from the Gaussian energy of the corrected field
@@ -10,7 +11,8 @@ Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-S
 Gaussian energy estimate of the corrected field `e + ∇φ_e(·/ε)` at the unit scale
 (`gaussianEnergyEstimate_of_vector`). This gives the frozen statement from (4.2), (4.3), the bound of
 `|ā e|` and the Gaussian energy estimate of the corrected field
-(`negativeSobolevCorrector_of_corrector_energy`).
+(`negativeSobolevCorrector_of_corrector_energy`), the bound of `|ā e|` following from the bounds
+`1 ≤ ā ≤ Λ` of the homogenized matrix (`negativeSobolevCorrector_of_corrector_energy_bounds`).
 -/
 
 open MeasureTheory Filter Set
@@ -174,5 +176,70 @@ theorem negativeSobolevCorrector_of_corrector_energy
       exact pow_le_pow_left₀ (abs_nonneg _) h5 2
     have hξ0 : 0 ≤ euclideanSq ξ := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq ξ)
     nlinarith [sq_nonneg ((a (ε⁻¹ • x)).mulVec ξ j + S.homogenized.mulVec e j)]
+
+/-- `|A g|² ≤ Λ² |g|²` for a symmetric matrix with `1 ≤ A ≤ Λ`. -/
+theorem euclideanSq_mulVec_le_of_bounds {A : Mat d} {Λ : ℝ} (hsymm : A.transpose = A)
+    (hA : HomogenizedMatrixBounds A Λ) (g : Vec d) :
+    euclideanSq (A.mulVec g) ≤ Λ ^ 2 * euclideanSq g := by
+  set p := A.mulVec g with hp
+  have hcs := dot_mulVec_sq_le hsymm (fun ξ => (hA ξ).1) p g
+  have hpp := (hA p).2
+  have hgg := (hA g).2
+  have hp0 : 0 ≤ dot p (A.mulVec p) := (le_trans (sq_nonneg ‖p‖) (norm_sq_le_euclideanSq p)).trans (hA p).1
+  have hg0 : 0 ≤ dot g (A.mulVec g) := (le_trans (sq_nonneg ‖g‖) (norm_sq_le_euclideanSq g)).trans (hA g).1
+  have hS : euclideanSq p = dot p (A.mulVec g) := rfl
+  rw [← hS] at hcs
+  have hS0 : 0 ≤ euclideanSq p := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq p)
+  have h1 : euclideanSq p ^ 2 ≤ (Λ * euclideanSq p) * (Λ * euclideanSq g) :=
+    hcs.trans (mul_le_mul hpp hgg hg0 (hp0.trans hpp))
+  rcases hS0.eq_or_lt with h0 | hpos
+  · rw [← h0]
+    have : 0 ≤ euclideanSq g := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq g)
+    positivity
+  · have h2 : euclideanSq p * euclideanSq p ≤ euclideanSq p * (Λ ^ 2 * euclideanSq g) := by
+      nlinarith
+    exact le_of_mul_le_mul_left h2 hpos
+
+theorem euclideanNorm_homogenized_mulVec_le {A : Mat d} {Λ : ℝ} (hΛ : 0 ≤ Λ)
+    (hsymm : A.transpose = A) (hA : HomogenizedMatrixBounds A Λ) {e : Vec d}
+    (he : euclideanNorm e < 1) : euclideanNorm (A.mulVec e) ≤ Λ := by
+  have h1 := euclideanSq_mulVec_le_of_bounds hsymm hA e
+  have h0 : 0 ≤ euclideanSq e := le_trans (sq_nonneg _) (norm_sq_le_euclideanSq e)
+  have he1 : euclideanSq e ≤ 1 := by
+    have h2 : euclideanNorm e ^ 2 = euclideanSq e := Real.sq_sqrt h0
+    have h3 : 0 ≤ euclideanNorm e := Real.sqrt_nonneg _
+    nlinarith
+  unfold euclideanNorm
+  rw [Real.sqrt_le_left hΛ]
+  nlinarith [sq_nonneg Λ]
+
+/-- **(4.126) from (4.2), (4.3), the bounds `1 ≤ ā ≤ Λ` and the Gaussian energy estimate of the
+corrected field** `e + ∇φ_e(·/ε)` at the unit scale. -/
+theorem negativeSobolevCorrector_of_corrector_energy_bounds
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C C₁ : ℝ, 0 < C ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, HomogenizedMatrixBounds S.homogenized Λ ∧
+          ∀ e : Vec d, euclideanNorm e < 1 →
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • (S.corrector e).grad a y)) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • (S.corrector e).grad a y))
+              1 (C * r ^ (-(d : ℝ) / 2))) ∧
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) 1
+                (C * r ^ (-(d : ℝ) / 2))) ∧
+          ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∃ R : CoefficientField d Λ → ℝ, OsBound P R 1 C₁ ∧
+            ∀ᵐ a ∂P, vectorGaussianEnergy (fun x => e + (S.corrector e).grad a (ε⁻¹ • x)) ^
+              (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_corrector_energy fun d hd Λ hΛ => ?_
+  obtain ⟨C, C₁, hC, hC₁, hP⟩ := h d hd Λ hΛ
+  refine ⟨C, Λ, C₁, hC, by linarith, hC₁, fun P hPl => ?_⟩
+  obtain ⟨S, hā, hS⟩ := hP P hPl
+  refine ⟨S, fun e he => ?_⟩
+  obtain ⟨hE2, hE3, hen⟩ := hS e he
+  exact ⟨hE2, hE3, euclideanNorm_homogenized_mulVec_le (by linarith) S.symmetric hā he, hen⟩
 
 end QSH
