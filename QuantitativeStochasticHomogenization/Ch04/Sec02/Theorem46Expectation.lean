@@ -119,4 +119,25 @@ theorem theorem46_expectation_and_558 {P : Measure (CoefficientField d Λ)}
     rwa [mul_div_cancel₀ _ (two_ne_zero : (2 : ℝ) ≠ 0)] at this
   exact ⟨hE, osBound_abs_J1Heat_sub_homogenizedJ1 hF hE hmeas⟩
 
+/-- **(5.58) for a homogenization datum**: Theorem 4.6 (ii) and (5.58) with `ā` the matrix of `S`,
+from the conclusions of Propositions 4.10 (with (4.70)), 4.11 and 4.12, the inputs of
+Proposition 4.3 (the structure (4.12) of `A₁`, the bounds on `ā` and Proposition 3.21 at every
+exponent `s ∈ (1, 2)`), and the measurability of `J₁`. -/
+theorem estimate558 {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P] (hd : 1 ≤ d)
+    (S : HomogenizationData P) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hrate : ∀ s : ℝ, 1 < s → s < 2 → ∃ C μ : ℝ, 0 < C ∧ 0 < μ ∧ GaussianCorrectorRate P S s C μ)
+    (hmeas : ∀ (z : Vec d) (r : ℝ) (p q : Vec d),
+      Measurable fun a : CoefficientField d Λ => J1Heat a z r p q)
+    (h410 : ImprovementOfAdditivity P J1Heat) (hbias : ExpectationEstimates P S.homogenized)
+    (h411 : LocalizationEstimates P localSigma J1Heat)
+    (h412 : FluctuationEstimates P localSigma J1Heat) {s : ℝ} (hs0 : 0 < s) (hs2 : s < 2) :
+    ExpectationJ1Estimate P S.homogenized d ∧
+      ∃ C : ℝ, 0 < C ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        euclideanNorm p < 1 → euclideanNorm q < 1 →
+        OsBound P (fun a => |J1Heat a z r p q - homogenizedJ1 S.homogenized p q|) s
+          (C * r ^ (-((d : ℝ) / 2))) :=
+  theorem46_expectation_and_558 hd h410 hbias h411 h412 (flucJ1_base S hA hspan hrate hmeas)
+    hmeas hs0 hs2
+
 end QSH
