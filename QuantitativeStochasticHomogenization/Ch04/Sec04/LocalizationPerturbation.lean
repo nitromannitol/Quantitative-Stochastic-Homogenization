@@ -772,4 +772,43 @@ theorem abs_J1Heat_sub_localizedJ1_le_of_tail {a : CoefficientField d Λ} (hΛ :
       (houter w) hw)
     (fun w hw => norm_scaled_ballGrad_le_of_near hΛ hr p q hΦ hmass hε₀ w (hint w) hw) hAV hVA
 
+/-! ## The weighted `L²` form of the approximation hypotheses -/
+
+/-- The distance of rescaled gradient tuples is at most the weighted `L²(Φ_{z,r}, B_T(z))`
+distance of the gradient fields, the form of Lemma 4.21. -/
+theorem norm_scaleLp_sub_le (hr : r ≠ 0) (u v : Fin d → Lp ℝ 2 (ballMeasure z T)) :
+    ‖(fun k => scaleLp hr (u k)) - (fun k => scaleLp hr (v k))‖ ≤
+      Real.sqrt (∫ x in ball z T, heatKernel z r x *
+        euclideanSq (fun k => (u k : Vec d → ℝ) x - (v k : Vec d → ℝ) x)) := by
+  refine (pi_norm_le_iff_of_nonneg (Real.sqrt_nonneg _)).2 fun k => ?_
+  refine Real.le_sqrt_of_sq_le ?_
+  have hint : ∀ j, Integrable (fun x => heatKernel z r x *
+      ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x) ^ 2) (ballMeasure z T) := by
+    intro j
+    have := (memLp_sqrtHeat_mul (z := z) (T := T) hr ((Lp.memLp (u j)).sub
+      (Lp.memLp (v j)))).integrable_sq
+    refine this.congr (Eventually.of_forall fun x => ?_)
+    simp only [Pi.sub_apply]
+    rw [mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+  have hk : ‖((fun k => scaleLp hr (u k)) - (fun k => scaleLp hr (v k))) k‖ ^ 2 =
+      ∫ x in ball z T, heatKernel z r x * ((u k : Vec d → ℝ) x - (v k : Vec d → ℝ) x) ^ 2 := by
+    rw [Pi.sub_apply, norm_sq_eq_integral]
+    refine integral_congr_ae ?_
+    filter_upwards [Lp.coeFn_sub (scaleLp hr (u k)) (scaleLp hr (v k)),
+      scaleLp_ae (z := z) (T := T) hr (u k), scaleLp_ae (z := z) (T := T) hr (v k)] with x h1 h2 h3
+    rw [h1, Pi.sub_apply, h2, h3, ← mul_sub, mul_pow, sq (sqrtHeat z r x), sqrtHeat_mul_self hr]
+  rw [hk]
+  refine integral_mono_ae (hint k) ?_ (Eventually.of_forall fun x => ?_)
+  · have := integrable_finsetSum Finset.univ fun j _ => hint j
+    refine this.congr (Eventually.of_forall fun x => ?_)
+    simp only [euclideanSq, dot, ← Finset.mul_sum, sq]
+  · have hΦ := (heatKernel_pos z hr x).le
+    refine mul_le_mul_of_nonneg_left ?_ hΦ
+    show ((u k : Vec d → ℝ) x - (v k : Vec d → ℝ) x) ^ 2 ≤
+      ∑ j, ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x) * ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x)
+    rw [sq]
+    exact Finset.single_le_sum (f := fun j => ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x) *
+      ((u j : Vec d → ℝ) x - (v j : Vec d → ℝ) x)) (fun j _ => mul_self_nonneg _)
+      (Finset.mem_univ k)
+
 end QSH
