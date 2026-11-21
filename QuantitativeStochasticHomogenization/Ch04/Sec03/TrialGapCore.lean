@@ -86,8 +86,95 @@ theorem momentConstant_pos (t : ℝ) : 0 < momentConstant t := by
 theorem OsBound.integral_sq_le [IsProbabilityMeasure P] {X : Ω → ℝ} {s θ : ℝ}
     (h : OsBound P X s θ) (hX0 : ∀ ω, 0 ≤ X ω) :
     Integrable (fun ω => X ω ^ 2) P ∧ ∫ ω, X ω ^ 2 ∂P ≤ momentConstant (s / 2) * θ ^ 2 :=
-  (h.sq hX0).integral_le_factorial_mul fun ω => sq_nonneg _
+  (h.sq hX0).integral_le_factorial_mul fun _ => sq_nonneg _
 
 end Rules
+
+/-! ## The inputs -/
+
+section Inputs
+
+variable {P : Measure (CoefficientField d Λ)}
+
+/-- **The linear estimate of Step 1**: `|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-α})`. -/
+def LinearAverageEstimate (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (s α : ℝ) : Prop :=
+  ∃ C : ℝ, 0 < C ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+    OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) - ξ)) s
+      (C * (1 + euclideanNorm ξ) * r ^ (-α))
+
+/-- **The expectation of the trial at a deterministic slope**: the functional of (4.8) at `G k` is
+integrable and its expectation is within `C (1 + |k|²) r^{-β}` of `-½ k·āk - p·āk + q·k`. -/
+def TrialObjectiveExpectation (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (β : ℝ) : Prop :=
+  ∃ C : ℝ, 0 < C ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+    euclideanNorm p < 1 → euclideanNorm q < 1 → ∀ k : Vec d,
+    Integrable (fun a => j1Functional a (heatKernel z r) p q (correctedField S a k)) P ∧
+    |(∫ a, j1Functional a (heatKernel z r) p q (correctedField S a k) ∂P) -
+        homogenizedJ1Objective S.homogenized p q k| ≤ C * (1 + euclideanSq k) * r ^ (-β)
+
+/-- **The energy of the corrected fields below the scale**: a jointly measurable family of scales
+`1 ≤ X(·, z) ≤ O_τ(C)` with `∫ Φ_{z,r} G ξ·aG ξ ≤ C (1 + (X/r)^d) |ξ|²` almost surely. -/
+def GaussianEnergyBound (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (τ C : ℝ) : Prop :=
+  ∃ X : CoefficientField d Λ → Vec d → ℝ, Measurable (Function.uncurry X) ∧
+    (∀ a z, 1 ≤ X a z) ∧ (∀ z, OsBound P (fun a => X a z) τ C) ∧
+    ∀ᵐ a ∂P, ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun x => heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
+      (∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ≤
+        C * (1 + (X a z / r) ^ d) * euclideanSq ξ
+
+/-- **The trial gap at a slope `k`, pointwise**: at a good scale it is at most
+`(8/9)(Λ + 1/2) |∫ Φ_{y,r} G k - m|²` with `m` the polarization vector, and below the scale the
+energy bound applies; together,
+`(gap)₊ ≤ (8/9)(Λ + 1/2) |∫ Φ_{y,r} G k - m|² + (2(Λ + 1) + 2 C |k|²) (M/r)^d` for any `M` above both
+scales. -/
+theorem trialGap_pos_le (S : HomogenizationData P) (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ) (hspan : GradientsOfA1AreCorrected S a)
+    (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {ε Xg XN M CN : ℝ} (hε : ε ≤ 1 / 4)
+    (hgood : Xg ≤ r → GaussianAverageBounds a S.homogenized (correctedField S a) y r ε)
+    (hXg : Xg ≤ M) (hXN : XN ≤ M) (hXN0 : 0 ≤ XN) (hCN : 0 ≤ CN) {p q : Vec d}
+    (hp : euclideanNorm p ≤ 1) (hq : euclideanNorm q ≤ 1) (k : Vec d)
+    (hEint : Integrable fun x => heatKernel y r x *
+      dot (correctedField S a k x) ((a x).mulVec (correctedField S a k x)))
+    (hEb : (∫ x, heatKernel y r x *
+      dot (correctedField S a k x) ((a x).mulVec (correctedField S a k x))) ≤
+        CN * (1 + (XN / r) ^ d) * euclideanSq k) :
+    max (J1Heat a y r p q - j1Functional a (heatKernel y r) p q (correctedField S a k)) 0 ≤
+      8 / 9 * (Λ + 1 / 2) * euclideanNorm ((∫ x, heatKernel y r x • correctedField S a k x) -
+        polarizationVector a y r p q) ^ 2 + (2 * (Λ + 1) + 2 * CN * euclideanSq k) * (M / r) ^ d := by
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  have hgap0 : 0 ≤ J1Heat a y r p q - j1Functional a (heatKernel y r) p q (correctedField S a k) :=
+    sub_nonneg.mpr (j1Functional_correctedField_le_J1Heat S a hspan y hr0 p q k)
+  rw [max_eq_left hgap0]
+  have hk0 := euclideanSq_nonneg k
+  have hfirst : 0 ≤ 8 / 9 * (Λ + 1 / 2) * euclideanNorm ((∫ x, heatKernel y r x •
+      correctedField S a k x) - polarizationVector a y r p q) ^ 2 := by positivity
+  have hp2 : euclideanSq p ≤ 1 := by
+    rw [← euclideanNorm_sq]; nlinarith [euclideanNorm_nonneg p]
+  have hq2 : euclideanSq q ≤ 1 := by
+    rw [← euclideanNorm_sq]; nlinarith [euclideanNorm_nonneg q]
+  by_cases hXr : Xg ≤ r
+  · have h := trialGap_le_polarization S a hΛ hA hspan y r hε (hgood hXr) p q k
+    have : 0 ≤ (2 * (Λ + 1) + 2 * CN * euclideanSq k) * (M / r) ^ d := by
+      have hM0 : 0 ≤ M := hXN0.trans hXN
+      positivity
+    linarith
+  · push_neg at hXr
+    have hMr : 1 ≤ M / r := by rw [le_div_iff₀ hr0]; linarith
+    have hMd : 1 ≤ (M / r) ^ d := one_le_pow₀ hMr
+    have hXNd : (XN / r) ^ d ≤ (M / r) ^ d :=
+      pow_le_pow_left₀ (div_nonneg hXN0 hr0.le) (div_le_div_of_nonneg_right hXN hr0.le) d
+    have h1 := trialGap_le_energy a y hr0 p q (correctedField S a k) hEint
+    have hK : Λ * euclideanSq p + euclideanSq q ≤ Λ + 1 := by nlinarith
+    have h2 : CN * (1 + (XN / r) ^ d) * euclideanSq k ≤ 2 * CN * euclideanSq k * (M / r) ^ d := by
+      have : 1 + (XN / r) ^ d ≤ 2 * (M / r) ^ d := by linarith
+      have := mul_le_mul_of_nonneg_left this (mul_nonneg hCN hk0)
+      nlinarith
+    have h3 : 2 * (Λ + 1) ≤ 2 * (Λ + 1) * (M / r) ^ d := le_mul_of_one_le_right (by linarith) hMd
+    nlinarith
+
+end Inputs
 
 end QSH
