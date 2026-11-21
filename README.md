@@ -78,7 +78,8 @@ The dependencies are public repositories, pinned to exact revisions in
 The continuous-integration workflow ([`.github/workflows/build.yml`](.github/workflows/build.yml))
 builds the library, rejects any warning, runs
 [`scripts/check_frozen.py`](scripts/check_frozen.py), which rejects `axiom`, `admit`,
-`native_decide`, `unsafe` and similar tokens and any change to a frozen statement, and compiles
+`native_decide`, `unsafe` and similar tokens and any change to a frozen statement or to a definition
+it uses, and compiles
 [`QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean`](QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean),
 which fails when a declaration of the library uses an axiom other than `propext`, `Classical.choice`
 and `Quot.sound`.
