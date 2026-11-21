@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch03.Sec03.EllipticRepresentative
+import QuantitativeStochasticHomogenization.Ch03.Sec03.SkewHessian
 
 /-!
 # Weak gradients tested with functions of `H¹₀`
@@ -71,5 +72,33 @@ theorem integral_grad_mul_h10 {U : Set (Vec d)} {v : Vec d → ℝ} {g : Vec d �
   have t3 := t2.congr fun n => happ n
   have := tendsto_nhds_unique t3 t1.neg
   linarith
+
+/-- For smooth compactly supported tests `Ξ_{jk}` in `U` with `Ξ_{kj} = -Ξ_{jk}`,
+`∑_{j,k} ∫_U gⱼ ∂ₖ Ξ_{jk} = 0` for every weak gradient `g` of a locally integrable `v`. -/
+theorem sum_integral_grad_mul_skew_test {U : Set (Vec d)} {v : Vec d → ℝ} {g : Vec d → Vec d}
+    (hw : HasWeakGradient U v g) {Ξ : Fin d → Fin d → Vec d → ℝ}
+    (hΞ : ∀ j k, IsSpatialTest U (Ξ j k)) (hskew : ∀ j k, Ξ k j = fun x => -Ξ j k x) :
+    ∑ j, ∑ k, ∫ x in U, g x j * coordinateDerivative k (Ξ j k) x = 0 := by
+  have h1 : ∀ j k, ∫ x in U, g x j * coordinateDerivative k (Ξ j k) x =
+      -∫ x in U, v x * coordinateDerivative j (coordinateDerivative k (Ξ j k)) x := by
+    intro j k
+    have h := (hw j).2.2 _ (isSpatialTest_coordinateDerivative (hΞ j k) k)
+    linarith
+  simp only [h1, Finset.sum_neg_distrib]
+  have hint : ∀ j k, IntegrableOn
+      (fun x => v x * coordinateDerivative j (coordinateDerivative k (Ξ j k)) x) U := fun j k =>
+    integrableOn_mul_spatialTest (hw j).1
+      (isSpatialTest_coordinateDerivative (isSpatialTest_coordinateDerivative (hΞ j k) k) j)
+  rw [neg_eq_zero]
+  have e : ∫ x in U, v x * ∑ j, ∑ k, coordinateDerivative j (coordinateDerivative k (Ξ j k)) x =
+      ∑ j, ∑ k, ∫ x in U, v x * coordinateDerivative j (coordinateDerivative k (Ξ j k)) x := by
+    simp_rw [Finset.mul_sum]
+    rw [integral_finsetSum _ fun j _ => integrable_finsetSum _ fun k _ => hint j k]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [integral_finsetSum _ fun k _ => hint j k]
+  rw [← e]
+  have hz : ∀ x, ∑ j, ∑ k, coordinateDerivative j (coordinateDerivative k (Ξ j k)) x = 0 :=
+    sum_coordinateDerivative_skew_eq_zero (fun j k => (hΞ j k).1.of_le (by simp)) hskew
+  simp only [hz, mul_zero, integral_zero]
 
 end QSH

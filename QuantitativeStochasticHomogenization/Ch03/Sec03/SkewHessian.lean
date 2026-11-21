@@ -24,14 +24,14 @@ theorem coordinateDerivative_coordinateDerivative_eq {f : Vec d → ℝ} (hf : C
   rw [fderiv_clm_apply hc (differentiableAt_const _)]
   simp
 
-theorem coordinateDerivative_comm {f : Vec d → ℝ} (hf : ContDiff ℝ 2 f) (j k : Fin d)
+theorem coordinateDerivative_comm_of_contDiff_two {f : Vec d → ℝ} (hf : ContDiff ℝ 2 f) (j k : Fin d)
     (x : Vec d) :
     coordinateDerivative j (coordinateDerivative k f) x =
       coordinateDerivative k (coordinateDerivative j f) x := by
   rw [coordinateDerivative_coordinateDerivative_eq hf, coordinateDerivative_coordinateDerivative_eq hf]
   exact (hf.contDiffAt.isSymmSndFDerivAt (by simp)) _ _
 
-theorem coordinateDerivative_neg (f : Vec d → ℝ) (j : Fin d) :
+theorem coordinateDerivative_fun_neg (f : Vec d → ℝ) (j : Fin d) :
     coordinateDerivative j (fun x => -f x) = fun x => -coordinateDerivative j f x := by
   funext x
   unfold coordinateDerivative
@@ -49,10 +49,10 @@ theorem sum_coordinateDerivative_skew_eq_zero {Ξ : Fin d → Fin d → Vec d �
           rw [hS, Finset.sum_comm]
       _ = ∑ k, ∑ j, coordinateDerivative k (coordinateDerivative j (Ξ j k)) x := by
           refine Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun j _ => ?_
-          exact coordinateDerivative_comm (hΞ j k) j k x
+          exact coordinateDerivative_comm_of_contDiff_two (hΞ j k) j k x
       _ = ∑ k, ∑ j, -coordinateDerivative k (coordinateDerivative j (Ξ k j)) x := by
           refine Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun j _ => ?_
-          rw [hskew k j, coordinateDerivative_neg, coordinateDerivative_neg]
+          rw [hskew k j, coordinateDerivative_fun_neg, coordinateDerivative_fun_neg]
       _ = -S := by
           rw [hS]
           simp only [Finset.sum_neg_distrib]
