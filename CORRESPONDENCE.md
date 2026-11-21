@@ -94,3 +94,25 @@ of each module names the source files and commits.
   distance larger than one, which needs a family that is jointly measurable in the coefficients
   and the center. `LocFieldEstimate` states localization by such a family and implies
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
+
+## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
+
+- **Lemma 5.24, (5.63)–(5.64), with `s = 1`** (`coarsenedCoefficientEstimates_of`,
+  `coarsenedCoefficient_aeOsBound`). The proof departs from the book, which deduces (5.64) from
+  (5.62) and Lemma 4.25. When the gradients of `A₁` are, up to null sets, the fields `G ξ` of a
+  linear family ((4.12)), the form `⟨ξ, η⟩ = ∫ Φ_{z,r} G ξ · a G η` makes the separation quotient
+  `H` of `ℝ^d` a real inner product space of dimension at most `d`; with `U ξ = ∫ Φ_{z,r} G ξ` and
+  `V ξ = ∫ Φ_{z,r} a G ξ`, completing the square in (4.8) gives
+  `J₁(Φ_{z,r}, p, q) = ½ ‖U^* q - V^* p‖²` (`GramFamily.J1_eq_gramEnergy`), and `b_r(z)` is the
+  matrix of `b = V V^* - ā U V^*` (`toEuclideanCLM_coarsenedCoefficient`). The entries of `b` and
+  of `U V^* - I` are combinations of the errors of (5.58) at finitely many loads rescaled into the
+  unit ball (homogeneity of both sides). If `‖U V^* - I‖ ≤ 1/2`, then `V^*` is onto and
+  `(V - (ā + b) U) V^* = b (I - U V^*)`, which gives
+  `‖V - (ā + b) U‖ ≤ C (‖b‖ + ‖U V^* - I‖)²`; the flux defect is at most `√Λ ‖V - (ā + b) U‖`.
+- The statement assumes (5.58) with a constant `C₀(d, Λ)` (`EnergyEstimate`), the structure (4.12)
+  of `A₁` against every mask `Φ_{z,r}`, almost surely, with `∫ Φ_{z,r} |G ξ|² < ∞`
+  (`LinearA1Gradients`), and the almost sure measurability of `J₁(Φ_{z,r}, p, q)` and of the flux
+  defect, which the book does not discuss. The bound `|ā| ≤ 2Λd²` used for the rescaling is
+  deduced from (5.58) and `0 ≤ J₁(Φ, p, 0) ≤ Λ|p|²` (`norm_toEuclideanCLM_le_of_energyEstimate`).
+- Appendix A for almost surely measurable random variables (`AppA/AlmostSureOsBound.lean`):
+  `AEOsBound P X s θ` holds if and only if `X` agrees almost surely with a measurable `Y ≤ O_s(θ)`.
