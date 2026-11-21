@@ -1,6 +1,7 @@
 import QuantitativeStochasticHomogenization.Ch05.Sec03.CoarsenedCoefficientEstimates
 import QuantitativeStochasticHomogenization.Frozen.AveragedCorrectorGradient
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CorrectorLinearCombination
+import QuantitativeStochasticHomogenization.Ch04.Sec01.BaseExponent
 
 /-!
 # Theorem 4.1, (4.2), with `s = 1`
@@ -230,5 +231,55 @@ theorem averagedCorrectorGradient_of_coordinate
   refine ⟨s, C₁, hs, hC₁, fun P hPl => ?_⟩
   obtain ⟨S, hen, hest⟩ := hP P hPl
   exact ⟨S.linearize, hasLinearCorrectorGradients_linearize S, hen.linearize, hest.linearize⟩
+
+/-! ## The linear estimate in the form of the proof of the improvement of additivity -/
+
+theorem correctedField_unitVector {P : Measure (CoefficientField d Λ)} (S : HomogenizationData P)
+    (a : CoefficientField d Λ) (i : Fin d) (x : Vec d) :
+    correctedField S a (unitVector i) x = unitVector i + (S.corrector (unitVector i)).grad a x := by
+  rw [correctedField, Finset.sum_eq_single i]
+  · simp [unitVector, correctedCoordinate]
+  · intro j _ hj
+    simp [unitVector, Pi.single_apply, hj]
+  · simp
+
+/-- The coordinate estimate from the linear estimate `|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-d/2})`
+of the proof of the improvement of additivity (`LinearAverageEstimate` at the exponent `d/2`). -/
+theorem coordinateGradientEstimate_of_linearAverage {P : Measure (CoefficientField d Λ)}
+    {S : HomogenizationData P} (hen : HasGaussianCorrectorEnergy S) {s C : ℝ}
+    (h : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+      OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) - ξ)) s
+        (C * (1 + euclideanNorm ξ) * r ^ (-((d : ℝ) / 2)))) :
+    CoordinateGradientEstimate S s (2 * C) := fun i z r hr => by
+  have hr0 : 0 < r := by linarith
+  have hb := h z r hr (unitVector i)
+  rw [euclideanNorm_unitVector] at hb
+  refine (hb.aeOsBound_of_ae_eq ?_).mono_scale (le_of_eq (by rw [neg_div]; ring))
+  filter_upwards [hen] with a ha
+  have hint : Integrable (fun y => heatKernel z r y • (S.corrector (unitVector i)).grad a y) := by
+    have hm : AEMeasurable ((S.corrector (unitVector i)).grad a) volume :=
+      ((S.corrector (unitVector i)).measurable_grad.comp measurable_prodMk_left).aemeasurable
+    refine integrable_mask_smul (heatKernel_nonneg z r) (integrable_heatKernel z hr0) hm ?_
+    refine Integrable.mono' (((ha i z r hr0).const_mul 2).add
+      ((integrable_heatKernel z hr0).const_mul 2))
+      (((measurable_heatKernel z r).aemeasurable.mul (aemeasurable_dot hm hm)).aestronglyMeasurable)
+      (Filter.Eventually.of_forall fun x => ?_)
+    have h1 := euclideanSq_sub_le (unitVector i + (S.corrector (unitVector i)).grad a x)
+      (unitVector i)
+    rw [add_sub_cancel_left, euclideanSq_unitVector_eq_one] at h1
+    have hk := heatKernel_nonneg z r x
+    rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg hk (euclideanSq_nonneg _))]
+    change heatKernel z r x * euclideanSq ((S.corrector (unitVector i)).grad a x) ≤
+      2 * (heatKernel z r x * euclideanSq (unitVector i + (S.corrector (unitVector i)).grad a x)) +
+        2 * heatKernel z r x
+    nlinarith [mul_le_mul_of_nonneg_left h1 hk]
+  have hconst : Integrable (fun y => heatKernel z r y • unitVector (d := d) i) :=
+    (integrable_heatKernel z hr0).smul_const _
+  have heq : (∫ x, heatKernel z r x • correctedField S a (unitVector i) x) - unitVector i =
+      ∫ y, heatKernel z r y • (S.corrector (unitVector i)).grad a y := by
+    simp only [correctedField_unitVector, smul_add]
+    rw [integral_add hconst hint, integral_smul_const, integral_heatKernel z hr0, one_smul]
+    abel
+  simp only [heq]
 
 end QSH
