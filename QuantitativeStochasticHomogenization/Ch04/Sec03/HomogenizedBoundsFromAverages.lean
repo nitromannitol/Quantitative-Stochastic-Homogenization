@@ -285,4 +285,63 @@ theorem homogenizedMatrixBounds_of_expectedAverages {P : Measure (CoefficientFie
     _ ≤ euclideanNorm ξ * (Λ * euclideanNorm ξ) := mul_le_mul_of_nonneg_left hqΛ hn0
     _ = Λ * euclideanSq ξ := by rw [← euclideanNorm_sq]; ring
 
+/-- **(5.58) and Theorem 4.6 (ii)** from the structure (4.12) of `A₁`, Proposition 3.21 at every
+exponent `τ ∈ (0, d)`, the expectations (1) of the averages, the measurability of `J₁`, of the
+trial and of the flux averages, the bound from the heat identity (H), and the conclusions of
+Propositions 4.11 and 4.12. -/
+theorem estimate558_of_heatBound_and_rate {P : Measure (CoefficientField d Λ)}
+    [IsProbabilityMeasure P] (hd : 2 ≤ d) (S : HomogenizationData P) (hΛ : 0 < Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hrate : ∀ τ : ℝ, 0 < τ → τ < d → ∃ C μ : ℝ, 0 < C ∧ 0 < μ ∧
+      GaussianCorrectorRate P S τ C μ)
+    (hexp : ∀ β : ℝ, 0 < β → β ≤ d → ExpectedAveragesEstimate P S β)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
+      Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
+    (hmeasF : ∀ ξ : Vec d, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
+      fluxAverage S w.2 w.1.1 w.1.2 ξ)
+    {Ck : ℝ} (hheat : HeatIdentityBound P S Ck)
+    (h411 : LocalizationEstimates P localSigma J1Heat)
+    (h412 : FluctuationEstimates P localSigma J1Heat) {s : ℝ} (hs0 : 0 < s) (hs2 : s < 2) :
+    ExpectationJ1Estimate P S.homogenized d ∧
+      ∃ C : ℝ, 0 < C ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        euclideanNorm p < 1 → euclideanNorm q < 1 →
+        OsBound P (fun a => |J1Heat a z r p q - homogenizedJ1 S.homogenized p q|) s
+          (C * r ^ (-((d : ℝ) / 2))) := by
+  have hd1 : 1 ≤ d := by omega
+  have hd1' : (1 : ℝ) ≤ d := by exact_mod_cast hd1
+  have hdr : (1 : ℝ) < d := by
+    have : (2 : ℝ) ≤ d := by exact_mod_cast hd
+    linarith
+  obtain ⟨K, hK⟩ := exists_dot_mulVec_le S.homogenized
+  obtain ⟨C1, μ1, -, hμ1, hr1⟩ := hrate 1 one_pos hdr
+  obtain ⟨CN1, -, hN1⟩ := gaussianEnergyBound_of_rate S hK one_pos hμ1.le hr1
+  have hint := averagesIntegrable_of_energyBound S hΛ.le hN1
+  have hA := homogenizedMatrixBounds_of_expectedAverages S hΛ.le hint one_pos (hexp 1 one_pos hd1')
+  have hN : ∀ τ : ℝ, 0 < τ → τ < d → ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN :=
+    fun τ hτ0 hτd => by
+      obtain ⟨C, μ, -, hμ', hr⟩ := hrate τ hτ0 hτd
+      exact gaussianEnergyBound_of_rate S (fun ξ => (hA ξ).2) hτ0 hμ'.le hr
+  have hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d),
+      Measurable (fun a => gradientAverage S a z r ξ) ∧
+        Measurable (fun a => fluxAverage S a z r ξ) := fun z r ξ =>
+    ⟨measurable_gradientAverage S z r ξ, measurable_fluxAverage_of S hmeasF z r ξ⟩
+  refine estimate558_of_linearAverages hd S hΛ.le hA hspan hrate hN
+    (trialIntegrable_of_energyBound S hΛ.le hN1) hmeasJ hmeasL ?_
+    (fun β hβ hβd => trialObjectiveExpectation_of_expectedAverages S hint (hexp β hβ hβd))
+    h411 h412 hs0 hs2
+  intro s' α hs0' hs2' hα0 hα hF
+  set τ : ℝ := (s' * ((d : ℝ) / 2) + d) / 2 with hτ
+  have hτ1 : s' * ((d : ℝ) / 2) ≤ τ := by rw [hτ]; nlinarith
+  have hτ2 : τ < d := by rw [hτ]; nlinarith
+  have hτ0 : 0 < τ := lt_of_lt_of_le (by positivity) hτ1
+  have hτs : s' ≤ τ / ((d : ℝ) / 2) := by
+    rw [le_div_iff₀ (by positivity)]; exact hτ1
+  obtain ⟨CN, -, hNτ⟩ := hN τ hτ0 hτ2
+  exact linearAverageEstimate_of_heat hd1 S hΛ.le hs0' hα0
+    (commutatorEstimate_of_flucJ1 hd1 S hΛ hA hspan hmeasJ hrate hN hexp hint hmeasA hs0' hs2'
+      hα0 hα hF)
+    hheat (measurable_commutatorNorm S hmeasF) (fun z r ξ => (hmeasA z r ξ).1) hNτ hτs hint
+
 end QSH
