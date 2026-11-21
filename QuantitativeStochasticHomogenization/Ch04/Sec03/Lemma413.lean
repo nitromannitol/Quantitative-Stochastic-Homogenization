@@ -344,4 +344,73 @@ theorem commutator_matching_le (S : HomogenizationData P) (hΛ : 0 ≤ Λ)
 
 end Pointwise
 
+section Assembly
+
+variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
+
+/-- **The final assembly of Lemma 4.13** for abstract random vectors: from the pointwise bound of
+the commutator against `D₀` by `Y + B` (fluctuations and bad part), the expectations of the
+averages, and stochastic bounds and means of `Y`, `B` and the size `N` of the gradient average,
+`|F eⱼ - ā P eⱼ| ≤ O_s(c (c (θ_Y + θ_B) + ζ θ_N))` with `c = 2·2^{1/s}` and
+`ζ = √d (η + √d (m_Y + m_B) + K₀ η)`. -/
+theorem commutator_assembly [IsProbabilityMeasure P] (hd : 1 ≤ d) {D D₀ : Mat d} {K₀ η : ℝ}
+    (hK₀ : 0 ≤ K₀) (hη : 0 < η) (hD₀ : ∀ w, euclideanNorm (D₀.mulVec w) ≤ K₀ * euclideanNorm w)
+    (Pv Fv : Fin d → Ω → Vec d) (hPm : ∀ l, Measurable (Pv l)) (hFm : ∀ l, Measurable (Fv l))
+    (hPi : ∀ l k, Integrable (fun ω => Pv l ω k) P) (hFi : ∀ l k, Integrable (fun ω => Fv l ω k) P)
+    (hEP : ∀ l, euclideanNorm ((fun k => ∫ ω, Pv l ω k ∂P) - unitVector l) ≤ η)
+    (hEF : ∀ l, euclideanNorm ((fun k => ∫ ω, Fv l ω k ∂P) - D.mulVec (unitVector l)) ≤ η)
+    {Y Bp N : Ω → ℝ} {s θY θB θN mY mB : ℝ}
+    (hY : OsBound P Y s θY) (hYi : Integrable Y P) (hYm : ∫ ω, Y ω ∂P ≤ mY) (hY0 : ∀ ω, 0 ≤ Y ω)
+    (hB : OsBound P Bp s θB) (hBi : Integrable Bp P) (hBm : ∫ ω, Bp ω ∂P ≤ mB) (hB0 : ∀ ω, 0 ≤ Bp ω)
+    (hN : OsBound P N s θN)
+    (hpt : ∀ᵐ ω ∂P, ∀ l, euclideanNorm (Fv l ω - D₀.mulVec (Pv l ω)) ≤ Y ω + Bp ω)
+    (j : Fin d) (hPN : ∀ᵐ ω ∂P, euclideanNorm (Pv j ω) ≤ N ω) :
+    OsBound P (fun ω => euclideanNorm (Fv j ω - D.mulVec (Pv j ω))) s
+      (2 * (2 : ℝ) ^ s⁻¹ * (2 * (2 : ℝ) ^ s⁻¹ * (θY + θB) +
+        Real.sqrt d * (η + Real.sqrt d * (mY + mB) + K₀ * η) * θN)) := by
+  have hmY0 : 0 ≤ mY := (integral_nonneg hY0).trans hYm
+  have hmB0 : 0 ≤ mB := (integral_nonneg hB0).trans hBm
+  -- measurability
+  have hXm : ∀ (M : Mat d) l, Measurable fun ω => euclideanNorm (Fv l ω - M.mulVec (Pv l ω)) := by
+    intro M l
+    have hc : Measurable fun ω => Fv l ω - M.mulVec (Pv l ω) :=
+      (hFm l).sub ((Matrix.mulVecLin M).continuous_of_finiteDimensional.measurable.comp (hPm l))
+    simp only [euclideanNorm, euclideanSq, dot]
+    exact (Finset.measurable_sum _ fun k _ =>
+      ((measurable_pi_apply k).comp hc).mul ((measurable_pi_apply k).comp hc)).sqrt
+  -- the expectation step
+  have hdi : ∀ l, Integrable (fun ω => euclideanNorm (Fv l ω - D₀.mulVec (Pv l ω))) P := fun l =>
+    (hYi.add hBi).mono' (hXm D₀ l).aestronglyMeasurable (by
+      filter_upwards [hpt] with ω hω
+      rw [Real.norm_eq_abs, abs_of_nonneg (euclideanNorm_nonneg _)]
+      exact hω l)
+  have hYB : Integrable (fun ω => Y ω + Bp ω) P := hYi.add hBi
+  have hdm : ∀ l, ∫ ω, euclideanNorm (Fv l ω - D₀.mulVec (Pv l ω)) ∂P ≤ mY + mB := fun l =>
+    (integral_mono_ae (hdi l) hYB (by
+      filter_upwards [hpt] with ω hω
+      exact hω l)).trans (by rw [integral_add hYi hBi]; linarith)
+  have hop := matching_matrix_near hK₀ hη.le (add_nonneg hmY0 hmB0) hD₀ Pv Fv hPi hFi hEP hEF hdi hdm
+  set ζ := Real.sqrt d * (η + Real.sqrt d * (mY + mB) + K₀ * η) with hζ
+  have hsd : 1 ≤ Real.sqrt d := by
+    rw [show (1 : ℝ) = Real.sqrt 1 by simp]; exact Real.sqrt_le_sqrt (by exact_mod_cast hd)
+  have hζ0 : 0 < ζ := by
+    rw [hζ]; have : 0 < η + Real.sqrt d * (mY + mB) + K₀ * η := by positivity
+    nlinarith
+  -- the pointwise bound
+  have hle : ∀ᵐ ω ∂P, euclideanNorm (Fv j ω - D.mulVec (Pv j ω)) ≤ (Y ω + Bp ω) + ζ * N ω := by
+    filter_upwards [hpt, hPN] with ω hω hωN
+    have hdec : Fv j ω - D.mulVec (Pv j ω) =
+        (Fv j ω - D₀.mulVec (Pv j ω)) + (D₀ - D).mulVec (Pv j ω) := by
+      rw [Matrix.sub_mulVec]; abel
+    rw [hdec]
+    refine (euclideanNorm_add_le _ _).trans (add_le_add (hω j) ?_)
+    exact (hop _).trans (mul_le_mul_of_nonneg_left hωN hζ0.le)
+  have hsum := osBound_add_le_sum (osBound_add_le_sum hY hB) (hN.const_mul hζ0)
+  refine (hsum.of_le_ae (hXm D j) ?_).mono_scale (le_of_eq ?_)
+  · filter_upwards [hle] with ω hω
+    simpa [add_assoc] using hω
+  · simp only [hζ]
+
+end Assembly
+
 end QSH
