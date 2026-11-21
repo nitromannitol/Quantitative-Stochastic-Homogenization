@@ -509,7 +509,7 @@ Module `AppA/OsNotation.lean`.
 | Lemma A.7 |  | not started |
 | Lemma A.8 |  | not started |
 | Lemma A.9 |  | proved (see CORRESPONDENCE.md) |
-| Lemma A.10 |  | proved for a constant scale on a finite measure (see CORRESPONDENCE.md) |
+| Lemma A.10 |  | proved (see CORRESPONDENCE.md) |
 | Lemma A.11 |  | proved |
 | Lemma A.12 |  | proved (see CORRESPONDENCE.md) |
 

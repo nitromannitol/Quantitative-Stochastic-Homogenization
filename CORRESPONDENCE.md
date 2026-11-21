@@ -45,11 +45,13 @@ of each module names the source files and commits.
   bounds of the moment generating function of the library CoarseGraining (quadratic for small
   parameters and mean zero, and the large-parameter regime) in place of Lemmas A.5 and A.8. The
   constant is chosen before the probability space, which ranges over a fixed universe.
-- **Lemma A.10.** `centeredOsBound_integral` is the case of a constant scale `θ` on a finite measure
-  `μ ≠ 0`, with the scale `μ(E) θ = ∫ θ dμ` and `C = 1`, for a jointly measurable family; the book
-  allows a measurable scale `θ(x)` and an arbitrary measure. `exists_centeredOsBound_integral_sub`
-  combines it with Lemma A.9 for the centered average of a bounded family with
-  `|V(x)| ≤ O_s(θ)`.
+- **Lemma A.10.** `centeredOsBound_integral_of_scale`, with `C = 1`, for an s-finite measure `μ`,
+  a positive measurable and integrable scale `θ` with `∫ θ dμ > 0`, and a jointly measurable
+  family; it also states that `x ↦ X(x)` is almost surely `μ`-integrable. The proof is Jensen's
+  inequality for `exp` and the probability measure `θ dμ / ∫ θ dμ`, not Lemmas A.4 and A.9.
+  `centeredOsBound_integral` is the case of a constant scale on a finite measure, and
+  `exists_centeredOsBound_integral_sub` combines it with Lemma A.9 for the centered average of a
+  bounded family with `|V(x)| ≤ O_s(θ)`.
 - **Lemma A.11.** `centeredOsBound_sum`, with `C = √2`, and `centeredOsBound_sum_of_eq_scale`, with
   `C = 1` for equal scales, for a family indexed by a finite type and independent in the sense of
   `iIndepFun`. The scales are positive (the book allows `θᵢ ≥ 0`).
