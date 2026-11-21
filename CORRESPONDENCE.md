@@ -39,3 +39,31 @@ Lean: `QSH.fluctuationEstimatesFor_locFieldEstimate`
   `J₁`.
 - **Constants.** Lemma A.11 is used with equal scales and constant one
   (`centeredOsBound_sum_of_eq_scale`), which is the form needed at `β = d/2`.
+
+## Section 5.4: Lemma 5.29
+
+Lean: (i) `QSH.exists_blockBound_all_scales`
+(`QuantitativeStochasticHomogenization/Ch05/Sec04/Lemma529Clt.lean`), (ii)
+`QSH.exists_blockBound_layer` (`Lemma529Boundary.lean`), (iii) `QSH.exists_blockBound_change`
+(`Lemma529Change.lean`), for centered local additive fields; for the localized energy
+`QSH.blockCLT_of_inputs`, `QSH.blockBoundary_of_inputs` and `QSH.blockChange_of_inputs`
+(`BlockEstimates.lean`, `BlockEstimatesBoundary.lean`).
+
+- **Hypotheses made explicit.** The three parts are proved for any family with the properties used
+  in the proof of Proposition 4.12 (`CenteredLocalFields`): boundedness, joint locality, centering
+  and the additivity (5.88). For the localized energy these properties are the two explicit
+  hypotheses `LocalizedFieldInput` (boundedness and joint locality of `J₁^{(δ)}`) and
+  `LocalizedAdditivityInput` ((5.88) with the exponent `γ`).
+- **Part (i).** (5.89) at `β = d/2` is (4.117) for these fields; the statement at every scale
+  `r ∈ [R^{η₁}, R]` follows by the decomposition of Step 2 of Proposition 4.12 at the scale of the
+  block, with the Gaussian tail of the heat kernel summed over the lattice.
+- **Part (ii).** The boundary layer is covered by the cells of side `R^β` around the center that
+  meet it, at most `8 d (2N+1)^{d-1}` of them for `N = ⌈R/(2R^β)⌉ + 1`; the cells are coloured by
+  their residues modulo `8` (`8^d` colours) for Lemma A.12.
+- **Part (iii).** The book takes the layers of width `R^{(1+β)/2}`. Part (ii) at the scale `R^{η₁}`
+  needs `R^{η₁(1+δ)}` at most the width of the layer, which `(1+β)/2` gives only when
+  `η₁(1+2δ) ≤ 1`; the Lean proof takes the width `R^b` with
+  `b = max((1+β)/2, (1+η₁(1+δ))/2)` and the gain `ε = min(η₁ α - d/2, (1-b)/2)`
+  (`changeGain`). The difference `g - 1_{□_R}` is split into the inner cube `□_{R-R^b}` (where it
+  is bounded by a Gaussian tail), the layers inside and outside `□_R` (part (ii) at the sides `R`
+  and `R + R^b`), and the outside of `□_{R+R^b}` (the far block of Proposition 4.12).
