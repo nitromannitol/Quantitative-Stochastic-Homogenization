@@ -140,3 +140,21 @@ of each module names the source files and commits.
   selection (6.7) of Lemma 6.1, with its local Sobolev regularity and measurability explicit.
 - The modules of `Ch03/Sec04/` and `Ch06/Sec01/` other than the section files were moved from
   einstein-relation-lean, commit `c97689e`; each names its source file.
+
+## Section 3.3, (3.38)–(3.39), and Section 4.1, (4.8): the class A₁ and the energy J₁
+
+- Lean: `ae_exists_harmonicA1_correctedAffine` (corrected affine functions belong to `A₁`),
+  `ae_eq_zero_of_correctedAffineGrad_ae_eq_zero` (their gradients are linearly independent),
+  `ae_gradients_harmonicA1` (`dim A₁ = d + 1`), `ae_J1Heat_eq_half_dot_inv` (`J₁ = ½ b·M⁻¹ b`),
+  `J1Heat_bounds`, `aestronglyMeasurable_J1Heat`; `Ch03/Sec03/`, `Ch04/Sec01/`.
+- The classification of `A₁` (Theorem 3.8 for `k = 1`) is the hypothesis
+  `firstOrderLiouvilleStatement` of the results that use it; it is to be proved by the first-order
+  route (harmonic approximation on nearly full ellipsoids, `harmonicApproximationStatement`, and a
+  quadratic decay iteration) rather than by the higher-order regularity theory of the book.
+- `J₁ = ½‖-V*p + U*q‖²` is stated in coordinates: `M` is the Gram matrix of the corrector columns
+  `eᵢ + ∇φ_{eᵢ}` for the inner product `∫ Φ_{z,r} v·a w` and `b` the load `∫ Φ_{z,r}(-p·a Wᵢ + q·Wᵢ)`.
+- The bound `0 ≤ J₁ ≤ Λ|p|² + |q|²` holds for every coefficient field. The measurability of
+  `a ↦ J₁(Φ_{z,r}, p, q)` is almost everywhere strong measurability for every finite law, proved
+  through analytic sets: the strict upper level sets of `J₁` are projections of Borel sets.
+- Lemma 6.1, (6.5): `FluxCorrector.ae_add_transpose_eq_const` gives skew symmetry up to a constant
+  matrix; the divergence identity (6.6) is recorded as `fluxCorrectorDivergenceStatement`.
