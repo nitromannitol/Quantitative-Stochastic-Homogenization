@@ -27,8 +27,15 @@ of each module names the source files and commits.
 - **Lemma A.3.** (i) `OsBound.of_mem_Icc` and (ii) `OsBound.mul`, as in the book. A rule that is
   not in the book, `OsBound.mono_exponent`, passes to a smaller exponent on a probability space:
   `X ≤ O_s(θ)` and `0 < s' ≤ s` give `X ≤ O_{s'}((2e - 1)^{1/s'} θ)`.
-- **Lemma A.4.** Only the case `s ≥ 1` with `C_s = 1` for finite sums is formalized
-  (`osBound_finset_sum`); the general measure and the case `s < 1` are not.
+- **Lemma A.4.** The case `s ≥ 1` with `C_s = 1` is `osBound_integral`, for an s-finite measure
+  `μ`, a positive measurable and integrable scale `θ` with `∫ θ dμ > 0`, and a jointly measurable
+  family; it also states that `x ↦ X(x)` is almost surely `μ`-integrable, so that `∫ X dμ` is a
+  Bochner integral. The proof is Jensen's inequality for the probability measure
+  `θ dμ / ∫ θ dμ`, as in the book. For finite sums there is also `osBound_finset_sum`. The case
+  `s ∈ (0, 1)` is `osBound_integral_of_lt_one`, on a probability space, with the explicit constant
+  `C_s = (1 + (1 - s)/(s log 2))^{1/s}`; the proof is the one of the book (the convex function
+  `y ↦ exp((y + t_s)^s)` is `convexOn_exp_add_rpow`), and the final choice of `σ` is made by
+  Hölder's inequality.
 - **(A.12), `CenteredOsBound P X s θ`.** The condition `log E[exp(λ θ⁻¹ X)] ≤ λ² ∨ |λ|^{s/(s-1)}` is
   stated as `E[exp(λ θ⁻¹ X)] ≤ exp(λ² ∨ |λ|^{s/(s-1)})` together with the integrability of
   `exp(λ θ⁻¹ X)` for every real `λ`; the measurability of `X`, `s ∈ (1, 2]` and `θ > 0` are part
@@ -41,11 +48,13 @@ of each module names the source files and commits.
   bounds of the moment generating function of the library CoarseGraining (quadratic for small
   parameters and mean zero, and the large-parameter regime) in place of Lemmas A.5 and A.8. The
   constant is chosen before the probability space, which ranges over a fixed universe.
-- **Lemma A.10.** `centeredOsBound_integral` is the case of a constant scale `θ` on a finite measure
-  `μ ≠ 0`, with the scale `μ(E) θ = ∫ θ dμ` and `C = 1`, for a jointly measurable family; the book
-  allows a measurable scale `θ(x)` and an arbitrary measure. `exists_centeredOsBound_integral_sub`
-  combines it with Lemma A.9 for the centered average of a bounded family with
-  `|V(x)| ≤ O_s(θ)`.
+- **Lemma A.10.** `centeredOsBound_integral_of_scale`, with `C = 1`, for an s-finite measure `μ`,
+  a positive measurable and integrable scale `θ` with `∫ θ dμ > 0`, and a jointly measurable
+  family; it also states that `x ↦ X(x)` is almost surely `μ`-integrable. The proof is Jensen's
+  inequality for `exp` and the probability measure `θ dμ / ∫ θ dμ`, not Lemmas A.4 and A.9.
+  `centeredOsBound_integral` is the case of a constant scale on a finite measure, and
+  `exists_centeredOsBound_integral_sub` combines it with Lemma A.9 for the centered average of a
+  bounded family with `|V(x)| ≤ O_s(θ)`.
 - **Lemma A.11.** `centeredOsBound_sum`, with `C = √2`, and `centeredOsBound_sum_of_eq_scale`, with
   `C = 1` for equal scales, for a family indexed by a finite type and independent in the sense of
   `iIndepFun`. The scales are positive (the book allows `θᵢ ≥ 0`).
@@ -58,7 +67,18 @@ of each module names the source files and commits.
   `(3R ℤ)^d`. The general forms are `centeredOsBound_lattice_sum` (measurable sets inside the
   cubes) and `centeredOsBound_sum_of_colouring` (any colouring with separated classes, with
   `C = (2N)^{1/2}` for `N` colours).
-- Lemmas A.5, A.7 and A.8 are not formalized.
+- **Lemma A.5.** (A.4) is `exists_log_integral_exp_le_of_osBound`, with the integrability of
+  `exp(λ X)` stated, and is proved from the large-parameter bound of the moment generating
+  function of the library CoarseGraining applied to `X₊`, not by the computation of the book.
+  (A.5) is `osBound_of_log_integral_exp_le`, with `C = 2 · 8^{1/s}`; it assumes the integrability
+  of `exp(λ X)` for `λ ≥ 1` and follows the book (the Chernoff bound at `λ = (x/2)^{s-1}`), with
+  `osBound_of_tail` in place of Lemma A.1 and Remark A.2.
+- **Lemma A.8.** `exists_abs_log_integral_exp_sub_le`: the bound is
+  `|log E[exp(λ X)] - E[X²] λ²/2| ≤ C |λ|³` (the book writes `C λ³`), with the integrability of
+  `exp(2|X|)`, `X²` and `exp(λ X)` stated. The proof is the second-order Taylor bound of `exp`
+  (`abs_exp_sub_quadratic_le`), `E[exp(λ X)] ≥ 1`, and `u - u² ≤ log(1 + u) ≤ u` for `u ≥ 0`,
+  instead of the derivatives of `λ ↦ log E[exp(λ X)]`.
+- Lemma A.7 is not formalized.
 
 ## Chapter 4, opening (`Ch04/Opening.lean`)
 
@@ -128,3 +148,46 @@ of each module names the source files and commits.
   from the finite energy of the corrected coordinates against the masks
   (`HasGaussianCorrectorEnergy`, from Lemma 3.17). The exponent is lowered to `1` by
   `OsBound.mono_exponent`, with the constant `(2e - 1) d C`.
+
+## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
+
+- **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
+  coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
+  constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
+  for the form of `a`).
+- **Proposition 4.3.** The deterministic part is `abs_J1_sub_homogenizedJ1_le`: if the gradients of
+  `A₁` are exactly the fields `G ξ` of a family ((4.12)) and the functional of (4.8) at `G ξ` is
+  within `ε (|ξ|² + |ξ| (|p| + |q|))` of `-½ ξ·āξ - p·āξ + q·ξ` ((4.11)) with `ε ≤ 1/5`, then (4.10)
+  holds with the constant `7ε`; the proof is the two-sided argument of the book with the explicit
+  threshold `1/5` in place of nondegeneracy. (4.11) follows from the bounds on the three averages
+  (`abs_j1Functional_sub_le_of_averages`). `proposition43` is the random statement at every center,
+  with a jointly measurable family of scales; its inputs are explicit hypotheses: the structure
+  (4.12) of `A₁` (`GradientsOfA1AreCorrected`, from Theorem 3.8), the bounds `I ≤ ā ≤ Λ I`
+  (`HomogenizedMatrixBounds`), and Proposition 3.21 at every center for the corrected fields
+  `∑ ξᵢ (eᵢ + ∇φ_{eᵢ})`, including the cross terms of the energy matrix (`GaussianCorrectorRate`).
+  The book takes the scale of Proposition 3.21 at the origin and translates it (Definition 4.5).
+- **Step 2 of the proof of Theorem 4.6.** `flucJ1_of_gaussianCorrectorRate` gives
+  `Fluc(s, min(μ, 1))` for `s ≥ 1` from Proposition 4.3 and the bound (4.24), and `flucJ1_base` is
+  the initial exponent required by `additiveStructure_J1`. The measurability of
+  `a ↦ J₁(Φ_{z,r}, p, q)` is a hypothesis.
+- **Proposition 4.10.** The proof follows a route different from Lemmas 4.13–4.18: the trial at the
+  deterministic slope `c* = -p + ā⁻¹q` (`homogenizedSlope`). The functional of (4.8) at a fixed
+  field is averaged by the heat semigroup (`j1Functional_heatKernel_eq_integral`), and
+  `J₁(Φ_{z,R}) ≤ ∫ Φ_{z,√(R²-r²)} J₁(Φ_{·,r})` (`J1Heat_le_integral_heatKernel_mul`), so the
+  additivity defect lies between `0` and the average of the trial gap
+  (`additivityDefect_le_trialGap`). A bound `O_t(C r^{-β})` on the trial gap at every center
+  (`TrialGapEstimate`) gives `Add(t, β)` by Lemma A.4 (`addJ1_of_trialGapEstimate`), and with
+  Proposition 4.3 at an exponent `τ > s d/2` it gives `Add(s, α + η)` with
+  `η = min(μ/2, τ/s - d/2)` (`addJ1_improved_of_trialGap`, from `Δ ≤ √(2δ) √G + B`).
+  `proposition410` proves the conclusion `ImprovementOfAdditivity` and (4.70) from the trial gap
+  estimate `O_{s/2}(C r^{-2α})` under `Fluc(s, α)` and the expectation of the trial
+  (`TrialExpectationEstimate`), which are hypotheses, together with the inputs of Proposition 4.3,
+  the almost sure integrability of the trial (`TrialIntegrable`) and the joint measurability of
+  `(a, x) ↦ J₁(Φ_{x,r}, p, q)`.
+- **Remark 4.18, (4.70), and Theorem 4.6 (ii).** `ExpectationEstimates` states (4.70);
+  `expectationJ1Estimate_of_trialGap` proves it from the trial, with the mean bound
+  `OsBound.integral_le_factorial_mul` for `O_t` variables with `t < 1`.
+- **(5.58).** `theorem46_expectation_and_558`, `estimate558` and `estimate558_of_trialGap`:
+  `|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ O_s(C r^{-d/2})` for every `s ∈ (0, 2)`, with
+  Theorem 4.6 (ii), from Theorem 4.6 (iii) (`additiveStructure_J1`) and (4.70); for `s < 1` the
+  triangle inequality is replaced by `X + Y ≤ 2 max(X, Y)`.
