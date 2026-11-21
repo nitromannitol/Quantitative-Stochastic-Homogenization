@@ -94,4 +94,75 @@ theorem euclideanSq_integral_heatKernel_le (y : Vec d) {r : ℝ} (hr : 0 < r) {v
         refine integral_congr_ae (Filter.Eventually.of_forall fun x => ?_)
         simp only [euclideanSq, dot, ← sq, Finset.mul_sum]
 
+/-- The components of `v` are measurable when `Φ_{y,r} v` is integrable. -/
+theorem aestronglyMeasurable_apply_of_heatKernel_smul (y : Vec d) {r : ℝ} (hr : 0 < r)
+    {v : Vec d → Vec d} (hv : Integrable fun x => heatKernel y r x • v x) (i : Fin d) :
+    AEStronglyMeasurable (fun x => v x i) volume := by
+  have hΦpos := heatKernel_pos y hr
+  have h1 : AEStronglyMeasurable (fun x => heatKernel y r x * v x i) volume :=
+    (Integrable.eval hv i).aestronglyMeasurable
+  have h2 : AEStronglyMeasurable (fun x => (heatKernel y r x)⁻¹) volume :=
+    (((continuous_heatKernel_uncurry r).comp (continuous_const.prodMk continuous_id)).inv₀
+      fun x => (hΦpos x).ne').aestronglyMeasurable
+  refine (h1.mul h2).congr (Filter.Eventually.of_forall fun x => ?_)
+  have := (hΦpos x).ne'
+  simp only [Pi.mul_apply]
+  field_simp
+
+/-- **The averaged gradient and flux are bounded by the averaged energy**:
+`|∫ Φ v|² ≤ ∫ Φ v·av` and `|∫ Φ av|² ≤ Λ² ∫ Φ v·av` for a coefficient field `a` with `Λ ≥ 0`. -/
+theorem euclideanSq_averages_le_energy (a : CoefficientField d Λ) (hΛ : 0 ≤ Λ) (y : Vec d)
+    {r : ℝ} (hr : 0 < r) {v : Vec d → Vec d} (hv : Integrable fun x => heatKernel y r x • v x)
+    (hav : Integrable fun x => heatKernel y r x • (a x).mulVec (v x))
+    (hE : Integrable fun x => heatKernel y r x * dot (v x) ((a x).mulVec (v x))) :
+    euclideanSq (∫ x, heatKernel y r x • v x) ≤
+        ∫ x, heatKernel y r x * dot (v x) ((a x).mulVec (v x)) ∧
+      euclideanSq (∫ x, heatKernel y r x • (a x).mulVec (v x)) ≤
+        Λ ^ 2 * ∫ x, heatKernel y r x * dot (v x) ((a x).mulVec (v x)) := by
+  have hvm : AEStronglyMeasurable v volume :=
+    (aemeasurable_pi_iff.mpr fun i =>
+      (aestronglyMeasurable_apply_of_heatKernel_smul y hr hv i).aemeasurable).aestronglyMeasurable
+  have havm : AEStronglyMeasurable (fun x => (a x).mulVec (v x)) volume :=
+    (aemeasurable_pi_iff.mpr fun i =>
+      (aestronglyMeasurable_apply_of_heatKernel_smul y hr hav i).aemeasurable).aestronglyMeasurable
+  have hsqm : ∀ {w : Vec d → Vec d}, AEStronglyMeasurable w volume →
+      AEStronglyMeasurable (fun x => heatKernel y r x * euclideanSq (w x)) volume := by
+    intro w hw
+    have hc : ∀ i, AEStronglyMeasurable (fun x => w x i) volume := fun i =>
+      (continuous_apply i).comp_aestronglyMeasurable hw
+    simp only [euclideanSq, dot]
+    exact (heatKernel_aestronglyMeasurable y r).mul (Finset.aestronglyMeasurable_fun_sum _
+      fun i _ => (hc i).mul (hc i))
+  have hptv : ∀ x, euclideanSq (v x) ≤ dot (v x) ((a x).mulVec (v x)) := fun x =>
+    (a.elliptic x (v x)).1
+  have hpta : ∀ x, euclideanSq ((a x).mulVec (v x)) ≤ Λ ^ 2 * dot (v x) ((a x).mulVec (v x)) := by
+    intro x
+    have hop := euclideanNorm_mulVec_le_of_abs_dot_le (a.symmetric x) hΛ (fun u => by
+      rw [abs_of_nonneg ((euclideanSq_nonneg u).trans (a.elliptic x u).1)]
+      exact (a.elliptic x u).2) (v x)
+    have h0 := euclideanNorm_nonneg ((a x).mulVec (v x))
+    have h1 := pow_le_pow_left₀ h0 hop 2
+    rw [euclideanNorm_sq, mul_pow, euclideanNorm_sq] at h1
+    nlinarith [hptv x, mul_le_mul_of_nonneg_left (hptv x) (sq_nonneg Λ)]
+  have hv2 : Integrable fun x => heatKernel y r x * euclideanSq (v x) :=
+    hE.mono' (hsqm hvm) (Filter.Eventually.of_forall fun x => by
+      have h0 := heatKernel_nonneg y r x
+      rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg h0 (euclideanSq_nonneg _))]
+      exact mul_le_mul_of_nonneg_left (hptv x) h0)
+  have hav2 : Integrable fun x => heatKernel y r x * euclideanSq ((a x).mulVec (v x)) :=
+    (hE.const_mul (Λ ^ 2)).mono' (hsqm havm) (Filter.Eventually.of_forall fun x => by
+      have h0 := heatKernel_nonneg y r x
+      rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg h0 (euclideanSq_nonneg _))]
+      have := mul_le_mul_of_nonneg_left (hpta x) h0
+      linarith)
+  refine ⟨(euclideanSq_integral_heatKernel_le y hr hv hv2).trans
+    (integral_mono hv2 hE fun x => mul_le_mul_of_nonneg_left (hptv x) (heatKernel_nonneg y r x)), ?_⟩
+  refine (euclideanSq_integral_heatKernel_le y hr hav hav2).trans ?_
+  rw [← integral_const_mul]
+  exact integral_mono hav2 (hE.const_mul _) fun x => by
+    have h0 := heatKernel_nonneg y r x
+    have := mul_le_mul_of_nonneg_left (hpta x) h0
+    simp only
+    linarith
+
 end QSH
