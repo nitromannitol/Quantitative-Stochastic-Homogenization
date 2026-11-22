@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec04.TranslatedCorrectorBounds
+import QuantitativeStochasticHomogenization.Ch03.Sec03.HarmonicExpansionBallProof
 
 /-!
 # The localized energy estimate from the single-slope estimate of Lemma 4.21
@@ -226,5 +227,19 @@ theorem localizedEnergy_of_slope (hL : firstOrderLiouvilleStatement)
       linarith
     exact ⟨α, σ, θ, C₀, hα, hαd, hαγ, hσ, hσ2, hθ, hθ2, hC₀,
       localizationCorrectorSlopeEstimate_of_slope hd hΛ hs1.le hδ hγ0 hγs hest⟩
+
+/-- **(5.85) from the harmonic approximation of Section 3.3 and the single-slope estimate of
+Lemma 4.21**, through `firstOrderLiouville_of_harmonicApproximation_only`. -/
+theorem localizedEnergy_of_harmonicApproximation_of_slope
+    (h2 : harmonicApproximationStatement)
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ s δ γ : ℝ,
+      1 < Λ → 1 < s → s < 2 → 0 < δ →
+      (d : ℝ) / 2 * (1 + δ) < γ →
+      γ < min ((d : ℝ) / s) ((d : ℝ) / 2 * (1 + δ) + δ) →
+      ∃ α σ θ C₀ : ℝ, 0 < α ∧ α ≤ (d : ℝ) / 2 ∧ γ < α * (1 + δ) + δ ∧
+        0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧ 0 < C₀ ∧
+        LocalizationSlopeEstimate d Λ s δ γ α σ θ C₀) :
+    QSH.Frozen.localizedEnergy :=
+  localizedEnergy_of_slope (firstOrderLiouville_of_harmonicApproximation_only h2) h
 
 end QSH
