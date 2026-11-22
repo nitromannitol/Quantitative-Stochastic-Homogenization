@@ -169,7 +169,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.1 |  | not started |
+| Theorem 4.1 |  | in progress ((4.2) with `s = 1` from the linear estimate with a constant chosen before the law, `averagedCorrectorGradient_of_linearAverage_uniform`; see CORRESPONDENCE.md) |
 
 ### 4.1 The Energy Quantity J₁ and Its Basic Properties, module `Ch04/Sec01EnergyQuantityJ1.lean`
 
@@ -221,7 +221,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.24 | Corrector estimates in W^{-α,p} | not started |
+| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) at integer orders from the commutator and linear estimates with constants chosen before the law, `negativeSobolevCorrector_of_commutator_linear`; see CORRESPONDENCE.md) |
 | Lemma 4.25 |  | not started |
 
 ### 4.7 Corrector Oscillation Estimates in Two Dimensions, module `Ch04/Sec07CorrectorOscillationInTwoDimensions.lean`
@@ -255,7 +255,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 5.23 | Coarsened coefficients | not started |
-| Lemma 5.24 |  | not started |
+| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; see CORRESPONDENCE.md) |
 
 ### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
 

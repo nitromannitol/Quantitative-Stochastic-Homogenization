@@ -295,6 +295,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   coordinate correctors (`HomogenizationData.linearize`, `Corrector.linearCombination`, which
   proves that a finite linear combination of correctors is a corrector, including the sublinearity
   of Definition 3.15); this gives `averagedCorrectorGradient_of_coordinate`.
+  Since the energy of the corrected coordinates now follows from Lemma 3.17 (`sublinearCorrectors`),
+  `averagedCorrectorGradient_of_linearAverage_uniform` derives (4.2) from the linear estimate alone, for one
+  exponent `s ≥ 1` and a constant chosen before the law.
 
 ## Section 4.6: (4.126) and Appendix D (`Ch04/Sec06/`, `AppD/`)
 
@@ -338,7 +341,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   average of each term at every radius `≥ 1` (shells of the heat kernel above `Xᵢ`, the comparison
   `Φ_{0,ρ} ≤ (Xᵢ/ρ)^d Φ_{0,Xᵢ}` below it); the square root is at most `B ∑ᵢ Xᵢ^{d/2} = O_1`
   (`Ch04/Sec06/NegativeSobolevSublinear.lean`). Thus (4.126) rests on the commutator estimate and
-  the linear estimate at the exponent `d/2` only (`negativeSobolevCorrector_of_commutator_linear`).
+  the linear estimate at `s = 1` and the exponent `d/2`, with constants chosen before the law
+  (`negativeSobolevCorrector_of_commutator_linear`); the repository proves these two estimates only with the constant
+  chosen after the law (`commutator_linearAverage_half_dim`).
 - **The bounds `1 ≤ ā ≤ Λ`** (`HomogenizationData.homogenizedMatrixBounds`) use the measurability of
   `a ↦ μ(U, e)`, which the book takes for granted. It is proved in
   `Ch01/Sec02/DirichletEnergyMeasurability.lean`: the infimum (1.7) over the gradients of `H¹₀(U)`
