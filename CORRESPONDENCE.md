@@ -187,6 +187,20 @@ of each module names the source files and commits.
   Liouville representation of `A₁`) and to fields `V_i` matched with the localized coordinates in
   `L²(Φ_{z,r}, B_T(z))`. The construction of the matched fields (the proof of Lemma 4.21 proper)
   and the stochastic bounds are not formalized yet.
+- **Lemma 4.21 with one slope** (`QSH.localizedEnergy_of_slope`). (5.85) is reduced to the
+  first-order Liouville theorem and the single-slope estimate `QSH.LocalizationSlopeEstimate`:
+  above a random radius `X` with `X^γ ≤ O_s(C)`, the gradient of each selected coordinate is within
+  `K Y (t/r)` of one corrected gradient `W_i + ∑_j b_{ij} W_j` in `L̲²(B_t(z))` for
+  `r ≤ t ≤ c r^{1+δ-ε}`, with `Y ≤ O_s(C r^{-γ})`. The book's proof (pp. 156-162) approximates
+  the selected coordinates by heterogeneous polynomials of high degree at the intermediate scale and
+  uses the case `k = 1` of Theorem 3.8 at the scale `r`; the Lean route follows the excess decay of
+  one slope in Theorem C of Armstrong, Kuusi and Loher below a fixed fraction of the intermediate
+  scale and the total energy bound on `B_{r^{1+δ}}(z)` above it, summed over Gaussian shells
+  (`QSH.LocalizationInnerSlopeData.toBallGrowthData`). Off the event `{X ≤ r}` both energies are
+  bounded deterministically (`QSH.abs_J1Heat_sub_localizedJ1_le_cap`) and `1_{X > r} ≤ r^{-γ} X^γ`
+  (`QSH.localizationApproximationUniform_of_ballGrowth`). The oscillation and energy bounds of the
+  correctors at the center `z` come from Lemma 3.17 at the origin for the coefficients translated
+  by a lattice point near `z` (`QSH.exists_translated_corrector_bounds`).
 
 ## Section 4.5: Proposition 4.12
 
