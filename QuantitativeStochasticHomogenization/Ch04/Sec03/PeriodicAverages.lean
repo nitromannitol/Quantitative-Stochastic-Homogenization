@@ -164,6 +164,7 @@ theorem lintegral_enorm_heatKernel_smul_periodic {m : Vec d → E}
   filter_upwards [hper n] with x hx
   rw [hx, enorm_smul, Real.enorm_of_nonneg (heatKernel_nonneg _ _ _)]
 
+omit [CompleteSpace E] in
 theorem integrable_heatKernel_smul_periodic {m : Vec d → E} (hm : AEStronglyMeasurable m volume)
     (hcell : IntegrableOn m (latticeCell 1 (0 : LatticeIndex d)))
     (hper : ∀ n : LatticeIndex d, ∀ᵐ x, m (x + latticeShift n) = m x) (z : Vec d) {r : ℝ}
