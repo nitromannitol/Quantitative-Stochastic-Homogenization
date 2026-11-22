@@ -116,7 +116,9 @@ of each module names the source files and commits.
   book with two changes: Proposition 4.12 is stated for `s ∈ (1, 2]`, so Steps 1 and 2 are run for
   `s ∈ (1, 2)` and the exponents `s ≤ 1` are reached by `OsBound.mono_exponent`; in Step 3 the
   auxiliary exponent is `α = d/2 - δ/(2(1+δ))`, for which `α(1+δ) + δ = d/2 (1+δ) + δ/2 >
-  d/2 (1+δ)`. Part (ii) is not formalized.
+  d/2 (1+δ)`. Part (ii) is not formalized. Part (i) with its constant `C(s, d, Λ)` chosen
+  before the law is the statement `QSH.UniformAdditivityJ1` (`Ch04/Sec02/UniformAdditivity.lean`),
+  not proved; it is the hypothesis of the Section 5.4 block estimates for the localized energy.
 - **`LocFieldEstimate`.** The proof of Proposition 4.12 integrates the localized variables
   `x ↦ J₁^{(δ)}(x, r, p, q)` over boxes and uses the independence of integrals over boxes at
   distance larger than one, which needs a family that is jointly measurable in the coefficients
@@ -247,13 +249,16 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 `QSH.exists_blockBound_layer` (`Lemma529Boundary.lean`), (iii) `QSH.exists_blockBound_change`
 (`Lemma529Change.lean`), for centered local additive fields; for the localized energy
 `QSH.blockCLT_of_inputs`, `QSH.blockBoundary_of_inputs` and `QSH.blockChange_of_inputs`
-(`BlockEstimates.lean`, `BlockEstimatesBoundary.lean`).
+(`BlockEstimates.lean`, `BlockEstimatesBoundary.lean`), and from the law-uniform Theorem 4.6 (i)
+`QSH.blockCLT_of_uniformAdditivityJ1`, `QSH.blockBoundary_of_uniformAdditivityJ1` and
+`QSH.blockChange_of_uniformAdditivityJ1` (`LocalizedAdditivityProof.lean`).
 
 - **Hypotheses made explicit.** The three parts are proved for any family with the properties used
   in the proof of Proposition 4.12 (`CenteredLocalFields`): boundedness, joint locality, centering
-  and the additivity (5.88). For the localized energy these properties are the two explicit
-  hypotheses `LocalizedFieldInput` (boundedness and joint locality of `J₁^{(δ)}`) and
-  `LocalizedAdditivityInput` ((5.88) with the exponent `γ`).
+  and the additivity (5.88). For the localized energy these properties are
+  `LocalizedFieldInput` (boundedness and joint locality of `J₁^{(δ)}`, proved) and
+  `LocalizedAdditivityInput` ((5.88) with the exponent `γ`, deduced from the law-uniform
+  Theorem 4.6 (i)); see the bullet on the two inputs below.
 - **Part (i).** (5.89) at `β = d/2` is (4.117) for these fields; the statement at every scale
   `r ∈ [R^{η₁}, R]` follows by the decomposition of Step 2 of Proposition 4.12 at the scale of the
   block, with the Gaussian tail of the heat kernel summed over the lattice.
@@ -268,12 +273,13 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   is bounded by a Gaussian tail), the layers inside and outside `□_R` (part (ii) at the sides `R`
   and `R + R^b`), and the outside of `□_{R+R^b}` (the far block of Proposition 4.12).
 - **The two inputs.** `LocalizedFieldInput` holds for every localized family
-  (`QSH.localizedFieldInput`, `LocalizedFieldInputProof.lean`), with the bound `(d²Λ + d)²/2` of
-  (4.103) and the joint measurability of the construction of Section 4.4. `LocalizedAdditivityInput`
+  (`QSH.localizedFieldInput`, `LocalizedFieldInputProof.lean`), with the bound `(d²Λ + d)²/2`
+  (`abs_familyJ1_le`; the book uses the boundedness at (4.103) without a constant) and the joint measurability of the construction of Section 4.4. `LocalizedAdditivityInput`
   is deduced as in the book from Theorem 4.6 (i), Lemma A.3 (i) (for values in `[0, B]`,
   `QSH.osBound_increase_exponent_of_bounded`) and (5.85) (`QSH.localizedAdditivityInput_of_uniform`,
   `LocalizedAdditivityProof.lean`). Theorem 4.6 (i) is
-  used at the stochastic exponent `t = sγ/d`, with its constant `C(t, d, Λ)` chosen before the law
+  used at the stochastic exponent `t = sγ/d`, with its constant `C(2t, d, Λ)` (in the book's parametrization, where the exponent `s` of
+  Theorem 4.6 (i) gives `O_{s/2}`) chosen before the law
   (`QSH.UniformAdditivityJ1`, `Ch04/Sec02/UniformAdditivity.lean`, an explicit hypothesis); since
   the defect lies in `[0, Λ + 1]`, it is `O_s(C r^{-γ})`. Integrating the localization error over
   the inner centers needs a version of `J₁(Φ_{x,r}, p, q)` jointly measurable in the coefficients
@@ -283,7 +289,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   homogenization data for the law. Hence `QSH.blockCLT_of_uniformAdditivityJ1`,
   `QSH.blockBoundary_of_uniformAdditivityJ1` and `QSH.blockChange_of_uniformAdditivityJ1` give the
   three frozen statements from `UniformAdditivityJ1` and the existence of homogenization data for
-  every law satisfying the assumptions.
+  every law satisfying the assumptions. That existence is also part of the conclusion of the
+  frozen statement E1 (`QSH.Frozen.averagedCorrectorGradient`), so E2-E4 follow from E1 and
+  `UniformAdditivityJ1`.
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 

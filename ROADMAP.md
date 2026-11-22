@@ -184,7 +184,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (ii) not started |
+| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1` (not proved); part (ii) not started |
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
@@ -265,7 +265,7 @@ No numbered result.
 | Theorem 5.26 |  | not started |
 | Lemma 5.27 |  | not started |
 | Lemma 5.28 |  | not started |
-| Lemma 5.29 |  | not started |
+| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` and the existence of homogenization data (see CORRESPONDENCE.md) |
 | Lemma 5.30 |  | not started |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`
