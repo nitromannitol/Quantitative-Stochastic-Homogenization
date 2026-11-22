@@ -295,6 +295,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   coordinate correctors (`HomogenizationData.linearize`, `Corrector.linearCombination`, which
   proves that a finite linear combination of correctors is a corrector, including the sublinearity
   of Definition 3.15); this gives `averagedCorrectorGradient_of_coordinate`.
+  Since the energy of the corrected coordinates now follows from Lemma 3.17 (`sublinearCorrectors`),
+  `averagedCorrectorGradient_of_linearAverage_uniform` derives (4.2) from the linear estimate alone, for one
+  exponent `s ≥ 1` and a constant chosen before the law.
 
 ## Section 4.6: (4.126) and Appendix D (`Ch04/Sec06/`, `AppD/`)
 
@@ -327,6 +330,26 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `coefficientVersion`), the bounds `1 ≤ ā ≤ Λ`, and the Gaussian energy estimate of the corrected
   field `e + ∇φ_e(·/ε)` at the unit scale, which dominates the components of both fields
   (`gaussianEnergyEstimate_of_vector`) and gives their Gaussian moments (`GaussianMoments`).
+- **The inputs of (4.126)** (`Ch04/Sec06/NegativeSobolevLinearEstimates.lean`). The correctors are
+  taken in the linear form `φ_e = ∑ᵢ eᵢ φ_{eᵢ}` (`HomogenizationData.linearize`), so that
+  `e + ∇φ_e = G e`. Then (4.2) is the linear estimate `|∫ Φ_{z,r} G e - e| ≤ O_1(C r^{-d/2})`, and
+  (4.3) follows from it and the commutator estimate (4.34) through
+  `∫ Φ (a G e - ā e) = ∑ⱼ eⱼ (∫ Φ a G eⱼ - ā ∫ Φ G eⱼ) + ā (∫ Φ G e - e)` and `|ā v| ≤ Λ |v|`. The
+  Gaussian energy of `e + ∇φ_e(·/ε)` at the unit scale is bounded by a change of variables by the
+  mask of radius `ε⁻¹ √(8d) ≥ 1`. There `|G e|² ≤ ∑ᵢ |eᵢ + ∇φ_{eᵢ}|²`, and the energy bound of
+  Lemma 3.17 on the balls `B_R`, `R ≥ Xᵢ`, with `Xᵢ = O_{d/2}(C)`, gives `C Xᵢ^d` for the Gaussian
+  average of each term at every radius `≥ 1` (shells of the heat kernel above `Xᵢ`, the comparison
+  `Φ_{0,ρ} ≤ (Xᵢ/ρ)^d Φ_{0,Xᵢ}` below it); the square root is at most `B ∑ᵢ Xᵢ^{d/2} = O_1`
+  (`Ch04/Sec06/NegativeSobolevSublinear.lean`). Thus (4.126) rests on the commutator estimate and
+  the linear estimate at `s = 1` and the exponent `d/2`, with constants chosen before the law
+  (`negativeSobolevCorrector_of_commutator_linear`); the repository proves these two estimates only with the constant
+  chosen after the law (`commutator_linearAverage_half_dim`).
+- **The bounds `1 ≤ ā ≤ Λ`** (`HomogenizationData.homogenizedMatrixBounds`) use the measurability of
+  `a ↦ μ(U, e)`, which the book takes for granted. It is proved in
+  `Ch01/Sec02/DirichletEnergyMeasurability.lean`: the infimum (1.7) over the gradients of `H¹₀(U)`
+  equals the infimum over a countable subset dense among them in the separable space `L²(U)`,
+  since `(G + W)·a(G + W) ≤ (1 + t) G·aG + (1 + t⁻¹) W·aW`, and the energy of each element of the
+  subset is measurable once `a` is replaced by its jointly measurable version.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
