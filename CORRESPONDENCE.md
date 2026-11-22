@@ -123,7 +123,6 @@ of each module names the source files and commits.
   and the center. `LocFieldEstimate` states localization by such a family and implies
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
 
-No result of the book is formalized in this repository yet, so there is no entry yet.
 
 ## Section 4.4: the localization of pp. 155-156
 
@@ -442,3 +441,56 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ O_s(C r^{-d/2})` for every `s ∈ (0, 2)`, with
   Theorem 4.6 (ii), from Theorem 4.6 (iii) (`additiveStructure_J1`) and (4.70); for `s < 1` the
   triangle inequality is replaced by `X + Y ≤ 2 max(X, Y)`.
+
+## Lemma 3.17, Lemma 6.1 and Proposition 6.2: sublinearity of the correctors
+
+- Lean: `QSH.sublinearCorrectors : QSH.sublinearCorrectorsStatement`
+  (`Ch06/Sec01/CorrectorSublinear.lean`), flux corrector `QSH.FluxCorrector` (`Ch06/Sec01/FluxCorrector.lean`).
+- Route. The book proves Lemma 3.17 from the regularity theory of Chapter 3 and Proposition 6.2
+  from the estimates of Chapter 4. Here both come from the homogenization theorem at a polynomial
+  scale of Armstrong, Kuusi and Loher (*Homogenization at a polynomial scale in high contrast*,
+  formalized in HighContrastHomogenization, `HCPoly.uniform_homogenization`), applied to the law of
+  the dilated coefficient field `a(2·)`: above a multiple of its homogenization scale `X`, the
+  corrector has bounded energy and oscillation `r^(1-θ) X^θ`, and the flux corrector, selected by
+  the heat formula (6.7), has oscillation `r (r/X)^(-ϑ)`. The random radius is `(B X)^p` with
+  `p = 2d/(d+s)`; its tail gives the stretched-exponential bound of order `s ∈ (0, d)`.
+- Statement. Only the oscillation part of (3.85) is stated, with the exponent `1 - β(d - s)` in
+  place of the exponents of the book, and the slope is a unit vector. The flux corrector is the
+  selection (6.7) of Lemma 6.1, with its local Sobolev regularity and measurability explicit.
+- The modules of `Ch03/Sec04/` and `Ch06/Sec01/` other than the section files were moved from
+  einstein-relation-lean, commit `c97689e`; each names its source file.
+
+## Section 3.3, (3.38)–(3.39), and Section 4.1, (4.8): the class A₁ and the energy J₁
+
+- Lean: `ae_exists_harmonicA1_correctedAffine` (corrected affine functions belong to `A₁`),
+  `ae_eq_zero_of_correctedAffineGrad_ae_eq_zero` (their gradients are linearly independent),
+  `ae_gradients_harmonicA1` (`dim A₁ = d + 1`), `ae_J1Heat_eq_half_dot_inv` (`J₁ = ½ b·M⁻¹ b`),
+  `J1Heat_bounds`, `aestronglyMeasurable_J1Heat`; `Ch03/Sec03/`, `Ch04/Sec01/`.
+- The classification of `A₁` (Theorem 3.8 for `k = 1`) is the hypothesis
+  `firstOrderLiouvilleStatement` of the results that use it. It is derived by the first-order
+  route instead of the higher-order regularity theory of the book:
+  `firstOrderLiouville_of_harmonicApproximation` proves it from two deterministic estimates on the
+  ellipsoids `E_R = M B_R`, `M Mᵀ = ½(ā + āᵀ)`, with `ā` the homogenized matrix of the
+  high-contrast theorem: the harmonic approximation on nearly full ellipsoids
+  (`harmonicApproximationStatement`) and the decay `(t/b)²` of the part of degree at least two of
+  harmonic functions (`harmonicExpansionStatement`). These give one step of the excess decay with
+  the sharp factor `¼ (1 + C R^{-ν})` (`quarterExcessStepStatement`), and the iteration of this step
+  classifies the subquadratic solutions. By the change of variables `x = M y` the second estimate
+  reduces to square-integrable weakly harmonic functions on balls
+  (`harmonicExpansionBallStatement`), proved as `harmonicExpansionBall` with the elliptic regularity
+  library: Weyl's lemma, the Almgren frequency of the first-order Taylor remainder is at least two,
+  so its sphere and ball means decay like `(t/r)⁴`, and it is orthogonal on balls to affine
+  functions. Hence `firstOrderLiouville_of_harmonicApproximation_only` derives the classification
+  from the approximation (2), which is stated and not yet proved here.
+- `J₁ = ½‖-V*p + U*q‖²` is stated in coordinates: `M` is the Gram matrix of the corrector columns
+  `eᵢ + ∇φ_{eᵢ}` for the inner product `∫ Φ_{z,r} v·a w` and `b` the load `∫ Φ_{z,r}(-p·a Wᵢ + q·Wᵢ)`.
+- The bound `0 ≤ J₁ ≤ Λ|p|² + |q|²` holds for every coefficient field, and so does the sharper
+  `J₁ ≤ ½(√Λ |p| + |q|)²` (`J1Heat_le_half_sq`). The measurability of
+  `a ↦ J₁(Φ_{z,r}, p, q)` is almost everywhere strong measurability for every finite law, proved
+  through analytic sets: the strict upper level sets of `J₁` are projections of Borel sets.
+- Lemma 6.1, (6.5)–(6.6): `FluxCorrector.ae_add_transpose_eq_const` gives skew symmetry up to a
+  constant matrix and `fluxCorrectorDivergence` the divergence identity (6.6), with the constant
+  identified as `ā e` for the homogenized matrix of the high-contrast theorem
+  (`FluxCorrector.ae_hasWeakDivergence_of_package`), without an ergodic theorem: the large-time
+  heat averages of the flux converge by the scale pairing bounds of that theorem. The skew part
+  `(S - Sᵀ)/2` satisfies the same identity (`FluxCorrector.ae_skew_divergence_of_package`).
