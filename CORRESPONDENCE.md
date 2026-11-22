@@ -267,6 +267,23 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`changeGain`). The difference `g - 1_{□_R}` is split into the inner cube `□_{R-R^b}` (where it
   is bounded by a Gaussian tail), the layers inside and outside `□_R` (part (ii) at the sides `R`
   and `R + R^b`), and the outside of `□_{R+R^b}` (the far block of Proposition 4.12).
+- **The two inputs.** `LocalizedFieldInput` holds for every localized family
+  (`QSH.localizedFieldInput`, `LocalizedFieldInputProof.lean`), with the bound `(d²Λ + d)²/2` of
+  (4.103) and the joint measurability of the construction of Section 4.4. `LocalizedAdditivityInput`
+  is deduced as in the book from Theorem 4.6 (i), Lemma A.3 (i) (for values in `[0, B]`,
+  `QSH.osBound_increase_exponent_of_bounded`) and (5.85) (`QSH.localizedAdditivityInput_of_uniform`,
+  `LocalizedAdditivityProof.lean`). Theorem 4.6 (i) is
+  used at the stochastic exponent `t = sγ/d`, with its constant `C(t, d, Λ)` chosen before the law
+  (`QSH.UniformAdditivityJ1`, `Ch04/Sec02/UniformAdditivity.lean`, an explicit hypothesis); since
+  the defect lies in `[0, Λ + 1]`, it is `O_s(C r^{-γ})`. Integrating the localization error over
+  the inner centers needs a version of `J₁(Φ_{x,r}, p, q)` jointly measurable in the coefficients
+  and `x`, which the book does not discuss: where (4.12) holds and the corrected coordinates have
+  finite Gaussian energy, `J₁` is the supremum of the trial functionals at `G ξ` over a dense
+  sequence of slopes (`QSH.hasJointHeatVersion_of_lawHypotheses`, `JointHeatVersion.lean`), given
+  homogenization data for the law. Hence `QSH.blockCLT_of_uniformAdditivityJ1`,
+  `QSH.blockBoundary_of_uniformAdditivityJ1` and `QSH.blockChange_of_uniformAdditivityJ1` give the
+  three frozen statements from `UniformAdditivityJ1` and the existence of homogenization data for
+  every law satisfying the assumptions.
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 
