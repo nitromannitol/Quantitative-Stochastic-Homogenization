@@ -94,22 +94,13 @@ theorem measurable_heatKernel_fixed (z : Vec d) (r : ℝ) : Measurable (heatKern
 theorem ofReal_periodizedHeatKernel (z : Vec d) {r : ℝ} (hr : 0 < r) (x : Vec d) :
     ENNReal.ofReal (periodizedHeatKernel z r x) =
       ∑' n : LatticeIndex d, ENNReal.ofReal (heatKernel z r (x + latticeShift n)) :=
-  ENNReal.ofReal_tsum_of_nonneg (fun n => heatKernel_nonneg _ _ _)
+  ENNReal.ofReal_tsum_of_nonneg (fun _ => heatKernel_nonneg _ _ _)
     (hasSum_heatKernel_add_latticeShift z x hr).summable
 
-theorem measurable_periodizedHeatKernel (z : Vec d) {r : ℝ} (hr : 0 < r) :
+theorem measurable_periodizedHeatKernel (z : Vec d) (r : ℝ) :
     Measurable (periodizedHeatKernel z r) := by
-  have hm : Measurable fun x => ∑' n : LatticeIndex d,
-      ENNReal.ofReal (heatKernel z r (x + latticeShift n)) :=
-    Measurable.ennreal_tsum fun n =>
-      ((measurable_heatKernel_fixed z r).comp (measurable_add_const _)).ennreal_ofReal
-  have he : periodizedHeatKernel z r = fun x => (∑' n : LatticeIndex d,
-      ENNReal.ofReal (heatKernel z r (x + latticeShift n))).toReal := by
-    funext x
-    rw [← ofReal_periodizedHeatKernel z hr x, ENNReal.toReal_ofReal]
-    exact tsum_nonneg fun _ => heatKernel_nonneg _ _ _
-  rw [he]
-  exact hm.ennreal_toReal
+  unfold periodizedHeatKernel
+  exact Measurable.tsum fun n => (measurable_heatKernel_fixed z r).comp (measurable_add_const _)
 
 theorem abs_periodizedHeatKernel_sub_one_le (z : Vec d) {r : ℝ} (hr : 0 < r) (x : Vec d) :
     |periodizedHeatKernel z r x - 1| ≤ (1 + thetaError (r ^ 2)) ^ d - 1 :=
@@ -127,6 +118,7 @@ section Periodic
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
 
+omit [NormedSpace ℝ E] [CompleteSpace E] in
 /-- The cell integral of the periodized mask against `|m|` as a sum over the cells. -/
 theorem tsum_setLIntegral_heatKernel_mul {m : Vec d → E} (hm : AEStronglyMeasurable m volume)
     (z : Vec d) {r : ℝ} (hr : 0 < r) :
@@ -143,6 +135,7 @@ theorem tsum_setLIntegral_heatKernel_mul {m : Vec d → E} (hm : AEStronglyMeasu
   refine lintegral_congr fun x => ?_
   rw [ENNReal.tsum_mul_right, ofReal_periodizedHeatKernel z hr x]
 
+omit [NormedSpace ℝ E] [CompleteSpace E] in
 theorem setLIntegral_periodized_lt_top {m : Vec d → E}
     (hcell : IntegrableOn m (latticeCell 1 (0 : LatticeIndex d))) (z : Vec d) {r : ℝ} (hr : 0 < r) :
     ∫⁻ x in latticeCell 1 (0 : LatticeIndex d),
@@ -158,6 +151,7 @@ theorem setLIntegral_periodized_lt_top {m : Vec d → E}
         lintegral_const_mul' _ _ ENNReal.ofReal_ne_top
     _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top hcell.2
 
+omit [CompleteSpace E] in
 theorem lintegral_enorm_heatKernel_smul_periodic {m : Vec d → E}
     (hm : AEStronglyMeasurable m volume)
     (hper : ∀ n : LatticeIndex d, ∀ᵐ x, m (x + latticeShift n) = m x) (z : Vec d) {r : ℝ}
@@ -233,7 +227,7 @@ theorem norm_integral_heatKernel_smul_sub_cell_le {m : Vec d → E}
   have hI1 : IntegrableOn (fun x => (periodizedHeatKernel z r x - 1) • m x)
       (latticeCell 1 (0 : LatticeIndex d)) :=
     Integrable.mono' (hcell.norm.const_mul _)
-      (((measurable_periodizedHeatKernel z hr).sub measurable_const).aestronglyMeasurable.smul
+      (((measurable_periodizedHeatKernel z r).sub measurable_const).aestronglyMeasurable.smul
         hm.restrict) (Eventually.of_forall hb)
   have heq : ∫ x in latticeCell 1 (0 : LatticeIndex d), periodizedHeatKernel z r x • m x =
       (∫ x in latticeCell 1 (0 : LatticeIndex d), (periodizedHeatKernel z r x - 1) • m x) +
