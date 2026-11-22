@@ -197,7 +197,8 @@ of each module names the source files and commits.
   `QSH.LocalizationSlopeEstimate` (the book's (4.101)), and Theorem C of Armstrong, Kuusi and Loher
   is its intended source; `QSH.exists_highContrastExcessPackage` and `QSH.caccioppoli_ball` are proved
   but not yet used. The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
-  `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with `Fluc(s, d/2)` and some `α < d/2`.
+  `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with a fluctuation bound at an exponent above the chosen `α < d/2`
+  (`Fluc(s, d/2)` being the natural one).
   Above the slope scale the Lean route uses the total energy bound on `B_{r^{1+δ}}(z)`, summed over Gaussian shells
   (`QSH.LocalizationInnerSlopeData.toBallGrowthData`). Off the event `{X ≤ r}` both energies are
   bounded deterministically (`QSH.abs_J1Heat_sub_localizedJ1_le_cap`) and `1_{X > r} ≤ r^{-γ} X^γ`

@@ -13,7 +13,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 ## Moving from einstein-relation-lean
 
 - Moved: the `O_s` calculus of Appendix A (all its numbered results, Lemmas A.1, A.3–A.5 and A.7–A.12, proved), Definitions 4.7–4.9, Theorem 4.6, parts (i), (iii) and (iv), conditional on Propositions 4.10–4.12, and the semigroup property of the heat kernel (Chapter 4, opening).
-- Moved, in the form used as the sublinear corrector input: Lemma 3.17, Lemma 6.1 and Proposition 6.2 (`sublinearCorrectors`), with the classification of `A₁` conditional on `harmonicApproximationStatement`. Proved inside einstein-relation-lean and to move here later: Proposition 5.14 (the existence of white noise).
+- Moved, in the form used as the sublinear corrector input: Lemma 3.17, Lemma 6.1 and Proposition 6.2 (`sublinearCorrectors`), with the classification of `A₁` from the first-order Liouville theorem (`firstOrderLiouville`, proved). Proved inside einstein-relation-lean and to move here later: Proposition 5.14 (the existence of white noise).
 
 ## Summary by chapter
 
@@ -255,7 +255,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 5.23 | Coarsened coefficients | not started |
-| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; see CORRESPONDENCE.md) |
+| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; with the theorem proved, from (5.58) alone, `coarsenedCoefficientEstimates_of_energyEstimate`; see CORRESPONDENCE.md) |
 
 ### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
 

@@ -12,7 +12,9 @@ with homogenized matrix `D`, every element of `A₁` minus a corrected affine fu
 close to a `B`-harmonic function `h` on the nearly full ellipsoid `E_b`, `b = (1 - 3R^{-ν})R`:
 `‖v - h‖_{L̲²(E_b)} ≤ C R^{-ν} ‖v‖_{L̲²(E_R)}`. Its proof uses the identity
 `((a - Dᵀ)∇v)ᵢ = ∂ₖ[(σᵢⱼₖ - cᵢⱼₖ)∂ⱼv - (φᵢ - cᵢ)(a∇v)ₖ]`, the Caccioppoli inequality, a
-mollification at scale `R^{1-2ν}` and the comparison principle for `B` on `E_b`.
+mollification, and the orthogonal projection onto the closure of the Laplacians of test functions with
+Weyl's lemma (`HarmonicApproximationProof.lean`; the book's route uses the comparison principle for `B` on
+`E_b`, see CORRESPONDENCE.md).
 
 `harmonicExpansionStatement` is the expansion of `B`-harmonic functions: after the change of
 variables `x = M y`, a `B`-harmonic function on `E_b` is harmonic on `B_b`, its homogeneous

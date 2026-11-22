@@ -52,8 +52,8 @@ The current priority is the frozen statements needed by
 [`FROZEN.md`](FROZEN.md). Some material was moved here from that repository: the `O_s` calculus of Appendix A,
 Definitions 4.7–4.9, and parts (i), (iii) and (iv) of Theorem 4.6 conditional on
 Propositions 4.10–4.12. Also merged: the harmonic expansion on balls; the first-order Liouville
-theorem (Theorem 3.8 for `k = 1`), conditional on the harmonic approximation on ellipsoids
-(`harmonicApproximationStatement`); Lemma 6.1 with the divergence identity (6.6), where the
+theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`), with the harmonic approximation on ellipsoids
+(`harmonicApproximation`) that it rests on, both proved; Lemma 6.1 with the divergence identity (6.6), where the
 statement gives a deterministic vector and the proof identifies it; and Proposition 6.2, with the
 bounds (3.85) and (3.86) of Lemma 3.17 for the correctors, derived from the homogenization theorem
 at a polynomial scale in high contrast. Where a proof departs from the book, [`CORRESPONDENCE.md`](CORRESPONDENCE.md)
