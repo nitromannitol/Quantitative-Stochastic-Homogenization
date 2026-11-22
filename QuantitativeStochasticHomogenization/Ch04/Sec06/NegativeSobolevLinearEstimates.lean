@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevMeasurable
 import QuantitativeStochasticHomogenization.Ch04.Sec03.LinearEstimateOptimal
+import QuantitativeStochasticHomogenization.Ch04.Sec01.HomogenizedBoundsFromMeasurability
 
 /-!
 # Section 4.6: (4.126) from the commutator estimate, the linear estimate and the energy bound
@@ -25,7 +26,11 @@ coordinates of `S`:
 
 Together they give the frozen statement (`negativeSobolevCorrector_of_linear_estimates`), with the
 bounds of `ā` replaced by the measurability of the Dirichlet energies in
-`negativeSobolevCorrector_of_linear_estimates_measurable`.
+`negativeSobolevCorrector_of_linear_estimates_measurable`. Since the bounds `1 ≤ ā ≤ Λ` hold for all
+homogenization data (`HomogenizationData.homogenizedMatrixBounds`), the frozen statement follows
+from the three estimates alone (`negativeSobolevCorrector_of_commutator_linear_energy`), and from
+(4.2), (4.3) and the Gaussian energy at the unit scale alone
+(`negativeSobolevCorrector_of_corrector_energy_estimates`).
 -/
 
 open MeasureTheory Filter Set
@@ -483,5 +488,55 @@ theorem negativeSobolevCorrector_of_linear_estimates_measurable
   have := hPl.1
   obtain ⟨hmeas, S, hS⟩ := hP P hPl
   exact ⟨S, homogenizedMatrixBounds_of_aestronglyMeasurable S (by linarith) hmeas, hS⟩
+
+/-- **(4.126) from (4.2), (4.3) and the Gaussian energy estimate of the corrected field**
+`e + ∇φ_e(·/ε)` at the unit scale. -/
+theorem negativeSobolevCorrector_of_corrector_energy_estimates
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C C₁ : ℝ, 0 < C ∧ 0 < C₁ ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, ∀ e : Vec d, euclideanNorm e < 1 →
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y • (S.corrector e).grad a y)) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y • (S.corrector e).grad a y))
+              1 (C * r ^ (-(d : ℝ) / 2))) ∧
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r →
+            (∀ᵐ a ∂P, Integrable (fun y => heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) ∧
+            OsBound P (fun a => euclideanNorm (∫ y, heatKernel z r y •
+              ((a y).mulVec (e + (S.corrector e).grad a y) - S.homogenized.mulVec e))) 1
+                (C * r ^ (-(d : ℝ) / 2))) ∧
+          ∀ ε : ℝ, 0 < ε → ε < 1 / 2 → ∃ R : CoefficientField d Λ → ℝ, OsBound P R 1 C₁ ∧
+            ∀ᵐ a ∂P, vectorGaussianEnergy (fun x => e + (S.corrector e).grad a (ε⁻¹ • x)) ^
+              (1 / 2 : ℝ) ≤ ENNReal.ofReal (R a)) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_corrector_energy_bounds fun d hd Λ hΛ => ?_
+  obtain ⟨C, C₁, hC, hC₁, hP⟩ := h d hd Λ hΛ
+  refine ⟨C, C₁, hC, hC₁, fun P hPl => ?_⟩
+  have := hPl.1
+  obtain ⟨S, hS⟩ := hP P hPl
+  exact ⟨S, S.homogenizedMatrixBounds (by linarith), hS⟩
+
+/-- **(4.126) from the commutator estimate (4.34), the linear estimate and the energy bound below
+the scale**, at the stochastic exponent `1` and the spatial exponent `d/2`, with constants depending
+only on `d` and `Λ`. -/
+theorem negativeSobolevCorrector_of_commutator_linear_energy
+    (h : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ Cc Cl CN : ℝ, 0 < Cc ∧ 0 < Cl ∧ 0 < CN ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P,
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ j : Fin d,
+            OsBound P (fun a => euclideanNorm (fluxAverage S a z r (unitVector j) -
+              S.homogenized.mulVec (gradientAverage S a z r (unitVector j)))) 1
+                (Cc * r ^ (-((d : ℝ) / 2)))) ∧
+          (∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+            OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) -
+              ξ)) 1 (Cl * (1 + euclideanNorm ξ) * r ^ (-((d : ℝ) / 2)))) ∧
+          GaussianEnergyBound P S ((d : ℝ) / 2) CN) :
+    QSH.Frozen.negativeSobolevCorrector := by
+  refine negativeSobolevCorrector_of_linear_estimates fun d hd Λ hΛ => ?_
+  obtain ⟨Cc, Cl, CN, hCc, hCl, hCN, hP⟩ := h d hd Λ hΛ
+  refine ⟨Cc, Cl, CN, hCc, hCl, hCN, fun P hPl => ?_⟩
+  have := hPl.1
+  obtain ⟨S, hS⟩ := hP P hPl
+  exact ⟨S, S.homogenizedMatrixBounds (by linarith), hS⟩
 
 end QSH
