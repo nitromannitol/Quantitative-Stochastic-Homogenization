@@ -139,7 +139,7 @@ No numbered result.
 | Definition 3.14 | Stationary random field | not started |
 | Definition 3.15 | Stationary random potential field | not started |
 | Lemma 3.16 |  | not started |
-| Lemma 3.17 |  | in progress (the oscillation part of (3.85) with a different exponent, `sublinearCorrectors`; see CORRESPONDENCE.md) |
+| Lemma 3.17 |  | in progress (the oscillation and energy bounds (3.85) and (3.86) with the exponent `1 - β(d - s)` of the book, with a random scale that depends on the slope, `sublinearCorrectors`; see CORRESPONDENCE.md) |
 | Proposition 3.21 |  | not started |
 | Lemma 3.22 |  | not started |
 | Lemma 3.23 |  | not started |
@@ -282,8 +282,8 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 6.1 |  | in progress (skew symmetry up to a constant matrix and the divergence identity (6.6), `fluxCorrectorDivergence`; (6.7) is the definition of `FluxCorrector`) |
-| Proposition 6.2 | Flux corrector estimates | in progress (the oscillation bound of the flux corrector in `sublinearCorrectors`) |
+| Lemma 6.1 |  | in progress (skew symmetry up to a constant matrix and the divergence identity (6.6), `fluxCorrectorDivergence`, with the constant given by an existence statement; (6.7) is the definition of `FluxCorrector`; see CORRESPONDENCE.md) |
+| Proposition 6.2 | Flux corrector estimates | in progress (the oscillation bound of the flux corrector in `sublinearCorrectors`; see CORRESPONDENCE.md) |
 
 ### 6.2 Quantitative Two-Scale Expansions Without Boundaries, module `Ch06/Sec02TwoScaleExpansionWithoutBoundaries.lean`
 
