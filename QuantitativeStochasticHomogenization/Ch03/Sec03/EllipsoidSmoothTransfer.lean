@@ -30,10 +30,6 @@ theorem coordinateDerivative_sum_const_mul {ι : Type*} (s : Finset ι) (c : ι 
   rw [fderiv_const_mul ((hG l) x) (c l)]
   rfl
 
-theorem contDiff_coordinateDerivative {f : Vec d → ℝ} (hf : ContDiff ℝ (⊤ : ℕ∞) f) (i : Fin d) :
-    ContDiff ℝ (⊤ : ℕ∞) (coordinateDerivative i f) :=
-  PDE.contDiff_euclideanCoordDeriv hf i
-
 /-- The second-order chain rule for `y ↦ f (N y)`. -/
 theorem coordinateDerivative_coordinateDerivative_comp_mulVec {N : Mat d} (hN : N.det ≠ 0)
     {f : Vec d → ℝ} (hf : ContDiff ℝ (⊤ : ℕ∞) f) (i j : Fin d) (x : Vec d) :
@@ -46,7 +42,7 @@ theorem coordinateDerivative_coordinateDerivative_comp_mulVec {N : Mat d} (hN : 
     exact coordinateDerivative_comp_mulVec hN f i y
   rw [h1]
   have hd : ∀ l, Differentiable ℝ (fun y => coordinateDerivative l f (N.mulVec y)) := fun l =>
-    ((contDiff_coordinateDerivative hf l).differentiable (by simp)).comp
+    ((contDiff_coordinateDerivative_top hf l).differentiable (by simp)).comp
       (matrixCLE N hN).differentiable
   rw [coordinateDerivative_sum_const_mul _ _ hd]
   refine Finset.sum_congr rfl fun l _ => ?_
@@ -184,7 +180,7 @@ theorem isL2HarmonicOn_comp_inv {M : Mat d} (hdet : M.det ≠ 0) {b : ℝ} (hb :
   set g : Vec d → Vec d := fun x => gradient H x with hgdef
   have hgc : ∀ i, ContDiff ℝ (⊤ : ℕ∞) (fun x => g x i) := fun i => by
     simp only [hgdef, gradient]
-    exact contDiff_coordinateDerivative hH i
+    exact contDiff_coordinateDerivative_top hH i
   refine ⟨memLp_restrict_of_continuous hH.continuous hK hEK hEm, g,
     fun i => memLp_restrict_of_continuous (hgc i).continuous hK hEK hEm, ?_, ?_⟩
   · intro i
