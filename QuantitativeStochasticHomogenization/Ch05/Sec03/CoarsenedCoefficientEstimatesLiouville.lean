@@ -1,5 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch05.Sec03.CoarseFluxDefectMeasurability
-import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatGram
+import QuantitativeStochasticHomogenization.Ch04.Opening.Theorem41Energy
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatMeasurability
 import QuantitativeStochasticHomogenization.Ch03.Sec03.DimensionA1
 import QuantitativeStochasticHomogenization.Ch03.Sec03.HarmonicExpansionBallProof
@@ -13,8 +13,7 @@ Section 5.3, (5.63)–(5.64). Of the inputs of `coarsenedCoefficientEstimates_of
 * the almost sure measurability of `J₁(Φ_{z,r}, p, q)` holds for every finite law
   (`aestronglyMeasurable_J1Heat`);
 * the finite Gaussian energy of the corrected coordinates follows from the sublinearity of the
-  correctors (`ae_integrable_heatKernel_mul_euclideanSq_correctorColumn`), giving
-  `hasGaussianCorrectorEnergy_of_lawHypotheses`;
+  correctors (`hasGaussianCorrectorEnergy_of_lawHypotheses`);
 * the identification (4.12) of the gradients of `A₁` with the corrected fields follows from
   Theorem 3.8 for `k = 1` (`ae_gradients_harmonicA1`), giving
   `ae_gradientsOfA1AreCorrected_of_liouville`.
@@ -53,13 +52,6 @@ theorem ae_gradientsOfA1AreCorrected_of_liouville (hL : firstOrderLiouvilleState
   · obtain ⟨w, -, hw⟩ := ha.2 ξ
     refine ⟨w, Eventually.of_forall fun x => ?_⟩
     rw [hw, correctedAffineGrad_eq_correctedField]
-
-/-- **The corrected coordinates have finite Gaussian energy**, from the sublinearity of the
-correctors. -/
-theorem hasGaussianCorrectorEnergy_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
-    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (S : HomogenizationData P) :
-    HasGaussianCorrectorEnergy S :=
-  ae_integrable_heatKernel_mul_euclideanSq_correctorColumn hd hΛ hP S
 
 /-- **(5.63) from (5.58) and the first-order Liouville theorem.** -/
 theorem coarsenedCoefficientEstimates_of_energyEstimate_liouville
