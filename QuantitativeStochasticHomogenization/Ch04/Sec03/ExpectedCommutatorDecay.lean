@@ -78,7 +78,7 @@ end Moments
 
 /-! ## A crude operator bound -/
 
-theorem abs_dot_mulVec_le (M : Mat d) (ξ : Vec d) :
+theorem abs_dot_mulVec_le_sum (M : Mat d) (ξ : Vec d) :
     |dot ξ (M.mulVec ξ)| ≤ (∑ i, ∑ j, |M i j|) * euclideanSq ξ := by
   have hb : ∀ i j, |ξ i * (M i j * ξ j)| ≤ |M i j| * euclideanSq ξ := by
     intro i j
@@ -104,7 +104,7 @@ theorem euclideanNorm_homogenized_mulVec_le_sum {P : Measure (CoefficientField d
       (∑ i, ∑ j, |S.homogenized i j|) * euclideanNorm v :=
   euclideanNorm_mulVec_le_of_abs_dot_le S.symmetric
     (Finset.sum_nonneg fun _ _ => Finset.sum_nonneg fun _ _ => abs_nonneg _)
-    (abs_dot_mulVec_le S.homogenized) v
+    (abs_dot_mulVec_le_sum S.homogenized) v
 
 /-! ## The expected commutator -/
 

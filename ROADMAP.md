@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 5 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 8 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -139,7 +139,7 @@ No numbered result.
 | Definition 3.14 | Stationary random field | not started |
 | Definition 3.15 | Stationary random potential field | not started |
 | Lemma 3.16 |  | not started |
-| Lemma 3.17 |  | in progress (the oscillation part of (3.85) with a different exponent, `sublinearCorrectors`; see CORRESPONDENCE.md) |
+| Lemma 3.17 |  | in progress (the oscillation and energy bounds (3.85) and (3.86) with the exponent `1 - β(d - s)` of the book, with a random scale that depends on the slope, `sublinearCorrectors`; see CORRESPONDENCE.md) |
 | Proposition 3.21 |  | not started |
 | Lemma 3.22 |  | not started |
 | Lemma 3.23 |  | not started |
@@ -169,7 +169,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.1 |  | not started |
+| Theorem 4.1 |  | in progress ((4.2) with `s = 1` from the linear estimate with a constant chosen before the law, `averagedCorrectorGradient_of_linearAverage_uniform`; see CORRESPONDENCE.md) |
 
 ### 4.1 The Energy Quantity J₁ and Its Basic Properties, module `Ch04/Sec01EnergyQuantityJ1.lean`
 
@@ -221,7 +221,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.24 | Corrector estimates in W^{-α,p} | not started |
+| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) at integer orders from the commutator and linear estimates with constants chosen before the law, `negativeSobolevCorrector_of_commutator_linear`; see CORRESPONDENCE.md) |
 | Lemma 4.25 |  | not started |
 
 ### 4.7 Corrector Oscillation Estimates in Two Dimensions, module `Ch04/Sec07CorrectorOscillationInTwoDimensions.lean`
@@ -255,7 +255,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 5.23 | Coarsened coefficients | not started |
-| Lemma 5.24 |  | not started |
+| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; see CORRESPONDENCE.md) |
 
 ### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
 
@@ -282,8 +282,8 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 6.1 |  | in progress (skew symmetry up to a constant matrix and the divergence identity (6.6), `fluxCorrectorDivergence`; (6.7) is the definition of `FluxCorrector`) |
-| Proposition 6.2 | Flux corrector estimates | in progress (the oscillation bound of the flux corrector in `sublinearCorrectors`) |
+| Lemma 6.1 |  | in progress (skew symmetry up to a constant matrix and the divergence identity (6.6), `fluxCorrectorDivergence`, with the constant given by an existence statement; (6.7) is the definition of `FluxCorrector`; see CORRESPONDENCE.md) |
+| Proposition 6.2 | Flux corrector estimates | in progress (the oscillation bound of the flux corrector in `sublinearCorrectors`; see CORRESPONDENCE.md) |
 
 ### 6.2 Quantitative Two-Scale Expansions Without Boundaries, module `Ch06/Sec02TwoScaleExpansionWithoutBoundaries.lean`
 
