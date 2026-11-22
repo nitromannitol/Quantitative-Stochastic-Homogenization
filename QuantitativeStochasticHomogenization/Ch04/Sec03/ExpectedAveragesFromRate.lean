@@ -84,7 +84,7 @@ variable {P : Measure (CoefficientField d Λ)}
 /-- **The envelopes of the gradient and flux averages**: if `∫ Φ_{z,r} Gξ·aGξ ≤ B |ξ|²`, then
 `∫ Φ_{z,r} |Gξ| ≤ |ξ|(1 + B)/2` and `∫ Φ_{z,r} |aGξ| ≤ Λ|ξ|(1 + B)/2`. -/
 theorem gradient_flux_envelope (hΛ : 0 ≤ Λ) (S : HomogenizationData P) (ξ : Vec d)
-    (a : CoefficientField d Λ) (z : Vec d) {r : ℝ} (hr : 0 < r) {B : ℝ} (hB : 0 ≤ B)
+    (a : CoefficientField d Λ) (z : Vec d) {r : ℝ} (hr : 0 < r) {B : ℝ}
     (hEi : Integrable fun x => heatKernel z r x *
       dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x)))
     (hEb : ∫ x, heatKernel z r x *
@@ -217,5 +217,170 @@ theorem ae_tendsto_averages_of_rate {P : Measure (CoefficientField d Λ)} (S : H
     filter_upwards [hev] with n hn
     rw [integral_heatKernel_smul_energyDensity, Real.norm_eq_abs]
     exact (hn ξ).2.2.2.2.2.trans (le_of_eq (by ring))
+
+/-! ## The expectations (1) -/
+
+/-- **The expectations (1) of the Gaussian averages** for every `β > 0`, from the energy bound
+below the scale and Proposition 3.21 at one exponent with a positive rate, for a law satisfying
+(0.10)–(0.11). -/
+theorem expectedAveragesEstimate_of_energy_and_rate {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
+    (hN : GaussianEnergyBound P S τ CN) {τ' C μ : ℝ} (hμ : 0 < μ)
+    (hrate : GaussianCorrectorRate P S τ' C μ) {β : ℝ} (hβ : 0 < β) :
+    ExpectedAveragesEstimate P S β := by
+  have : IsProbabilityMeasure P := hP.1
+  have hinv := hP.2.1
+  obtain ⟨X, -, hX1, hXos, hXb⟩ := hN
+  have hCN : 0 < CN := (hXos 0).scale_pos
+  have hX0 : ∀ a z, 0 ≤ X a z := fun a z => zero_le_one.trans (hX1 a z)
+  have hXd : ∀ z, Integrable (fun a => X a z ^ d) P := by
+    intro z
+    rcases Nat.eq_zero_or_pos d with hd | hd
+    · subst hd
+      simp only [pow_zero]
+      exact integrable_const 1
+    · have h := ((hXos z).rpow (fun a => hX0 a z) (Nat.cast_pos.mpr hd :
+        (0 : ℝ) < d)).integrable_of_nonneg (fun a => Real.rpow_nonneg (hX0 a z) _)
+      simpa only [Real.rpow_natCast] using h
+  have hE0 : 0 ≤ ∫ a, X a 0 ^ d ∂P := integral_nonneg fun a => pow_nonneg (hX0 a 0) d
+  have hM : 0 < 1 + CN * (1 + ∫ a, X a 0 ^ d ∂P) := by positivity
+  obtain ⟨Cβ, hCβ, hCβb⟩ := periodizationError_le_rpow (d := d) hβ
+  have hc0 : 0 < (cellHeatLower d)⁻¹ := inv_pos.mpr (cellHeatLower_pos d)
+  refine ⟨((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+    (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)), by positivity, fun z r hr ξ => ?_⟩
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  have hBint : ∀ z, Integrable (fun a => CN * (1 + X a z ^ d)) P := fun z =>
+    ((integrable_const 1).add (hXd z)).const_mul CN
+  have hIB : ∫ a, CN * (1 + X a 0 ^ d) ∂P = CN * (1 + ∫ a, X a 0 ^ d ∂P) := by
+    rw [integral_const_mul, integral_add (integrable_const _) (hXd 0)]
+    simp
+  have hEB : ∀ z, ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r →
+      (Integrable fun x => heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
+      ∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))
+        ≤ CN * (1 + X a z ^ d) * euclideanSq ξ := by
+    intro z
+    filter_upwards [hXb z] with a ha r hr
+    obtain ⟨h1, h2⟩ := ha r hr ξ
+    refine ⟨h1, h2.trans ?_⟩
+    have hXr : (X a z / r) ^ d ≤ X a z ^ d :=
+      pow_le_pow_left₀ (div_nonneg (hX0 a z) (zero_le_one.trans hr))
+        (div_le_self (hX0 a z) hr) d
+    exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left (by linarith) hCN.le)
+      (euclideanSq_nonneg ξ)
+  have hlim := ae_tendsto_averages_of_rate S hμ hrate ξ
+  have hn := euclideanNorm_nonneg ξ
+  have hρ : 0 < r ^ (-β) := Real.rpow_pos_of_pos hr0 _
+  have hε0 := periodizationError_nonneg (d := d) hr0
+  have hε := hCβb r hr
+  -- the gradient
+  obtain ⟨hIG, hbG⟩ := norm_expectation_average_sub_le hinv
+    (H := fun a x => correctedField S a ξ x) (measurable_correctedField S ξ).stronglyMeasurable
+    (ae_correctedField_add_latticeShift S ξ)
+    (fun z a => euclideanNorm ξ / 2 * (1 + CN * (1 + X a z ^ d)))
+    (fun z => ((integrable_const 1).add (hBint z)).const_mul _)
+    (fun z => by
+      filter_upwards [hEB z] with a ha r hr
+      obtain ⟨h1, h2⟩ := ha r hr
+      exact (gradient_flux_envelope hΛ S ξ a z (zero_lt_one.trans_le hr) h1 h2).1)
+    (by filter_upwards [hlim] with a ha; exact ha.1) z hr
+  -- the flux
+  obtain ⟨hIF, hbF⟩ := norm_expectation_average_sub_le hinv
+    (H := fluxDensity S ξ) (measurable_fluxDensity S ξ).stronglyMeasurable
+    (ae_fluxDensity_add_latticeShift S ξ)
+    (fun z a => Λ * (euclideanNorm ξ / 2 * (1 + CN * (1 + X a z ^ d))))
+    (fun z => (((integrable_const 1).add (hBint z)).const_mul _).const_mul _)
+    (fun z => by
+      filter_upwards [hEB z] with a ha r hr
+      obtain ⟨h1, h2⟩ := ha r hr
+      exact (gradient_flux_envelope hΛ S ξ a z (zero_lt_one.trans_le hr) h1 h2).2)
+    (by filter_upwards [hlim] with a ha; exact ha.2.1) z hr
+  -- the energy
+  obtain ⟨hIW, hbW⟩ := norm_expectation_average_sub_le hinv
+    (H := energyDensity S ξ) (measurable_energyDensity S ξ).stronglyMeasurable
+    (ae_energyDensity_add_latticeShift S ξ)
+    (fun z a => CN * (1 + X a z ^ d) * euclideanSq ξ)
+    (fun z => (hBint z).mul_const _)
+    (fun z => by
+      filter_upwards [hEB z] with a ha r hr
+      obtain ⟨h1, h2⟩ := ha r hr
+      obtain ⟨h3, h4⟩ := energy_envelope S ξ a z r h1
+      exact ⟨h3, h4.le.trans h2⟩)
+    (by filter_upwards [hlim] with a ha; exact ha.2.2) z hr
+  have hfF : (fun a => ∫ x, heatKernel z r x • fluxDensity S ξ a x) =
+      fun a => ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x) :=
+    funext fun a => integral_heatKernel_smul_fluxDensity S ξ a z r
+  have hfW : (fun a => ∫ x, heatKernel z r x • energyDensity S ξ a x) =
+      fun a => ∫ x, heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x)) :=
+    funext fun a => integral_heatKernel_smul_energyDensity S ξ a z r
+  rw [hfF] at hIF hbF
+  rw [hfW] at hIW hbW
+  have hYG : ∫ a, euclideanNorm ξ / 2 * (1 + CN * (1 + X a 0 ^ d)) ∂P =
+      euclideanNorm ξ / 2 * (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)) := by
+    rw [integral_const_mul, integral_add (integrable_const _) (hBint 0), hIB]
+    simp
+  have hYF : ∫ a, Λ * (euclideanNorm ξ / 2 * (1 + CN * (1 + X a 0 ^ d))) ∂P =
+      Λ * (euclideanNorm ξ / 2 * (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P))) := by
+    rw [integral_const_mul, hYG]
+  have hYW : ∫ a, CN * (1 + X a 0 ^ d) * euclideanSq ξ ∂P =
+      CN * (1 + ∫ a, X a 0 ^ d ∂P) * euclideanSq ξ := by
+    rw [integral_mul_const, hIB]
+  rw [hYG] at hbG
+  rw [hYF] at hbF
+  rw [hYW] at hbW
+  set M := 1 + CN * (1 + ∫ a, X a 0 ^ d ∂P) with hMdef
+  set ε := (1 + thetaError (r ^ 2)) ^ d - 1 with hεdef
+  set c0 := (cellHeatLower d)⁻¹ with hc0def
+  set ρ := r ^ (-β) with hρdef
+  have hd1 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
+  have hεc : ε * c0 ≤ Cβ * ρ * c0 := mul_le_mul_of_nonneg_right hε hc0.le
+  refine ⟨hIG, hIF, hIW, ?_, ?_, ?_⟩
+  · calc euclideanNorm ((∫ a, (∫ x, heatKernel z r x • correctedField S a ξ x) ∂P) - ξ)
+        ≤ ((d : ℝ) + 1) * ‖(∫ a, (∫ x, heatKernel z r x • correctedField S a ξ x) ∂P) - ξ‖ :=
+          euclideanNorm_le_dimension_mul_norm _
+      _ ≤ ((d : ℝ) + 1) * (ε * (c0 * (euclideanNorm ξ / 2 * M))) :=
+          mul_le_mul_of_nonneg_left hbG (by positivity)
+      _ = ((d : ℝ) + 1) * (ε * c0) * M * euclideanNorm ξ * (1 / 2) := by ring
+      _ ≤ ((d : ℝ) + 1) * (Cβ * ρ * c0) * M * euclideanNorm ξ * (Λ + 1) := by
+          gcongr
+          linarith
+      _ = ((d : ℝ) + 1) * Cβ * c0 * (Λ + 1) * M * euclideanNorm ξ * ρ := by ring
+  · calc euclideanNorm ((∫ a, (∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) ∂P) -
+          S.homogenized.mulVec ξ)
+        ≤ ((d : ℝ) + 1) * ‖(∫ a, (∫ x, heatKernel z r x • (a x).mulVec
+          (correctedField S a ξ x)) ∂P) - S.homogenized.mulVec ξ‖ :=
+          euclideanNorm_le_dimension_mul_norm _
+      _ ≤ ((d : ℝ) + 1) * (ε * (c0 * (Λ * (euclideanNorm ξ / 2 * M)))) :=
+          mul_le_mul_of_nonneg_left hbF (by positivity)
+      _ = ((d : ℝ) + 1) * (ε * c0) * M * euclideanNorm ξ * (Λ / 2) := by ring
+      _ ≤ ((d : ℝ) + 1) * (Cβ * ρ * c0) * M * euclideanNorm ξ * (Λ + 1) := by
+          gcongr
+          linarith
+      _ = ((d : ℝ) + 1) * Cβ * c0 * (Λ + 1) * M * euclideanNorm ξ * ρ := by ring
+  · have hsq := euclideanSq_nonneg ξ
+    have hCNM : CN * (1 + ∫ a, X a 0 ^ d ∂P) ≤ M := by rw [hMdef]; linarith
+    rw [← Real.norm_eq_abs]
+    calc ‖(∫ a, (∫ x, heatKernel z r x *
+            dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P) -
+          dot ξ (S.homogenized.mulVec ξ)‖
+        ≤ ε * (c0 * (CN * (1 + ∫ a, X a 0 ^ d ∂P) * euclideanSq ξ)) := hbW
+      _ = (ε * c0) * (CN * (1 + ∫ a, X a 0 ^ d ∂P)) * euclideanSq ξ * 1 := by ring
+      _ ≤ (Cβ * ρ * c0) * M * euclideanSq ξ * (((d : ℝ) + 1) * (Λ + 1)) := by
+          gcongr
+          nlinarith
+      _ = ((d : ℝ) + 1) * Cβ * c0 * (Λ + 1) * M * euclideanSq ξ * ρ := by ring
+
+/-- **The expectations (1) from Proposition 3.21 alone**: for a law satisfying (0.10)–(0.11),
+Proposition 3.21 at one exponent with a positive rate gives `ExpectedAveragesEstimate P S β` for
+every `β > 0`. -/
+theorem expectedAveragesEstimate_of_rate {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ C μ : ℝ} (hτ : 0 < τ)
+    (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ C μ) {β : ℝ} (hβ : 0 < β) :
+    ExpectedAveragesEstimate P S β := by
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨K, hK⟩ := exists_dot_mulVec_le S.homogenized
+  obtain ⟨CN, -, hN⟩ := gaussianEnergyBound_of_rate S hK hτ hμ.le hrate
+  exact expectedAveragesEstimate_of_energy_and_rate hP S hΛ hN hμ hrate hβ
 
 end QSH
