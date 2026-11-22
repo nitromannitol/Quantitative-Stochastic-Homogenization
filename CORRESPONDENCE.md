@@ -408,6 +408,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   averages, `HeatIdentityBound`, and the conclusions of Propositions 4.11 and 4.12. From the same
   inputs, Theorem 4.6 (i) gives `Fluc(s, d/2)` (`flucJ1_half_dim_of_heat`), and Lemma 4.13 and
   the linear estimate hold at the exponent `d/2` (`linearAverageEstimate_half_dim`).
+- **The expectations (1) (in the book, Lemma 3.23 and (3.92)–(3.93)).**
+  `expectedAveragesEstimate_of_rate` (`Ch04/Sec03/ExpectedAveragesFromRate.lean`) proves
+  `ExpectedAveragesEstimate P S β` for every `β > 0`, for a law satisfying (0.10)–(0.11), from
+  Proposition 3.21 at one exponent with a positive rate. The proof is not the book's (which uses
+  the Poincaré inequality on the torus): the densities `G ξ`, `a G ξ`, `G ξ · a G ξ`, formed with
+  the jointly measurable version of the coefficients, are stationary, so their expectations are
+  lattice periodic; by Poisson summation for the heat kernel (`Complex.tsum_exp_neg_quadratic`) the
+  periodized mask `∑_{n ∈ ℤ^d} Φ_{z,r}(· + n)` is within `(1 + ∑_{k ≠ 0} e^{-4π²r²k²})^d - 1` of `1`
+  (`abs_tsum_heatKernel_add_latticeShift_sub_one_le`), so every Gaussian average of a periodic
+  function is within that error, times its cell integral of absolute values, of its cell mean
+  (`norm_integral_heatKernel_smul_sub_cell_le`); the cell means are `ξ`, `āξ`, `ξ·āξ` because the
+  averages at the origin converge almost surely to these values by Proposition 3.21, with the
+  envelopes `|ξ|(1 + C(1 + X^d))/2`, `Λ|ξ|(1 + C(1 + X^d))/2`, `C(1 + X^d)|ξ|²` of the energy
+  bound below the scale (dominated convergence, `norm_expectation_average_sub_le`). The error is
+  `O(e^{-4π²r²})`, hence `O(r^{-β})` for every `β`. `estimate558_of_heatBound_and_law` is (5.58)
+  without the expectations (1) as a hypothesis.
+- **The heat identity: absolute convergence of the time integral.** `HeatPathwiseBound` is the
+  bound of `HeatIdentityBound` with lower integrals, which is what (H) and the triangle inequality
+  give; `heatIdentityBound_of_pathwise_of_rate` derives `HeatIdentityBound` from it and
+  Proposition 3.21: the expected commutator at scale `ρ` is `O(ρ^{-μ})` uniformly in the center
+  (`expectedCommutatorDecay_of_rate`, using that a nonnegative `O_s(θ)` variable has mean at most
+  `θ(1 + 2⌈1/s⌉!)`), so by Tonelli the first moment of the time integral is finite and the lower
+  integral is almost surely the Bochner integral. `estimate558_of_pathwise_and_law` is (5.58) with
+  `HeatPathwiseBound` in place of `HeatIdentityBound`. The identity (H) itself is not formalized.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality
