@@ -99,7 +99,7 @@ theorem heatIdentityBound_of_pathwise [SFinite P] (S : HomogenizationData P) {k 
       measurable_const.prodMk measurable_id
     have hm' := (hmeasC.comp hg).ennreal_ofReal
     have hm : Measurable fun a => ENNReal.ofReal (commutatorNorm S a (z - x) (Real.sqrt u) i) :=
-      hm' 
+      hm'
     calc ∫⁻ a, ENNReal.ofReal (Fn a u x) ∂P
         = ∫⁻ a, ENNReal.ofReal (k r u x) *
             ENNReal.ofReal (commutatorNorm S a (z - x) (Real.sqrt u) i) ∂P := by

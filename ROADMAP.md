@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 8 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 11 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -21,9 +21,9 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | --- | --- | --- | --- | --- |
 | 1 | Introduction and Qualitative Theory | 12 | 0 | 0 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
-| 3 | Regularity on Large Scales | 23 | 0 | 2 |
-| 4 | Quantitative Description of First-Order Correctors | 25 | 3 | 1 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 0 |
+| 3 | Regularity on Large Scales | 23 | 0 | 3 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 3 | 5 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 1 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **13** | **5** |
+| | **Total** | **226** | **13** | **11** |
 
 ## Front matter
 
@@ -142,7 +142,7 @@ No numbered result.
 | Lemma 3.17 |  | in progress (the oscillation and energy bounds (3.85) and (3.86) with the exponent `1 - β(d - s)` of the book, with a random scale that depends on the slope, `sublinearCorrectors`; see CORRESPONDENCE.md) |
 | Proposition 3.21 |  | not started |
 | Lemma 3.22 |  | not started |
-| Lemma 3.23 |  | not started |
+| Lemma 3.23 |  | in progress (expectation bound (1) from Proposition 3.21 as `expectedAveragesEstimate_of_rate`, with rate `r^{-β}` for every `β`; see CORRESPONDENCE.md) |
 
 ### 3.5 Boundary Regularity, module `Ch03/Sec05BoundaryRegularity.lean`
 
@@ -188,7 +188,7 @@ No numbered result.
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
-| Proposition 4.10 | Improvement of additivity | not started |
+| Proposition 4.10 | Improvement of additivity | in progress ((5.58) from the pathwise heat-identity bound `HeatPathwiseBound` and the commutator decay; see CORRESPONDENCE.md) |
 | Proposition 4.11 | Localization estimates | not started |
 | Proposition 4.12 | Fluctuation estimates | not started |
 
@@ -208,7 +208,7 @@ No numbered result.
 | --- | --- | --- |
 | Lemma 4.19 | Multiscale Poincaré inequality, heat kernel version | not started |
 | Lemma 4.20 |  | not started |
-| Lemma 4.21 |  | not started |
+| Lemma 4.21 |  | in progress ((5.85) from `firstOrderLiouville` and the assumed single-slope estimate `LocalizationSlopeEstimate`; see CORRESPONDENCE.md) |
 | Lemma 4.22 |  | not started |
 
 ### 4.5 Fluctuation Estimates, module `Ch04/Sec05FluctuationEstimates.lean`

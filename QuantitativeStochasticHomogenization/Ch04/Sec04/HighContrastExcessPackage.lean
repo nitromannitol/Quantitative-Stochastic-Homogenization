@@ -4,9 +4,9 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.HighContrastCorrectors
 # Theorem C of Armstrong, Kuusi and Loher with the excess decay of one slope
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21. The zoom from the intermediate scale to the scale `r` uses the last clause of
-Theorem C of Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high
-contrast*, for the dilated law: above the homogenization scale `X`, every solution `u` on the
+proof of Lemma 4.21. This is prepared for the single-slope estimate of the zoom from the intermediate scale to the
+scale `r`. It records the last clause of Theorem C of Armstrong, Kuusi and Loher,
+*Homogenization at a polynomial scale in high contrast*, for the dilated law: above the homogenization scale `X`, every solution `u` on the
 ellipsoid of radius `R` of the homogenized matrix has, for each `ϑ ∈ (0, 1)`, one slope `e` with
 `‖∇u - (e + ∇φ_e)‖_{E_t} ≤ C_ϑ (t/R)^ϑ ‖∇u‖_{E_R}` for all `X ≤ t ≤ R` (coefficient-weighted
 gradient norms). `HighContrastExcessPackage` extends `HighContrastCorrectorPackage` by this

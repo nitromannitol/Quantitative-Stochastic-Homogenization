@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.CoordinateMinimizerCoerci
 # The Caccioppoli inequality on balls with an arbitrary center
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-Lemma C.2, used in the proof of Lemma 4.21 for the difference between a selected coordinate and
+Lemma C.2, prepared for the proof of Lemma 4.21 for the difference between a selected coordinate and
 a corrected coordinate on `B_{r^{1+δ}}(z)`: for an `a`-harmonic `v` on `B_R(z)` and `0 < r < R`,
 `∫_{B_r(z)} |∇v|² ≤ 4 Λ (32/(R - r))² ∫_{B_R(z)} (v - k)²` for every constant `k`. The proof is
 the Caccioppoli inequality of the elliptic regularity library on the convex domain `B_R(z)` with

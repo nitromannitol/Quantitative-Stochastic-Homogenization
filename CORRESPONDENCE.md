@@ -190,17 +190,21 @@ of each module names the source files and commits.
 - **Lemma 4.21 with one slope** (`QSH.localizedEnergy_of_slope`). (5.85) is reduced to the
   first-order Liouville theorem and the single-slope estimate `QSH.LocalizationSlopeEstimate`:
   above a random radius `X` with `X^γ ≤ O_s(C)`, the gradient of each selected coordinate is within
-  `K Y (t/r)` of one corrected gradient `W_i + ∑_j b_{ij} W_j` in `L̲²(B_t(z))` for
+  `√K₁ Y (t/r)` of one corrected gradient `W_i + ∑_j b_{ij} W_j` in `L̲²(B_t(z))` for
   `r ≤ t ≤ c r^{1+δ-ε}`, with `Y ≤ O_s(C r^{-γ})`. The book's proof (pp. 156-162) approximates
   the selected coordinates by heterogeneous polynomials of high degree at the intermediate scale and
-  uses the case `k = 1` of Theorem 3.8 at the scale `r`; the Lean route follows the excess decay of
-  one slope in Theorem C of Armstrong, Kuusi and Loher below a fixed fraction of the intermediate
-  scale and the total energy bound on `B_{r^{1+δ}}(z)` above it, summed over Gaussian shells
+  uses the case `k = 1` of Theorem 3.8 at the scale `r`; the single-slope step is assumed as
+  `QSH.LocalizationSlopeEstimate` (the book's (4.101)), and Theorem C of Armstrong, Kuusi and Loher
+  is its intended source; `QSH.exists_highContrastExcessPackage` and `QSH.caccioppoli_ball` are proved
+  but not yet used. The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
+  `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with `Fluc(s, d/2)` and some `α < d/2`.
+  Above the slope scale the Lean route uses the total energy bound on `B_{r^{1+δ}}(z)`, summed over Gaussian shells
   (`QSH.LocalizationInnerSlopeData.toBallGrowthData`). Off the event `{X ≤ r}` both energies are
   bounded deterministically (`QSH.abs_J1Heat_sub_localizedJ1_le_cap`) and `1_{X > r} ≤ r^{-γ} X^γ`
   (`QSH.localizationApproximationUniform_of_ballGrowth`). The oscillation and energy bounds of the
   correctors at the center `z` come from Lemma 3.17 at the origin for the coefficients translated
   by a lattice point near `z` (`QSH.exists_translated_corrector_bounds`).
+  `QSH.localizedEnergy_of_slope_only` gives the frozen localized-energy statement from `QSH.LocalizationSlopeEstimate` alone, with `QSH.firstOrderLiouville` and `QSH.harmonicApproximation` discharged.
 
 ## Section 4.5: Proposition 4.12
 
@@ -282,6 +286,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`LinearA1Gradients`), and the almost sure measurability of `J₁(Φ_{z,r}, p, q)` and of the flux
   defect, which the book does not discuss. The bound `|ā| ≤ 2Λd²` used for the rescaling is
   deduced from (5.58) and `0 ≤ J₁(Φ, p, 0) ≤ Λ|p|²` (`norm_toEuclideanCLM_le_of_energyEstimate`).
+  `QSH.coarsenedCoefficientEstimates_of_energyEstimate` gives the frozen coarsened coefficient estimates from (5.58) alone, with `QSH.firstOrderLiouville` discharged.
 - **Measurability of the flux defect of (5.64)** (`aemeasurable_coarseFluxDefect`), which the book
   does not discuss. On the event of (4.12) by the corrected fields `G ξ = ∑ᵢ ξᵢ Wᵢ` with finite
   Gaussian energy, the supremum in (5.64) is the supremum over the ellipsoid
