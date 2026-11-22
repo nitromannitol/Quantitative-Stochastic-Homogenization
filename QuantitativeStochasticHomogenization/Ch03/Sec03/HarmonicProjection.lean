@@ -107,19 +107,20 @@ theorem norm_starProjection_le_of_inner_le {E : Type*} [NormedAddCommGroup E]
   · rw [pow_two] at hpair
     exact le_of_mul_le_mul_right hpair (norm_pos_iff.mpr h0)
 
-/-- **Harmonic approximation by orthogonal projection** on a round ball. -/
-theorem exists_harmonic_sub_sq_le_of_laplacian_pairing (hd : 0 < d) {x₀ : Vec d} {r ε : ℝ}
-    (hr : 0 < r) (hε : 0 ≤ ε) {u : Vec d → ℝ}
+/-- **Harmonic approximation by orthogonal projection** on a round ball: the approximating
+function is smooth on the whole space and harmonic on every smaller concentric ball. -/
+theorem exists_harmonic_sub_sq_le_of_laplacian_pairing (hd : 0 < d) {x₀ : Vec d} {r r' ε : ℝ}
+    (hr' : 0 < r') (hrr : r' < r) (hε : 0 ≤ ε) {u : Vec d → ℝ}
     (hu : MemLp u 2 (volume.restrict (PDE.euclideanBall x₀ r)))
     (hpair : ∀ χ : Vec d → ℝ, ContDiff ℝ (⊤ : ℕ∞) χ → HasCompactSupport χ →
       tsupport χ ⊆ PDE.euclideanBall x₀ r →
       |∫ x in PDE.euclideanBall x₀ r, u x * PDE.euclideanCoordLaplacian χ x| ≤
         ε * Real.sqrt (∫ x in PDE.euclideanBall x₀ r, PDE.euclideanCoordLaplacian χ x ^ 2)) :
-    ∃ v : Vec d → ℝ, ContDiffOn ℝ (⊤ : ℕ∞) v (PDE.euclideanBall x₀ r) ∧
-      (∀ y ∈ PDE.euclideanBall x₀ r, PDE.euclideanCoordLaplacian v y = 0) ∧
-      MemLp (fun x => u x - v x) 2 (volume.restrict (PDE.euclideanBall x₀ r)) ∧
-      ∫ x in PDE.euclideanBall x₀ r, (u x - v x) ^ 2 ≤ ε ^ 2 := by
+    ∃ v : Vec d → ℝ, ContDiff ℝ (⊤ : ℕ∞) v ∧
+      (∀ y ∈ PDE.euclideanBall x₀ r', PDE.euclideanCoordLaplacian v y = 0) ∧
+      ∫ x in PDE.euclideanBall x₀ r', (u x - v x) ^ 2 ≤ ε ^ 2 := by
   classical
+  have hr : 0 < r := hr'.trans hrr
   set B := PDE.euclideanBall x₀ r with hBdef
   set μ : Measure (Vec d) := volume.restrict B with hμdef
   have hBo : IsOpen B := PDE.isOpen_euclideanBall x₀ r
@@ -212,7 +213,7 @@ theorem exists_harmonic_sub_sq_le_of_laplacian_pairing (hd : 0 < d) {x₀ : Vec 
   have hloc : LocallyIntegrable (B.indicator h) volume := by
     have hint : IntegrableOn h B volume := hhmem.integrable (by norm_num)
     exact ((integrable_indicator_iff hBm).2 hint).locallyIntegrable
-  obtain ⟨v, hvs, hvh, hvae⟩ := exists_harmonic_ae_eq_of_isVeryWeakHarmonicOn hd hr hloc hvw
+  obtain ⟨v, -, hvh, hvae, hval⟩ := exists_harmonic_ae_eq_of_isVeryWeakHarmonicOn hd hr hloc hvw
   have hdiff : (fun x => u x - v x) =ᵐ[μ] (P : Vec d → ℝ) := by
     have hsub := Lp.coeFn_sub U P
     have hUu := hu.coeFn_toLp
@@ -222,15 +223,34 @@ theorem exists_harmonic_sub_sq_le_of_laplacian_pairing (hd : 0 < d) {x₀ : Vec 
       exact h1
     rw [h3, h1', h2]
     ring
-  refine ⟨v, hvs, hvh, (Lp.memLp P).ae_eq hdiff.symm, ?_⟩
   have hPsq : ∫ x, (u x - v x) ^ 2 ∂μ = ‖P‖ ^ 2 := by
     rw [← real_inner_self_eq_norm_sq, MeasureTheory.L2.inner_def]
     refine integral_congr_ae ?_
     filter_upwards [hdiff] with x h1
     rw [h1]
     simp [pow_two]
-  change ∫ x, (u x - v x) ^ 2 ∂μ ≤ ε ^ 2
-  rw [hPsq]
-  exact pow_le_pow_left₀ (norm_nonneg _) hP 2
+  have hmemuv : MemLp (fun x => u x - v x) 2 μ := (Lp.memLp P).ae_eq hdiff.symm
+  set δ : ℝ := (r - r') / 4 with hδdef
+  have hδ : 0 < δ := by rw [hδdef]; linarith
+  set w := veryWeakMollify B h δ with hwdef
+  have hB' : PDE.euclideanBall x₀ r' ⊆ B := PDE.euclideanBall_mono hr'.le hrr.le
+  have hvw' : Set.EqOn v w (PDE.euclideanBall x₀ r') := by
+    intro y hy
+    have hy' := (PDE.mem_euclideanBall_iff_vecEuclideanNorm_lt hr').mp hy
+    exact hval y (hB' hy) δ hδ (by rw [hδdef]; linarith)
+  refine ⟨w, contDiff_veryWeakMollify hloc hδ, fun y hy => ?_, ?_⟩
+  · rw [← euclideanCoordLaplacian_eq_of_eqOn_open (PDE.isOpen_euclideanBall x₀ r') hvw' hy]
+    exact hvh y (hB' hy)
+  · have e : ∫ x in PDE.euclideanBall x₀ r', (u x - w x) ^ 2 =
+        ∫ x in PDE.euclideanBall x₀ r', (u x - v x) ^ 2 := by
+      refine setIntegral_congr_fun (PDE.isOpen_euclideanBall x₀ r').measurableSet fun x hx => ?_
+      simp only [hvw' hx]
+    rw [e]
+    calc ∫ x in PDE.euclideanBall x₀ r', (u x - v x) ^ 2
+        ≤ ∫ x, (u x - v x) ^ 2 ∂μ :=
+          setIntegral_mono_set hmemuv.integrable_sq (Eventually.of_forall fun x => sq_nonneg _)
+            (Eventually.of_forall hB')
+      _ = ‖P‖ ^ 2 := hPsq
+      _ ≤ ε ^ 2 := pow_le_pow_left₀ (norm_nonneg _) hP 2
 
 end QSH

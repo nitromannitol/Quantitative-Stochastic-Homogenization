@@ -168,7 +168,10 @@ theorem exists_harmonic_ae_eq_of_isVeryWeakHarmonicOn (hd : 0 < d) {x₀ : Vec d
     ∃ v : Vec d → ℝ,
       ContDiffOn ℝ (⊤ : ℕ∞) v (PDE.euclideanBall x₀ r) ∧
       (∀ y ∈ PDE.euclideanBall x₀ r, PDE.euclideanCoordLaplacian v y = 0) ∧
-      (∀ᵐ y ∂(volume.restrict (PDE.euclideanBall x₀ r)), v y = g y) := by
+      (∀ᵐ y ∂(volume.restrict (PDE.euclideanBall x₀ r)), v y = g y) ∧
+      (∀ y ∈ PDE.euclideanBall x₀ r, ∀ δ : ℝ, 0 < δ →
+        2 * δ < r - PDE.vecEuclideanNorm (y - x₀) →
+        v y = veryWeakMollify (PDE.euclideanBall x₀ r) g δ y) := by
   classical
   let U := PDE.euclideanBall x₀ r
   let m : Vec d → ℝ := fun y => r - PDE.vecEuclideanNorm (y - x₀)
@@ -246,6 +249,6 @@ theorem exists_harmonic_ae_eq_of_isVeryWeakHarmonicOn (hd : 0 < d) {x₀ : Vec d
       simpa only [veryWeakMollify] using hlim
     have hvu : v y = Set.indicator U g y := tendsto_nhds_unique hlimv hlimu
     simpa [Set.indicator_of_mem hy] using hvu
-  exact ⟨v, hsmooth, hharm, haeeq⟩
+  exact ⟨v, hsmooth, hharm, haeeq, hvalue⟩
 
 end QSH
