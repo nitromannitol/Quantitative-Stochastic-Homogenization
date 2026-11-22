@@ -327,6 +327,20 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `coefficientVersion`), the bounds `1 ≤ ā ≤ Λ`, and the Gaussian energy estimate of the corrected
   field `e + ∇φ_e(·/ε)` at the unit scale, which dominates the components of both fields
   (`gaussianEnergyEstimate_of_vector`) and gives their Gaussian moments (`GaussianMoments`).
+- **The inputs of (4.126)** (`Ch04/Sec06/NegativeSobolevLinearEstimates.lean`). The correctors are
+  taken in the linear form `φ_e = ∑ᵢ eᵢ φ_{eᵢ}` (`HomogenizationData.linearize`), so that
+  `e + ∇φ_e = G e`. Then (4.2) is the linear estimate `|∫ Φ_{z,r} G e - e| ≤ O_1(C r^{-d/2})`, and
+  (4.3) follows from it and the commutator estimate (4.34) through
+  `∫ Φ (a G e - ā e) = ∑ⱼ eⱼ (∫ Φ a G eⱼ - ā ∫ Φ G eⱼ) + ā (∫ Φ G e - e)` and `|ā v| ≤ Λ |v|`. The
+  Gaussian energy of `e + ∇φ_e(·/ε)` at the unit scale is bounded by a change of variables by the
+  mask of radius `ε⁻¹ √(8d) ≥ 1`, where the energy bound below the scale at the exponent `d/2`
+  gives `C (1 + X^d)` with `X = O_{d/2}(C)`; its square root is `O_1` by the power rule.
+- **The bounds `1 ≤ ā ≤ Λ`** (`HomogenizationData.homogenizedMatrixBounds`) use the measurability of
+  `a ↦ μ(U, e)`, which the book takes for granted. It is proved in
+  `Ch01/Sec02/DirichletEnergyMeasurability.lean`: the infimum (1.7) over the gradients of `H¹₀(U)`
+  equals the infimum over a countable subset dense among them in the separable space `L²(U)`,
+  since `(G + W)·a(G + W) ≤ (1 + t) G·aG + (1 + t⁻¹) W·aW`, and the energy of each element of the
+  subset is measurable once `a` is replaced by its jointly measurable version.
 
 ## Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) (`Ch04/Sec01/`, `Ch04/Sec02/`, `Ch04/Sec03/`)
 
