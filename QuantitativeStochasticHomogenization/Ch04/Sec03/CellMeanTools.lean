@@ -94,7 +94,7 @@ theorem heatKernel_zero_one_ge_of_mem_cell {x : Vec d}
     have hi : ∀ i, x i * x i ≤ 1 / 4 := by
       intro i
       obtain ⟨h1, h2⟩ := hx i
-      simp only [Pi.zero_apply, Int.cast_zero, mul_zero, zero_sub, zero_add, one_mul] at h1 h2
+      simp only [Pi.zero_apply, Int.cast_zero, mul_zero, zero_sub, zero_add] at h1 h2
       nlinarith
     calc ∑ i, x i * x i ≤ ∑ _i : Fin d, (1 / 4 : ℝ) := Finset.sum_le_sum fun i _ => hi i
       _ = (d : ℝ) / 4 := by simp; ring
