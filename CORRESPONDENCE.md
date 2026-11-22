@@ -466,9 +466,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `ae_eq_zero_of_correctedAffineGrad_ae_eq_zero` (their gradients are linearly independent),
   `ae_gradients_harmonicA1` (`dim A₁ = d + 1`), `ae_J1Heat_eq_half_dot_inv` (`J₁ = ½ b·M⁻¹ b`),
   `J1Heat_bounds`, `aestronglyMeasurable_J1Heat`; `Ch03/Sec03/`, `Ch04/Sec01/`.
-- The classification of `A₁` (Theorem 3.8 for `k = 1`) is the hypothesis
-  `firstOrderLiouvilleStatement` of the results that use it. It is derived by the first-order
-  route instead of the higher-order regularity theory of the book:
+- The classification of `A₁` (Theorem 3.8 for `k = 1`) is `firstOrderLiouvilleStatement`, proved
+  as `firstOrderLiouville`; the results that use it take it as the hypothesis `hL`. It is derived
+  by the first-order route instead of the higher-order regularity theory of the book:
   `firstOrderLiouville_of_harmonicApproximation` proves it from two deterministic estimates on the
   ellipsoids `E_R = M B_R`, `M Mᵀ = ½(ā + āᵀ)`, with `ā` the homogenized matrix of the
   high-contrast theorem: the harmonic approximation on nearly full ellipsoids
@@ -481,7 +481,21 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   library: Weyl's lemma, the Almgren frequency of the first-order Taylor remainder is at least two,
   so its sphere and ball means decay like `(t/r)⁴`, and it is orthogonal on balls to affine
   functions. Hence `firstOrderLiouville_of_harmonicApproximation_only` derives the classification
-  from the approximation (2), which is stated and not yet proved here.
+  from the approximation (2).
+- The approximation (2) is proved as `harmonicApproximation`, with `ν = μ/(d + 2)`, by a route
+  different from the comparison with a Dirichlet problem in the book. In the coordinates
+  `y = M⁻¹x`, with `η = R^{-ν}`, the residual `u = v ∘ M` satisfies `|∫ u Δχ| ≤ ε ‖Δχ‖_{L²}` for
+  tests `χ` in `B_{(1-2η)R}` (`exists_harmonic_ball_sq_le`). The test is smoothed with a round
+  kernel at scale `ℓ = η²R`. The smoothed test `ψ` is paired with `v` by the tensor identity
+  `∫ v ∑ᵢⱼ (ā eᵢ)ⱼ ∂ⱼ∂ᵢψ = ∑ᵢⱼₖ ∫ σᵢⱼₖ ∂ₖv ∂ⱼ∂ᵢψ + ∑ᵢⱼ ∫ φᵢ (a∇v)ⱼ ∂ⱼ∂ᵢψ`
+  (`integral_mul_secondOrder_eq_tensor`), for the correctors recentred at their means on
+  `B_{LR} ⊇ E_R`, together with the Caccioppoli inequality. The remainder is bounded by the
+  mollification estimate `‖f - ρ_ℓ * f‖_{L²} ≤ ℓ ‖∇f‖_{L²}` and `‖∇²χ‖_{L²} = ‖Δχ‖_{L²}`. The orthogonal
+  projection of `u` onto the closure of `{Δχ}` in `L²(B_{(1-2η)R})` has norm at most `ε`. The
+  remainder is very weakly harmonic, and Weyl's lemma for very weak harmonic functions (the
+  argument of the elliptic regularity library with locally integrable data) gives the smooth
+  harmonic approximant (`exists_harmonic_sub_sq_le_of_laplacian_pairing`). The skew symmetry of
+  `σᵢ` removes the third derivatives of the test.
 - `J₁ = ½‖-V*p + U*q‖²` is stated in coordinates: `M` is the Gram matrix of the corrector columns
   `eᵢ + ∇φ_{eᵢ}` for the inner product `∫ Φ_{z,r} v·a w` and `b` the load `∫ Φ_{z,r}(-p·a Wᵢ + q·Wᵢ)`.
 - The bound `0 ≤ J₁ ≤ Λ|p|² + |q|²` holds for every coefficient field, and so does the sharper
