@@ -333,8 +333,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (4.3) follows from it and the commutator estimate (4.34) through
   `∫ Φ (a G e - ā e) = ∑ⱼ eⱼ (∫ Φ a G eⱼ - ā ∫ Φ G eⱼ) + ā (∫ Φ G e - e)` and `|ā v| ≤ Λ |v|`. The
   Gaussian energy of `e + ∇φ_e(·/ε)` at the unit scale is bounded by a change of variables by the
-  mask of radius `ε⁻¹ √(8d) ≥ 1`, where the energy bound below the scale at the exponent `d/2`
-  gives `C (1 + X^d)` with `X = O_{d/2}(C)`; its square root is `O_1` by the power rule.
+  mask of radius `ε⁻¹ √(8d) ≥ 1`. There `|G e|² ≤ ∑ᵢ |eᵢ + ∇φ_{eᵢ}|²`, and the energy bound of
+  Lemma 3.17 on the balls `B_R`, `R ≥ Xᵢ`, with `Xᵢ = O_{d/2}(C)`, gives `C Xᵢ^d` for the Gaussian
+  average of each term at every radius `≥ 1` (shells of the heat kernel above `Xᵢ`, the comparison
+  `Φ_{0,ρ} ≤ (Xᵢ/ρ)^d Φ_{0,Xᵢ}` below it); the square root is at most `B ∑ᵢ Xᵢ^{d/2} = O_1`
+  (`Ch04/Sec06/NegativeSobolevSublinear.lean`). Thus (4.126) rests on the commutator estimate and
+  the linear estimate at the exponent `d/2` only (`negativeSobolevCorrector_of_commutator_linear`).
 - **The bounds `1 ≤ ā ≤ Λ`** (`HomogenizationData.homogenizedMatrixBounds`) use the measurability of
   `a ↦ μ(U, e)`, which the book takes for granted. It is proved in
   `Ch01/Sec02/DirichletEnergyMeasurability.lean`: the infimum (1.7) over the gradients of `H¹₀(U)`
