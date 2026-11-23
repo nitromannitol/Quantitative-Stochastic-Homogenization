@@ -30,6 +30,8 @@ version required by Definition 3.14.
   `e·x + φ` of `A₁`.
 * `tendsto_sublinear_of_closedBall`, `tendsto_closedBall_of_sublinear`: sublinearity on the
   Euclidean balls `B_R` and on the closed sup-norm balls `B̄ₙ`.
+* `highContrastCorrectorMeasurable`: the jointly measurable version.
+* `homogenizationDataExists`: every law satisfying (0.10)-(0.11) has homogenization data.
 -/
 
 open MeasureTheory Filter Set

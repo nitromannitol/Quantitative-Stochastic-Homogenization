@@ -19,7 +19,8 @@ Lemma 3.16). The homogenized matrix and the limit (1.22) are `exists_homogenized
 
 Definition 3.14 requires the stationary field to be jointly measurable in `(a, x)`; the proof of
 Lemma 3.16 does not address this, and the high-contrast theorem exports no measurability of its
-corrector gradients. It is the hypothesis `HighContrastCorrectorMeasurable`.
+corrector gradients. Here it is the hypothesis `HighContrastCorrectorMeasurable` of
+`homogenizationDataExists_of_measurable`; it is proved in `CorrectorMeasurability.lean`.
 -/
 
 open MeasureTheory Filter Set
