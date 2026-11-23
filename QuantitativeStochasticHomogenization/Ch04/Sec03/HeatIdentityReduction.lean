@@ -209,35 +209,40 @@ theorem rpow_sq_div_two {r α : ℝ} (hr : 0 < r) :
   push_cast
   rw [show (2 : ℝ) * -(α / 2) = -α by ring, div_inv_eq_mul, mul_comm]
 
-/-- **`|P eᵢ - eᵢ| ≤ O_s(C r^{-α})` at every scale** from the commutator estimate and the heat
-identity (`r ≥ 2`), and from the energy bound below the scale (`1 ≤ r < 2`). -/
-theorem gradient_sub_osBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData P)
-    (hΛ : 0 ≤ Λ) {s α Ck : ℝ} (hs0 : 0 < s) (hα0 : 0 < α) (hC : CommutatorEstimate P S s α)
-    (hH : HeatIdentityBound P S Ck)
-    (hmeasC : ∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
-      commutatorNorm S w.2 w.1.1 w.1.2 i)
-    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ))
-    {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
-    (hint : AveragesIntegrable P S) :
-    ∃ C₁ : ℝ, 0 < C₁ ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ i : Fin d,
-      OsBound P (fun a => euclideanNorm (gradientAverage S a z r (unitVector i) - unitVector i)) s
-        (C₁ * r ^ (-α)) := by
-  obtain ⟨CC, hCC, hCo⟩ := hC
-  obtain ⟨k, hkm, hk0, hki, hHb⟩ := hH
-  obtain ⟨XN, -, hXN1, hXNos, hXNe⟩ := hN
-  have hCN : 0 < CN := (hXNos 0).scale_pos
+/-- **`|P eᵢ - eᵢ| ≤ O_s(C r^{-α})` with the constant chosen before the law**, from the
+commutator estimate with constant `C_C`, the heat identity (H) with kernel mass `C_k / u` and the
+energy bound below the scale with constant `C_N`. -/
+theorem exists_uniform_basis_gradient_of_heat (hd : 1 ≤ d) (hΛ : 0 ≤ Λ)
+    {s α Ck CC τ CN : ℝ} (hs0 : 0 < s) (hα0 : 0 < α) (hCC : 0 < CC) (hCN : 0 < CN)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) :
+    ∃ C₁ : ℝ, 0 < C₁ ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), CommutatorEstimateAt P S s α CC → HeatIdentityBound P S Ck →
+      (∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
+        commutatorNorm S w.2 w.1.1 w.1.2 i) →
+      (∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ)) →
+      GaussianEnergyBound P S τ CN → AveragesIntegrable P S →
+      ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ i : Fin d,
+        OsBound P (fun a => euclideanNorm (gradientAverage S a z r (unitVector i) - unitVector i)) s
+          (C₁ * r ^ (-α)) := by
   set K : ℝ := minkowskiConstant s * (Ck * CC * (2 ^ (α / 2) / (α / 2))) with hK
   set θ₁ : ℝ := 2 * (2 : ℝ) ^ s⁻¹ * (Real.sqrt CN * (2 * (2 : ℝ) ^ s⁻¹ * (1 / Real.log 2 ^ s⁻¹ +
     (2 * Real.exp 1 - 1) ^ s⁻¹ * CN ^ ((d : ℝ) / 2))) + 1 / Real.log 2 ^ s⁻¹) with hθ₁
   have hl : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
+  have hθ₁0 : 0 < θ₁ := by
+    have hpos : 0 < Real.sqrt CN := Real.sqrt_pos.mpr hCN
+    have he : 0 ≤ (2 * Real.exp 1 - 1) ^ s⁻¹ :=
+      Real.rpow_nonneg (by linarith [Real.add_one_le_exp (1 : ℝ)]) _
+    have he' : 0 ≤ (2 * Real.exp 1 - 1) ^ s⁻¹ * CN ^ ((d : ℝ) / 2) :=
+      mul_nonneg he (Real.rpow_nonneg hCN.le _)
+    rw [hθ₁]
+    positivity
+  refine ⟨max K (θ₁ * 2 ^ α), lt_max_of_lt_right (mul_pos hθ₁0 (by positivity)), ?_⟩
+  intro P _ S hCo hH hmeasC hmeasA hN hint
+  obtain ⟨k, hkm, hk0, hki, hHb⟩ := hH
+  obtain ⟨XN, -, hXN1, hXNos, hXNe⟩ := hN
   have h1 : OsBound P (fun _ : CoefficientField d Λ => (1 : ℝ)) s (1 / Real.log 2 ^ s⁻¹) :=
     osBound_of_le_const measurable_const hs0 one_pos (Eventually.of_forall fun _ => le_rfl)
-  have hθ₁0 : 0 < θ₁ := by
-    have := (osBound_add_le_sum (size_bound (P := P) hd hs0 hCN (fun a => XN a 0)
-      (fun a => hXN1 a 0) hτs (hXNos 0)) h1).scale_pos
-    simpa only [hθ₁] using this
-  refine ⟨max K (θ₁ * 2 ^ α), lt_max_of_lt_right (mul_pos hθ₁0 (by positivity)),
-    fun z r hr i => ?_⟩
+  intro z r hr i
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hρ : 0 ≤ r ^ (-α) := Real.rpow_nonneg hr0.le _
   have hNm : Measurable fun a =>
@@ -283,18 +288,23 @@ theorem gradient_sub_osBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : Homoge
         _ = θ₁ * 2 ^ α * r ^ (-α) := by ring
         _ ≤ max K (θ₁ * 2 ^ α) * r ^ (-α) := mul_le_mul_of_nonneg_right (le_max_right _ _) hρ
 
-/-- **The linear estimate (4) of Step 1** from the commutator estimate of Lemma 4.13, the bound
-from the heat identity (H) and the energy bound below the scale. -/
-theorem linearAverageEstimate_of_heat [IsProbabilityMeasure P] (hd : 1 ≤ d)
-    (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {s α Ck : ℝ} (hs0 : 0 < s) (hα0 : 0 < α)
-    (hC : CommutatorEstimate P S s α) (hH : HeatIdentityBound P S Ck)
-    (hmeasC : ∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
-      commutatorNorm S w.2 w.1.1 w.1.2 i)
-    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ))
-    {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
-    (hint : AveragesIntegrable P S) : LinearAverageEstimate P S s α := by
-  obtain ⟨C₁, hC₁, hb⟩ := gradient_sub_osBound hd S hΛ hs0 hα0 hC hH hmeasC hmeasA hN hτs hint
-  refine ⟨(2 * (2 : ℝ) ^ s⁻¹) ^ d * C₁, by positivity, fun z r hr ξ => ?_⟩
+/-- **The linear estimate (4) of Step 1 with the constant chosen before the law**, from the
+commutator estimate with constant `C_C`, the heat identity (H) with kernel mass `C_k / u` and the
+energy bound below the scale with constant `C_N`. -/
+theorem exists_uniform_linear_of_heat (hd : 1 ≤ d) (hΛ : 0 ≤ Λ)
+    {s α Ck CC τ CN : ℝ} (hs0 : 0 < s) (hα0 : 0 < α) (hCC : 0 < CC) (hCN : 0 < CN)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) :
+    ∃ CL : ℝ, 0 < CL ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), CommutatorEstimateAt P S s α CC → HeatIdentityBound P S Ck →
+      (∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
+        commutatorNorm S w.2 w.1.1 w.1.2 i) →
+      (∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ)) →
+      GaussianEnergyBound P S τ CN → AveragesIntegrable P S →
+        LinearAverageEstimateAt P S s α CL := by
+  obtain ⟨C₁, hC₁, hf⟩ := exists_uniform_basis_gradient_of_heat (Ck := Ck) hd hΛ hs0 hα0 hCC hCN hτs
+  refine ⟨(2 * (2 : ℝ) ^ s⁻¹) ^ d * C₁, by positivity, ?_⟩
+  intro P _ S hCo hH hmeasC hmeasA hN hint z r hr ξ
+  have hb := hf P S hCo hH hmeasC hmeasA hN hint
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hsum := osBound_finset_sum_of_pos Finset.univ hs0
     (mul_pos hC₁ (Real.rpow_pos_of_pos hr0 _)) fun i _ => hb z r hr i
@@ -319,6 +329,41 @@ theorem linearAverageEstimate_of_heat [IsProbabilityMeasure P] (hd : 1 ≤ d)
   rw [euclideanNorm_smul]
   refine mul_le_mul_of_nonneg_right ?_ (euclideanNorm_nonneg _)
   linarith [abs_apply_le_euclideanNorm ξ i]
+
+/-- **`|P eᵢ - eᵢ| ≤ O_s(C r^{-α})` at every scale** from the commutator estimate and the heat
+identity (`r ≥ 2`), and from the energy bound below the scale (`1 ≤ r < 2`). -/
+theorem gradient_sub_osBound [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData P)
+    (hΛ : 0 ≤ Λ) {s α Ck : ℝ} (hs0 : 0 < s) (hα0 : 0 < α) (hC : CommutatorEstimate P S s α)
+    (hH : HeatIdentityBound P S Ck)
+    (hmeasC : ∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
+      commutatorNorm S w.2 w.1.1 w.1.2 i)
+    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ))
+    {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
+    (hint : AveragesIntegrable P S) :
+    ∃ C₁ : ℝ, 0 < C₁ ∧ ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ i : Fin d,
+      OsBound P (fun a => euclideanNorm (gradientAverage S a z r (unitVector i) - unitVector i)) s
+        (C₁ * r ^ (-α)) := by
+  obtain ⟨CC, hCC, hCo⟩ := hC
+  obtain ⟨XN, -, -, hXNos, -⟩ := id hN
+  obtain ⟨C₁, hC₁, h⟩ := exists_uniform_basis_gradient_of_heat (Ck := Ck) hd hΛ hs0 hα0 hCC
+    (hXNos 0).scale_pos hτs
+  exact ⟨C₁, hC₁, h P S hCo hH hmeasC hmeasA hN hint⟩
+
+/-- **The linear estimate (4) of Step 1** from the commutator estimate of Lemma 4.13, the bound
+from the heat identity (H) and the energy bound below the scale. -/
+theorem linearAverageEstimate_of_heat [IsProbabilityMeasure P] (hd : 1 ≤ d)
+    (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {s α Ck : ℝ} (hs0 : 0 < s) (hα0 : 0 < α)
+    (hC : CommutatorEstimate P S s α) (hH : HeatIdentityBound P S Ck)
+    (hmeasC : ∀ i, Measurable fun w : (Vec d × ℝ) × CoefficientField d Λ =>
+      commutatorNorm S w.2 w.1.1 w.1.2 i)
+    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ))
+    {τ CN : ℝ} (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
+    (hint : AveragesIntegrable P S) : LinearAverageEstimate P S s α := by
+  obtain ⟨CC, hCC, hCo⟩ := hC
+  obtain ⟨XN, -, -, hXNos, -⟩ := id hN
+  obtain ⟨CL, hCL, h⟩ := exists_uniform_linear_of_heat (Ck := Ck) hd hΛ hs0 hα0 hCC
+    (hXNos 0).scale_pos hτs
+  exact ⟨CL, hCL, h P S hCo hH hmeasC hmeasA hN hint⟩
 
 end Heat
 

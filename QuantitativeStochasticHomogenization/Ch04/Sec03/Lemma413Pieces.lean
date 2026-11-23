@@ -114,9 +114,9 @@ bounds (3.101)–(3.103) hold with error `ε` (`ε ≤ 1/4`, `√d ε ≤ 1/2`) 
 theorem mean_polarization_near_inverse [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
-    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    (y : Vec d) {r : ℝ} (hr : 0 < r) {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
+    (y : Vec d) {r : ℝ} (hr : 0 < r)
+    (hmeasJ : ∀ p q : Vec d, AEStronglyMeasurable (fun a => J1Heat a y r p q) P)
+    {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
     (hεd : Real.sqrt d * ε ≤ 1 / 2) {Bad : Set (CoefficientField d Λ)} (hBad : MeasurableSet Bad)
     (hgood : ∀ᵐ a ∂P, a ∉ Bad →
       GaussianAverageBounds a S.homogenized (correctedField S a) y r ε) (i : Fin d) :
@@ -137,13 +137,11 @@ theorem mean_polarization_near_inverse [IsProbabilityMeasure P] (S : Homogenizat
   have hDe : euclideanNorm (D⁻¹.mulVec (unitVector i)) ≤ 1 := by
     have := euclideanNorm_inv_mulVec_le (fun ξ => (hA ξ).1) (unitVector i)
     rwa [euclideanNorm_unitVector] at this
-  have hJm : ∀ p q : Vec d, Measurable fun a : CoefficientField d Λ => J1Heat a y r p q :=
-    fun p q => (hmeasJ r p q).comp (measurable_id.prodMk measurable_const)
-  have hBm : ∀ k, Measurable fun a => B a k := fun k => by
+  have hBm : ∀ k, AEStronglyMeasurable (fun a => B a k) P := fun k => by
     simp only [hBdef, Pi.smul_apply, smul_eq_mul, polarizationVector]
-    exact measurable_const.mul (measurable_const.mul (((hJm _ _).sub (hJm _ _)).sub (hJm _ _)))
+    exact ((((hmeasJ _ _).sub (hmeasJ _ _)).sub (hmeasJ _ _)).const_mul 4).const_mul 2
   have hBi : ∀ k, Integrable (fun a => B a k) P := fun k =>
-    Integrable.of_bound (hBm k).aestronglyMeasurable (16 * (Λ + 1))
+    Integrable.of_bound (hBm k) (16 * (Λ + 1))
       (Filter.Eventually.of_forall fun a => by rw [Real.norm_eq_abs]; exact hBk a k)
   set c : ℝ := (9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) * P.real Bad with hc
   have hc0 : 0 ≤ c := by positivity

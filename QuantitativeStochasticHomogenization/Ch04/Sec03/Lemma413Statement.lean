@@ -1,5 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec03.Lemma413
-import QuantitativeStochasticHomogenization.Ch04.Sec03.ExpectedAverages
+import QuantitativeStochasticHomogenization.Ch04.Sec03.EstimateWitnesses
 
 /-!
 # Lemma 4.13 at every center and scale
@@ -11,6 +11,11 @@ Section 4.3, Lemma 4.13, (4.34), for the corrected coordinates `eⱼ + ∇φ_{e�
 energy bound below the scale (`GaussianEnergyBound`) at an exponent `τ ≥ s d/2`, the expectations
 of the averages at the rate `r^{-α}` (`ExpectedAveragesEstimate`), their integrability and
 measurability, the commutator estimate `CommutatorEstimate P S s α` holds.
+
+`exists_uniform_commutator_of_fluctuations`: the constant of the commutator estimate depends only
+on `d, Λ, s, α, τ, μ` and the constants of `Fluc(s, α)`, of Proposition 3.21, of the energy bound
+and of the expectations, not on the law; and `Fluc(s, α)` may be assumed for a jointly measurable
+field `J` equal to `J₁` at all parameters almost surely, in place of `J₁` itself.
 
 At large scales the bound is `commutator_osBound_large`; below the threshold where the means of
 the polarization vectors are close to `ā⁻¹ eᵢ`, the commutator is bounded by the energy
@@ -95,41 +100,33 @@ theorem measureReal_le_of_osBound [IsProbabilityMeasure P] {X : CoefficientField
   rw [← div_eq_mul_inv, le_div_iff₀ hr, mul_comm]
   exact hmk.trans hXm
 
-/-- **Lemma 4.13**: the commutator estimate (4.34) under `Fluc(s, α)` and the inputs listed in the
-module docstring. -/
-theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData P) (hΛ : 0 < Λ)
-    (hA : HomogenizedMatrixBounds S.homogenized Λ)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
-    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    {s α CF : ℝ} (hs0 : 0 < s) (hα0 : 0 ≤ α) (hα : α ≤ (d : ℝ) / 2) (hCF : 0 < CF)
-    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
-      euclideanNorm p < 1 → euclideanNorm q < 1 →
-      Integrable (fun a => J1Heat a z r p q) P ∧
-      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
-    {τ CR μ CN : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ CR μ)
-    (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
-    (hint : AveragesIntegrable P S) (hexp : ExpectedAveragesEstimate P S α)
-    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ) ∧
-      Measurable (fun a => fluxAverage S a z r ξ)) :
-    CommutatorEstimate P S s α := by
-  obtain ⟨Xg, -, hXg⟩ := hrate
-  obtain ⟨XN, -, hXN1, hXNos, hXNe⟩ := hN
-  obtain ⟨CE, hCE, hE⟩ := hexp
-  have hCR : 0 < CR := (hXg 0).1.scale_pos
-  have hCN : 0 < CN := (hXNos 0).scale_pos
+/-- **Lemma 4.13 with the constant chosen before the law**: for the exponents and the constants
+`C_F` of `Fluc(s, α)`, `C_R, μ` of Proposition 3.21 at `τ`, `C_N` of the energy bound and `C_E` of
+the expectations, there is `C` such that for every law, homogenization data and jointly measurable
+field `J` equal to `J₁` almost surely at all parameters, these estimates with those constants give
+the commutator estimate (4.34) with constant `C`. -/
+theorem exists_uniform_commutator_of_fluctuations (hd : 1 ≤ d) (hΛ : 0 < Λ)
+    {s α CF τ CR μ CN CE : ℝ} (hs0 : 0 < s) (hα0 : 0 ≤ α) (hα : α ≤ (d : ℝ) / 2)
+    (hCF : 0 < CF) (hμ : 0 < μ) (hCR : 0 < CR) (hCN : 0 < CN) (hCE : 0 < CE)
+    (hτs : s ≤ τ / ((d : ℝ) / 2)) :
+    ∃ CC : ℝ, 0 < CC ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), HomogenizedMatrixBounds S.homogenized Λ →
+      (∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) →
+      ∀ J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ,
+      (∀ (r : ℝ) (p q : Vec d),
+        Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q) →
+      (∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q) →
+      (∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        euclideanNorm p < 1 → euclideanNorm q < 1 →
+        Integrable (fun a => J a z r p q) P ∧
+        OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α))) →
+      GaussianCorrectorRate P S τ CR μ → GaussianEnergyBound P S τ CN →
+      AveragesIntegrable P S → ExpectedAveragesEstimateAt P S α CE →
+      (∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ) ∧
+        Measurable (fun a => fluxAverage S a z r ξ)) → CommutatorEstimateAt P S s α CC := by
   have hsd : 0 ≤ Real.sqrt d := Real.sqrt_nonneg _
   set CM : ℝ := (2 : ℝ) ^ τ⁻¹ * max CR CN with hCMdef
-  have hMos : ∀ z, OsBound P (fun a => max (Xg a z) (XN a z)) τ CM := fun z =>
-    osBound_max (hXg z).1 (hXNos z)
-  have hCM : 0 < CM := (hMos 0).scale_pos
-  have hM0 : ∀ z a, 0 ≤ max (Xg a z) (XN a z) := fun z a =>
-    zero_le_one.trans ((hXN1 a z).trans (le_max_right _ _))
-  -- the probability of the bad scales
-  have hbad : ∀ z (r : ℝ), 0 < r → P.real {a | r ≤ Xg a z} ≤ momentConstant τ * CM * r⁻¹ := by
-    intro z r hr0
-    refine (measureReal_mono fun a ha => le_trans ha (le_max_left (Xg a z) (XN a z))).trans ?_
-    exact measureReal_le_of_osBound (hMos z) (hM0 z) hr0
+  have hCM : 0 < CM := mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hCR)
   -- the threshold
   set X1 : ℝ := Λ * (Real.sqrt d * (Real.sqrt d * (9 + Real.sqrt d))) with hX1
   set Y1 : ℝ := Λ * (Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1) + 1))) with hY1
@@ -156,7 +153,19 @@ theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData
       mul_nonneg he (Real.rpow_nonneg hCN.le _)
     positivity
   refine ⟨max (commutatorScale d Λ s α CF CM CN τ CE 1) (θ₀ * R ^ α),
-    lt_max_of_lt_right (mul_pos hθ₀0 (Real.rpow_pos_of_pos hR0 _)), fun z r hr j => ?_⟩
+    lt_max_of_lt_right (mul_pos hθ₀0 (Real.rpow_pos_of_pos hR0 _)), ?_⟩
+  intro P _ S hA hspan J hmeasJ hJ hF hrate hN hint hE hmeasA
+  obtain ⟨Xg, -, hXg⟩ := hrate
+  obtain ⟨XN, -, hXN1, hXNos, hXNe⟩ := hN
+  have hMos : ∀ z, OsBound P (fun a => max (Xg a z) (XN a z)) τ CM := fun z =>
+    osBound_max (hXg z).1 (hXNos z)
+  have hM0 : ∀ z a, 0 ≤ max (Xg a z) (XN a z) := fun z a =>
+    zero_le_one.trans ((hXN1 a z).trans (le_max_right _ _))
+  have hbad : ∀ z (r : ℝ), 0 < r → P.real {a | r ≤ Xg a z} ≤ momentConstant τ * CM * r⁻¹ := by
+    intro z r hr0
+    refine (measureReal_mono fun a ha => le_trans ha (le_max_left (Xg a z) (XN a z))).trans ?_
+    exact measureReal_le_of_osBound (hMos z) (hM0 z) hr0
+  intro z r hr j
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hρα : 0 ≤ r ^ (-α) := Real.rpow_nonneg hr0.le _
   -- the inputs at `z` and `r`
@@ -221,7 +230,7 @@ theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData
       rw [hfun]
       rw [euclideanNorm_unitVector, mul_one] at hb2
       exact hb2
-    have hL := commutator_osBound_large hd S hΛ hA hspan hmeasJ hs0 hCF hF z hr hCRρ hε hεd
+    have hL := commutator_osBound_large hd S hΛ hA hspan J hmeasJ hJ hs0 hCF hF z hr hCRρ hε hεd
       (fun a => Xg a z) (fun a => XN a z) (fun a => max (Xg a z) (XN a z)) (hXg z).1.1
       (hXNos z).1 (fun a => zero_le_one.trans (hXN1 a z))
       (fun a => (hXN1 a z).trans (le_max_right _ _)) (fun a => le_max_right _ _)
@@ -244,6 +253,32 @@ theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData
       _ = θ₀ * R ^ α * r ^ (-α) := by ring
       _ ≤ max (commutatorScale d Λ s α CF CM CN τ CE 1) (θ₀ * R ^ α) * r ^ (-α) :=
         mul_le_mul_of_nonneg_right (le_max_right _ _) hρα
+
+/-- **Lemma 4.13**: the commutator estimate (4.34) under `Fluc(s, α)` and the inputs listed in the
+module docstring. -/
+theorem lemma413 [IsProbabilityMeasure P] (hd : 1 ≤ d) (S : HomogenizationData P) (hΛ : 0 < Λ)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    {s α CF : ℝ} (hs0 : 0 < s) (hα0 : 0 ≤ α) (hα : α ≤ (d : ℝ) / 2) (hCF : 0 < CF)
+    (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      Integrable (fun a => J1Heat a z r p q) P ∧
+      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+    {τ CR μ CN : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ CR μ)
+    (hN : GaussianEnergyBound P S τ CN) (hτs : s ≤ τ / ((d : ℝ) / 2))
+    (hint : AveragesIntegrable P S) (hexp : ExpectedAveragesEstimate P S α)
+    (hmeasA : ∀ (z : Vec d) (r : ℝ) (ξ : Vec d), Measurable (fun a => gradientAverage S a z r ξ) ∧
+      Measurable (fun a => fluxAverage S a z r ξ)) :
+    CommutatorEstimate P S s α := by
+  obtain ⟨CE, hCE, hE⟩ := hexp
+  obtain ⟨Xg, -, hXg⟩ := id hrate
+  obtain ⟨XN, -, -, hXNos, -⟩ := id hN
+  obtain ⟨CC, hCC, h⟩ := exists_uniform_commutator_of_fluctuations hd hΛ hs0 hα0 hα hCF hμ
+    (hXg 0).1.scale_pos (hXNos 0).scale_pos hCE hτs
+  exact ⟨CC, hCC, h P S hA hspan J1Heat hmeasJ (ae_of_all _ fun _ _ _ _ _ => rfl) hF hrate hN hint
+    hE hmeasA⟩
 
 end Conclusion
 

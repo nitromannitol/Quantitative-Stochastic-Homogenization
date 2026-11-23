@@ -182,6 +182,31 @@ theorem osBound_euclideanNorm_of_sq {Ω : Type*} [MeasurableSpace Ω] {P : Measu
 
 variable {P : Measure (CoefficientField d Λ)}
 
+/-- The vector `polarizationVector` with a field `J` in place of `J₁(Φ_{y,r}, ·, ·)`. -/
+def polarizationVectorOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
+    (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : Vec d :=
+  fun i => 4 * (J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) -
+    J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J a y r 0 ((1 / 2 : ℝ) • unitVector i))
+
+/-- The vector `fluxPolarizationVector` with a field `J` in place of `J₁(Φ_{y,r}, ·, ·)`. -/
+def fluxPolarizationVectorOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
+    (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : Vec d :=
+  fun i => -4 * (J a y r ((1 / 2 : ℝ) • (p + unitVector i)) ((1 / 2 : ℝ) • q) -
+    J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J a y r ((1 / 2 : ℝ) • unitVector i) 0)
+
+theorem polarizationVectorOf_eq {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
+    {a : CoefficientField d Λ} (h : ∀ z r p q, J a z r p q = J1Heat a z r p q) (y : Vec d)
+    (r : ℝ) (p q : Vec d) : polarizationVectorOf J a y r p q = polarizationVector a y r p q := by
+  funext i
+  simp only [polarizationVectorOf, polarizationVector, h]
+
+theorem fluxPolarizationVectorOf_eq {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
+    {a : CoefficientField d Λ} (h : ∀ z r p q, J a z r p q = J1Heat a z r p q) (y : Vec d)
+    (r : ℝ) (p q : Vec d) :
+    fluxPolarizationVectorOf J a y r p q = fluxPolarizationVector a y r p q := by
+  funext i
+  simp only [fluxPolarizationVectorOf, fluxPolarizationVector, h]
+
 theorem half_loads_norm (i k : Fin d) :
     euclideanNorm ((1 / 2 : ℝ) • (0 : Vec d)) < 1 ∧
       euclideanNorm ((1 / 2 : ℝ) • ((1 / 2 : ℝ) • unitVector i + unitVector k)) < 1 ∧
@@ -202,19 +227,21 @@ theorem half_loads_norm (i k : Fin d) :
   · rw [euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hk]; norm_num
   · rw [zero_add, euclideanNorm_smul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2), hk]; norm_num
 
-/-- **Fluctuations of `Bᵢ = 2 m(0, eᵢ/2)` and `Cᵢ = 2 f(0, eᵢ/2)`** under `Fluc(s, α)`. -/
-theorem polarization_pair_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+/-- **Fluctuations of `Bᵢ = 2 m(0, eᵢ/2)` and `Cᵢ = 2 f(0, eᵢ/2)`** under `Fluc(s, α)`, for the
+polarization vectors of a field `J` (`J = J₁` or a jointly measurable version of it). -/
+theorem polarization_pair_fluctuation [IsProbabilityMeasure P]
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) {s α CF : ℝ} (hs0 : 0 < s)
     (hCF : 0 < CF)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
     (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
       euclideanNorm p < 1 → euclideanNorm q < 1 →
-      Integrable (fun a => J1Heat a z r p q) P ∧
-      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+      Integrable (fun a => J a z r p q) P ∧
+      OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α)))
     (y : Vec d) {r : ℝ} (hr : 1 ≤ r) (i : Fin d) :
     let σ := (2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)
-    let B := fun a => (2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
-    let C := fun a => (2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i)
+    let B := fun a => (2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i)
+    let C := fun a => (2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i)
     (OsBound P (fun a => euclideanNorm (B a - fun k => ∫ a', B a' k ∂P)) s (σ ^ (1 / 2 : ℝ)) ∧
       Integrable (fun a => euclideanNorm (B a - fun k => ∫ a', B a' k ∂P)) P ∧
       ∫ a, euclideanNorm (B a - fun k => ∫ a', B a' k ∂P) ∂P ≤
@@ -225,21 +252,21 @@ theorem polarization_pair_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (
         momentConstant s * σ ^ (1 / 2 : ℝ)) := by
   intro σ B C
   have hl := half_loads_norm (d := d) i
-  have hB := threeLoad_fluctuation hs0 hCF hmeasJ hF y hr
+  have hB := threeLoad_fluctuation J hs0 hCF hmeasJ hF y hr
     (fun k => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • unitVector i + unitVector k)))
     (fun _ => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
     (fun k => (0, (1 / 2 : ℝ) • unitVector k))
     (fun k => ⟨(hl k).1, (hl k).2.1⟩) (fun k => ⟨(hl k).1, (hl k).2.2.1⟩)
     (fun k => ⟨(hl k).2.2.2.2.2, (hl k).2.2.2.1⟩) (c := 8) (by norm_num) B (fun a k => by
-      simp only [B, polarizationVector, Pi.smul_apply, smul_eq_mul]
+      simp only [B, polarizationVectorOf, Pi.smul_apply, smul_eq_mul]
       ring)
-  have hC := threeLoad_fluctuation hs0 hCF hmeasJ hF y hr
+  have hC := threeLoad_fluctuation J hs0 hCF hmeasJ hF y hr
     (fun k => ((1 / 2 : ℝ) • ((0 : Vec d) + unitVector k), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
     (fun _ => ((1 / 2 : ℝ) • (0 : Vec d), (1 / 2 : ℝ) • ((1 / 2 : ℝ) • (unitVector i : Vec d))))
     (fun k => ((1 / 2 : ℝ) • (unitVector k : Vec d), 0))
     (fun k => ⟨(hl k).2.2.2.2.1, (hl k).2.2.1⟩) (fun k => ⟨(hl k).1, (hl k).2.2.1⟩)
     (fun k => ⟨(hl k).2.2.2.1, (hl k).2.2.2.2.2⟩) (c := -8) (by norm_num) C (fun a k => by
-      simp only [C, fluxPolarizationVector, Pi.smul_apply, smul_eq_mul]
+      simp only [C, fluxPolarizationVectorOf, Pi.smul_apply, smul_eq_mul]
       ring)
   rw [show ((-8 : ℝ)) ^ 2 = 8 ^ 2 by norm_num] at hC
   exact ⟨osBound_euclideanNorm_of_sq hB.1, osBound_euclideanNorm_of_sq hC.1⟩
@@ -492,23 +519,24 @@ theorem commutatorScale_le {Λ s α CF CM CN τ CE r : ℝ} (hΛ : 0 ≤ Λ) (hC
 
 /-- The fluctuation part of the commutator bound: the sum over `i` of the fluctuations of
 `Cᵢ = 2 f(0, eᵢ/2)` and `K₀`-times those of `Bᵢ = 2 m(0, eᵢ/2)`, under `Fluc(s, α)`. -/
-theorem polarization_sum_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+theorem polarization_sum_fluctuation [IsProbabilityMeasure P]
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) {s α CF : ℝ} (hs0 : 0 < s)
     (hCF : 0 < CF)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
     (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
       euclideanNorm p < 1 → euclideanNorm q < 1 →
-      Integrable (fun a => J1Heat a z r p q) P ∧
-      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+      Integrable (fun a => J a z r p q) P ∧
+      OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α)))
     (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {K₀ Kq : ℝ} (hK₀ : 0 < K₀) (hKq : 0 < Kq) :
     let σh := ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d *
       (8 ^ 2 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ^ (1 / 2 : ℝ)
     let Y := fun a : CoefficientField d Λ => Kq * ∑ i,
-      (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+      (euclideanNorm ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
-        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P))
     OsBound P Y s (Kq * ((2 * (2 : ℝ) ^ s⁻¹) ^ d * (2 * (2 : ℝ) ^ s⁻¹ * (σh + K₀ * σh)))) ∧
       Integrable Y P ∧
@@ -517,35 +545,35 @@ theorem polarization_sum_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (h
   intro σh Y
   have hσh : 0 < σh := Real.rpow_pos_of_pos (by positivity) _
   have hterm : ∀ i ∈ (Finset.univ : Finset (Fin d)), OsBound P (fun a =>
-      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
-        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P)) s (2 * (2 : ℝ) ^ s⁻¹ * (σh + K₀ * σh)) := by
     intro i _
     obtain ⟨⟨hBo, -, -⟩, ⟨hCo, -, -⟩⟩ :=
-      polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+      polarization_pair_fluctuation (P := P) J hs0 hCF hmeasJ hF y hr i
     exact osBound_add_le_sum hCo (hBo.const_mul hK₀)
   have hsum := osBound_finset_sum_of_pos Finset.univ hs0 (by positivity) hterm
   rw [Finset.card_univ, Fintype.card_fin] at hsum
   have hint : ∀ i : Fin d, Integrable (fun a =>
-      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
-        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P)) P := by
     intro i
     obtain ⟨⟨-, hBi, -⟩, ⟨-, hCi, -⟩⟩ :=
-      polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+      polarization_pair_fluctuation (P := P) J hs0 hCF hmeasJ hF y hr i
     exact hCi.add (hBi.const_mul K₀)
   have hsi : Integrable (fun a => ∑ i, (
-      euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+      euclideanNorm ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
-        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P))) P :=
     integrable_finsetSum _ fun i _ => hint i
   refine ⟨hsum.const_mul hKq, hsi.const_mul Kq, ?_, fun a => ?_⟩
@@ -553,16 +581,16 @@ theorem polarization_sum_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (h
     rw [integral_const_mul, integral_finsetSum _ fun i _ => hint i]
     refine mul_le_mul_of_nonneg_left ?_ hKq.le
     have hle : ∀ i ∈ (Finset.univ : Finset (Fin d)), (∫ a,
-        (euclideanNorm ((2 : ℝ) • fluxPolarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVector a' y r 0
+        (euclideanNorm ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • fluxPolarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P) +
-        K₀ * euclideanNorm ((2 : ℝ) • polarizationVector a y r 0 ((1 / 2 : ℝ) • unitVector i) -
-          fun k => ∫ a', ((2 : ℝ) • polarizationVector a' y r 0
+        K₀ * euclideanNorm ((2 : ℝ) • polarizationVectorOf J a y r 0 ((1 / 2 : ℝ) • unitVector i) -
+          fun k => ∫ a', ((2 : ℝ) • polarizationVectorOf J a' y r 0
             ((1 / 2 : ℝ) • unitVector i)) k ∂P)) ∂P) ≤
         momentConstant s * σh + K₀ * (momentConstant s * σh) := by
       intro i _
       obtain ⟨⟨-, hBi, hBm⟩, ⟨-, hCi, hCm⟩⟩ :=
-        polarization_pair_fluctuation (P := P) hs0 hCF hmeasJ hF y hr i
+        polarization_pair_fluctuation (P := P) J hs0 hCF hmeasJ hF y hr i
       rw [integral_add hCi (hBi.const_mul K₀), integral_const_mul]
       exact add_le_add hCm (mul_le_mul_of_nonneg_left hBm hK₀.le)
     refine (Finset.sum_le_sum hle).trans (le_of_eq ?_)
@@ -653,17 +681,21 @@ theorem size_bound [IsProbabilityMeasure P] (hd : 1 ≤ d) {s τ CM CN : ℝ} (h
   have h2 := (hMos.rpow (fun a => zero_le_one.trans (hM1 a)) hd2).mono_exponent hs0 hτs
   exact (osBound_add_le_sum h1 h2).const_mul (Real.sqrt_pos.mpr hCN)
 
-/-- **Lemma 4.13 at one center and one large scale.** -/
+/-- **Lemma 4.13 at one center and one large scale**, under `Fluc(s, α)` for a jointly measurable
+field `J` equal to `J₁` at all parameters almost surely (`J = J₁` when `J₁` is jointly
+measurable). -/
 theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
     (S : HomogenizationData P) (hΛ : 0 < Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
+    (hJ : ∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q)
     {s α CF : ℝ} (hs0 : 0 < s) (hCF : 0 < CF)
     (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
       euclideanNorm p < 1 → euclideanNorm q < 1 →
-      Integrable (fun a => J1Heat a z r p q) P ∧
-      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+      Integrable (fun a => J a z r p q) P ∧
+      OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α)))
     (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {ε : ℝ} (hε0 : 0 ≤ ε) (hε : ε ≤ 1 / 4)
     (hεd : Real.sqrt d * ε ≤ 1 / 2) (Xg XN M : CoefficientField d Λ → ℝ)
     (hXgm : Measurable Xg) (hXNm : Measurable XN) (hXN0 : ∀ a, 0 ≤ XN a) (hM1 : ∀ a, 1 ≤ M a)
@@ -701,12 +733,33 @@ theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
     measurableSet_le measurable_const hXgm
   have hgood' : ∀ᵐ a ∂P, a ∉ {a : CoefficientField d Λ | r ≤ Xg a} →
       GaussianAverageBounds a S.homogenized (correctedField S a) y r ε := hgood
-  have hmB := fun i => mean_polarization_near_inverse S hΛ.le hA hspan hmeasJ y hr0 hε0 hε hεd
-    hBad hgood' i
+  have hJy : ∀ p q : Vec d, Measurable fun a : CoefficientField d Λ => J a y r p q :=
+    fun p q => (hmeasJ r p q).comp (measurable_id.prodMk measurable_const)
+  have hJae : ∀ p q : Vec d, AEStronglyMeasurable (fun a => J1Heat a y r p q) P :=
+    fun p q => (hJy p q).aestronglyMeasurable.congr (hJ.mono fun a ha => ha y r p q)
+  have hmeanB : ∀ i : Fin d, (fun k => ∫ a, ((2 : ℝ) • polarizationVectorOf J a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P) = fun k => ∫ a, ((2 : ℝ) • polarizationVector a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P := fun i => funext fun k =>
+    integral_congr_ae (by
+      filter_upwards [hJ] with a ha
+      rw [polarizationVectorOf_eq ha])
+  have hmeanC : ∀ i : Fin d, (fun k => ∫ a, ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P) = fun k => ∫ a, ((2 : ℝ) • fluxPolarizationVector a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P := fun i => funext fun k =>
+    integral_congr_ae (by
+      filter_upwards [hJ] with a ha
+      rw [fluxPolarizationVectorOf_eq ha])
+  have hmB : ∀ i : Fin d, euclideanNorm ((fun k => ∫ a, ((2 : ℝ) • polarizationVectorOf J a y r 0
+      ((1 / 2 : ℝ) • unitVector i)) k ∂P) - S.homogenized⁻¹.mulVec (unitVector i)) ≤
+      Real.sqrt d * ((9 + Real.sqrt d) * ε + (16 * (Λ + 1) + 1) *
+        P.real {a : CoefficientField d Λ | r ≤ Xg a}) := fun i => by
+    rw [hmeanB i]
+    exact mean_polarization_near_inverse S hΛ.le hA hspan y hr0 hJae hε0 hε hεd hBad hgood' i
   have h00 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
-  have hmC : ∀ i, euclideanNorm (fun k => ∫ a, ((2 : ℝ) • fluxPolarizationVector a y r 0
+  have hmC : ∀ i, euclideanNorm (fun k => ∫ a, ((2 : ℝ) • fluxPolarizationVectorOf J a y r 0
       ((1 / 2 : ℝ) • unitVector i)) k ∂P) ≤ Real.sqrt d * (16 * (Λ + 1)) := by
     intro i
+    rw [hmeanC i]
     have hl : euclideanNorm ((1 / 2 : ℝ) • (unitVector i : Vec d)) < 1 := by
       rw [euclideanNorm_smul, euclideanNorm_unitVector]; norm_num
     refine euclideanNorm_le_of_abs_le (by positivity) fun k => ?_
@@ -726,7 +779,7 @@ theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
   have hK₀ : 0 < 2 * Λ * Real.sqrt d * (Real.sqrt d * (16 * (Λ + 1))) := by positivity
   have hpt := commutator_matching_le S hΛ.le hA hspan y hr0 hε0 hε hεd hgood' hCN.le XN hXN0 havg
     D₀ hK₀.le hD₀op _ _ hD₀m
-  obtain ⟨hYo, hYi, hYm, hY0⟩ := polarization_sum_fluctuation (P := P) hs0 hCF hmeasJ hF y hr hK₀
+  obtain ⟨hYo, hYi, hYm, hY0⟩ := polarization_sum_fluctuation (P := P) J hs0 hCF hmeasJ hF y hr hK₀
     (Kq := 2 * (Real.sqrt d * (Λ + 1))) (by positivity)
   obtain ⟨hBo, hBi, hBm, hB0⟩ := bad_part_bound (P := P) hd hs0 hr hCN hΛ hK₀.le Xg XN M hXgm hXNm
     hXN0 hM1 hXNM hXgM hτs hMos
@@ -740,7 +793,10 @@ theorem commutator_osBound_large [IsProbabilityMeasure P] (hd : 1 ≤ d)
     exact mul_le_mul_of_nonneg_left (by linarith) (Real.sqrt_nonneg _)
   have := commutator_assembly hd hK₀.le hη hD₀op (fun l a => gradientAverage S a y r (unitVector l))
     (fun l a => fluxAverage S a y r (unitVector l)) hPm hFm hPi hFi hEP hEF hYo hYi hYm hY0
-    hBo hBi hBm hB0 hN hpt j hPN
+    hBo hBi hBm hB0 hN (by
+      filter_upwards [hpt, hJ] with a ha hJa
+      simp only [← polarizationVectorOf_eq hJa, ← fluxPolarizationVectorOf_eq hJa] at ha
+      exact ha) j hPN
   simp only [commutatorScale, commutatorScaleOf]
   exact this
 
