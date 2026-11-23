@@ -35,7 +35,7 @@ open ProbabilityTheory
 
 attribute [local irreducible] coefficientRepresentative
 
-private theorem coarseGaussian_hencoding {d : ℕ} {K : ℝ} (hK : 0 ≤ K) :
+theorem coarseGaussian_hencoding {d : ℕ} {K : ℝ} (hK : 0 ≤ K) :
     ∃ C : CoefficientField d K → ∀ n : ℕ, Fin d → Fin d →
         Lp ℝ 2 (volume.restrict (Metric.closedBall (0 : Vec d) n)),
       PolishSpace (∀ n : ℕ, Fin d → Fin d →
@@ -140,7 +140,7 @@ private theorem coarseGaussian_hencoding {d : ℕ} {K : ℝ} (hK : 0 ≤ K) :
     · intro a n i j
       exact (hL n i j a).coeFn_toLp
 
-private theorem coarseGaussian_hclasses {d : ℕ} {K : ℝ} {a : CoefficientField d K}
+theorem coarseGaussian_hclasses {d : ℕ} {K : ℝ} {a : CoefficientField d K}
     (w : HarmonicA1 a) :
     ∃ U : ∀ n : ℕ, Lp ℝ 2 (volume.restrict (Metric.closedBall (0 : Vec d) n)),
     ∃ G : ∀ n : ℕ, Fin d → Lp ℝ 2 (volume.restrict (Metric.closedBall (0 : Vec d) n)),
@@ -224,7 +224,7 @@ private theorem coarseGaussian_hcuts {E F : Type} [TopologicalSpace E] [PolishSp
     rw [heq]
     exact (hG.inter (measurableSet_lt measurable_const hH)).analyticSet_image measurable_fst
 
-private theorem coarseGaussian_hgraph (d : ℕ) :
+theorem coarseGaussian_hgraph (d : ℕ) :
     let μ := fun n : ℕ => volume.restrict (Metric.closedBall (0 : Vec d) (n : ℝ))
     let E := ∀ n : ℕ, Fin d → Fin d → Lp ℝ 2 (μ n)
     let F := ∀ n : ℕ, Lp ℝ 2 (μ n) × (Fin d → Lp ℝ 2 (μ n))
@@ -564,7 +564,7 @@ private theorem coarseGaussian_hgraph (d : ℕ) :
       · simpa only [norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
           zero_div] using (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0 : ℝ)) atTop (𝓝 0))
 
-private theorem coarseGaussian_hfiber {d : ℕ} {K : ℝ} (hK : 0 ≤ K) (a : CoefficientField d K)
+theorem coarseGaussian_hfiber {d : ℕ} {K : ℝ} (hK : 0 ≤ K) (a : CoefficientField d K)
     (A : ∀ n : ℕ, Fin d → Fin d →
       Lp ℝ 2 (volume.restrict (Metric.closedBall (0 : Vec d) n)))
     (hA : ∀ (n : ℕ) (i j : Fin d), A n i j =ᵐ[volume.restrict
@@ -1137,7 +1137,7 @@ private theorem coarseGaussian_hfiber {d : ℕ} {K : ℝ} (hK : 0 ≤ K) (a : Co
       · intro n m i
         exact hrestrict (fun x => w.grad x i) (fun n => G n i) (fun n => hG n i) n m
 
-private theorem coarseGaussian_hrepresentative (d : ℕ) :
+theorem coarseGaussian_hrepresentative (d : ℕ) :
     let μ := fun n : ℕ => volume.restrict (Metric.closedBall (0 : Vec d) (n : ℝ))
     let W := ∀ n : ℕ, Lp ℝ 2 (μ n)
     let : MeasurableSpace W := borel W
