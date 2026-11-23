@@ -45,7 +45,7 @@ theorem coordinateDerivative_comp_smul {χ : Vec d → ℝ} (hχ : Differentiabl
   simp only [ContinuousLinearMap.comp_apply, _root_.smul_apply,
     ContinuousLinearMap.id_apply, map_smul, smul_eq_mul]
 
-theorem abs_dot_le_sum_abs (u v : Vec d) : |dot u v| ≤ ∑ k, |u k| * |v k| := by
+theorem abs_dot_le_sum_abs_mul_abs (u v : Vec d) : |dot u v| ≤ ∑ k, |u k| * |v k| := by
   unfold dot
   calc |∑ k, u k * v k| ≤ ∑ k, |u k * v k| := Finset.abs_sum_le_sum_abs _ _
     _ = ∑ k, |u k| * |v k| := Finset.sum_congr rfl fun k _ => abs_mul _ _

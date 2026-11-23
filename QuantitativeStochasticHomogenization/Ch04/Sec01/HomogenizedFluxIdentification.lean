@@ -216,7 +216,7 @@ theorem euclideanSq_add_le_two (v w : Vec d) :
   simp only [Pi.add_apply, Finset.mul_sum, ← Finset.sum_add_distrib]
   exact Finset.sum_le_sum fun i _ => by nlinarith [sq_nonneg (v i - w i)]
 
-theorem euclideanSq_smul_eq (c : ℝ) (v : Vec d) : euclideanSq (c • v) = c ^ 2 * euclideanSq v := by
+theorem euclideanSq_smul_sq' (c : ℝ) (v : Vec d) : euclideanSq (c • v) = c ^ 2 * euclideanSq v := by
   unfold euclideanSq dot
   simp only [Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
   exact Finset.sum_congr rfl fun i _ => by ring
@@ -327,7 +327,7 @@ theorem ae_dirichletEnergy_le_energy (hd : 1 ≤ d) (hΛ : 1 ≤ Λ) (S : Homoge
         2 * euclideanSq e * (1 - η x) ^ 2 + 2 * Bη * u x ^ 2 := by
       intro x
       refine (euclideanSq_add_le_two _ _).trans ?_
-      rw [euclideanSq_smul_eq, euclideanSq_smul_eq]
+      rw [euclideanSq_smul_sq', euclideanSq_smul_sq']
       have h1 := hgradη x
       have hu2 := sq_nonneg (u x)
       have he := euclideanSq_nonneg e

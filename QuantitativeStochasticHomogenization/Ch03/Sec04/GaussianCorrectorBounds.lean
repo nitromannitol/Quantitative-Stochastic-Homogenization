@@ -341,7 +341,7 @@ theorem abs_integral_heatKernel_dot_le {q : Vec d → Vec d}
   have hdot : ∀ x, |dot (q x) (gradient (heatKernel x₀ r) x)| ≤
       d * Cg * (W x * euclideanNorm (q x)) := by
     intro x
-    refine (abs_dot_le_sum_abs _ _).trans ?_
+    refine (abs_dot_le_sum_abs_mul_abs _ _).trans ?_
     calc ∑ k, |q x k| * |gradient (heatKernel x₀ r) x k|
         ≤ ∑ _k : Fin d, euclideanNorm (q x) * (Cg * W x) := by
           refine Finset.sum_le_sum fun k _ => ?_
