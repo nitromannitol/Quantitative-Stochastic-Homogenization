@@ -1,6 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevLinearEstimates
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatFormula
-import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatGram
 
 /-!
 # Section 4.6: (4.126) from the commutator estimate and the linear estimate
