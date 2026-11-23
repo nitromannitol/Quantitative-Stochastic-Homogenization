@@ -175,12 +175,13 @@ def UniformImprovementOfAdditivity (d : ℕ) (Λ : ℝ) : Prop :=
         AddEstimateAt P J s (α + η) D ∧ AddEstimateAt P J (s / 2) (2 * α) D
 
 /-- **Proposition 4.11 with constants chosen before the law**, with the localization by
-measurable fields and the local σ-algebras of (0.9): for `s > 0`, `α ∈ (0, d/s)`, `δ, η > 0` and
-every constant `C` there is `D` with `Fluc(s, α) ⟹ Loc(s, δ, (α(1+δ) + δ) ∧ d/s - η)`, from
-constant `C` to constant `D`, for every bounded jointly measurable version of `J₁` under every
-law satisfying the assumptions. -/
+measurable fields and the local σ-algebras of (0.9), at the stochastic exponents `s ∈ (1, 2)` and
+the spatial exponents `α ∈ (0, d/2]` used by the bootstrap: for `δ, η > 0` and every constant `C`
+there is `D` with `Fluc(s, α) ⟹ Loc(s, δ, (α(1+δ) + δ) ∧ d/s - η)`, from constant `C` to constant
+`D`, for every bounded jointly measurable version of `J₁` under every law satisfying the
+assumptions. -/
 def UniformLocalizationEstimates (d : ℕ) (Λ : ℝ) : Prop :=
-  ∀ s α δ η C : ℝ, 0 < s → 0 < α → α < (d : ℝ) / s → 0 < δ → 0 < η → 0 < C →
+  ∀ s α δ η C : ℝ, 1 < s → s < 2 → 0 < α → α ≤ (d : ℝ) / 2 → 0 < δ → 0 < η → 0 < C →
     ∃ D : ℝ, 0 < D ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
       ∀ J, IsBoundedJointVersion P J → FlucEstimateAt P J s α C →
         LocFieldEstimateAt P localSigma J s δ (min (α * (1 + δ) + δ) ((d : ℝ) / s) - η) D
@@ -207,7 +208,7 @@ theorem exists_uniform_flucEstimateAt_half_dim (hd : 2 ≤ d)
   let ι := {x : Measure (CoefficientField d Λ) ×
     (CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) //
       LawHypotheses x.1 ∧ IsBoundedJointVersion x.1 x.2}
-  haveI hprob : ∀ i : ι, IsProbabilityMeasure i.1.1 := fun i => i.2.1.1
+  have hprob : ∀ i : ι, IsProbabilityMeasure i.1.1 := fun i => i.2.1.1
   obtain ⟨a₁, C₀, ha₁, hC₀, hb⟩ := hbase u hu1 hu2
   obtain ⟨ν, hν, hadd⟩ := h410 u (by linarith) hu2
   have hδ : 0 < fluctuationBootstrapDelta ((d : ℝ) / 2) ν ((d : ℝ) / u) :=
@@ -220,8 +221,8 @@ theorem exists_uniform_flucEstimateAt_half_dim (hd : 2 ≤ d)
       exact ⟨D, hD, fun i hi => (h i.1.1 i.2.1 i.1.2 i.2.2 hi).1⟩)
     (fun a C ha hab hC => by
       obtain ⟨D, hD, h⟩ := h411 u a (fluctuationBootstrapDelta ((d : ℝ) / 2) ν ((d : ℝ) / u))
-        (fluctuationBootstrapDelta ((d : ℝ) / 2) ν ((d : ℝ) / u) / 4) C (by linarith) ha
-        (hab.trans_lt hcap) hδ (by positivity) hC
+        (fluctuationBootstrapDelta ((d : ℝ) / 2) ν ((d : ℝ) / u) / 4) C hu1 hu2 ha hab hδ
+        (by positivity) hC
       exact ⟨D, hD, fun i hi => h i.1.1 i.2.1 i.1.2 i.2.2 hi⟩)
     (fun β B C D hβ hβd hgap hC hD => by
       obtain ⟨K, hK, h⟩ := exists_flucEstimateAt_of_add_local (Ω := CoefficientField d Λ)

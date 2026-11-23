@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec02.Theorem46Uniform
+import QuantitativeStochasticHomogenization.Ch04.Sec01.HomogenizedBoundsFromMeasurability
 
 /-!
 # The initial exponent of the bootstrap with constants chosen before the law
@@ -173,7 +174,7 @@ theorem uniformBaseFluctuation_of_rate (hd : 2 ≤ d) (hΛ : 1 < Λ)
   obtain ⟨C, μ, hC, hμ, h⟩ := hrate u hu1 hu2
   refine ⟨min μ 1, baseFluctuationConstant Λ u C μ, lt_min hμ one_pos,
     baseFluctuationConstant_pos hC μ, fun P hP J hJ => ?_⟩
-  haveI := hP.1
+  have := hP.1
   obtain ⟨S, hS⟩ := h P hP
   exact flucEstimateAt_of_gaussianCorrectorRate S (S.homogenizedMatrixBounds (by linarith))
     (ae_gradientsOfA1AreCorrected_of_liouville firstOrderLiouville hd hΛ hP S) hJ hu1.le hC hμ hS

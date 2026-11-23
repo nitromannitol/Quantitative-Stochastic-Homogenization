@@ -126,6 +126,48 @@ of each module names the source files and commits.
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
 
 
+## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`)
+
+- **The quantifier order.** The book's constants depend only on `(s, d, Λ)`. In the bootstrap this
+  is the statement that each of Propositions 4.3, 4.10, 4.11 and 4.12 turns a constant of its
+  input into a constant of its output that does not depend on the law. The statements
+  `FlucEstimateAt`, `AddEstimateAt`, `LocFieldEstimateAt` are Definitions 4.7–4.9 with the constant
+  as an argument, and `uniform_flucEstimate_half_dim` runs the induction for a family of laws with
+  these implications; composing the per-law statements of Section 4.2 would not give this.
+  Proposition 4.12 with its constant chosen before the law is `exists_flucEstimateAt_of_add_local`;
+  Lemma 4.13, the linear estimate and the energy bound below the scale are
+  `exists_uniform_commutator_of_fluctuations`, `exists_uniform_linear_of_heat` and
+  `gaussianEnergyBound_of_rate_at`; Proposition 4.3 is `flucEstimateAt_of_gaussianCorrectorRate`.
+- **The exponents.** One localization parameter `δ = min(ν, d/u - d/2)/(1 + d/2)` and one loss `δ/4`
+  serve every step, with increments `δ/(2(1+δ))` clipped at `d/2` (this replaces Steps 1–3 of the
+  book; at the last step the book's `α = (d - δ)/(2(1+δ))` does not satisfy `α(1+δ) + δ > d/2 (1+δ)`).
+  The bootstrap is run at `u = 1 + s/2 ∈ (1, 2)` and lowered to `s` with the multiplier
+  `(log 2)^{1/u - 1/s}` (`OsBound.mono_exponent_sharp`, optimal for constant random variables).
+- **Versions of `J₁`.** `a ↦ J₁(Φ_{z,r}, p, q)` is identified with (4.12) only almost surely and is
+  not known to be measurable, so the bootstrap is run for a bounded jointly measurable version
+  (`IsBoundedJointVersion`: equal to `J₁` at all parameters almost surely, bounded by `|Λ| + 1`,
+  from `HasJointHeatVersion`), and the results for `J₁` are stated with `AEOsBound`. In Lemma 4.13
+  the polarization vectors are formed with the version (`polarizationVectorOf`); the book does not
+  discuss this measurability.
+- **Proposition 4.10 and (4.70)** with constants chosen before the law follow from the Gaussian
+  inputs (`Ch04/Sec03/Proposition410Uniform.lean`): the trial gap, the improved additivity and the
+  expectation of `J₁` are proved for the versions with explicit constants
+  (`exists_trialGapEstimateAt_of_linearAverages`, `exists_addEstimateAt_improved_of_trialGap`,
+  `addEstimateAt_of_trialGapEstimateAt`, `abs_integral_J1Heat_sub_le_of_trialGap`), with the trial
+  gap formed with the version (`trialGapOf`). The expectations (1) have a constant chosen before
+  the law (`expectedAveragesEstimateAt_of_energy_and_rate`: the moment `E[X(0)^d]` of the scale of
+  the energy bound is bounded by `momentConstant (τ/d) C_N^d`). The homogenized matrix does not
+  depend on the homogenization data (`HomogenizationData.homogenized_eq`).
+- **Proposition 4.11** is used only at the stochastic exponents `s ∈ (1, 2)` and the spatial
+  exponents `α ∈ (0, d/2]` of the bootstrap, with the localized energies of one localized family of
+  Section 4.4 as the localized fields (`uniformLocalizationEstimates_of_pilot`,
+  `Ch04/Sec04/LocalizationUniform.lean`); the family is chosen independently of the law.
+- **What remains.** Theorem 4.6 (i), (iii), (5.58), (4.126), Theorem 4.1 and Lemma 5.29 are deduced
+  from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a kernel of
+  mass `C_k/u`, and the estimate `|J₁ - J₁^{(δ)}| ≤ O_s(C r^{-γ})` of the localized energies under
+  `Fluc(s, α)` (`PilotLocalizationEstimates`), which are not proved
+  (`bootstrapInputs_of_rate_heat_pilot`).
+
 ## Section 4.4: the localization of pp. 155-156
 
 - **Existence of the coordinate minimizers and of the minimizer of smallest `L²` norm** (p. 155-156,
