@@ -60,7 +60,7 @@ theorem hasCompactSupport_iterDeriv {j : ℕ} (α : Fin j → Fin d) {f : Vec d 
   | zero => exact hf
   | succ j ih => exact ih _ (hasCompactSupport_coordinateDerivative hf _)
 
-theorem tsupport_coordinateDerivative_subset (i : Fin d) (f : Vec d → ℝ) :
+theorem tsupport_coordinateDerivative_subset' (i : Fin d) (f : Vec d → ℝ) :
     tsupport (coordinateDerivative i f) ⊆ tsupport f :=
   tsupport_fderiv_apply_subset ℝ (unitVector i)
 
@@ -68,7 +68,7 @@ theorem tsupport_iterDeriv_subset {j : ℕ} (α : Fin j → Fin d) (f : Vec d �
     tsupport (iterDeriv α f) ⊆ tsupport f := by
   induction j generalizing f with
   | zero => exact le_rfl
-  | succ j ih => exact (ih _ _).trans (tsupport_coordinateDerivative_subset _ _)
+  | succ j ih => exact (ih _ _).trans (tsupport_coordinateDerivative_subset' _ _)
 
 theorem iterDeriv_eq_zero_of_notMem_tsupport {j : ℕ} (α : Fin j → Fin d) {f : Vec d → ℝ}
     {x : Vec d} (hx : x ∉ tsupport f) : iterDeriv α f x = 0 :=

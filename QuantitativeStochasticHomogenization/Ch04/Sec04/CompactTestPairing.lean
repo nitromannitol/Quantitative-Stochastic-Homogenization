@@ -157,7 +157,7 @@ theorem hasDerivAt_kernelPairing_scaledKernel {f : Vec d → ℝ} (hf : ContDiff
       refine HasCompactSupport.intro hfc fun y hy => ?_
       refine Finset.sum_eq_zero fun l _ => ?_
       have : y ∉ tsupport (coordinateDerivative l f) :=
-        fun h => hy (tsupport_coordinateDerivative_subset l f h)
+        fun h => hy (tsupport_coordinateDerivative_subset' l f h)
       rw [image_eq_zero_of_notMem_tsupport this, mul_zero]
     exact this
   obtain ⟨KE, hKE⟩ := hE.bounded_above_of_compact_support hEc
