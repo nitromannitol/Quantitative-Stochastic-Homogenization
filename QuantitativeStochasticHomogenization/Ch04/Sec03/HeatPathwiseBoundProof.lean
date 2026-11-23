@@ -161,15 +161,22 @@ theorem abs_apply_le_euclideanSq_add (v : Vec d) (k : Fin d) :
   have h2 : euclideanNorm v ^ 2 = euclideanSq v := euclideanNorm_sq_eq v
   nlinarith [sq_nonneg (euclideanNorm v - 1), BaseExponent.euclideanNorm_nonneg v]
 
-/-- **The pathwise heat bound** for every law satisfying the assumptions and all homogenization
-data, with the explicit kernel `heatPathwiseKernel d Λ`. -/
-theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
-    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (S : HomogenizationData P) :
-    HeatPathwiseBound P S (heatPathwiseKernel d Λ) := by
+/-- **The pathwise heat bound** for every law satisfying the assumptions, all homogenization
+data with an eigenframe `(Q, λ)` of `ā`, and every kernel that bounds the Hessian term. -/
+theorem heatPathwiseBound_of_kernel (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (S : HomogenizationData P)
+    {Q : Mat d} (hQ : Q.transpose * Q = 1) {lam : Fin d → ℝ}
+    (hA : ∀ v, Q *ᵥ (S.homogenized *ᵥ v) = fun m => lam m * (Q *ᵥ v) m)
+    (hlam : ∀ k, 1 ≤ lam k ∧ lam k ≤ Λ) {k : ℝ → ℝ → Vec d → ℝ}
+    (hk : ∀ r : ℝ, 2 ≤ r → ∀ u : ℝ, r ^ 2 / 2 < u → ∀ w : Vec d, euclideanNorm w = 1 →
+      ∀ C : Vec d → Vec d,
+      ENNReal.ofReal |-2 * ∫ x, ∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+        anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+          (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)| ≤
+        ∫⁻ x, ENNReal.ofReal (k r u x * euclideanNorm (C x))) :
+    HeatPathwiseBound P S k := by
   have : IsProbabilityMeasure P := hP.1
   have hΛ0 : 0 < Λ := by linarith
-  obtain ⟨Q, lam, hQ, hA, hlam⟩ :=
-    exists_eigenframe S.symmetric (S.homogenizedMatrixBounds hΛ0.le)
   have hen := hasGaussianCorrectorEnergy_of_lawHypotheses hd hΛ hP S
   intro z r hr i
   filter_upwards [hen, (S.corrector (unitVector i)).weak_gradient,
@@ -239,7 +246,8 @@ theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
     intro ε hε
     obtain ⟨S', hS0, hS⟩ := exists_integral_heatKernel_mul_abs_le_of_sublinear hφm hloc' hsub hε
     exact ⟨S', hS0, fun s hs x hx => (hS s hs x hx).2⟩
-  have hmain := heatIdentity_bound hQ hA hΛ.le hlam hgrad hdiv hgI hfI hφI hsubl z hr0
+  have hmain := heatIdentity_bound_of_kernel hQ hA hΛ.le hlam hgrad hdiv hgI hfI hφI hsubl z hr0
+    (hk r hr)
   -- the left side
   have hEg : ∀ k, GaussianIntegrable (fun y =>
       (unitVector i + (S.corrector (unitVector i)).grad a y) k) := fun k =>
@@ -270,12 +278,11 @@ theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
     ring
   -- the right side
   have hR : ∀ u ∈ Ioi (r ^ 2 / 2), ∀ x : Vec d,
-      ENNReal.ofReal (heatIdentityKernel d Λ u x * euclideanNorm (fun j => ∫ y,
+      ENNReal.ofReal (k r u x * euclideanNorm (fun j => ∫ y,
         euclideanHeatKernel u (z - x - y) * (a y *ᵥ (unitVector i +
           (S.corrector (unitVector i)).grad a y) - S.homogenized *ᵥ (unitVector i +
             (S.corrector (unitVector i)).grad a y)) j)) =
-      ENNReal.ofReal (heatPathwiseKernel d Λ r u x *
-        commutatorNorm S a (z - x) (Real.sqrt u) i) := by
+      ENNReal.ofReal (k r u x * commutatorNorm S a (z - x) (Real.sqrt u) i) := by
     intro u hu x
     have hu1 : 1 ≤ u := by
       have : r ^ 2 / 2 < u := hu
@@ -283,7 +290,7 @@ theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
     have hu0 : 0 < u := lt_of_lt_of_le one_pos hu1
     have hρ : 0 < Real.sqrt u := Real.sqrt_pos.mpr hu0
     have hsq : Real.sqrt u ^ 2 = u := Real.sq_sqrt hu0.le
-    rw [heatPathwiseKernel, max_eq_left hu1, commutatorNorm, hfa, hga]
+    rw [commutatorNorm, hfa, hga]
     congr 3
     funext j
     have hfj := (integral_heatKernel_smul_apply hfI (z - x) hρ).2 j
@@ -306,6 +313,116 @@ theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
   refine hmain.trans (le_of_eq ?_)
   exact setLIntegral_congr_fun measurableSet_Ioi fun u hu =>
     lintegral_congr fun x => hR u hu x
+
+/-- **The pathwise heat bound** for every law satisfying the assumptions and all homogenization
+data, with the kernel `heatPathwiseKernel d Λ` chosen before the law. -/
+theorem heatPathwiseBound_of_lawHypotheses (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (S : HomogenizationData P) :
+    HeatPathwiseBound P S (heatPathwiseKernel d Λ) := by
+  have : IsProbabilityMeasure P := hP.1
+  have hΛ0 : 0 < Λ := by linarith
+  obtain ⟨Q, lam, hQ, hA, hlam⟩ :=
+    exists_eigenframe S.symmetric (S.homogenizedMatrixBounds hΛ0.le)
+  refine heatPathwiseBound_of_kernel hd hΛ hP S hQ hA hlam ?_
+  intro r hr u hu w hw C
+  have hu1 : 1 ≤ u := by nlinarith
+  have hu0 : 0 < u := lt_of_lt_of_le one_pos hu1
+  have h := ofReal_abs_hessian_integral_le hQ hΛ.le hu0 (E := fun k =>
+    r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u) (fun k => by
+      have h1 := hlam k
+      have h2 : 0 ≤ 2 * u - r ^ 2 := by linarith
+      constructor <;> nlinarith) hw C
+  refine h.trans (le_of_eq (lintegral_congr fun x => ?_))
+  rw [heatPathwiseKernel, max_eq_left hu1]
+
+/-! ## The sharp kernel -/
+
+theorem measurable_sharpHeatKernel_uncurry (Q : Mat d) (lam : Fin d → ℝ) (r : ℝ) :
+    Measurable (Function.uncurry (sharpHeatKernel Q lam r)) := by
+  have hT : Measurable fun p : ℝ × Vec d => sharpTimes lam r (max p.1 1) := by
+    refine measurable_pi_iff.mpr fun k => ?_
+    unfold sharpTimes
+    fun_prop
+  have hQx : Measurable fun p : ℝ × Vec d => Q *ᵥ p.2 :=
+    (continuous_mulVec Q).measurable.comp measurable_snd
+  have h1 := (measurable_anisoKernel_uncurry (0 : Fin d → ℕ)).comp (hT.prodMk hQx)
+  show Measurable fun p : ℝ × Vec d => sharpHeatKernel Q lam r p.1 p.2
+  unfold sharpHeatKernel
+  refine Measurable.mul (by fun_prop) (Measurable.mul ?_ h1)
+  exact measurable_const.add (measurable_const.mul (Finset.measurable_sum _ fun k _ =>
+    (((measurable_pi_apply k).comp hQx).pow_const 2).div ((measurable_pi_apply k).comp hT)))
+
+theorem sharpHeatKernel_pos {Q : Mat d} {lam : Fin d → ℝ} (hlam : ∀ k, 1 ≤ lam k) (r u : ℝ)
+    (x : Vec d) : 0 < sharpHeatKernel Q lam r u x := by
+  have hv : 1 ≤ max u 1 := le_max_right _ _
+  have hT : ∀ k, 0 < sharpTimes lam r (max u 1) k := fun k =>
+    lt_of_lt_of_le (by linarith) (sharpTimes_ge hlam r (max u 1) k)
+  unfold sharpHeatKernel
+  have h1 : 0 ≤ ∑ k, (Q *ᵥ x) k ^ 2 / sharpTimes lam r (max u 1) k :=
+    Finset.sum_nonneg fun k _ => div_nonneg (sq_nonneg _) (hT k).le
+  have h2 := anisoKernel_zero_pos hT (Q *ᵥ x)
+  have h3 : 0 < (max u 1)⁻¹ := inv_pos.mpr (by linarith)
+  positivity
+
+theorem sharpHeatKernel_mass {Q : Mat d} (hQ : Q.transpose * Q = 1) {lam : Fin d → ℝ}
+    (hlam : ∀ k, 1 ≤ lam k) (r : ℝ) {u : ℝ} (hu : 1 ≤ u) :
+    Integrable (sharpHeatKernel Q lam r u) ∧
+      ∫ x, sharpHeatKernel Q lam r u x = ((d : ℝ) + 1) * u⁻¹ := by
+  set T := sharpTimes lam r (max u 1) with hTdef
+  have hT : ∀ k, 0 < T k := fun k =>
+    lt_of_lt_of_le (by linarith [le_max_right u 1]) (sharpTimes_ge hlam r (max u 1) k)
+  set G : Vec d → ℝ := fun x' => anisoKernel T 0 x' +
+    ∑ k, 1 / 2 * (T k)⁻¹ * (x' k ^ 2 * anisoKernel T 0 x') with hG
+  have hGi : Integrable G := by
+    refine (integrable_anisoKernel_zero hT).add (integrable_finsetSum _ fun k _ =>
+      (integrable_sq_mul_anisoKernel_zero hT k).const_mul _)
+  have hGint : ∫ x', G x' = (d : ℝ) + 1 := by
+    rw [hG, integral_add (integrable_anisoKernel_zero hT) (integrable_finsetSum _ fun k _ =>
+      (integrable_sq_mul_anisoKernel_zero hT k).const_mul _), integral_anisoKernel_zero hT,
+      integral_finsetSum _ fun k _ => (integrable_sq_mul_anisoKernel_zero hT k).const_mul _]
+    have : ∀ k, ∫ x', 1 / 2 * (T k)⁻¹ * (x' k ^ 2 * anisoKernel T 0 x') = 1 := fun k => by
+      rw [integral_const_mul, integral_sq_mul_anisoKernel_zero hT k]
+      have := (hT k).ne'
+      field_simp
+    simp only [this, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+    ring
+  have hpt : ∀ x, sharpHeatKernel Q lam r u x = (max u 1)⁻¹ * G (Q *ᵥ x) := by
+    intro x
+    simp only [sharpHeatKernel, hG, ← hTdef, Finset.mul_sum]
+    congr 1
+    rw [add_mul, one_mul, Finset.sum_mul]
+    congr 1
+    exact Finset.sum_congr rfl fun k _ => by ring
+  have hmp := measurePreserving_mulVec_of_orthogonal hQ
+  have hGQ : Integrable (fun x => G (Q *ᵥ x)) :=
+    (hmp.integrable_comp_emb (orthogonalHomeomorph hQ).measurableEmbedding).mpr hGi
+  have hfun : sharpHeatKernel Q lam r u = fun x => (max u 1)⁻¹ * G (Q *ᵥ x) := funext hpt
+  rw [hfun]
+  refine ⟨hGQ.const_mul _, ?_⟩
+  rw [integral_const_mul, integral_comp_mulVec_of_orthogonal hQ G, hGint, max_eq_left hu]
+  ring
+
+/-- **The pathwise heat bound with a kernel of mass `(d + 1)/u`** for every law satisfying the
+assumptions and all homogenization data. -/
+theorem exists_heatPathwiseKernel :
+    ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∀ S : HomogenizationData P, ∃ k : ℝ → ℝ → Vec d → ℝ,
+        (∀ r, Measurable (Function.uncurry (k r))) ∧ (∀ r u x, 0 < k r u x) ∧
+        (∀ r u, 1 ≤ u → Integrable (k r u) ∧ ∫ x, k r u x ≤ ((d : ℝ) + 1) * u⁻¹) ∧
+        HeatPathwiseBound P S k := by
+  intro d hd Λ hΛ P hP S
+  have : IsProbabilityMeasure P := hP.1
+  have hΛ0 : 0 < Λ := by linarith
+  obtain ⟨Q, lam, hQ, hA, hlam⟩ :=
+    exists_eigenframe S.symmetric (S.homogenizedMatrixBounds hΛ0.le)
+  have hlam1 : ∀ k, 1 ≤ lam k := fun k => (hlam k).1
+  refine ⟨sharpHeatKernel Q lam, measurable_sharpHeatKernel_uncurry Q lam,
+    sharpHeatKernel_pos hlam1, fun r u hu => ?_, ?_⟩
+  · obtain ⟨hi, he⟩ := sharpHeatKernel_mass hQ hlam1 r hu
+    exact ⟨hi, he.le⟩
+  · refine heatPathwiseBound_of_kernel hd hΛ hP S hQ hA hlam ?_
+    intro r hr u hu w hw C
+    exact ofReal_abs_hessian_integral_le_sharp hQ hlam1 hu (by nlinarith) hw C
 
 /-! ## (5.58) without the pathwise heat bound -/
 

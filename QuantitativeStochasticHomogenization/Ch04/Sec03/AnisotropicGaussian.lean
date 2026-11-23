@@ -798,4 +798,187 @@ theorem abs_gradient_anisoKernel_le {β₁ β₂ : ℝ} (hβ₁ : 0 < β₁) (h�
     _ ≤ P * (2 * β₁)⁻¹ * E * euclideanNorm a * Real.sqrt (8 * β₂) := by gcongr
     _ = _ := by ring
 
+/-! ## Moments and the sharp Hessian bound -/
+
+theorem integral_heatKernel1 {t : ℝ} (ht : 0 < t) : ∫ y, heatKernel1 t y = 1 := by
+  unfold heatKernel1
+  rw [integral_const_mul]
+  have hfun : (fun y : ℝ => Real.exp (-(y * y) / (4 * t))) =
+      fun y => Real.exp (-(1 / (4 * t)) * y ^ 2) := by
+    funext y
+    congr 1
+    ring
+  rw [hfun, integral_gaussian, show Real.pi / (1 / (4 * t)) = 4 * Real.pi * t by field_simp,
+    Real.sqrt_eq_rpow, ← Real.rpow_add (by positivity)]
+  norm_num
+
+theorem integrable_heatKernel1D (n : ℕ) {t : ℝ} (ht : 0 < t) : Integrable (heatKernel1D n t) := by
+  obtain ⟨B, -, hB⟩ := exists_abs_heatKernel1D_le n ht le_rfl
+  refine ((integrable_exp_neg_mul_sq (b := 1 / (8 * t)) (by positivity)).const_mul B).mono'
+    (contDiff_heatKernel1D n t).continuous.aestronglyMeasurable (Eventually.of_forall fun y => ?_)
+  rw [Real.norm_eq_abs]
+  refine (hB t le_rfl le_rfl y).trans (le_of_eq ?_)
+  congr 2
+  ring
+
+theorem integrable_heatKernel1 {t : ℝ} (ht : 0 < t) : Integrable (heatKernel1 t) :=
+  (integrable_heatKernel1D 0 ht).congr (Eventually.of_forall fun y => heatKernel1D_zero t y)
+
+theorem integral_heatKernel1D_two {t : ℝ} (ht : 0 < t) : ∫ y, heatKernel1D 2 t y = 0 := by
+  have hd1 : ∀ y, HasDerivAt (heatKernel1D 1 t) (heatKernel1D 2 t y) y := fun y =>
+    hasDerivAt_heatKernel1D le_rfl ht y
+  have hfd : ∀ y, fderiv ℝ (heatKernel1D 1 t) y 1 = heatKernel1D 2 t y := fun y => by
+    rw [fderiv_apply_one_eq_deriv, (hd1 y).deriv]
+  have h := integral_mul_fderiv_eq_neg_fderiv_mul_of_integrable (μ := volume)
+    (f := fun _ : ℝ => (1 : ℝ)) (g := heatKernel1D 1 t) (v := 1)
+    (by simp) (by simpa [hfd] using integrable_heatKernel1D 2 ht)
+    (by simpa using integrable_heatKernel1D 1 ht)
+    (fun x _ => differentiableAt_const _) (fun x _ => (hd1 x).differentiableAt)
+  simpa [hfd] using h
+
+theorem integral_sq_mul_heatKernel1 {t : ℝ} (ht : 0 < t) : ∫ y, y ^ 2 * heatKernel1 t y = 2 * t := by
+  have h2 := integral_heatKernel1D_two ht
+  have hfun : ∀ y, y ^ 2 * heatKernel1 t y =
+      4 * t ^ 2 * heatKernel1D 2 t y + 2 * t * heatKernel1 t y := by
+    intro y
+    rw [heatKernel1D_two]
+    unfold heatFactor
+    field_simp
+    ring
+  rw [integral_congr_ae (Eventually.of_forall hfun),
+    integral_add ((integrable_heatKernel1D 2 ht).const_mul _) ((integrable_heatKernel1 ht).const_mul _),
+    integral_const_mul, integral_const_mul, h2, integral_heatKernel1 ht]
+  ring
+
+theorem integral_anisoKernel_zero {e : Fin d → ℝ} (he : ∀ k, 0 < e k) :
+    ∫ w, anisoKernel e 0 w = 1 := by
+  have h := integral_fintype_prod_volume_eq_prod (𝕜 := ℝ)
+    (fun (k : Fin d) (y : ℝ) => heatKernel1 (e k) y)
+  have hfun : (fun w : Vec d => anisoKernel e 0 w) = fun w => ∏ k, heatKernel1 (e k) (w k) := by
+    funext w
+    simp [anisoKernel, prodFun, heatKernel1D_zero]
+  rw [hfun, h]
+  exact Finset.prod_eq_one fun k _ => integral_heatKernel1 (he k)
+
+theorem integrable_anisoKernel_zero {e : Fin d → ℝ} (he : ∀ k, 0 < e k) :
+    Integrable (anisoKernel e 0) := by
+  have h := Integrable.fintype_prod (f := fun (j : Fin d) (y : ℝ) => heatKernel1 (e j) y)
+    (μ := fun _ => volume) fun j => integrable_heatKernel1 (he j)
+  refine h.congr (Eventually.of_forall fun w => ?_)
+  simp [anisoKernel, prodFun, heatKernel1D_zero]
+
+theorem sq_mul_anisoKernel_zero_eq (e : Fin d → ℝ) (k : Fin d) (w : Vec d) :
+    w k ^ 2 * anisoKernel e 0 w =
+      ∏ j, (if j = k then w j ^ 2 * heatKernel1 (e j) (w j) else heatKernel1 (e j) (w j)) := by
+  classical
+  simp only [anisoKernel, prodFun, Pi.zero_apply, heatKernel1D_zero]
+  rw [← Finset.mul_prod_erase Finset.univ (fun j => heatKernel1 (e j) (w j)) (Finset.mem_univ k),
+    ← Finset.mul_prod_erase Finset.univ
+      (fun j => if j = k then w j ^ 2 * heatKernel1 (e j) (w j) else heatKernel1 (e j) (w j))
+      (Finset.mem_univ k)]
+  simp only [↓reduceIte]
+  rw [mul_assoc]
+  congr 2
+  exact Finset.prod_congr rfl fun j hj => by simp [Finset.ne_of_mem_erase hj]
+
+theorem integrable_sq_mul_anisoKernel_zero {e : Fin d → ℝ} (he : ∀ k, 0 < e k) (k : Fin d) :
+    Integrable (fun w : Vec d => w k ^ 2 * anisoKernel e 0 w) := by
+  classical
+  have hi : ∀ j, Integrable (fun y : ℝ =>
+      if j = k then y ^ 2 * heatKernel1 (e j) y else heatKernel1 (e j) y) := by
+    intro j
+    by_cases hj : j = k
+    · simp only [hj, ↓reduceIte]
+      have hfun : (fun y : ℝ => y ^ 2 * heatKernel1 (e k) y) = fun y =>
+          4 * e k ^ 2 * heatKernel1D 2 (e k) y + 2 * e k * heatKernel1 (e k) y := by
+        funext y
+        rw [heatKernel1D_two]
+        unfold heatFactor
+        have := (he k).ne'
+        field_simp
+        ring
+      rw [hfun]
+      exact ((integrable_heatKernel1D 2 (he k)).const_mul _).add
+        ((integrable_heatKernel1 (he k)).const_mul _)
+    · simp only [hj, ↓reduceIte]
+      exact integrable_heatKernel1 (he j)
+  have h := Integrable.fintype_prod (f := fun (j : Fin d) (y : ℝ) =>
+      if j = k then y ^ 2 * heatKernel1 (e j) y else heatKernel1 (e j) y) (μ := fun _ => volume) hi
+  exact h.congr (Eventually.of_forall fun w => (sq_mul_anisoKernel_zero_eq e k w).symm)
+
+theorem integral_sq_mul_anisoKernel_zero {e : Fin d → ℝ} (he : ∀ k, 0 < e k) (k : Fin d) :
+    ∫ w, w k ^ 2 * anisoKernel e 0 w = 2 * e k := by
+  classical
+  have h := integral_fintype_prod_volume_eq_prod (𝕜 := ℝ)
+    (fun (j : Fin d) (y : ℝ) => if j = k then y ^ 2 * heatKernel1 (e j) y else heatKernel1 (e j) y)
+  rw [integral_congr_ae (Eventually.of_forall (sq_mul_anisoKernel_zero_eq e k)), h,
+    ← Finset.mul_prod_erase Finset.univ _ (Finset.mem_univ k)]
+  simp only [↓reduceIte]
+  rw [integral_sq_mul_heatKernel1 (he k), Finset.prod_eq_one fun j hj => by
+    simp only [Finset.ne_of_mem_erase hj, ↓reduceIte]
+    exact integral_heatKernel1 (he j), mul_one]
+
+/-- **The sharp Hessian bound**: for `u ≤ e_k`,
+`2 |∑_{k,m} a_k c_m ∂_k ∂_m Φ_e(w)| ≤ u⁻¹ (1 + ½ ∑_k w_k²/e_k) Φ_e(w) |a| |c|`. -/
+theorem abs_hessian_anisoKernel_le_sharp {u : ℝ} (hu : 0 < u) {e : Fin d → ℝ}
+    (he : ∀ k, u ≤ e k) (a c w : Vec d) :
+    2 * |∑ k, ∑ m, a k * c m * anisoKernel e (Pi.single k 1 + Pi.single m 1) w| ≤
+      u⁻¹ * ((1 + 1 / 2 * ∑ k, w k ^ 2 / e k) * anisoKernel e 0 w) *
+        (euclideanNorm a * euclideanNorm c) := by
+  have he0 : ∀ k, 0 < e k := fun k => hu.trans_le (he k)
+  have hG0 := anisoKernel_zero_pos he0 w
+  rw [sum_hessian_anisoKernel_eq, abs_mul, abs_of_pos hG0]
+  have ha := BaseExponent.euclideanNorm_nonneg a
+  have hc := BaseExponent.euclideanNorm_nonneg c
+  have hq0 : 0 ≤ ∑ k, w k ^ 2 / e k :=
+    Finset.sum_nonneg fun k _ => div_nonneg (sq_nonneg _) (he0 k).le
+  have hXsq : euclideanSq (fun k => (2 * e k)⁻¹ * w k) ≤ (∑ k, w k ^ 2 / e k) / (4 * u) := by
+    simp only [euclideanSq, dot]
+    rw [Finset.sum_div]
+    refine Finset.sum_le_sum fun k _ => ?_
+    have h1 : (2 * e k)⁻¹ * w k * ((2 * e k)⁻¹ * w k) = w k ^ 2 / e k / 4 * (e k)⁻¹ := by
+      have := (he0 k).ne'
+      field_simp
+      ring
+    have h2 : w k ^ 2 / e k / (4 * u) = w k ^ 2 / e k / 4 * u⁻¹ := by
+      field_simp
+    rw [h1, h2]
+    exact mul_le_mul_of_nonneg_left (inv_anti₀ hu (he k))
+      (div_nonneg (div_nonneg (sq_nonneg _) (he0 k).le) (by norm_num))
+  have hs : ∀ k, |(2 * e k)⁻¹| ≤ (2 * u)⁻¹ := fun k => by
+    rw [abs_of_pos (inv_pos.mpr (by linarith [he0 k]))]
+    exact inv_anti₀ (by positivity) (by linarith [he k])
+  have hY := euclideanNorm_mul_le (v := c) (by positivity : (0 : ℝ) ≤ (2 * u)⁻¹) hs
+  have h1 := BaseExponent.abs_dot_le a (fun k => (2 * e k)⁻¹ * w k)
+  have h2 := BaseExponent.abs_dot_le c (fun k => (2 * e k)⁻¹ * w k)
+  have h3 := BaseExponent.abs_dot_le a (fun k => (2 * e k)⁻¹ * c k)
+  have hXX : euclideanNorm (fun k => (2 * e k)⁻¹ * w k) * euclideanNorm (fun k => (2 * e k)⁻¹ * w k)
+      = euclideanSq (fun k => (2 * e k)⁻¹ * w k) := by
+    rw [← sq, euclideanNorm_sq_eq]
+  have hX0 := BaseExponent.euclideanNorm_nonneg (fun k => (2 * e k)⁻¹ * w k)
+  have hbr : |dot a (fun k => (2 * e k)⁻¹ * w k) * dot c (fun m => (2 * e m)⁻¹ * w m) -
+      dot a (fun m => (2 * e m)⁻¹ * c m)| ≤
+      euclideanNorm a * euclideanNorm c * ((∑ k, w k ^ 2 / e k) / (4 * u) + (2 * u)⁻¹) := by
+    refine (abs_sub _ _).trans ?_
+    rw [abs_mul]
+    calc |dot a (fun k => (2 * e k)⁻¹ * w k)| * |dot c (fun m => (2 * e m)⁻¹ * w m)| +
+          |dot a (fun m => (2 * e m)⁻¹ * c m)|
+        ≤ (euclideanNorm a * euclideanNorm (fun k => (2 * e k)⁻¹ * w k)) *
+            (euclideanNorm c * euclideanNorm (fun k => (2 * e k)⁻¹ * w k)) +
+          euclideanNorm a * ((2 * u)⁻¹ * euclideanNorm c) :=
+          add_le_add (mul_le_mul h1 h2 (abs_nonneg _) (by positivity))
+            (h3.trans (mul_le_mul_of_nonneg_left hY ha))
+      _ = euclideanNorm a * euclideanNorm c * euclideanSq (fun k => (2 * e k)⁻¹ * w k) +
+          euclideanNorm a * euclideanNorm c * (2 * u)⁻¹ := by rw [← hXX]; ring
+      _ ≤ _ := by
+          rw [mul_add]
+          gcongr
+  calc 2 * (anisoKernel e 0 w * |dot a (fun k => (2 * e k)⁻¹ * w k) *
+        dot c (fun m => (2 * e m)⁻¹ * w m) - dot a (fun m => (2 * e m)⁻¹ * c m)|)
+      ≤ 2 * (anisoKernel e 0 w * (euclideanNorm a * euclideanNorm c *
+          ((∑ k, w k ^ 2 / e k) / (4 * u) + (2 * u)⁻¹))) := by gcongr
+    _ = _ := by
+        field_simp
+        ring
+
 end QSH

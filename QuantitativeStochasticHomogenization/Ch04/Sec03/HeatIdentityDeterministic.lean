@@ -880,9 +880,10 @@ theorem dot_inv_smul_self (V : Vec d) : dot ((euclideanNorm V)⁻¹ • V) V = e
     rw [h1, ← euclideanNorm_sq_eq]
     field_simp
 
-/-- **The bound from the heat identity (H)** for a fixed coefficient field:
-`|∫ Φ_{z,r} g| ≤ ∫⁻_{u > r²/2} ∫⁻ k(u, x) |∫ Φ(u, z - x - y) (a - ā)(e + g)(y) dy| dx du`. -/
-theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
+/-- **The bound from the heat identity (H)** for a fixed coefficient field and any kernel `K`
+that bounds the Hessian term: `|∫ Φ_{z,r} g| ≤ ∫⁻_{u > r²/2} ∫⁻ K(u, x)
+|∫ Φ(u, z - x - y) (a - ā)(e + g)(y) dy| dx du`. -/
+theorem heatIdentity_bound_of_kernel {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
     {lam : Fin d → ℝ} (hA : ∀ v, Q *ᵥ (A *ᵥ v) = fun m => lam m * (Q *ᵥ v) m)
     {Λ : ℝ} (hΛ : 1 ≤ Λ) (hlam : ∀ k, 1 ≤ lam k ∧ lam k ≤ Λ)
     {a : Vec d → Mat d} {e : Vec d} {φ : Vec d → ℝ} {g : Vec d → Vec d}
@@ -893,9 +894,14 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
     (hφI : GaussianIntegrable φ)
     (hsub : ∀ ε : ℝ, 0 < ε → ∃ S : ℝ, 0 < S ∧ ∀ s : ℝ, S ≤ s → ∀ x : Vec d,
       euclideanNorm x ≤ Real.sqrt s → ∫ y, euclideanHeatKernel s (x - y) * |φ y| ≤ ε * Real.sqrt s)
-    (z : Vec d) {r : ℝ} (hr : 0 < r) :
+    (z : Vec d) {r : ℝ} (hr : 0 < r) {K : ℝ → Vec d → ℝ}
+    (hK : ∀ u : ℝ, r ^ 2 / 2 < u → ∀ w : Vec d, euclideanNorm w = 1 → ∀ C : Vec d → Vec d,
+      ENNReal.ofReal |-2 * ∫ x, ∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+        anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+          (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)| ≤
+        ∫⁻ x, ENNReal.ofReal (K u x * euclideanNorm (C x))) :
     ENNReal.ofReal (euclideanNorm (fun j => ∫ y, euclideanHeatKernel (r ^ 2) (z - y) * g y j)) ≤
-      ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (heatIdentityKernel d Λ u x *
+      ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (K u x *
         euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
           (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) := by
   have hΛ0 : 0 < Λ := lt_of_lt_of_le one_pos hΛ
@@ -938,7 +944,7 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
     refine integral_congr_ae (Eventually.of_forall fun y => ?_)
     simp only [rotKernel, hconst]
     rw [anisoKernel_const_eq hr2, euclideanHeatKernel_mulVec_of_orthogonal hQ]
-  set X := ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (heatIdentityKernel d Λ u x *
+  set X := ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (K u x *
     euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
       (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) with hX
   have key : ∀ δ : ℝ, 0 < δ → ENNReal.ofReal (euclideanNorm V) ≤ X + ENNReal.ofReal δ := by
@@ -997,7 +1003,7 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
     -- the derivative at each time
     have hD : ∀ u ∈ Ioc (r ^ 2 / 2) T, ENNReal.ofReal |∫ y,
         (∑ m, β m * rotKernel Q (fun k => α k + β k * u) (Pi.single m 2) z y) * dot w (g y)| ≤
-        ∫⁻ x, ENNReal.ofReal (heatIdentityKernel d Λ u x *
+        ∫⁻ x, ENNReal.ofReal (K u x *
           euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
             (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) := by
       intro u hu
@@ -1017,7 +1023,10 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
       rw [integral_time_derivative_eq hQ hA hgrad hdiv hgI hfI hu0 hr2
         (by nlinarith : r ^ 2 ≤ r ^ 2 + 2 * Λ * u) hu0 (by nlinarith : u ≤ 2 * Λ * u) hEσ
         (fun k => by ring) hbu hβ' z w]
-      exact ofReal_abs_hessian_integral_le hQ hΛ hu0 hEσ hw1 _
+      have hEeq : (fun k => α k + β k * u - u) =
+          fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u := funext fun k => by rw [ht]
+      rw [hEeq]
+      exact hK u hu.1 w hw1 _
     -- assembly
     have hV1 : euclideanNorm V ≤ δ + ∫ u in Ioc (r ^ 2 / 2) T, |∫ y,
         (∑ m, β m * rotKernel Q (fun k => α k + β k * u) (Pi.single m 2) z y) * dot w (g y)| := by
@@ -1046,7 +1055,7 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
           gcongr
           exact ofReal_integral_le_lintegral_ofReal' fun u => abs_nonneg _
       _ ≤ ENNReal.ofReal δ + ∫⁻ u in Ioc (r ^ 2 / 2) T, ∫⁻ x,
-            ENNReal.ofReal (heatIdentityKernel d Λ u x *
+            ENNReal.ofReal (K u x *
               euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
                 (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) := by
           exact add_le_add le_rfl (lintegral_mono_ae ((ae_restrict_iff' measurableSet_Ioc).mpr
@@ -1058,5 +1067,115 @@ theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
   refine ENNReal.le_of_forall_pos_le_add fun ε hε _ => ?_
   have h := key ε hε
   rwa [ENNReal.ofReal_coe_nnreal] at h
+
+/-- **The bound from the heat identity (H)** for a fixed coefficient field with the isotropic
+kernel `k(u, x) = (8Λ + 1) u⁻¹ (4πu)^{-d/2} e^{-|x|²/(16Λu)}`. -/
+theorem heatIdentity_bound {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
+    {lam : Fin d → ℝ} (hA : ∀ v, Q *ᵥ (A *ᵥ v) = fun m => lam m * (Q *ᵥ v) m)
+    {Λ : ℝ} (hΛ : 1 ≤ Λ) (hlam : ∀ k, 1 ≤ lam k ∧ lam k ≤ Λ)
+    {a : Vec d → Mat d} {e : Vec d} {φ : Vec d → ℝ} {g : Vec d → Vec d}
+    (hgrad : HasWeakGradient Set.univ φ g)
+    (hdiv : HasWeakDivergence Set.univ (fun x => a x *ᵥ (e + g x)) (fun _ => 0))
+    (hgI : ∀ k, GaussianIntegrable (fun y => g y k))
+    (hfI : ∀ k, GaussianIntegrable (fun y => (a y *ᵥ (e + g y)) k))
+    (hφI : GaussianIntegrable φ)
+    (hsub : ∀ ε : ℝ, 0 < ε → ∃ S : ℝ, 0 < S ∧ ∀ s : ℝ, S ≤ s → ∀ x : Vec d,
+      euclideanNorm x ≤ Real.sqrt s → ∫ y, euclideanHeatKernel s (x - y) * |φ y| ≤ ε * Real.sqrt s)
+    (z : Vec d) {r : ℝ} (hr : 0 < r) :
+    ENNReal.ofReal (euclideanNorm (fun j => ∫ y, euclideanHeatKernel (r ^ 2) (z - y) * g y j)) ≤
+      ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (heatIdentityKernel d Λ u x *
+        euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
+          (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) := by
+  refine heatIdentity_bound_of_kernel hQ hA hΛ hlam hgrad hdiv hgI hfI hφI hsub z hr ?_
+  intro u hu w hw C
+  have hu0 : 0 < u := lt_of_le_of_lt (by positivity) hu
+  refine ofReal_abs_hessian_integral_le hQ hΛ hu0 (fun k => ?_) hw C
+  have h1 := hlam k
+  have h2 : 0 ≤ 2 * u - r ^ 2 := by linarith
+  constructor <;> nlinarith
+
+/-- The times of the sharp kernel: `v + (λ_k - 1)(2v - r²)₊`. -/
+def sharpTimes (lam : Fin d → ℝ) (r v : ℝ) : Fin d → ℝ :=
+  fun k => v + (lam k - 1) * max (2 * v - r ^ 2) 0
+
+/-- **The sharp kernel**: `v⁻¹ (1 + ½ ∑_k (Qx)_k²/Ê_k) G_Ê(Qx)` with `Ê = sharpTimes lam r v`,
+`v = max(u, 1)`; its mass is `(d + 1)/v`. -/
+def sharpHeatKernel (Q : Mat d) (lam : Fin d → ℝ) (r u : ℝ) (x : Vec d) : ℝ :=
+  (max u 1)⁻¹ * ((1 + 1 / 2 * ∑ k, (Q *ᵥ x) k ^ 2 / sharpTimes lam r (max u 1) k) *
+    anisoKernel (sharpTimes lam r (max u 1)) 0 (Q *ᵥ x))
+
+theorem sharpTimes_ge {lam : Fin d → ℝ} (hlam : ∀ k, 1 ≤ lam k) (r v : ℝ) (k : Fin d) :
+    v ≤ sharpTimes lam r v k := by
+  unfold sharpTimes
+  have h1 := hlam k
+  have h2 : 0 ≤ max (2 * v - r ^ 2) 0 := le_max_right _ _
+  nlinarith
+
+theorem sharpTimes_eq {lam : Fin d → ℝ} {r u : ℝ} (hu : r ^ 2 / 2 < u) (hu1 : 1 ≤ u) :
+    sharpTimes lam r (max u 1) = fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u := by
+  funext k
+  rw [sharpTimes, max_eq_left hu1, max_eq_left (by linarith)]
+  ring
+
+/-- **The derivative of `F` is bounded by the commutators against the sharp kernel.** -/
+theorem ofReal_abs_hessian_integral_le_sharp {Q : Mat d} (hQ : Q.transpose * Q = 1)
+    {lam : Fin d → ℝ} (hlam : ∀ k, 1 ≤ lam k) {r u : ℝ} (hu : r ^ 2 / 2 < u) (hu1 : 1 ≤ u)
+    {w : Vec d} (hw : euclideanNorm w = 1) (C : Vec d → Vec d) :
+    ENNReal.ofReal |-2 * ∫ x, ∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+        anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+          (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)| ≤
+      ∫⁻ x, ENNReal.ofReal (sharpHeatKernel Q lam r u x * euclideanNorm (C x)) := by
+  have hu0 : 0 < u := lt_of_lt_of_le one_pos hu1
+  have hE : ∀ k, u ≤ (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u) k := by
+    intro k
+    rw [← sharpTimes_eq hu hu1]
+    exact (le_max_left u 1).trans (sharpTimes_ge hlam r (max u 1) k)
+  have hpt : ∀ x, 2 * |∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+      anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+        (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)| ≤
+      sharpHeatKernel Q lam r u x * euclideanNorm (C x) := by
+    intro x
+    have h := abs_hessian_anisoKernel_le_sharp hu0 hE (Q *ᵥ w) (Q *ᵥ C x) (Q *ᵥ x)
+    rw [euclideanNorm_mulVec_of_orthogonal hQ, euclideanNorm_mulVec_of_orthogonal hQ, hw,
+      one_mul] at h
+    unfold sharpHeatKernel
+    rw [sharpTimes_eq hu hu1, max_eq_left hu1]
+    exact h
+  rw [abs_mul, abs_neg, abs_two]
+  calc ENNReal.ofReal (2 * |∫ x, ∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+        anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+          (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)|)
+      ≤ ENNReal.ofReal (∫ x, 2 * |∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+          anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+            (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)|) := by
+        refine ENNReal.ofReal_le_ofReal ?_
+        rw [integral_const_mul]
+        exact mul_le_mul_of_nonneg_left abs_integral_le_integral_abs (by norm_num)
+    _ ≤ ∫⁻ x, ENNReal.ofReal (2 * |∑ k, ∑ m, (Q *ᵥ w) k * (Q *ᵥ C x) m *
+          anisoKernel (fun k => r ^ 2 + 2 * (u - r ^ 2 / 2) * lam k - u)
+            (Pi.single k 1 + Pi.single m 1) (Q *ᵥ x)|) :=
+        ofReal_integral_le_lintegral_ofReal' fun x => by positivity
+    _ ≤ _ := lintegral_mono fun x => ENNReal.ofReal_le_ofReal (hpt x)
+
+/-- **The bound from the heat identity (H)** with the sharp kernel, for `r² ≥ 2`. -/
+theorem heatIdentity_bound_sharp {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
+    {lam : Fin d → ℝ} (hA : ∀ v, Q *ᵥ (A *ᵥ v) = fun m => lam m * (Q *ᵥ v) m)
+    {Λ : ℝ} (hΛ : 1 ≤ Λ) (hlam : ∀ k, 1 ≤ lam k ∧ lam k ≤ Λ)
+    {a : Vec d → Mat d} {e : Vec d} {φ : Vec d → ℝ} {g : Vec d → Vec d}
+    (hgrad : HasWeakGradient Set.univ φ g)
+    (hdiv : HasWeakDivergence Set.univ (fun x => a x *ᵥ (e + g x)) (fun _ => 0))
+    (hgI : ∀ k, GaussianIntegrable (fun y => g y k))
+    (hfI : ∀ k, GaussianIntegrable (fun y => (a y *ᵥ (e + g y)) k))
+    (hφI : GaussianIntegrable φ)
+    (hsub : ∀ ε : ℝ, 0 < ε → ∃ S : ℝ, 0 < S ∧ ∀ s : ℝ, S ≤ s → ∀ x : Vec d,
+      euclideanNorm x ≤ Real.sqrt s → ∫ y, euclideanHeatKernel s (x - y) * |φ y| ≤ ε * Real.sqrt s)
+    (z : Vec d) {r : ℝ} (hr : 0 < r) (hr2 : 2 ≤ r ^ 2) :
+    ENNReal.ofReal (euclideanNorm (fun j => ∫ y, euclideanHeatKernel (r ^ 2) (z - y) * g y j)) ≤
+      ∫⁻ u in Ioi (r ^ 2 / 2), ∫⁻ x, ENNReal.ofReal (sharpHeatKernel Q lam r u x *
+        euclideanNorm (fun j => ∫ y, euclideanHeatKernel u (z - x - y) *
+          (a y *ᵥ (e + g y) - A *ᵥ (e + g y)) j)) := by
+  refine heatIdentity_bound_of_kernel hQ hA hΛ hlam hgrad hdiv hgI hfI hφI hsub z hr ?_
+  intro u hu w hw C
+  exact ofReal_abs_hessian_integral_le_sharp hQ (fun k => (hlam k).1) hu (by linarith) hw C
 
 end QSH
