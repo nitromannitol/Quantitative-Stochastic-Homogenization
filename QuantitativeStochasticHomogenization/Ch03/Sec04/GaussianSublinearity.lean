@@ -1,6 +1,7 @@
 import QuantitativeStochasticHomogenization.Ch06.Sec01.GaussianWeightedEnergy
 import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastEnergyBounds
 import QuantitativeStochasticHomogenization.Ch01.Sec02.DirichletEnergyBounds
+import QuantitativeStochasticHomogenization.Ch03.Sec03.KernelSmoothing
 
 /-!
 # Gaussian averages of sublinear functions
@@ -30,7 +31,7 @@ variable {d : ℕ}
 /-- **Gaussian average under polynomial growth.** If `∫_{B_R} f ≤ M R^{d+m}` for every `R ≥ R₀`,
 then for `s ≥ R₀²` and `|x| ≤ √s`,
 `∫ f(y) Φ_s(y - x) dy ≤ (4π)^(-d/2) (2^{d+m} + Σ_k e^(-(k+1)²/4)(k+3)^{d+m}) M (√s)^m`. -/
-theorem lintegral_mul_heatKernel_le_of_growth (m : ℕ) {f : Vec d → ℝ≥0∞} (hf : Measurable f)
+theorem lintegral_mul_heatKernel_le_of_growth (m : ℕ) {f : Vec d → ℝ≥0∞} (hf : AEMeasurable f)
     {M R₀ : ℝ} (hM : 0 ≤ M) (hR₀ : 0 < R₀)
     (hball : ∀ R : ℝ, R₀ ≤ R → ∫⁻ y in ball 0 R, f y ≤ ENNReal.ofReal (M * R ^ (d + m)))
     {s : ℝ} (hs : R₀ ^ 2 ≤ s) {x : Vec d} (hx : euclideanNorm x ≤ Real.sqrt s) :
@@ -70,7 +71,7 @@ theorem lintegral_mul_heatKernel_le_of_growth (m : ℕ) {f : Vec d → ℝ≥0�
           refine tsum_congr fun k => ?_
           rw [← hind]
           ring
-  have hmeasI : ∀ R : ℝ, Measurable ((ball (0 : Vec d) R).indicator f) :=
+  have hmeasI : ∀ R : ℝ, AEMeasurable ((ball (0 : Vec d) R).indicator f) :=
     fun R => hf.indicator (measurableSet_ball_zero R)
   have hball' : ∀ R : ℝ, R₀ ≤ R →
       ∫⁻ y, (ball (0 : Vec d) R).indicator f y ≤ ENNReal.ofReal (M * R ^ (d + m)) := by
@@ -89,9 +90,9 @@ theorem lintegral_mul_heatKernel_le_of_growth (m : ℕ) {f : Vec d → ℝ≥0�
               (ball (0 : Vec d) (((k : ℝ) + 3) * ρ)).indicator f y =
             ∑' k : ℕ, ENNReal.ofReal (e k) *
               ∫⁻ y, (ball (0 : Vec d) (((k : ℝ) + 3) * ρ)).indicator f y := by
-          rw [lintegral_tsum fun k => ((hmeasI _).const_mul _).aemeasurable]
-          exact tsum_congr fun k => lintegral_const_mul _ (hmeasI _)
-        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top, lintegral_add_left (hmeasI _), htsum]
+          rw [lintegral_tsum fun k => (hmeasI _).const_mul _]
+          exact tsum_congr fun k => lintegral_const_mul'' _ (hmeasI _)
+        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top, lintegral_add_left' (hmeasI _), htsum]
     _ ≤ ENNReal.ofReal c * (ENNReal.ofReal (M * (2 * ρ) ^ (d + m)) +
           ∑' k : ℕ, ENNReal.ofReal (e k) *
             ENNReal.ofReal (M * (((k : ℝ) + 3) * ρ) ^ (d + m))) := by
@@ -128,6 +129,103 @@ theorem lintegral_mul_heatKernel_le_of_growth (m : ℕ) {f : Vec d → ℝ≥0�
             = (c * ρ ^ d) * (2 ^ (d + m) + gaussianShellSum (d + m)) * M * ρ ^ m := by
               rw [mul_pow, pow_add, pow_add]; ring
           _ = _ := by rw [h]
+
+/-! ## Real-valued Gaussian averages -/
+
+/-- The constant `(4π)^(-d/2) (2^{d+m} + Σ_k e^(-(k+1)²/4)(k+3)^{d+m})` of the Gaussian averages
+under polynomial growth. -/
+def gaussianGrowthConst (d m : ℕ) : ℝ :=
+  (4 * Real.pi) ^ (-(d : ℝ) / 2) * (2 ^ (d + m) + gaussianShellSum (d + m))
+
+theorem gaussianGrowthConst_nonneg (d m : ℕ) : 0 ≤ gaussianGrowthConst d m := by
+  unfold gaussianGrowthConst
+  have := gaussianShellSum_nonneg (d + m)
+  positivity
+
+/-- **Gaussian averages of squares under polynomial growth.** If `∫_{B_R} f² ≤ M R^{d+m}` for every
+`R ≥ R₀`, then for `s ≥ R₀²` and `|x| ≤ √s` the function `Φ_s(· - x) f²` is integrable with integral
+at most `gaussianGrowthConst d m · M (√s)^m`. -/
+theorem integral_heatKernel_mul_sq_le_of_growth (m : ℕ) {f : Vec d → ℝ}
+    (hf : AEStronglyMeasurable f volume) {M R₀ : ℝ} (hM : 0 ≤ M) (hR₀ : 0 < R₀)
+    (hball : ∀ R : ℝ, R₀ ≤ R → IntegrableOn (fun y => f y ^ 2) (ball 0 R) ∧
+      ∫ y in ball 0 R, f y ^ 2 ≤ M * R ^ (d + m))
+    {s : ℝ} (hs : R₀ ^ 2 ≤ s) {x : Vec d} (hx : euclideanNorm x ≤ Real.sqrt s) :
+    Integrable (fun y => euclideanHeatKernel s (y - x) * f y ^ 2) ∧
+      ∫ y, euclideanHeatKernel s (y - x) * f y ^ 2 ≤
+        gaussianGrowthConst d m * M * Real.sqrt s ^ m := by
+  have hs0 : 0 < s := lt_of_lt_of_le (by positivity) hs
+  set F : Vec d → ℝ≥0∞ := fun y => ENNReal.ofReal (f y ^ 2) with hF
+  have hFm : AEMeasurable F := (hf.aemeasurable.pow_const 2).ennreal_ofReal
+  have hballF : ∀ R : ℝ, R₀ ≤ R → ∫⁻ y in ball 0 R, F y ≤ ENNReal.ofReal (M * R ^ (d + m)) := by
+    intro R hR
+    obtain ⟨hi, hle⟩ := hball R hR
+    rw [← ofReal_integral_eq_lintegral_ofReal hi (Eventually.of_forall fun y => sq_nonneg _)]
+    exact ENNReal.ofReal_le_ofReal hle
+  have hL := lintegral_mul_heatKernel_le_of_growth m hFm hM hR₀ hballF hs hx
+  have hK0 : ∀ y, 0 ≤ euclideanHeatKernel s (y - x) := fun y =>
+    euclideanHeatKernel_nonneg hs0.le _
+  have hpt : ∀ y, F y * ENNReal.ofReal (euclideanHeatKernel s (y - x)) =
+      ENNReal.ofReal (euclideanHeatKernel s (y - x) * f y ^ 2) := by
+    intro y
+    rw [hF, ← ENNReal.ofReal_mul (sq_nonneg _), mul_comm]
+  simp_rw [hpt] at hL
+  have hcont : Continuous fun y => euclideanHeatKernel s (y - x) :=
+    (continuous_euclideanHeatKernel s).comp (continuous_id.sub continuous_const)
+  have hmeas : AEStronglyMeasurable (fun y => euclideanHeatKernel s (y - x) * f y ^ 2) volume :=
+    hcont.aestronglyMeasurable.mul (hf.pow 2)
+  have hnn : ∀ y, 0 ≤ euclideanHeatKernel s (y - x) * f y ^ 2 := fun y =>
+    mul_nonneg (hK0 y) (sq_nonneg _)
+  have hint : Integrable (fun y => euclideanHeatKernel s (y - x) * f y ^ 2) := by
+    refine ⟨hmeas, ?_⟩
+    unfold HasFiniteIntegral
+    calc ∫⁻ y, ‖euclideanHeatKernel s (y - x) * f y ^ 2‖ₑ
+        = ∫⁻ y, ENNReal.ofReal (euclideanHeatKernel s (y - x) * f y ^ 2) :=
+          lintegral_congr fun y => Real.enorm_of_nonneg (hnn y)
+      _ ≤ _ := hL
+      _ < ⊤ := ENNReal.ofReal_lt_top
+  refine ⟨hint, ?_⟩
+  rw [integral_eq_lintegral_of_nonneg_ae (Eventually.of_forall hnn) hmeas]
+  have hC0 : 0 ≤ gaussianGrowthConst d m * M * Real.sqrt s ^ m := by
+    have := gaussianGrowthConst_nonneg d m
+    positivity
+  exact ENNReal.toReal_le_of_le_ofReal hC0 (by simpa [gaussianGrowthConst, mul_assoc] using hL)
+
+/-- **Weighted Cauchy–Schwarz.** For a nonnegative weight `w` with `w f²` and `w h²` integrable,
+`w f h` is integrable and `|∫ w f h| ≤ (∫ w f²)^{1/2} (∫ w h²)^{1/2}`. -/
+theorem integrable_and_abs_integral_weight_mul_le {w f h : Vec d → ℝ} (hw0 : ∀ y, 0 ≤ w y)
+    (hwm : AEStronglyMeasurable w volume) (hf : AEStronglyMeasurable f volume)
+    (hh : AEStronglyMeasurable h volume) (hf2 : Integrable fun y => w y * f y ^ 2)
+    (hh2 : Integrable fun y => w y * h y ^ 2) :
+    Integrable (fun y => w y * (f y * h y)) ∧
+      |∫ y, w y * (f y * h y)| ≤
+        Real.sqrt (∫ y, w y * f y ^ 2) * Real.sqrt (∫ y, w y * h y ^ 2) := by
+  have hsq : ∀ y, Real.sqrt (w y) ^ 2 = w y := fun y => Real.sq_sqrt (hw0 y)
+  have hsm : AEStronglyMeasurable (fun y => Real.sqrt (w y)) volume :=
+    Real.continuous_sqrt.comp_aestronglyMeasurable hwm
+  have hf' : MemLp (fun y => Real.sqrt (w y) * f y) 2 volume := by
+    refine (memLp_two_iff_integrable_sq (hsm.mul hf)).mpr ?_
+    refine hf2.congr (Eventually.of_forall fun y => ?_)
+    show w y * f y ^ 2 = (Real.sqrt (w y) * f y) ^ 2
+    rw [mul_pow, hsq]
+  have hh' : MemLp (fun y => Real.sqrt (w y) * h y) 2 volume := by
+    refine (memLp_two_iff_integrable_sq (hsm.mul hh)).mpr ?_
+    refine hh2.congr (Eventually.of_forall fun y => ?_)
+    show w y * h y ^ 2 = (Real.sqrt (w y) * h y) ^ 2
+    rw [mul_pow, hsq]
+  have hprod : ∀ y, (Real.sqrt (w y) * f y) * (Real.sqrt (w y) * h y) = w y * (f y * h y) := by
+    intro y
+    have := hsq y
+    rw [sq] at this
+    calc (Real.sqrt (w y) * f y) * (Real.sqrt (w y) * h y)
+        = (Real.sqrt (w y) * Real.sqrt (w y)) * (f y * h y) := by ring
+      _ = w y * (f y * h y) := by rw [this]
+  have hsq' : ∀ (k : Vec d → ℝ) y, (Real.sqrt (w y) * k y) ^ 2 = w y * k y ^ 2 := by
+    intro k y
+    rw [mul_pow, hsq]
+  refine ⟨(integrable_mul_of_memLp_two hf' hh').congr (Eventually.of_forall hprod), ?_⟩
+  have h := abs_integral_mul_le_sqrt_mul_sqrt hf' hh'
+  simp only [hprod, hsq'] at h
+  exact h
 
 /-! ## Telescoping the dyadic means -/
 
