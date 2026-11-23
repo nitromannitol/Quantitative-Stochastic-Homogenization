@@ -150,18 +150,6 @@ theorem hasWeakDivergence_comp_add {F : Vec d → Vec d}
     rw [e1]
     exact h1
 
-private theorem measurableSet_ball_origin'' (R : ℝ) : MeasurableSet (ball (0 : Vec d) R) := by
-  have hc : Continuous fun y : Vec d => euclideanNorm (y - 0) := by
-    unfold euclideanNorm euclideanSq dot
-    exact Real.continuous_sqrt.comp (by fun_prop)
-  exact measurableSet_lt hc.measurable measurable_const
-
-private theorem measurableSet_ball_center (w : Vec d) (R : ℝ) : MeasurableSet (ball w R) := by
-  have hc : Continuous fun y : Vec d => euclideanNorm (y - w) := by
-    unfold euclideanNorm euclideanSq dot
-    exact Real.continuous_sqrt.comp (by fun_prop)
-  exact measurableSet_lt hc.measurable measurable_const
-
 /-- **Translations of sublinear functions are sublinear.** -/
 theorem tendsto_sublinear_comp_add {u : Vec d → ℝ}
     (hu : ∀ R : ℝ, 0 < R → MemLp u 2 (volume.restrict (ball 0 R)))

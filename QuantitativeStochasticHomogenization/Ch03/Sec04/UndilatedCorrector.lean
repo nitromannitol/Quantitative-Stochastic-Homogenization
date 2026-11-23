@@ -54,12 +54,6 @@ theorem dilatedCorrectedAffine_undilatedPotential (e : Vec d) (Φ : Vec d → �
     dilatedCorrectedAffine e (undilatedPotential Φ) x = vecDot e x + Φ x := by
   rw [dilatedCorrectedAffine, dilatedPotential_undilatedPotential]
 
-private theorem measurableSet_ball_origin' (R : ℝ) : MeasurableSet (ball (0 : Vec d) R) := by
-  have hc : Continuous fun y : Vec d => euclideanNorm (y - 0) := by
-    unfold euclideanNorm euclideanSq dot
-    exact Real.continuous_sqrt.comp (by fun_prop)
-  exact measurableSet_lt hc.measurable measurable_const
-
 theorem inv_two_smul_ball_subset (R : ℝ) :
     (2 : ℝ)⁻¹ • ball (0 : Vec d) R ⊆ ball (0 : Vec d) R := by
   rintro _ ⟨y, hy, rfl⟩
@@ -73,7 +67,7 @@ theorem inv_two_smul_ball_subset (R : ℝ) :
 theorem memLp_comp_inv_two_smul_ball {E : Type*} [NormedAddCommGroup E] {f : Vec d → E}
     {R : ℝ} (hf : MemLp f 2 (volume.restrict (ball 0 R))) :
     MemLp (fun x => f ((2 : ℝ)⁻¹ • x)) 2 (volume.restrict (ball 0 R)) :=
-  MemLp.comp_smul_restrict (inv_ne_zero two_ne_zero) (measurableSet_ball_origin' R)
+  MemLp.comp_smul_restrict (inv_ne_zero two_ne_zero) (measurableSet_ball_zero R)
     (hf.mono_measure (Measure.restrict_mono (inv_two_smul_ball_subset R) le_rfl))
 
 /-- A function square integrable on every centered ball is locally integrable. -/

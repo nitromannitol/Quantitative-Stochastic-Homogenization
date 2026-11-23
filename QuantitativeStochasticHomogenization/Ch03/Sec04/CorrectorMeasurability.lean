@@ -45,12 +45,6 @@ variable {d : ℕ}
 
 /-! ## Corrected affine functions in `A₁` -/
 
-private theorem measurableSet_ball_zero' (R : ℝ) : MeasurableSet (ball (0 : Vec d) R) := by
-  have hc : Continuous fun y : Vec d => euclideanNorm (y - 0) := by
-    unfold euclideanNorm euclideanSq dot
-    exact Real.continuous_sqrt.comp (by fun_prop)
-  exact measurableSet_lt hc.measurable measurable_const
-
 theorem abs_dot_le_mul_of_mem_ball (e : Vec d) {x : Vec d} {R : ℝ}
     (hx : x ∈ ball (0 : Vec d) R) : |dot e x| ≤ (∑ i, |e i|) * R := by
   have hx' : euclideanNorm (x - 0) < R := hx
@@ -101,7 +95,7 @@ theorem tendsto_growth_dot_add (e : Vec d) {u : Vec d → ℝ}
         ∫ x in ball (0 : Vec d) R, (2 * (A * R) ^ 2 + 2 * u x ^ 2) :=
       integral_mono_of_nonneg (Eventually.of_forall fun x => sq_nonneg _)
         ((integrable_const _).add (hint.const_mul 2))
-        ((ae_restrict_iff' (measurableSet_ball_zero' R)).mpr (Eventually.of_forall hpt))
+        ((ae_restrict_iff' (measurableSet_ball_zero R)).mpr (Eventually.of_forall hpt))
     rw [integral_add (integrable_const _) (hint.const_mul 2), integral_const, integral_const_mul,
       smul_eq_mul, Measure.real, Measure.restrict_apply_univ] at hI
     have hV' : (volume (ball (0 : Vec d) R)).toReal = volume.real (ball (0 : Vec d) R) := rfl
@@ -156,7 +150,7 @@ theorem exists_harmonicA1_of_corrector {Λ : ℝ} (a : CoefficientField d Λ) (e
     have hcont : Continuous fun x : Vec d => dot e x := by unfold dot; fun_prop
     have hlin : MemLp (fun x : Vec d => dot e x) 2 (volume.restrict (ball 0 R)) := by
       refine MemLp.of_bound hcont.aestronglyMeasurable ((∑ i, |e i|) * R) ?_
-      filter_upwards [ae_restrict_mem (measurableSet_ball_zero' R)] with x hx
+      filter_upwards [ae_restrict_mem (measurableSet_ball_zero R)] with x hx
       rw [Real.norm_eq_abs]
       exact abs_dot_le_mul_of_mem_ball e hx
     exact hlin.add (hloc R hR).1
