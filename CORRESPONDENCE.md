@@ -606,3 +606,37 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `HomogenizationData` (`FluxCorrector.ae_hasWeakDivergence_of_package`), without an ergodic theorem: the large-time
   heat averages of the flux converge by the scale pairing bounds of that theorem. The skew part
   `(S - Sᵀ)/2` satisfies the same identity (`FluxCorrector.ae_skew_divergence_of_package`).
+
+## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
+
+- Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`) and
+  `QSH.homogenizationDataExists_of_measurable` (`Ch03/Sec04/HomogenizationDataExistence.lean`).
+- Section 1.3, (1.21)–(1.22) and Definition 1.2. Route. The book obtains the quadratic form (1.10)
+  from the existence and the linearity (1.15) of the minimizer (1.8). Here `μ(U, e)` is the infimum
+  of the energies of the smooth compactly supported tests of `U` (by the approximation in the
+  definition of `H¹₀(U)` and the continuity of the energy in `L²`), the tests form a vector space,
+  and the parallelogram identity of the energy density gives
+  `μ(U, e + f) + μ(U, e - f) = 2μ(U, e) + 2μ(U, f)` (`dirichletEnergy_parallelogram`). The
+  expectations and the limit (1.22) inherit it, and a function with the parallelogram identity and
+  the bound `|μ̄(e)| ≤ ½Λ|e|²` is a quadratic form `½ e·āe` with `ā` symmetric (the argument of
+  Jordan and von Neumann, `exists_symmetric_of_parallelogram`). The subadditivity (1.11) is proved
+  for partitions by disjoint open sets up to a null set, by gluing tests, and used for the
+  partition of `□_{n+1}` into the `3^d` translates of `□_n`; stationarity enters through
+  `μ(z + U, e)(a) = μ(U, e)(T_z a)` (`dirichletEnergy_preimage_sub`).
+- Lemma 3.16. Route. The correctors are those of the homogenization theorem of Armstrong, Kuusi and
+  Loher (Theorem C, `HCPoly.uniform_homogenization`) for the law of `a(2·)`, undilated:
+  `φ_e(x) = 2 Φ_e(x/2)` (`UndilatedCorrector.lean`). Their sublinearity comes from the oscillation
+  bounds of that theorem above its homogenization scale, as for Lemma 3.17 above. The stationarity
+  of `∇φ_e` is the uniqueness argument of the proof of Lemma 3.16: `x ↦ φ_e(a)(x + z)` is a
+  sublinear corrector of `T_z a`, and the Liouville classification of the high-contrast theorem on
+  its event of full probability for `T_z a` (in place of Theorem 3.8) identifies its gradient with
+  `∇φ_e(T_z a)` (`undilatedGradient_translate_ae_eq`). The homogenized matrix of
+  `HomogenizationData` is the matrix of Definition 1.2 given by (1.22).
+- Measurability. Definition 3.14 asks the stationary field to be measurable for `B × F`. The proof
+  of Lemma 3.16 does not address the measurability of `(x, a) ↦ ∇φ_e(x, a)`, and the high-contrast
+  theorem exports none for its corrector gradients. It is the explicit hypothesis
+  `HighContrastCorrectorMeasurable` of `homogenizationDataExists_of_measurable`: the undilated
+  corrector gradient has a jointly measurable version. Every other field of `HomogenizationData` is
+  proved; `blockCLT_of_uniformAdditivityJ1_of_measurable` and its two companions
+  (`Ch05/Sec04/BlockEstimatesFromCorrectors.lean`) give Lemma 5.29 (i)–(iii) from this hypothesis
+  and Theorem 4.6 (i) with constants uniform over the laws.
