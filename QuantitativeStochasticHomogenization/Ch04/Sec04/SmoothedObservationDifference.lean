@@ -100,7 +100,7 @@ theorem coordinateDerivative_mul_fun {f k : Vec d → ℝ} (hf : Differentiable 
       f x * coordinateDerivative j k x + k x * coordinateDerivative j f x := by
   simp only [coordinateDerivative]
   rw [fderiv_fun_mul (hf x) (hk x)]
-  simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
+  simp [smul_eq_mul]
 
 theorem integrable_mul_of_compact {φ ψ : Vec d → ℝ} (hφ : LocallyIntegrable φ volume)
     (hψ : Continuous ψ) (hψc : HasCompactSupport ψ) : Integrable (fun x => ψ x * φ x) := by
