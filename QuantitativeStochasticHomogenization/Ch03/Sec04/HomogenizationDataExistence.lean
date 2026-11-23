@@ -47,7 +47,8 @@ correctors of the dilated law, the undilated corrector gradient `(a, x) ↦ ∇�
 Borel σ-algebra, as Definition 3.14 requires of a stationary random field. -/
 def HighContrastCorrectorMeasurable : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∀ (Λ : ℝ) (hΛ : 1 ≤ Λ) (P : Measure (CoefficientField d Λ)),
-    LawHypotheses P → ∀ (κ C : ℝ) (pk : HighContrastCorrectorPackage hΛ P κ C) (e : Vec d),
+    LawHypotheses P → ∀ (κ C : ℝ), 0 < κ → 0 ≤ C →
+      ∀ (pk : HighContrastCorrectorPackage hΛ P κ C) (e : Vec d),
       ∃ G : CoefficientField d Λ × Vec d → Vec d, Measurable G ∧
         ∀ᵐ a ∂P, ∀ᵐ x ∂(volume : Measure (Vec d)),
           G (a, x) = undilatedGradient (pk.gradPhi e (toHighContrast hΛ a)) x
@@ -361,7 +362,7 @@ theorem homogenizationDataExists_of_measurable (hM : HighContrastCorrectorMeasur
   intro d hd Λ hΛ P hP
   obtain ⟨κ, C, hκ, hC, hpk⟩ := exists_highContrastCorrectorPackage d hd
   obtain ⟨pk⟩ := hpk Λ hΛ.le P hP
-  have hG := fun e => hM d hd Λ hΛ.le P hP κ C pk e
+  have hG := fun e => hM d hd Λ hΛ.le P hP κ C hκ hC.le pk e
   obtain ⟨A, hA, hlim⟩ := exists_homogenizedMatrix hP (by linarith : (0 : ℝ) ≤ Λ)
   exact ⟨{
     corrector := fun e => correctorOfMeasurableVersion hd hκ hC.le hP pk e (hG e).choose
