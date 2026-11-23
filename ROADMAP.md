@@ -169,7 +169,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.1 |  | proved, (4.2) with `s = 1`, with a constant chosen before the law: the frozen statement E1 with no hypothesis (`averagedCorrectorGradient_holds`), (4.3)-(4.7) and `s ≠ 1` not formalized; from the estimate with compact tests (`compactTestFiniteBall`, `averagedCorrectorGradient_of_compactTests`) through the single-slope estimate on classes of laws (`averagedCorrectorGradient_of_linearSlope`) and the linear estimate (`averagedCorrectorGradient_of_linearAverage_uniform`); see CORRESPONDENCE.md |
+| Theorem 4.1 |  | proved, (4.2) with `s = 1`, with a constant chosen before the law: the frozen statement E1 with no hypothesis (`averagedCorrectorGradient_holds`), (4.4)-(4.7) and `s ≠ 1` not formalized; from the estimate with compact tests (`compactTestFiniteBall`, `averagedCorrectorGradient_of_compactTests`) through the single-slope estimate on classes of laws (`averagedCorrectorGradient_of_linearSlope`) and the linear estimate (`averagedCorrectorGradient_of_linearAverage_uniform`); see CORRESPONDENCE.md |
 
 ### 4.1 The Energy Quantity J₁ and Its Basic Properties, module `Ch04/Sec01EnergyQuantityJ1.lean`
 
