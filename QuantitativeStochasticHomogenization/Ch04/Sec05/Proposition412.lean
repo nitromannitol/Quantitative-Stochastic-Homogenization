@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec05.Proposition412Fields
+import QuantitativeStochasticHomogenization.Ch04.Sec02.UniformBootstrap
 
 /-!
 # Proposition 4.12: the fluctuation estimates
@@ -21,6 +22,9 @@ For fixed `p, q` the localized fields are truncated at the bound of `J` and cent
 (4.116) deduced from `Add(s, α)` and the localization. The bound (4.115) for them follows from
 (4.117) (Step 3), and `Fluc(s, β)` for `J` follows since `J` is within `|J - J^{(δ)}|` of the
 truncation.
+
+The constant of `Fluc(s, β)` depends only on the exponents, the bound of `J` and the constants of
+`Add(s, α)` and `Loc(s, δ, α)`, not on the law (`exists_flucEstimateAt_of_add_local`).
 -/
 
 open MeasureTheory ProbabilityTheory
@@ -282,23 +286,24 @@ theorem exists_additive_truncatedField {s : ℝ} (hs1 : 1 < s) (hs2 : s ≤ 2) :
     rw [f1, f2 a, f3, f4, f5, truncatedField_of_one_le hr1, hTdef]
     ring
 
-/-- **Proposition 4.12** (fluctuation estimates): for a jointly measurable field `J` bounded on
-the unit balls of `p, q`, local σ-algebras of unit range of dependence and the localization by
-measurable fields, for `s ∈ (1, 2]`, `β ∈ (0, d/2]` and `α, δ > 0` with `α > β(1+δ)`,
-`Add(s, α)` and `Loc(s, δ, α)` imply `Fluc(s, β)`. -/
-theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 1 ≤ d)
-    (hF : HasUnitRange P F) (hmono : Monotone F) (hFle : ∀ U, F U ≤ (inferInstance : MeasurableSpace Ω))
-    {J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ} {M : ℝ}
-    (hJb : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M)
-    (hJm : ∀ r p q, Measurable fun w : Ω × Vec d => J w.1 w.2 r p q) :
-    FluctuationEstimatesFor P J (LocFieldEstimate P F J) := by
-  intro s β α δ hs1 hs2 hβ0 hβd hδ hβα hAdd hLoc
-  obtain ⟨CA, hCA, hA⟩ := hAdd
-  obtain ⟨CL, hCL, hL⟩ := hLoc
+/-- **Proposition 4.12 with the output constant chosen before the law**: for `s ∈ (1, 2]`,
+`β ∈ (0, d/2]`, `α, δ > 0` with `α > β(1+δ)`, a bound `M` and the constants `C_A`, `C_L` of
+`Add(s, α)` and `Loc(s, δ, α)`, there is `C_F` such that for every law with local σ-algebras of
+unit range of dependence and every jointly measurable field `J` bounded by `M` on the unit balls
+of `p, q`, `Add(s, α)` with constant `C_A` and `Loc(s, δ, α)` with constant `C_L` give
+`Fluc(s, β)` with constant `C_F`. -/
+theorem exists_flucEstimateAt_of_add_local (hd : 1 ≤ d) (hmono : Monotone F)
+    (hFle : ∀ U, F U ≤ (inferInstance : MeasurableSpace Ω)) {M CA CL s β α δ : ℝ}
+    (hCA : 0 < CA) (hCL : 0 < CL) (hs1 : 1 < s) (hs2 : s ≤ 2)
+    (hβ0 : 0 < β) (hβd : β ≤ (d : ℝ) / 2) (hδ : 0 < δ) (hβα : β * (1 + δ) < α) :
+    ∃ CF : ℝ, 0 < CF ∧ ∀ (P : Measure Ω) [IsProbabilityMeasure P], HasUnitRange P F →
+      ∀ J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ,
+      (∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M) →
+      (∀ r p q, Measurable fun w : Ω × Vec d => J w.1 w.2 r p q) →
+      AddEstimateAt P J s α CA → LocFieldEstimateAt P F J s δ α CL →
+        FlucEstimateAt P J s β CF := by
   set M' : ℝ := max M 1 with hM'def
   have hM' : 0 < M' := lt_max_of_lt_right one_pos
-  have hJb' : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M' :=
-    fun a z r p q hp hq => (hJb a z r p q hp hq).trans (le_max_left _ _)
   have hβδ : 0 < β * (1 + δ) := mul_pos hβ0 (by linarith)
   have hα0 : 0 < α := by linarith
   have hβα' : β ≤ α := by nlinarith
@@ -327,7 +332,11 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
     (B := 2 * M') (A := A) hd hmono hs1 hs2 (by positivity) hA0 hβ0 hβd hδ hη₁ hη₁₂ hη₂ hβη
   have hl2 : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
   set C' : ℝ := CL + (8 : ℝ) ^ s⁻¹ * (4 * Cf) + 2 * CL / Real.log 2 ^ s⁻¹ with hC'def
-  refine ⟨C', by positivity, fun z R hR p q hp hq => ?_⟩
+  refine ⟨C', by positivity, ?_⟩
+  intro P _ hF J hJb hJm hA hL
+  have hJb' : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M' :=
+    fun a z r p q hp hq => (hJb a z r p q hp hq).trans (le_max_left _ _)
+  intro z R hR p q hp hq
   have hR0 : 0 < R := zero_lt_one.trans_le hR
   have hsel : ∀ r : ℝ, ∃ Jδ : Ω → Vec d → ℝ, 1 ≤ r →
       (∀ U : Set (Vec d), MeasurableSet U →
@@ -413,5 +422,22 @@ theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 
             |clampAt M' (Jδ R a z) - ∫ a', clampAt M' (Jδ R a' z) ∂P| + e := by
           rw [abs_sub_comm (J a z R p q)]
           linarith
+
+/-- **Proposition 4.12** (fluctuation estimates): for a jointly measurable field `J` bounded on
+the unit balls of `p, q`, local σ-algebras of unit range of dependence and the localization by
+measurable fields, for `s ∈ (1, 2]`, `β ∈ (0, d/2]` and `α, δ > 0` with `α > β(1+δ)`,
+`Add(s, α)` and `Loc(s, δ, α)` imply `Fluc(s, β)`. -/
+theorem fluctuationEstimatesFor_locFieldEstimate [IsProbabilityMeasure P] (hd : 1 ≤ d)
+    (hF : HasUnitRange P F) (hmono : Monotone F) (hFle : ∀ U, F U ≤ (inferInstance : MeasurableSpace Ω))
+    {J : Ω → Vec d → ℝ → Vec d → Vec d → ℝ} {M : ℝ}
+    (hJb : ∀ a z r p q, euclideanNorm p < 1 → euclideanNorm q < 1 → |J a z r p q| ≤ M)
+    (hJm : ∀ r p q, Measurable fun w : Ω × Vec d => J w.1 w.2 r p q) :
+    FluctuationEstimatesFor P J (LocFieldEstimate P F J) := by
+  intro s β α δ hs1 hs2 hβ0 hβd hδ hβα hAdd hLoc
+  obtain ⟨CA, hCA, hA⟩ := hAdd
+  obtain ⟨CL, hCL, hL⟩ := hLoc
+  obtain ⟨CF, hCF, hf⟩ := exists_flucEstimateAt_of_add_local (M := M) hd hmono hFle
+    hCA hCL hs1 hs2 hβ0 hβd hδ hβα
+  exact ⟨CF, hCF, hf P hF J hJb hJm hA hL⟩
 
 end QSH
