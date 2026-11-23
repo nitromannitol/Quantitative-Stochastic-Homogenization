@@ -31,7 +31,7 @@ theorem sqrt_natCast_le (d : ℕ) : Real.sqrt d ≤ d := by
     rw [Real.sqrt_le_left (by positivity)]
     nlinarith
 
-theorem euclideanNorm_le_of_abs_le {v : Vec d} {B : ℝ} (hB : 0 ≤ B) (h : ∀ k, |v k| ≤ B) :
+theorem euclideanNorm_le_natCast_mul_of_abs_le {v : Vec d} {B : ℝ} (hB : 0 ≤ B) (h : ∀ k, |v k| ≤ B) :
     euclideanNorm v ≤ d * B := by
   have h1 : euclideanNorm v ≤ Real.sqrt (d * B ^ 2) := by
     unfold euclideanNorm euclideanSq dot
@@ -133,7 +133,7 @@ theorem gaussianAverageBounds_of_basis {a : CoefficientField d Λ} {A : Mat d}
       (heatKernel x₀ r x • (a x).mulVec (∑ i, ξ i • G i x)) k := hIq
   refine ⟨integrable_pi_iff.mpr hIG', integrable_pi_iff.mpr hIq', hIE, ?_, ?_, ?_⟩
   · -- (3.101)
-    refine euclideanNorm_le_of_abs_le (B := d * euclideanNorm ξ * ε) (by positivity)
+    refine euclideanNorm_le_natCast_mul_of_abs_le (B := d * euclideanNorm ξ * ε) (by positivity)
       (fun k => ?_) |>.trans (le_of_eq (by ring))
     rw [Pi.sub_apply, eval_integral hIG' k]
     have h1 : ∫ x, (heatKernel x₀ r x • ∑ i, ξ i • G i x) k =
@@ -156,7 +156,7 @@ theorem gaussianAverageBounds_of_basis {a : CoefficientField d Λ} {A : Mat d}
       _ = (∑ i, |ξ i|) * ε := by rw [Finset.sum_mul]
       _ ≤ d * euclideanNorm ξ * ε := mul_le_mul_of_nonneg_right hsum hε
   · -- (3.102)
-    refine euclideanNorm_le_of_abs_le (B := d * euclideanNorm ξ * ε) (by positivity)
+    refine euclideanNorm_le_natCast_mul_of_abs_le (B := d * euclideanNorm ξ * ε) (by positivity)
       (fun k => ?_) |>.trans (le_of_eq (by ring))
     rw [Pi.sub_apply, eval_integral hIq' k]
     have h1 : ∫ x, (heatKernel x₀ r x • (a x).mulVec (∑ i, ξ i • G i x)) k =
