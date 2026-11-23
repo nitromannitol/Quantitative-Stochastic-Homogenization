@@ -609,8 +609,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
 
-- Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`) and
-  `QSH.homogenizationDataExists_of_measurable` (`Ch03/Sec04/HomogenizationDataExistence.lean`).
+- Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`),
+  `QSH.homogenizationDataExists_of_measurable` (`Ch03/Sec04/HomogenizationDataExistence.lean`) and
+  `QSH.homogenizationDataExists` (`Ch03/Sec04/CorrectorMeasurability.lean`).
 - Section 1.3, (1.21)–(1.22) and Definition 1.2. Route. The book obtains the quadratic form (1.10)
   from the existence and the linearity (1.15) of the minimizer (1.8). Here `μ(U, e)` is the infimum
   of the energies of the smooth compactly supported tests of `U` (by the approximation in the
@@ -632,11 +633,17 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   its event of full probability for `T_z a` (in place of Theorem 3.8) identifies its gradient with
   `∇φ_e(T_z a)` (`undilatedGradient_translate_ae_eq`). The homogenized matrix of
   `HomogenizationData` is the matrix of Definition 1.2 given by (1.22).
-- Measurability. Definition 3.14 asks the stationary field to be measurable for `B × F`. The proof
-  of Lemma 3.16 does not address the measurability of `(x, a) ↦ ∇φ_e(x, a)`, and the high-contrast
-  theorem exports none for its corrector gradients. It is the explicit hypothesis
-  `HighContrastCorrectorMeasurable` of `homogenizationDataExists_of_measurable`: the undilated
-  corrector gradient has a jointly measurable version. Every other field of `HomogenizationData` is
-  proved; `blockCLT_of_uniformAdditivityJ1_of_measurable` and its two companions
-  (`Ch05/Sec04/BlockEstimatesFromCorrectors.lean`) give Lemma 5.29 (i)–(iii) from this hypothesis
-  and Theorem 4.6 (i) with constants uniform over the laws.
+- Measurability. Definition 3.14 asks the stationary field to be measurable for `B × F`; the
+  proof of Lemma 3.16 does not address the measurability of `(x, a) ↦ ∇φ_e(x, a)`, and the
+  high-contrast theorem exports none for its corrector gradients. It is proved in
+  `Ch03/Sec04/CorrectorMeasurability.lean` (`highContrastCorrectorMeasurable`) by the argument
+  used for the measurability of `J₁` (`Ch04/Sec01/J1HeatMeasurability.lean`): the coefficient field
+  is encoded in the Polish space `∏ₙ L²(B̄ₙ)`, the pairs of a coefficient field and an element of
+  `A₁` whose potential minus `e·x` is sublinear on the closed balls `B̄ₙ` form a Borel set, and on
+  the event of full probability its fibers have the single gradient `e + ∇φ_e` (the uniqueness of
+  correctors). The events defined by the gradient are therefore preimages of analytic sets,
+  universally measurable, and a jointly measurable representative of a measurable modification
+  is the version of Definition 3.14. Hence `homogenizationDataExists`: every law satisfying
+  (0.10)–(0.11) has homogenization data, and `blockCLT_of_uniformAdditivity` and its two
+  companions (`Ch05/Sec04/BlockEstimatesFromCorrectors.lean`) give Lemma 5.29 (i)–(iii) from
+  Theorem 4.6 (i) with constants uniform over the laws.
