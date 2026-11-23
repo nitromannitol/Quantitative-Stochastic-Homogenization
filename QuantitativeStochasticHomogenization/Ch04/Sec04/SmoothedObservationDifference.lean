@@ -39,12 +39,12 @@ theorem hasFDerivAt_heatKernel (p : Vec d) (ρ : ℝ) (x : Vec d) :
   rw [ContinuousLinearMap.comp_id] at this
   exact this
 
-theorem coordinateDerivative_heatKernel (p : Vec d) (ρ : ℝ) (j : Fin d) (x : Vec d) :
+theorem coordinateDerivative_heatKernel_eq_fderiv (p : Vec d) (ρ : ℝ) (j : Fin d) (x : Vec d) :
     coordinateDerivative j (heatKernel p ρ) x =
       fderiv ℝ (euclideanHeatKernel (d := d) (ρ ^ 2)) (x - p) (unitVector j) := by
   simp only [coordinateDerivative, (hasFDerivAt_heatKernel p ρ x).fderiv]
 
-theorem contDiff_heatKernel (p : Vec d) (ρ : ℝ) : ContDiff ℝ (⊤ : ℕ∞) (heatKernel p ρ) := by
+theorem contDiff_heatKernel_top (p : Vec d) (ρ : ℝ) : ContDiff ℝ (⊤ : ℕ∞) (heatKernel p ρ) := by
   rw [heatKernel_eq_comp_sub]
   exact (contDiff_euclideanHeatKernel_top (ρ ^ 2)).comp (contDiff_id.sub contDiff_const)
 
@@ -71,12 +71,12 @@ theorem clm_apply_eq_sum_unitVector (L : Vec d →L[ℝ] ℝ) (h : Vec d) :
   simp only [map_smul, smul_eq_mul]
 
 /-- `|∂_j Φ_{p,ρ}| ≤ 2^{d/2} (2/ρ) (8πρ²)^{-d/2}`. -/
-theorem abs_coordinateDerivative_heatKernel_le {ρ : ℝ} (hρ : 0 < ρ) (p : Vec d) (j : Fin d)
+theorem abs_coordinateDerivative_heatKernel_le_peak {ρ : ℝ} (hρ : 0 < ρ) (p : Vec d) (j : Fin d)
     (x : Vec d) :
     |coordinateDerivative j (heatKernel p ρ) x| ≤
       (2 : ℝ) ^ ((d : ℝ) / 2) * (2 / ρ) * (4 * Real.pi * (2 * ρ ^ 2)) ^ (-(d : ℝ) / 2) := by
   have hρ2 : 0 < ρ ^ 2 := by positivity
-  rw [coordinateDerivative_heatKernel]
+  rw [coordinateDerivative_heatKernel_eq_fderiv]
   have h := abs_heatGrad_le hρ2 j (x - p)
   have hs : Real.sqrt (ρ ^ 2) = ρ := Real.sqrt_sq hρ.le
   rw [hs] at h
@@ -114,7 +114,7 @@ theorem neg_integral_cutoff_mul_coordinateDerivative_heatKernel {χ φ : Vec d �
     -∫ x, χ x * φ x * coordinateDerivative j (heatKernel p ρ) x =
       (∫ x, χ x * heatKernel p ρ x * g x j) +
         ∫ x, coordinateDerivative j χ x * heatKernel p ρ x * φ x := by
-  have hΦ := contDiff_heatKernel p ρ
+  have hΦ := contDiff_heatKernel_top p ρ
   have hψ : IsSpatialTest Set.univ (fun x => χ x * heatKernel p ρ x) :=
     ⟨hχ.mul hΦ, hχc.mul_right, Set.subset_univ _⟩
   have h := (hφg j).2.2 _ hψ
@@ -191,17 +191,17 @@ theorem integral_cutoff_heatKernel_add_sub {χ φ : Vec d → ℝ} {g : Vec d �
     with hK
   have hDsum : ∀ x t, D x t = ∑ j, h j * coordinateDerivative j (heatKernel (z + t • h) ρ) x :=
     fun x t => by
-      simp only [hD, coordinateDerivative_heatKernel]
+      simp only [hD, coordinateDerivative_heatKernel_eq_fderiv]
       exact clm_apply_eq_sum_unitVector _ h
   have hDb : ∀ x t, |D x t| ≤ ∑ j, |h j| * K := fun x t => by
     rw [hDsum]
     refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun j _ => ?_)
     rw [abs_mul]
-    exact mul_le_mul_of_nonneg_left (abs_coordinateDerivative_heatKernel_le hρ _ j x)
+    exact mul_le_mul_of_nonneg_left (abs_coordinateDerivative_heatKernel_le_peak hρ _ j x)
       (abs_nonneg _)
   -- step 1: the difference under one integral
   have hint : ∀ p : Vec d, Integrable (fun x => χ x * heatKernel p ρ x * φ x) := fun p =>
-    (integrable_mul_of_compact hφl (hχ.continuous.mul (contDiff_heatKernel p ρ).continuous)
+    (integrable_mul_of_compact hφl (hχ.continuous.mul (contDiff_heatKernel_top p ρ).continuous)
       hχc.mul_right)
   have h1 : (∫ x, χ x * heatKernel (z + h) ρ x * φ x) - ∫ x, χ x * heatKernel z ρ x * φ x =
       ∫ x, ∫ t in (0 : ℝ)..1, -(χ x * φ x * D x t) := by
@@ -238,7 +238,7 @@ theorem integral_cutoff_heatKernel_add_sub {χ φ : Vec d → ℝ} {g : Vec d �
     have hij : ∀ j, Integrable (fun x => χ x * φ x *
         coordinateDerivative j (heatKernel (z + t • h) ρ) x) := fun j => by
       have hcd : Continuous (coordinateDerivative j (heatKernel (z + t • h) ρ)) :=
-        ((contDiff_heatKernel _ ρ).continuous_fderiv (by simp)).clm_apply continuous_const
+        ((contDiff_heatKernel_top _ ρ).continuous_fderiv (by simp)).clm_apply continuous_const
       exact (integrable_mul_of_compact hφl (hχ.continuous.mul hcd) hχc.mul_right).congr
         (Eventually.of_forall fun x =>
           (by ring : χ x * coordinateDerivative j (heatKernel (z + t • h) ρ) x * φ x =

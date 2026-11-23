@@ -157,7 +157,7 @@ theorem integral_sub_cutoffMean_sq_le {φ χ : Vec d → ℝ} {z : Vec d} {R T �
   have hφl : Integrable (fun x => χ x * heatKernel z ρ x * φ x) := by
     have hi : IntegrableOn (fun x => χ x * heatKernel z ρ x * φ x) (ball z T) := by
       refine (((hφT.integrable one_le_two).norm).const_mul (heatKernelPeak d ρ)).mono' ?_ ?_
-      · exact ((hχc.mul (contDiff_heatKernel z ρ).continuous).aestronglyMeasurable).mul
+      · exact ((hχc.mul (contDiff_heatKernel_top z ρ).continuous).aestronglyMeasurable).mul
           (hφT.integrable one_le_two).aestronglyMeasurable
       · exact Eventually.of_forall fun x => by
           rw [Real.norm_eq_abs, abs_mul, Real.norm_eq_abs]
@@ -169,7 +169,7 @@ theorem integral_sub_cutoffMean_sq_le {φ χ : Vec d → ℝ} {z : Vec d} {R T �
     exact hx (show χ x * heatKernel z ρ x * φ x = 0 by rw [h0]; ring)
   have hΦi : Integrable (fun x => χ x * heatKernel z ρ x) :=
     (integrable_heatKernel_mask z hρ.ne').mono'
-      (hχc.aestronglyMeasurable.mul (contDiff_heatKernel z ρ).continuous.aestronglyMeasurable)
+      (hχc.aestronglyMeasurable.mul (contDiff_heatKernel_top z ρ).continuous.aestronglyMeasurable)
       (Eventually.of_forall fun x => by
         rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (hχ01 x).1,
           abs_of_nonneg (heatKernel_pos z hρ x).le]

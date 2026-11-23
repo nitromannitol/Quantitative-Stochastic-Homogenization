@@ -85,7 +85,7 @@ theorem integrable_heatKernel_euclideanSq_grad (S : HomogenizationData P)
     unfold euclideanSq dot
     fun_prop
   refine (((hgauss q r hr).const_mul 2).add ((integrable_heatKernel_mask q hr.ne').const_mul 2)).mono'
-    ((contDiff_heatKernel q r).continuous.aestronglyMeasurable.mul
+    ((contDiff_heatKernel_top q r).continuous.aestronglyMeasurable.mul
       (h2.measurable.comp hgm).aestronglyMeasurable) ?_
   refine Eventually.of_forall fun x => ?_
   rw [Real.norm_eq_abs, abs_of_nonneg (mul_nonneg (heatKernel_pos q hr x).le

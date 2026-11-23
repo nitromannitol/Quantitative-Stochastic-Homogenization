@@ -26,7 +26,7 @@ theorem integrable_heatKernel_smul_of_energy {g : Vec d → Vec d} (hgm : AEStro
     (hgi : Integrable (fun x => heatKernel q ρ x * euclideanSq (g x))) :
     Integrable (fun x => heatKernel q ρ x • g x) := by
   refine ((integrable_heatKernel_mask q hρ.ne').add hgi).mono'
-    ((contDiff_heatKernel q ρ).continuous.aestronglyMeasurable.smul hgm) ?_
+    ((contDiff_heatKernel_top q ρ).continuous.aestronglyMeasurable.smul hgm) ?_
   refine Eventually.of_forall fun x => ?_
   rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (heatKernel_pos q hρ x).le]
   calc heatKernel q ρ x * ‖g x‖ ≤ heatKernel q ρ x * (1 + euclideanSq (g x)) :=

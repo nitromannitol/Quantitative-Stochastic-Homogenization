@@ -34,7 +34,7 @@ theorem integrableOn_ball_heatKernel_mul {f : Vec d → ℝ} (hf : LocallyIntegr
     IntegrableOn (fun x => heatKernel p ρ x * f x) (ball z T) := by
   have hK : IsCompact (Metric.closedBall z T) := isCompact_closedBall z T
   have h := (hf.integrableOn_isCompact hK).continuousOn_mul
-    (contDiff_heatKernel p ρ).continuous.continuousOn hK
+    (contDiff_heatKernel_top p ρ).continuous.continuousOn hK
   exact h.mono_set (ball_subset_metric_closedBall z T)
 
 /-- **The truncated observation at `z + h` by the Gaussian gradient averages along the segment.** -/
@@ -59,7 +59,7 @@ theorem abs_truncated_observation_le {φ : Vec d → ℝ} {g : Vec d → Vec d}
   have hint1 : IntegrableOn (fun x => heatKernel (z + h) ρ x * (φ x - c)) (ball z T) :=
     integrableOn_ball_heatKernel_mul hfl _ z ρ T
   have hcont : IntegrableOn (fun x => χ x * heatKernel (z + h) ρ x * (φ x - c)) (ball z T) :=
-    (integrable_mul_of_compact hfl (hχ.continuous.mul (contDiff_heatKernel _ ρ).continuous)
+    (integrable_mul_of_compact hfl (hχ.continuous.mul (contDiff_heatKernel_top _ ρ).continuous)
       hχc.mul_right).integrableOn
   have hsplit : ∫ x in ball z T, heatKernel (z + h) ρ x * (φ x - c) =
       (∫ x in ball z T, χ x * heatKernel (z + h) ρ x * (φ x - c)) +
@@ -130,9 +130,9 @@ theorem integral_cutoff_heatKernel_sub_mean {φ χ : Vec d → ℝ} (hφl : Loca
     ∫ x, χ x * heatKernel z ρ x *
       (φ x - (∫ y, χ y * heatKernel z ρ y * φ y) / ∫ y, χ y * heatKernel z ρ y) = 0 := by
   have hc1 : Integrable (fun x => χ x * heatKernel z ρ x * φ x) :=
-    integrable_mul_of_compact hφl (hχ.mul (contDiff_heatKernel z ρ).continuous) hχc.mul_right
+    integrable_mul_of_compact hφl (hχ.mul (contDiff_heatKernel_top z ρ).continuous) hχc.mul_right
   have hc2 : Integrable (fun x => χ x * heatKernel z ρ x) :=
-    (hχ.mul (contDiff_heatKernel z ρ).continuous).integrable_of_hasCompactSupport hχc.mul_right
+    (hχ.mul (contDiff_heatKernel_top z ρ).continuous).integrable_of_hasCompactSupport hχc.mul_right
   set c := (∫ y, χ y * heatKernel z ρ y * φ y) / ∫ y, χ y * heatKernel z ρ y with hcdef
   have e : (fun x => χ x * heatKernel z ρ x * (φ x - c)) =
       fun x => χ x * heatKernel z ρ x * φ x - c * (χ x * heatKernel z ρ x) := by

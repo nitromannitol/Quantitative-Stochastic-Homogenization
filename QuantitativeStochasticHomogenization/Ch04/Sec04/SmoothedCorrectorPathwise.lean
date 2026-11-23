@@ -131,7 +131,7 @@ theorem corrector_smoothed_observation (S : HomogenizationData P) (a : Coefficie
   have hgi : ∀ (q : Vec d) (r : ℝ), 0 < r →
       Integrable (fun x => heatKernel q r x * euclideanSq (g x)) := fun q r hr => by
     refine (((hgauss q r hr).const_mul 2).add ((integrable_heatKernel_mask q hr.ne').const_mul 2)).mono'
-      ((contDiff_heatKernel q r).continuous.aestronglyMeasurable.mul
+      ((contDiff_heatKernel_top q r).continuous.aestronglyMeasurable.mul
         (by
           have h2 : Continuous fun v : Vec d => euclideanSq v := by
             unfold euclideanSq dot

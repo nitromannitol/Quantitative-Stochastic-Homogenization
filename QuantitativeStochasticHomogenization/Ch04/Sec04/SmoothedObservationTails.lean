@@ -110,7 +110,7 @@ theorem abs_integral_cutoff_heatKernel_mul_grad_le {χ φ : Vec d → ℝ} {g : 
   have hw := neg_integral_cutoff_mul_coordinateDerivative_heatKernel hχ hχc hfg ρ p j
   set F : Vec d → ℝ := fun x => χ x * coordinateDerivative j (heatKernel p ρ) x +
     coordinateDerivative j χ x * heatKernel p ρ x with hF
-  have hΦ := contDiff_heatKernel p ρ
+  have hΦ := contDiff_heatKernel_top p ρ
   have hi1 : Integrable (fun x => χ x * (φ x - c) * coordinateDerivative j (heatKernel p ρ) x) :=
     (integrable_mul_of_compact hfl
       (hχ.continuous.mul (hΦ.continuous_fderiv (by simp) |>.clm_apply continuous_const))
@@ -140,7 +140,7 @@ theorem abs_integral_cutoff_heatKernel_mul_grad_le {χ φ : Vec d → ℝ} {g : 
     (setIntegral_eq_integral_of_forall_compl_eq_zero hout).symm
   -- the pointwise bound of `F`
   have hFb : ∀ x, |F x| ≤ K := fun x => by
-    have h1 := abs_coordinateDerivative_heatKernel_le hρ p j x
+    have h1 := abs_coordinateDerivative_heatKernel_le_peak hρ p j x
     have h2 : |coordinateDerivative j χ x| ≤ D / R := by
       have := abs_coord_le_euclideanNorm (gradient χ x) j
       have hn : euclideanNorm (gradient χ x) ≤ D / R := by

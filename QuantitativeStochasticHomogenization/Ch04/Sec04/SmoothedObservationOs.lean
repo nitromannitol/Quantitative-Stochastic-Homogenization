@@ -81,7 +81,7 @@ theorem continuous_heatKernel_average {v : Vec d → Vec d} (hvm : AEStronglyMea
   refine MeasureTheory.continuousAt_of_dominated (bound := fun x =>
       K * (heatKernel p₀ (Real.sqrt 2 * ρ) x * (1 + euclideanSq (v x)))) ?_ ?_ ?_ ?_
   · exact Eventually.of_forall fun p =>
-      ((contDiff_heatKernel p ρ).continuous.aestronglyMeasurable).smul hvm
+      ((contDiff_heatKernel_top p ρ).continuous.aestronglyMeasurable).smul hvm
   · have hb : ∀ᶠ p in 𝓝 p₀, euclideanSq (p - p₀) < 1 := by
       have hc : Continuous fun p : Vec d => euclideanSq (p - p₀) := by
         unfold euclideanSq dot
