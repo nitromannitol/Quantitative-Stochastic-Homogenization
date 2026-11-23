@@ -758,3 +758,25 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Centers: for a center `z` the bounds are transported from the nearest lattice point by
   stationarity, with the scale `X(a, z) = max(Y(T_k a), √d)^p`, `p = 2d/(d+τ)`, `O_τ(C)` by the
   tail `exp(-t^d)` of the high-contrast scale; the rate is `μ = θ (d − τ)/(2d)`.
+
+## Section 4.4: Lemma 4.21 from the high-contrast excess decay (`Ch04/Sec04/`)
+
+- **The zoom of Lemma 4.21** (pp. 157-158). The book zooms from the intermediate radius `S` to
+  `r` with the `k = 1` regularity of Theorem 3.8. The Lean proof uses instead the excess-decay
+  clause of the high-contrast homogenization theorem at an exponent `ϑ < 1`, transported from
+  ellipsoids to balls (`QSH.ballExcessDecay`). The decay `(r/S)^ϑ` then closes the exponent budget
+  `(r/S)^ϑ S^{-β} ≤ r^{-γ}` only when the fluctuation exponent `β` of the class of laws is larger
+  than the construction exponent `α` (`QSH.exists_slope_budget`), so the single-slope estimate is
+  proved on the classes of laws with the linear estimate at an exponent `β > α`
+  (`QSH.slopeEstimateOnClass_of_linear_finiteBall`), and (5.85) uses the construction exponent
+  `d/2 - h` (`QSH.localizedEnergy_of_observation`, `QSH.localizedEnergy_of_finiteBall_linear`).
+- **The observation step** is split into a deterministic finite-ball observation for
+  `a`-harmonic functions (`QSH.FiniteBallObservation`, a hypothesis of these theorems) and the
+  observation of the smoothed correctors (`QSH.smoothedCorrectorObservation_of_gaussianGradient`).
+  For the latter, the truncated Gaussian observation of `φ - c` at `y ∈ B_{S/θ}(z)`, with `c` the
+  cut-off Gaussian mean, is bounded along the segment from `z` to `y` by the Gaussian averages of
+  `∇φ` (`QSH.abs_truncated_observation_le`), and the squares of these averages are averaged over
+  the segments, which is `O_{s/2}` by Lemma A.4 below the exponent one
+  (`QSH.osBound_sqrt_segmentAverage`). The cutoff is taken at `R = S r^{ε'}`; its error terms are
+  Gaussian tails, and the smallness on the event `{X ≤ r}` comes from the oscillation bound of the
+  correctors on `B_R(z)` above the minimal scale.

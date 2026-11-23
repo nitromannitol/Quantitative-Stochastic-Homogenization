@@ -35,7 +35,7 @@ theorem integral_heatKernel_mul_le_of_ball_center {f : Vec d → ℝ} (hfm : Mea
     intro R hR
     have hpre : ball (0 : Vec d) R = (fun x => x + z) ⁻¹' ball z R := by
       ext x
-      simp only [ball, Set.mem_setOf_eq, Set.mem_preimage, add_sub_cancel_right, sub_zero]
+      simp only [ball, Set.mem_ofPred_eq, Set.mem_preimage, add_sub_cancel_right, sub_zero]
     rw [hpre]
     calc ∫⁻ y in (fun x => x + z) ⁻¹' ball z R, ENNReal.ofReal (f (y + z))
         = ∫⁻ y in ball z R, ENNReal.ofReal (f y) :=
@@ -138,7 +138,7 @@ theorem integral_sub_cutoffMean_sq_le {φ χ : Vec d → ℝ} {z : Vec d} {R T �
             exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.2 (zero_le_euclideanSq _))
               (by positivity)
           nlinarith
-  haveI : IsFiniteMeasure (volume.restrict (ball z T)) :=
+  have : IsFiniteMeasure (volume.restrict (ball z T)) :=
     isFiniteMeasure_restrict.2 (volume_ball_lt_top z T).ne
   have hI : |∫ x, χ x * heatKernel z ρ x * (φ x - c₀)| ≤
       heatKernelPeak d ρ * Real.sqrt (volume.real (ball z T) * V) := by

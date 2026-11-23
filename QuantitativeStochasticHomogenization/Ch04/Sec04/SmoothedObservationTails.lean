@@ -85,7 +85,7 @@ theorem heatKernel_le_exp_mul_heatKernel_of_far {z p x : Vec d} {R ρ : ℝ} (hR
 
 /-- A nonnegative smooth function vanishing at `x` has vanishing derivative at `x`. -/
 theorem coordinateDerivative_eq_zero_of_nonneg_of_eq_zero {χ : Vec d → ℝ}
-    (hχ : Differentiable ℝ χ) (h0 : ∀ x, 0 ≤ χ x) {x : Vec d} (hx : χ x = 0) (j : Fin d) :
+    (h0 : ∀ x, 0 ≤ χ x) {x : Vec d} (hx : χ x = 0) (j : Fin d) :
     coordinateDerivative j χ x = 0 := by
   have hmin : IsLocalMin χ x := Eventually.of_forall fun y => by rw [hx]; exact h0 y
   rw [coordinateDerivative, hmin.fderiv_eq_zero]
@@ -133,8 +133,7 @@ theorem abs_integral_cutoff_heatKernel_mul_grad_le {χ φ : Vec d → ℝ} {g : 
   -- the integrand vanishes outside the ball
   have hout : ∀ x, x ∉ ball z R → F x * (φ x - c) = 0 := fun x hx => by
     have h0 := hχR x hx
-    have h1 := coordinateDerivative_eq_zero_of_nonneg_of_eq_zero (hχ.differentiable (by simp))
-      (fun y => (hχ01 y).1) h0 j
+    have h1 := coordinateDerivative_eq_zero_of_nonneg_of_eq_zero (fun y => (hχ01 y).1) h0 j
     simp only [hF, h0, h1]
     ring
   have hset : ∫ x, F x * (φ x - c) = ∫ x in ball z R, F x * (φ x - c) :=
@@ -171,7 +170,7 @@ theorem abs_integral_cutoff_heatKernel_mul_grad_le {χ φ : Vec d → ℝ} {g : 
     linarith
   have hfB : MemLp (fun x => φ x - c) 2 (volume.restrict (ball z R)) := hφ2.sub (memLp_const c)
   have hBf : volume (ball z R) < ⊤ := volume_ball_lt_top z R
-  haveI : IsFiniteMeasure (volume.restrict (ball z R)) :=
+  have : IsFiniteMeasure (volume.restrict (ball z R)) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact hBf⟩
   have hK0 : 0 ≤ K := (abs_nonneg _).trans (hFb 0)
   have hbound : ‖∫ x in ball z R, F x * (φ x - c)‖ ≤ ∫ x in ball z R, K * |φ x - c| :=

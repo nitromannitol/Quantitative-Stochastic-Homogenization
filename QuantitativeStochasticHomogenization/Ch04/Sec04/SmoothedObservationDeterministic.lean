@@ -26,15 +26,11 @@ variable {d : ℕ}
 
 /-- A smooth function at most one has vanishing derivative where it equals one. -/
 theorem coordinateDerivative_eq_zero_of_le_one_of_eq_one {χ : Vec d → ℝ}
-    (hχ : Differentiable ℝ χ) (h1 : ∀ x, χ x ≤ 1) {x : Vec d} (hx : χ x = 1) (j : Fin d) :
+    (h1 : ∀ x, χ x ≤ 1) {x : Vec d} (hx : χ x = 1) (j : Fin d) :
     coordinateDerivative j χ x = 0 := by
   have hmax : IsLocalMax χ x := Eventually.of_forall fun y => by rw [hx]; exact h1 y
   rw [coordinateDerivative, hmax.fderiv_eq_zero]
   rfl
-
-theorem euclideanNorm_le_of_mem_ball_quarter {z q : Vec d} {R : ℝ} (hq : euclideanNorm (q - z) ≤ R / 4)
-    (hR : 0 ≤ R) : euclideanNorm (q - z) ≤ R / 2 / 2 := by
-  linarith
 
 /-- **The potential term outside the cutoff.** -/
 theorem abs_setIntegral_one_sub_cutoff_le {χ φ : Vec d → ℝ} {z q : Vec d} {R T ρ c : ℝ}
@@ -61,7 +57,7 @@ theorem abs_setIntegral_one_sub_cutoff_le {χ φ : Vec d → ℝ} {z q : Vec d} 
           _ ≤ K := by rw [one_mul]; exact h1
       exact mul_le_mul_of_nonneg_right h2 (abs_nonneg _)
   have hfT : MemLp (fun x => φ x - c) 2 (volume.restrict (ball z T)) := hφT.sub (memLp_const c)
-  haveI : IsFiniteMeasure (volume.restrict (ball z T)) :=
+  have : IsFiniteMeasure (volume.restrict (ball z T)) :=
     isFiniteMeasure_restrict.2 (volume_ball_lt_top z T).ne
   have hb : ‖∫ x in ball z T, (1 - χ x) * heatKernel q ρ x * (φ x - c)‖ ≤
       ∫ x in ball z T, K * |φ x - c| :=
@@ -73,7 +69,7 @@ theorem abs_setIntegral_one_sub_cutoff_le {χ φ : Vec d → ℝ} {z q : Vec d} 
 
 /-- **The term of the derivative of the cutoff.** -/
 theorem abs_integral_cutoff_derivative_le {χ φ : Vec d → ℝ} {z q : Vec d} {R D ρ c : ℝ}
-    (hR : 0 < R) (hD : 0 ≤ D) (hρ : 0 < ρ) (hχ : ContDiff ℝ (⊤ : ℕ∞) χ)
+    (hR : 0 < R) (hD : 0 ≤ D) (hρ : 0 < ρ)
     (hχ01 : ∀ x, 0 ≤ χ x ∧ χ x ≤ 1) (hχ1 : ∀ x ∈ ball z (R / 2), χ x = 1)
     (hχR : ∀ x, x ∉ ball z R → χ x = 0) (hχD : ∀ x, euclideanSq (gradient χ x) ≤ (D / R) ^ 2)
     (hq : euclideanNorm (q - z) ≤ R / 4) (hφR : MemLp φ 2 (volume.restrict (ball z R)))
@@ -85,11 +81,10 @@ theorem abs_integral_cutoff_derivative_le {χ φ : Vec d → ℝ} {z q : Vec d} 
   have hK0 : 0 ≤ K := by
     have := (heatKernelPeak_pos (d := d) hρ.ne').le
     positivity
-  have hdiff : Differentiable ℝ χ := hχ.differentiable (by simp)
   have hq' : euclideanNorm (q - z) ≤ R / 2 / 2 := by linarith
   have hout : ∀ x, x ∉ ball z R → coordinateDerivative j χ x * heatKernel q ρ x * (φ x - c) = 0 :=
     fun x hx => by
-      rw [coordinateDerivative_eq_zero_of_nonneg_of_eq_zero hdiff (fun y => (hχ01 y).1)
+      rw [coordinateDerivative_eq_zero_of_nonneg_of_eq_zero (fun y => (hχ01 y).1)
         (hχR x hx) j]
       ring
   rw [← setIntegral_eq_integral_of_forall_compl_eq_zero hout]
@@ -97,7 +92,7 @@ theorem abs_integral_cutoff_derivative_le {χ φ : Vec d → ℝ} {z q : Vec d} 
     fun x => by
       rw [abs_mul, abs_mul, abs_of_nonneg (heatKernel_pos q hρ x).le]
       by_cases hx : x ∈ ball z (R / 2)
-      · rw [coordinateDerivative_eq_zero_of_le_one_of_eq_one hdiff (fun y => (hχ01 y).2)
+      · rw [coordinateDerivative_eq_zero_of_le_one_of_eq_one (fun y => (hχ01 y).2)
           (hχ1 x hx) j, abs_zero, zero_mul, zero_mul]
         exact mul_nonneg hK0 (abs_nonneg _)
       · have h1 := heatKernel_le_peak_mul_exp_of_far (by linarith) hρ hx hq'
@@ -112,7 +107,7 @@ theorem abs_integral_cutoff_derivative_le {χ φ : Vec d → ℝ} {z q : Vec d} 
         exact mul_le_mul_of_nonneg_right
           (mul_le_mul h2 h1 (heatKernel_pos q hρ x).le (by positivity)) (abs_nonneg _)
   have hfR : MemLp (fun x => φ x - c) 2 (volume.restrict (ball z R)) := hφR.sub (memLp_const c)
-  haveI : IsFiniteMeasure (volume.restrict (ball z R)) :=
+  have : IsFiniteMeasure (volume.restrict (ball z R)) :=
     isFiniteMeasure_restrict.2 (volume_ball_lt_top z R).ne
   have hb : ‖∫ x in ball z R, coordinateDerivative j χ x * heatKernel q ρ x * (φ x - c)‖ ≤
       ∫ x in ball z R, K * |φ x - c| :=
@@ -350,7 +345,7 @@ theorem sq_truncated_observation_le {φ : Vec d → ℝ} {g : Vec d → Vec d}
   have hB : ∀ t ∈ Set.Icc (0 : ℝ) 1, ∀ j,
       |∫ x, coordinateDerivative j χ x * heatKernel (z + t • h) ρ x * (φ x - c)| ≤ τ₂ :=
     fun t ht j => by
-      have h1 := abs_integral_cutoff_derivative_le (c := c) hR hD hρ hχ hχ01 hχ1 hχR hχD
+      have h1 := abs_integral_cutoff_derivative_le (c := c) hR hD hρ hχ01 hχ1 hχR hχD
         (hq t ht) hφR j
       refine h1.trans ?_
       rw [hτ₂]

@@ -134,7 +134,7 @@ theorem rpow_mul_rpow_eq {r a b : ℝ} (hr : 0 < r) : r ^ a * r ^ b = r ^ (a + b
   (Real.rpow_add hr a b).symm
 
 /-- **The main term of the Gaussian gradient averages** decays like `r^{ε'(d+1) - κ(a₁+ε')}`. -/
-theorem powerBound_obsGradient_main (d : ℕ) (C₈ κ D σ a₁ ε' : ℝ) (hσ : 0 < σ) (hD : 0 ≤ D)
+theorem powerBound_obsGradient_main (d : ℕ) (C₈ κ D σ a₁ ε' : ℝ) (hσ : 0 < σ)
     (hε' : 0 ≤ ε') :
     PowerBound (fun r => ((2 : ℝ) ^ ((d : ℝ) / 2) * (2 / (σ * r ^ a₁)) *
       (4 * Real.pi * (2 * (σ * r ^ a₁) ^ 2)) ^ (-(d : ℝ) / 2) +
@@ -309,7 +309,7 @@ theorem smoothed_scales (d : ℕ) {C₈ κ D σ θ a₁ ε' δ β : ℝ} (hσ : 
     ((hP2.eventually_mul_exp_neg_le hb hc0 one_pos).and
     (hP3.eventually_mul_exp_neg_le hb hc0 one_pos)))))))
   obtain ⟨r₀, hr₀⟩ := eventually_atTop.1 ev
-  obtain ⟨K₁, hK₁, hmain⟩ := ((powerBound_obsGradient_main d C₈ κ D σ a₁ ε' hσ hD hε'.le).mono
+  obtain ⟨K₁, hK₁, hmain⟩ := ((powerBound_obsGradient_main d C₈ κ D σ a₁ ε' hσ hε'.le).mono
     (show ε' * (d + 1) - κ * (a₁ + ε') ≤ -μ by nlinarith)).le
   refine ⟨max r₀ 2, Real.sqrt d * K₁ + 1, le_max_right _ _,
     add_nonneg (mul_nonneg (Real.sqrt_nonneg _) hK₁) zero_le_one, fun r hr => ?_⟩

@@ -27,7 +27,7 @@ theorem correctedField_unitVector' (S : HomogenizationData P) (a : CoefficientFi
   rw [Finset.sum_eq_single i]
   · simp [unitVector, correctedCoordinate]
   · intro k _ hk
-    simp [unitVector, Pi.single_apply, hk]
+    simp [unitVector, hk]
   · simp
 
 /-- **The linear quantity is the Gaussian average of the corrector gradient.** -/
