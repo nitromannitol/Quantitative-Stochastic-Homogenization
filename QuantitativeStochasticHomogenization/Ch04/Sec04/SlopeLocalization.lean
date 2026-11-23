@@ -82,6 +82,20 @@ def LocalizationSlopeEstimate (d : ℕ) (Λ s δ γ α σ θ C₀ : ℝ) : Prop 
                 (correctorColumn S a i x + ∑ j, b i j • correctorColumn S a j x)) ≤
                   K₁ * Y a ^ 2 * (t / r) ^ 2 * volume.real (ball z t)
 
+/-- `LocalizationSlopeEstimate` for the laws of a class `L`. -/
+def LocalizationSlopeEstimateOn {d : ℕ} {Λ : ℝ} (L : Measure (CoefficientField d Λ) → Prop)
+    (s δ γ α σ θ C₀ : ℝ) : Prop :=
+  ∃ (c K₁ C₁ : ℝ), 0 < c ∧ c ≤ 1 ∧ 0 ≤ K₁ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P → ∃ S : HomogenizationData P,
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧ AEOsBound P Y s (C₁ * r ^ (-γ)) ∧
+          ∀ᵐ a ∂P, X a ≤ r → ∃ b : Fin d → Fin d → ℝ, ∑ i, ∑ j, b i j ^ 2 ≤ 1 / 4 ∧
+            ∀ i, ∀ t : ℝ, r ≤ t → t ≤ c * localizationIntermediateRadius δ α γ r →
+              ∫ x in ball z t, euclideanSq (((W a z r hr).coordinate i).grad x -
+                (correctorColumn S a i x + ∑ j, b i j • correctorColumn S a j x)) ≤
+                  K₁ * Y a ^ 2 * (t / r) ^ 2 * volume.real (ball z t)
+
 /-- The oscillation constant at scale `r` is eventually small. -/
 theorem eventually_oscillationConstant_small {β' C : ℝ} (hβ' : 0 < β') :
     ∃ R : ℝ, 1 ≤ R ∧ ∀ r : ℝ, R ≤ r →
@@ -107,10 +121,11 @@ theorem sq_two_sqrt_mul_rpow_neg {C r β' : ℝ} (hr : 0 < r) :
 
 /-- **The corrector hypotheses of Lemma 4.21 from the single-slope estimate**: the oscillation
 and energy bounds come from `exists_translated_corrector_bounds` at the exponent `sγ < d`. -/
-theorem localizationCorrectorSlopeEstimate_of_slope (hd : 2 ≤ d) {Λ s δ γ α σ θ C₀ : ℝ}
-    (hΛ : 1 < Λ) (hs : 1 ≤ s) (hδ : 0 < δ) (hγ : 0 < γ) (hγs : s * γ < d)
-    (h : LocalizationSlopeEstimate d Λ s δ γ α σ θ C₀) :
-    LocalizationCorrectorSlopeEstimate d Λ s δ γ α σ θ C₀ := by
+theorem localizationCorrectorSlopeEstimateOn_of_slopeOn (hd : 2 ≤ d) {Λ s δ γ α σ θ C₀ : ℝ}
+    (hΛ : 1 < Λ) {L : Measure (CoefficientField d Λ) → Prop} (hLP : ∀ P, L P → LawHypotheses P)
+    (hs : 1 ≤ s) (hδ : 0 < δ) (hγ : 0 < γ) (hγs : s * γ < d)
+    (h : LocalizationSlopeEstimateOn L s δ γ α σ θ C₀) :
+    LocalizationCorrectorSlopeEstimateOn L s δ γ α σ θ C₀ := by
   obtain ⟨β, C, hβ, hC, htr⟩ := exists_translated_corrector_bounds hd hΛ
   have hs0 : 0 < s := by linarith
   obtain ⟨Cs, hCs, htrP⟩ := htr (s * γ) (by positivity) hγs
@@ -129,9 +144,10 @@ theorem localizationCorrectorSlopeEstimate_of_slope (hd : 2 ≤ d) {Λ s δ γ �
   set C₁' := C₁ + (1 + d) ^ γ * Cs ^ γ + R ^ γ / Real.log 2 ^ s⁻¹ with hC₁'_def
   have hCsγ : 0 < Cs ^ γ := Real.rpow_pos_of_pos hCs _
   refine ⟨c, heatShellConstant d 0 * E₁, E₁, K₁, C₁', hc, hc1, mul_nonneg hsc0 hE₁, hE₁, hK₁,
-    by positivity, fun P hP => ?_⟩
+    by positivity, fun P hLP' => ?_⟩
+  have hP := hLP P hLP'
   have : IsProbabilityMeasure P := hP.1
-  obtain ⟨S, hS⟩ := hmain P hP
+  obtain ⟨S, hS⟩ := hmain P hLP'
   refine ⟨S, fun W z r hr => ?_⟩
   obtain ⟨X, Y, hX0, hY0, hXos, hYos, hae⟩ := hS W z r hr
   obtain ⟨Xz, hXzm, hXzos, hXz1, hXzae⟩ := htrP P hP S z
@@ -202,6 +218,14 @@ theorem localizationCorrectorSlopeEstimate_of_slope (hd : 2 ≤ d) {Λ s δ γ �
       exact (hza i t (hXzd.trans hrt)).2
     · exact (hza i _ (hXzd.trans hT)).2
     · exact hslope i t hrt htS
+
+/-- **The corrector hypotheses of Lemma 4.21 from the single-slope estimate**, for all laws. -/
+theorem localizationCorrectorSlopeEstimate_of_slope (hd : 2 ≤ d) {Λ s δ γ α σ θ C₀ : ℝ}
+    (hΛ : 1 < Λ) (hs : 1 ≤ s) (hδ : 0 < δ) (hγ : 0 < γ) (hγs : s * γ < d)
+    (h : LocalizationSlopeEstimate d Λ s δ γ α σ θ C₀) :
+    LocalizationCorrectorSlopeEstimate d Λ s δ γ α σ θ C₀ :=
+  localizationCorrectorSlopeEstimateOn_of_slopeOn hd hΛ (L := LawHypotheses) (fun _ h => h) hs hδ
+    hγ hγs h
 
 /-- **(5.85) from the first-order Liouville theorem and the single-slope estimate of
 Lemma 4.21.** For every window of exponents, a choice of the structural constants

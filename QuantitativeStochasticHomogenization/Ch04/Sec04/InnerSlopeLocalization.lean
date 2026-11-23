@@ -275,16 +275,29 @@ def LocalizationInnerSlopeEstimate (d : ℕ) (Λ s δ γ α σ θ C₀ : ℝ) : 
             LocalizationInnerSlopeData a z (localizationOuterRadius δ r)
               (c * localizationIntermediateRadius δ α γ r) r (W a z r hr) E E₁ (K₁ * Y a ^ 2)
 
+/-- `LocalizationInnerSlopeEstimate` for the laws of a class `L`. -/
+def LocalizationInnerSlopeEstimateOn {d : ℕ} {Λ : ℝ} (L : Measure (CoefficientField d Λ) → Prop)
+    (s δ γ α σ θ C₀ : ℝ) : Prop :=
+  ∃ (c E E₁ K₁ C₁ : ℝ), 0 < c ∧ c ≤ 1 ∧ 0 ≤ E ∧ 0 ≤ E₁ ∧ 0 ≤ K₁ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P →
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧ AEOsBound P Y s (C₁ * r ^ (-γ)) ∧
+          ∀ᵐ a ∂P, X a ≤ r →
+            LocalizationInnerSlopeData a z (localizationOuterRadius δ r)
+              (c * localizationIntermediateRadius δ α γ r) r (W a z r hr) E E₁ (K₁ * Y a ^ 2)
+
 theorem localizationEpsilon_pos {δ α γ : ℝ} (hδ : 0 < δ) (hα : 0 < α)
     (hαγ : γ < α * (1 + δ) + δ) : 0 < localizationEpsilon δ α γ :=
   lt_min (div_pos (by linarith) (by linarith)) (by linarith)
 
 /-- **The ball-growth estimate from the single-slope estimate**, with
 `k = max 2 ⌈(2γ + d ε)/(δ - ε)⌉` and `K = K₁ + 3 (C₀² + E₁ + d² E₁/4) c^{-(d+k)}`. -/
-theorem localizationBallGrowthEstimate_of_innerSlope {Λ s δ γ α σ θ C₀ : ℝ} (hδ : 0 < δ)
+theorem localizationBallGrowthEstimateOn_of_innerSlopeOn {Λ s δ γ α σ θ C₀ : ℝ}
+    {L : Measure (CoefficientField d Λ) → Prop} (hδ : 0 < δ)
     (hα : 0 < α) (hαγ : γ < α * (1 + δ) + δ)
-    (h : LocalizationInnerSlopeEstimate d Λ s δ γ α σ θ C₀) :
-    LocalizationBallGrowthEstimate d Λ s δ γ α σ θ C₀ := by
+    (h : LocalizationInnerSlopeEstimateOn L s δ γ α σ θ C₀) :
+    LocalizationBallGrowthEstimateOn L s δ γ α σ θ C₀ := by
   obtain ⟨c, E, E₁, K₁, C₁, hc, hc1, hE, hE₁, hK₁, hC₁, hmain⟩ := h
   set ε := localizationEpsilon δ α γ with hε_def
   have hε0 : 0 < ε := localizationEpsilon_pos hδ hα hαγ
@@ -334,6 +347,12 @@ theorem localizationBallGrowthEstimate_of_innerSlope {Λ s δ γ α σ θ C₀ :
           3 * (C₀ ^ 2 + E₁ + d * d * E₁ / 4) * (c ^ (d + k))⁻¹ * Y a ^ 2) := by ring
   rw [h3]
   linarith
+
+theorem localizationBallGrowthEstimate_of_innerSlope {Λ s δ γ α σ θ C₀ : ℝ} (hδ : 0 < δ)
+    (hα : 0 < α) (hαγ : γ < α * (1 + δ) + δ)
+    (h : LocalizationInnerSlopeEstimate d Λ s δ γ α σ θ C₀) :
+    LocalizationBallGrowthEstimate d Λ s δ γ α σ θ C₀ :=
+  localizationBallGrowthEstimateOn_of_innerSlopeOn (L := LawHypotheses) hδ hα hαγ h
 
 /-- **(5.85) from the single-slope estimate of Lemma 4.21.** For every window of exponents, a
 choice of the structural constants `α, σ, θ, C₀` with `LocalizationInnerSlopeEstimate` gives the

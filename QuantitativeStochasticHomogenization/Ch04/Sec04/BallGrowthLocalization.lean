@@ -260,6 +260,30 @@ def LocalizationBallGrowthEstimate (d : ℕ) (Λ s δ γ α σ θ C₀ : ℝ) : 
             LocalizationBallGrowthData a z (localizationOuterRadius δ r) r (W a z r hr) k E
               (K₁ * (Y a ^ 2 + (r ^ (-γ)) ^ 2))
 
+/-- `LocalizationBallGrowthEstimate` for the laws of a class `L`. -/
+def LocalizationBallGrowthEstimateOn {d : ℕ} {Λ : ℝ} (L : Measure (CoefficientField d Λ) → Prop)
+    (s δ γ α σ θ C₀ : ℝ) : Prop :=
+  ∃ (k : ℕ) (E K₁ C₁ : ℝ), 0 ≤ E ∧ 0 ≤ K₁ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P →
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧ AEOsBound P Y s (C₁ * r ^ (-γ)) ∧
+          ∀ᵐ a ∂P, X a ≤ r →
+            LocalizationBallGrowthData a z (localizationOuterRadius δ r) r (W a z r hr) k E
+              (K₁ * (Y a ^ 2 + (r ^ (-γ)) ^ 2))
+
+/-- `LocalizationApproximationUniform` for the laws of a class `L`. -/
+def LocalizationApproximationUniformOn {d : ℕ} {Λ : ℝ}
+    (L : Measure (CoefficientField d Λ) → Prop) (s δ γ α σ θ C₀ C : ℝ) : Prop :=
+  ∀ P : Measure (CoefficientField d Λ), L P →
+    ∀ W : LocalizedFamily d Λ δ γ α σ θ C₀, ∀ (z : Vec d) (r : ℝ) (hr : 2 ≤ r) (p q : Vec d),
+      euclideanNorm p < 1 → euclideanNorm q < 1 →
+      ∃ Z : CoefficientField d Λ → ℝ,
+        AEOsBound P Z s (C * r ^ (-γ)) ∧
+        ∀ᵐ a ∂P, (∃ η κ : ℝ, LocalizationApproximationAtUniform a z
+            (localizationOuterRadius δ r) r (by linarith : r ≠ 0) (W a z r hr) p q η κ (Z a)) ∨
+          |J1Heat a z r p q - localizedJ1 (W a z r hr) r p q| ≤ Z a
+
 theorem exp_neg_localizationOuterRadius_le {δ γ R₀ : ℝ} (hγ : 0 ≤ γ) (hR₀ : 0 < R₀)
     (hexp : ∀ r : ℝ, R₀ ≤ r →
       Real.exp (-(localizationOuterRadius δ r ^ 2) / (8 * r ^ 2)) ≤ r ^ (-γ))
@@ -290,10 +314,11 @@ theorem sqrt_mul_sq_add_sq_le {H y t : ℝ} (hH : 0 ≤ H) (hy : 0 ≤ y) (ht : 
 /-- **The stochastic form of Lemmas 4.21-4.22 from the ball-growth estimate**: on `{X ≤ r}` the
 localization error is at most `K (exp(-T²/(8r²)) + √(heatShellConstant d k · A))`, off it at
 most `localizationCap d Λ ≤ localizationCap d Λ · r^{-γ} X^γ`. -/
-theorem localizationApproximationUniform_of_ballGrowth {Λ s δ γ α σ θ C₀ : ℝ} (hd : 0 < d)
+theorem localizationApproximationUniformOn_of_ballGrowthOn {Λ s δ γ α σ θ C₀ : ℝ}
+    {L : Measure (CoefficientField d Λ) → Prop} (hLP : ∀ P, L P → LawHypotheses P) (hd : 0 < d)
     (hΛ : 0 ≤ Λ) (hs : 1 ≤ s) (hδ : 0 < δ) (hγ : 0 ≤ γ)
-    (h : LocalizationBallGrowthEstimate d Λ s δ γ α σ θ C₀) :
-    ∃ C : ℝ, 0 < C ∧ LocalizationApproximationUniform d Λ s δ γ α σ θ C₀ C := by
+    (h : LocalizationBallGrowthEstimateOn L s δ γ α σ θ C₀) :
+    ∃ C : ℝ, 0 < C ∧ LocalizationApproximationUniformOn L s δ γ α σ θ C₀ C := by
   obtain ⟨k, E, K₁, C₁, hE, hK₁, hC₁, hmain⟩ := h
   obtain ⟨R₀, hR₀, hexp⟩ := exists_exp_neg_le_rpow hδ γ
   set cap := localizationCap d Λ with hcap_def
@@ -322,11 +347,11 @@ theorem localizationApproximationUniform_of_ballGrowth {Λ s δ γ α σ θ C₀
   have hcY : 0 < cY := by positivity
   have hl2 : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
   refine ⟨cap * C₁ + c₀ / Real.log 2 ^ s⁻¹ + cY * C₁, by positivity, ?_⟩
-  intro P hP W z r hr p q hp hq
-  have : IsProbabilityMeasure P := hP.1
+  intro P hLP' W z r hr p q hp hq
+  have : IsProbabilityMeasure P := (hLP P hLP').1
   have hr0 : 0 < r := by linarith
   have hrγ : 0 < r ^ (-γ) := Real.rpow_pos_of_pos hr0 _
-  obtain ⟨X, Y, hX0, hY0, hXos, hYos, hae⟩ := hmain P hP W z r hr
+  obtain ⟨X, Y, hX0, hY0, hXos, hYos, hae⟩ := hmain P hLP' W z r hr
   refine ⟨fun a => cap * r ^ (-γ) * X a ^ γ + c₀ * r ^ (-γ) + cY * Y a, ?_, ?_⟩
   · have h1 := hXos.const_mul (mul_pos hcap0 hrγ)
     have h2 : AEOsBound P (fun _ => c₀ * r ^ (-γ)) s (c₀ * r ^ (-γ) / Real.log 2 ^ s⁻¹) :=
@@ -382,6 +407,13 @@ theorem localizationApproximationUniform_of_ballGrowth {Λ s δ γ α σ θ C₀
       have hc := abs_J1Heat_sub_localizedJ1_le_cap hΛ hr0 (W a z r hr) hp1 hq1
       have hc0r : 0 ≤ c₀ * r ^ (-γ) := by positivity
       linarith
+
+theorem localizationApproximationUniform_of_ballGrowth {Λ s δ γ α σ θ C₀ : ℝ} (hd : 0 < d)
+    (hΛ : 0 ≤ Λ) (hs : 1 ≤ s) (hδ : 0 < δ) (hγ : 0 ≤ γ)
+    (h : LocalizationBallGrowthEstimate d Λ s δ γ α σ θ C₀) :
+    ∃ C : ℝ, 0 < C ∧ LocalizationApproximationUniform d Λ s δ γ α σ θ C₀ C :=
+  localizationApproximationUniformOn_of_ballGrowthOn (L := LawHypotheses) (fun _ h => h) hd hΛ hs
+    hδ hγ h
 
 /-! ## The frozen statement (5.85) -/
 

@@ -88,18 +88,38 @@ def LocalizationCorrectorSlopeEstimate (d : ℕ) (Λ s δ γ α σ θ C₀ : ℝ
             LocalizationCorrectorSlopeData S a z (localizationOuterRadius δ r)
               (c * localizationIntermediateRadius δ α γ r) r (W a z r hr) E E₁ (K₁ * Y a ^ 2)
 
+/-- `LocalizationCorrectorSlopeEstimate` for the laws of a class `L`. -/
+def LocalizationCorrectorSlopeEstimateOn {d : ℕ} {Λ : ℝ}
+    (L : Measure (CoefficientField d Λ) → Prop) (s δ γ α σ θ C₀ : ℝ) : Prop :=
+  ∃ (c E E₁ K₁ C₁ : ℝ), 0 < c ∧ c ≤ 1 ∧ 0 ≤ E ∧ 0 ≤ E₁ ∧ 0 ≤ K₁ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P → ∃ S : HomogenizationData P,
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧ AEOsBound P Y s (C₁ * r ^ (-γ)) ∧
+          ∀ᵐ a ∂P, X a ≤ r →
+            LocalizationCorrectorSlopeData S a z (localizationOuterRadius δ r)
+              (c * localizationIntermediateRadius δ α γ r) r (W a z r hr) E E₁ (K₁ * Y a ^ 2)
+
+theorem localizationInnerSlopeEstimateOn_of_correctorSlopeOn
+    (hL : firstOrderLiouvilleStatement) (hd : 2 ≤ d) {Λ s δ γ α σ θ C₀ : ℝ} (hΛ : 1 < Λ)
+    {L : Measure (CoefficientField d Λ) → Prop} (hLP : ∀ P, L P → LawHypotheses P)
+    (h : LocalizationCorrectorSlopeEstimateOn L s δ γ α σ θ C₀) :
+    LocalizationInnerSlopeEstimateOn L s δ γ α σ θ C₀ := by
+  obtain ⟨c, E, E₁, K₁, C₁, hc, hc1, hE, hE₁, hK₁, hC₁, hmain⟩ := h
+  refine ⟨c, E, E₁, K₁, C₁, hc, hc1, hE, hE₁, hK₁, hC₁, fun P hLP' W z r hr => ?_⟩
+  obtain ⟨S, hS⟩ := hmain P hLP'
+  obtain ⟨X, Y, hX0, hY0, hXos, hYos, hae⟩ := hS W z r hr
+  refine ⟨X, Y, hX0, hY0, hXos, hYos, ?_⟩
+  filter_upwards [hae, ae_localizationInnerSlopeData_of_correctorSlopeData hL hd hΛ (hLP P hLP') S]
+    with a ha hstr hXr
+  exact hstr _ _ _ _ _ _ _ _ _ _ _ _ (by linarith) (ha hXr)
+
 theorem localizationInnerSlopeEstimate_of_correctorSlope (hL : firstOrderLiouvilleStatement)
     (hd : 2 ≤ d) {Λ s δ γ α σ θ C₀ : ℝ} (hΛ : 1 < Λ)
     (h : LocalizationCorrectorSlopeEstimate d Λ s δ γ α σ θ C₀) :
-    LocalizationInnerSlopeEstimate d Λ s δ γ α σ θ C₀ := by
-  obtain ⟨c, E, E₁, K₁, C₁, hc, hc1, hE, hE₁, hK₁, hC₁, hmain⟩ := h
-  refine ⟨c, E, E₁, K₁, C₁, hc, hc1, hE, hE₁, hK₁, hC₁, fun P hP W z r hr => ?_⟩
-  obtain ⟨S, hS⟩ := hmain P hP
-  obtain ⟨X, Y, hX0, hY0, hXos, hYos, hae⟩ := hS W z r hr
-  refine ⟨X, Y, hX0, hY0, hXos, hYos, ?_⟩
-  filter_upwards [hae, ae_localizationInnerSlopeData_of_correctorSlopeData hL hd hΛ hP S]
-    with a ha hstr hXr
-  exact hstr _ _ _ _ _ _ _ _ _ _ _ _ (by linarith) (ha hXr)
+    LocalizationInnerSlopeEstimate d Λ s δ γ α σ θ C₀ :=
+  localizationInnerSlopeEstimateOn_of_correctorSlopeOn hL hd hΛ (L := LawHypotheses)
+    (fun _ h => h) h
 
 /-- **(5.85) from the first-order Liouville theorem and the single-slope estimate of Lemma 4.21
 for the correctors.** -/

@@ -126,7 +126,7 @@ of each module names the source files and commits.
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
 
 
-## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`)
+## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`, `Ch04/Sec04/PilotLocalization.lean`)
 
 - **The quantifier order.** The book's constants depend only on `(s, d, Λ)`. In the bootstrap this
   is the statement that each of Propositions 4.3, 4.10, 4.11 and 4.12 turns a constant of its
@@ -162,11 +162,20 @@ of each module names the source files and commits.
   exponents `α ∈ (0, d/2]` of the bootstrap, with the localized energies of one localized family of
   Section 4.4 as the localized fields (`uniformLocalizationEstimates_of_pilot`,
   `Ch04/Sec04/LocalizationUniform.lean`); the family is chosen independently of the law.
-- **What remains.** Theorem 4.6 (i), (iii), (5.58), (4.126), Theorem 4.1 and Lemma 5.29 are deduced
-  from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a kernel of
-  mass `C_k/u`, and the estimate `|J₁ - J₁^{(δ)}| ≤ O_s(C r^{-γ})` of the localized energies under
-  `Fluc(s, α)` (`PilotLocalizationEstimates`), which are not proved
-  (`bootstrapInputs_of_rate_heat_pilot`).
+- **Lemmas 4.21–4.22 for a class of laws.** The reduction of (5.85) to the single-slope estimate of
+  Lemma 4.21 uses the law only through that estimate, so it is stated for every class `L` of laws
+  (`LocalizationSlopeEstimateOn L`, `localizationEstimateOn_of_slopeOn`). Proposition 4.11 at the
+  exponents of the bootstrap is the single-slope estimate on the classes `LinearLaw s α C` of the
+  laws with the linear estimate at `(s, α)` (`LinearSlopeEstimates`): under the Gaussian inputs,
+  `Fluc(s, α)` gives this linear estimate with a constant chosen before the law
+  (`pilotLocalizationEstimates_of_gaussianInputs_slopeOn`); for `γ ≤ 0` the localization error is
+  bounded. The book proves Proposition 4.11 at every `α` with `Fluc(s, α)` as the input; here the
+  input is the linear estimate it implies.
+- **What remains.** Theorem 4.6 (i), (iii), (5.58), (5.85), (4.126), Theorem 4.1 and Lemma 5.29 are
+  deduced from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a
+  kernel of mass `C_k/u`, and the single-slope estimate on the classes `LinearLaw`
+  (`LinearSlopeEstimates`), which are not proved (`bootstrapInputs_of_rate_heat_pilot`,
+  `pilotLocalizationEstimates_of_rate_heat_slope`, `localizedEnergy_of_rate_heat_slope`).
 
 ## Section 4.4: the localization of pp. 155-156
 
