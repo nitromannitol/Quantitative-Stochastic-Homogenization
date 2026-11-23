@@ -13,14 +13,14 @@ center and above a random radius, with the constants chosen before the law.
 The compact tests are adapted to the homogenized matrix `ā` of the law: they are the rescaled
 derivatives `ψ_α = (∂^α ρ)(-·/λ)`, `|α| < ⌈k⌉`, of the compact profile `ρ` of the symmetric part of
 `ā`. Their number, their bounds and Lipschitz constants and the constant of the estimate are chosen
-before the law (`CompactTestFiniteBallLaw`); the absorption into the truncated Gaussian observation
-only uses these (`finiteBallObservation_of_compactTestsLaw`).
+before the law (`CompactTestFiniteBall`); the absorption into the truncated Gaussian observation
+only uses these (`finiteBallObservation_of_compactTests`).
 
 At a center `z`, the corrector families at the nearest lattice point `y` (above the random scale of
 `exists_ae_sublinearCorrectorFamily`, transported by the stationarity of the law) are translated
 by `z - y` to the field `a(z + ·)` (`SublinearCorrectorFamily.translate`), and the deterministic core
 `compactTest_core` applies to the shifted solution; its observations are the pairings of `u` with
-the rescaled tests (`compactTestFiniteBallLaw`).
+the rescaled tests (`compactTestFiniteBall`).
 -/
 
 open MeasureTheory Filter Set
@@ -31,61 +31,6 @@ noncomputable section
 namespace QSH
 
 variable {d : ℕ}
-
-/-- **The finite-ball estimate with compact tests chosen after the law**: as
-`CompactTestFiniteBall d Λ k`, with the tests chosen for each law and their number, their bound
-`L` and the constants `L₁`, `C` chosen before the law. -/
-def CompactTestFiniteBallLaw (d : ℕ) (Λ k : ℝ) : Prop :=
-  ∃ (N : ℕ) (L L₁ C : ℝ), 0 ≤ L ∧ 1 ≤ L₁ ∧ 0 ≤ C ∧
-    ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
-      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
-        ∃ ψ : Fin N → Vec d → ℝ, (∀ ℓ, IsUnitTest (ψ ℓ) L) ∧ ∀ z : Vec d,
-        ∃ X : CoefficientField d Λ → ℝ, Measurable X ∧ OsBound P X τ Cτ ∧ (∀ a, 1 ≤ X a) ∧
-          ∀ᵐ a ∂P, ∀ S T : ℝ, X a ≤ S → L₁ * S ≤ T → ∀ u : LocalHarmonic a z T,
-            ∀ t : ℝ, S ≤ t → t ≤ T → ∫ x in ball z t, u.potential x ^ 2 ≤
-              C * (∑ ℓ, ((volume.real (ball z S))⁻¹ *
-                  ∫ x in ball z T, u.potential x * scaledTest (ψ ℓ) z S x) ^ 2 +
-                (S / T) ^ (2 * k) * ((volume.real (ball z T))⁻¹ *
-                  ∫ x in ball z T, u.potential x ^ 2)) *
-                ((t / S) ^ (2 * k) * volume.real (ball z t))
-
-/-- **The finite-ball observation from the estimate with compact tests chosen after the law**:
-the absorption of `integral_sq_ball_le_of_compactTests` with `σ` chosen from `N`, `L` and `C`. -/
-theorem finiteBallObservation_of_compactTestsLaw {Λ k : ℝ} (hk : 0 ≤ k)
-    (h : CompactTestFiniteBallLaw d Λ k) :
-    ∃ σ θ : ℝ, 0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧
-      ∃ (L₀ C : ℝ), 1 ≤ L₀ ∧ 0 < C ∧ ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
-        ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ z : Vec d,
-          ∃ X : CoefficientField d Λ → ℝ, Measurable X ∧ OsBound P X τ Cτ ∧ (∀ a, 1 ≤ X a) ∧
-            ∀ᵐ a ∂P, ∀ S T : ℝ, X a ≤ S → L₀ * S ≤ T → ∀ u : LocalHarmonic a z T,
-              ∫ x in ball z S, u.potential x ^ 2 ≤
-                C * (volume.real (ball z S) * localizationObjective z T S σ θ u.potential +
-                  (S / T) ^ (2 * k) * ∫ x in ball z T, u.potential x ^ 2) := by
-  obtain ⟨N, L, L₁, C, hL, hL₁, hC, hmain⟩ := h
-  obtain ⟨hσ0, hσ2, hσ⟩ := absorption_fraction (N := N) hC hL (absorptionMoment_nonneg d k)
-  set σ := 1 / (2 * (1 + L * absorptionMoment d k) * (1 + N * C)) with hσdef
-  refine ⟨σ, 1 / 2, hσ0, hσ2, by norm_num, le_rfl, L₁,
-    max (4 * C * N * L ^ 2 * 2 ^ d + 2 * C) 1, hL₁, lt_max_of_lt_right one_pos,
-    fun τ hτ0 hτd => ?_⟩
-  obtain ⟨Cτ, hCτ, hP⟩ := hmain τ hτ0 hτd
-  refine ⟨Cτ, hCτ, fun P hPl z => ?_⟩
-  obtain ⟨ψ, hψ, hz⟩ := hP P hPl
-  obtain ⟨X, hXm, hXos, hX1, hae⟩ := hz z
-  refine ⟨X, hXm, hXos, hX1, ?_⟩
-  filter_upwards [hae] with a ha
-  intro S T hXS hST u
-  have hS : 0 < S := lt_of_lt_of_le one_pos ((hX1 a).trans hXS)
-  have hST' : S ≤ T := le_trans (le_mul_of_one_le_left hS.le hL₁) hST
-  have hb := integral_sq_ball_le_of_compactTests hψ hS hST' hk hC hσ0 (by linarith) hσ
-    u.square_integrable (ha S T hXS hST u)
-  have hT0 : 0 < T := hS.trans_le hST'
-  have hY : 0 ≤ volume.real (ball z S) * localizationObjective z T S σ (1 / 2) u.potential +
-      (S / T) ^ (2 * k) * ∫ x in ball z T, u.potential x ^ 2 := by
-    refine add_nonneg (mul_nonneg measureReal_nonneg ?_)
-      (mul_nonneg (Real.rpow_nonneg (div_pos hS hT0).le _) (integral_nonneg fun _ => sq_nonneg _))
-    rw [localizationObjective, setAverage_eq, smul_eq_mul]
-    exact mul_nonneg (inv_nonneg.mpr measureReal_nonneg) (integral_nonneg fun _ => sq_nonneg _)
-  exact hb.trans (mul_le_mul_of_nonneg_right (le_max_left _ _) hY)
 
 /-! ## The rescaled compact tests -/
 
@@ -221,8 +166,8 @@ theorem dot_symmPart'_mulVec (D : Mat d) (ξ : Vec d) :
 
 /-- **The finite-ball estimate with compact tests above a random radius at every center**
 (for the laws of AKM, with the tests chosen after the law). -/
-theorem compactTestFiniteBallLaw (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : ℝ} (hk : 0 < k) :
-    CompactTestFiniteBallLaw d Λ k := by
+theorem compactTestFiniteBall (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : ℝ} (hk : 0 < k) :
+    CompactTestFiniteBall d Λ k := by
   classical
   have hd0 : 0 < d := by omega
   have hΛ1 : 1 ≤ Λ := hΛ.le
@@ -515,20 +460,5 @@ theorem compactTestFiniteBallLaw (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : �
             (mul_le_mul_of_nonneg_right hCC hX0)
           exact le_of_le_of_eq h (by ring)
       _ = _ := by rw [hsq2, hsq1]
-
-/-- **The finite-ball observation of the proof of Lemma 4.21**, for every growth exponent `k > 0`:
-`σ, θ ∈ (0, 1/2]` and constants chosen before the law, and at every center a random radius
-`X ≤ O_τ(C_τ)`, `τ < d`, above which `∫_{B_S(z)} u² ≤ C (|B_S| I + (S/T)^{2k} ∫_{B_T(z)} u²)` for
-the `a`-harmonic functions on `B_T(z)`, `T ≥ L₀ S`, with `I` the truncated Gaussian observation. -/
-theorem finiteBallObservation_of_laws (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : ℝ} (hk : 0 < k) :
-    ∃ σ θ : ℝ, 0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧
-      ∃ (L₀ C : ℝ), 1 ≤ L₀ ∧ 0 < C ∧ ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
-        ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ z : Vec d,
-          ∃ X : CoefficientField d Λ → ℝ, Measurable X ∧ OsBound P X τ Cτ ∧ (∀ a, 1 ≤ X a) ∧
-            ∀ᵐ a ∂P, ∀ S T : ℝ, X a ≤ S → L₀ * S ≤ T → ∀ u : LocalHarmonic a z T,
-              ∫ x in ball z S, u.potential x ^ 2 ≤
-                C * (volume.real (ball z S) * localizationObjective z T S σ θ u.potential +
-                  (S / T) ^ (2 * k) * ∫ x in ball z T, u.potential x ^ 2) :=
-  finiteBallObservation_of_compactTestsLaw hk.le (compactTestFiniteBallLaw hd hΛ hk)
 
 end QSH

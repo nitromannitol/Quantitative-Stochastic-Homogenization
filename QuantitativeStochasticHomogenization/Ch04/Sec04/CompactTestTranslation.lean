@@ -29,7 +29,7 @@ namespace QSH
 variable {d : ℕ}
 
 /-- The segment average `W(x) = -∫₀¹ h · G(x - θh) dθ`. -/
-def segmentAverage (G : Vec d → Vec d) (h x : Vec d) : ℝ :=
+def translationSegmentAverage (G : Vec d → Vec d) (h x : Vec d) : ℝ :=
   -∫ θ in (0 : ℝ)..1, dot h (G (x - θ • h))
 
 theorem setIntegral_ball_comp_sub' (F : Vec d → ℝ) (z y : Vec d) (r : ℝ) :
@@ -152,7 +152,7 @@ theorem integral_translate_sub_mul_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d
     (hw : HasWeakGradient (ball 0 R) v G) {h : Vec d} (htR : t + euclideanNorm h ≤ R)
     {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball 0 t) φ) :
     ∫ x, ((ball 0 R).indicator v (x - h) - (ball 0 R).indicator v x) * φ x =
-      ∫ x, segmentAverage ((ball 0 R).indicator G) h x * φ x := by
+      ∫ x, translationSegmentAverage ((ball 0 R).indicator G) h x * φ x := by
   set F := (ball (0 : Vec d) R).indicator v with hFdef
   set G' := (ball (0 : Vec d) R).indicator G with hG'def
   have hF : Integrable F := (integrable_indicator_iff (measurableSet_ball _ _)).mpr hv
@@ -292,7 +292,7 @@ theorem integral_translate_sub_mul_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d
   -- the right side by translation and Fubini
   set P : ℝ × Vec d → ℝ := fun q => dot h (G' (q.2 - q.1 • h)) * φ q.2 with hPdef
   have hPint := integrable_dot_translate_mul hG'm hG'i h hφc (C := Mφ) hMφ
-  have hR : ∫ θ in (0 : ℝ)..1, ψ' θ = ∫ x, segmentAverage G' h x * φ x := by
+  have hR : ∫ θ in (0 : ℝ)..1, ψ' θ = ∫ x, translationSegmentAverage G' h x * φ x := by
     have e1 : ∫ θ in (0 : ℝ)..1, ψ' θ = ∫ θ in (0 : ℝ)..1, -∫ x, P (θ, x) := by
       refine intervalIntegral.integral_congr fun θ hθ => ?_
       rw [Set.uIcc_of_le zero_le_one] at hθ
@@ -307,7 +307,7 @@ theorem integral_translate_sub_mul_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d
       integral_integral_swap hPint]
     rw [← integral_neg]
     refine integral_congr_ae (Eventually.of_forall fun x => ?_)
-    simp only [hPdef, segmentAverage, intervalIntegral.integral_of_le zero_le_one]
+    simp only [hPdef, translationSegmentAverage, intervalIntegral.integral_of_le zero_le_one]
     rw [integral_mul_const]
     ring
   rw [hL, hftc, hR]
@@ -360,7 +360,7 @@ theorem ae_translate_sub_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d → Vec d
     (hw : HasWeakGradient (ball 0 R) v G) {h : Vec d} (htR : t + euclideanNorm h ≤ R) :
     ∀ᵐ x ∂(volume : Measure (Vec d)), x ∈ ball 0 t →
       (ball 0 R).indicator v (x - h) - (ball 0 R).indicator v x =
-        segmentAverage ((ball 0 R).indicator G) h x := by
+        translationSegmentAverage ((ball 0 R).indicator G) h x := by
   set F := (ball (0 : Vec d) R).indicator v with hFdef
   set G' := (ball (0 : Vec d) R).indicator G with hG'def
   have hF : Integrable F := (integrable_indicator_iff (measurableSet_ball _ _)).mpr hv
@@ -373,11 +373,11 @@ theorem ae_translate_sub_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d → Vec d
     exact (integrable_indicator_iff (measurableSet_ball _ _)).mpr (hG i)
   have hP1 := integrable_dot_translate_mul hG'm hG'i h (φ := fun _ => (1 : ℝ)) continuous_const
     (C := 1) (fun _ => by simp)
-  have hW : Integrable (segmentAverage G' h) := by
+  have hW : Integrable (translationSegmentAverage G' h) := by
     have := hP1.integral_prod_right.neg
     refine this.congr (Eventually.of_forall fun x => ?_)
-    simp [segmentAverage, intervalIntegral.integral_of_le zero_le_one]
-  set f : Vec d → ℝ := fun x => F (x - h) - F x - segmentAverage G' h x with hf
+    simp [translationSegmentAverage, intervalIntegral.integral_of_le zero_le_one]
+  set f : Vec d → ℝ := fun x => F (x - h) - F x - translationSegmentAverage G' h x with hf
   have hfi : Integrable f := ((hF.comp_sub_right h).sub hF).sub hW
   have h0 := (isOpen_ball (0 : Vec d) t).ae_eq_zero_of_integral_contDiff_smul_eq_zero
     (f := f) (hfi.locallyIntegrable.locallyIntegrableOn _) fun g hg hgc hgs => by
@@ -389,13 +389,13 @@ theorem ae_translate_sub_eq {R t : ℝ} {v : Vec d → ℝ} {G : Vec d → Vec d
           (((hF.comp_sub_right h).sub hF).aestronglyMeasurable.mul hg.continuous.aestronglyMeasurable)
           (Eventually.of_forall fun x => by
             rw [norm_mul]; exact mul_le_mul_of_nonneg_left (hMg x) (norm_nonneg _))
-      have i2 : Integrable (fun x => segmentAverage G' h x * g x) :=
+      have i2 : Integrable (fun x => translationSegmentAverage G' h x * g x) :=
         Integrable.mono' (hW.norm.mul_const Mg)
           (hW.aestronglyMeasurable.mul hg.continuous.aestronglyMeasurable)
           (Eventually.of_forall fun x => by
             rw [norm_mul]; exact mul_le_mul_of_nonneg_left (hMg x) (norm_nonneg _))
       have e : (fun x => g x • f x) = fun x => (F (x - h) - F x) * g x -
-          segmentAverage G' h x * g x := by
+          translationSegmentAverage G' h x * g x := by
         funext x; simp only [hf, smul_eq_mul]; ring
       rw [e, integral_sub i1 i2, hid, sub_self]
   filter_upwards [h0] with x hx hxt
@@ -455,7 +455,7 @@ theorem integral_sq_translate_sub_le {R t : ℝ} {v : Vec d → ℝ} {g : Vec d 
       · linarith
       · linarith
   have heq : ∫ x in ball 0 t, (v (x - h) - v x) ^ 2 =
-      ∫ x in ball 0 t, segmentAverage G' h x ^ 2 := by
+      ∫ x in ball 0 t, translationSegmentAverage G' h x ^ 2 := by
     refine setIntegral_congr_ae (measurableSet_ball _ _) ?_
     filter_upwards [hae] with x hx hxt
     rw [← hx hxt, Set.indicator_of_mem (hxR x hxt).2, Set.indicator_of_mem (hxR x hxt).1]
@@ -467,7 +467,7 @@ theorem integral_sq_translate_sub_le {R t : ℝ} {v : Vec d → ℝ} {g : Vec d 
   have hP1 := integrable_dot_translate_mul hG'm hG'i h (φ := fun _ => (1 : ℝ)) continuous_const
     (C := 1) (fun _ => by simp)
   have hpt : ∀ᵐ x ∂(volume : Measure (Vec d)),
-      segmentAverage G' h x ^ 2 ≤ euclideanSq h * ∫ θ in Set.Ioc (0 : ℝ) 1, Q (θ, x) := by
+      translationSegmentAverage G' h x ^ 2 ≤ euclideanSq h * ∫ θ in Set.Ioc (0 : ℝ) 1, Q (θ, x) := by
     filter_upwards [hQint.prod_left_ae, hP1.prod_left_ae] with x hQx hPx
     have hPx' : Integrable (fun θ : ℝ => dot h (G' (x - θ • h)))
         (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
@@ -478,8 +478,8 @@ theorem integral_sq_translate_sub_le {R t : ℝ} {v : Vec d → ℝ} {g : Vec d 
         (Eventually.of_forall fun θ => ?_)
       rw [Real.norm_of_nonneg (sq_nonneg _)]
       exact sq_dot_le' _ _
-    have hS : segmentAverage G' h x = -∫ θ in Set.Ioc (0 : ℝ) 1, dot h (G' (x - θ • h)) := by
-      simp [segmentAverage, intervalIntegral.integral_of_le zero_le_one]
+    have hS : translationSegmentAverage G' h x = -∫ θ in Set.Ioc (0 : ℝ) 1, dot h (G' (x - θ • h)) := by
+      simp [translationSegmentAverage, intervalIntegral.integral_of_le zero_le_one]
     rw [hS, neg_sq]
     refine (sq_setIntegral_Ioc_le hPx' hP2).trans ?_
     rw [← integral_const_mul]
@@ -512,10 +512,10 @@ theorem integral_sq_translate_sub_le {R t : ℝ} {v : Vec d → ℝ} {g : Vec d 
     filter_upwards [ae_imp_of_ae_restrict hGg] with x hx hxB
     rw [hG'def, Set.indicator_of_mem (hRsub hxB), hx (hRsub hxB)]
   have hIQ : Integrable (fun x => ∫ θ in Set.Ioc (0 : ℝ) 1, Q (θ, x)) := hQint.integral_prod_right
-  have hWm : AEStronglyMeasurable (segmentAverage G' h) volume := by
+  have hWm : AEStronglyMeasurable (translationSegmentAverage G' h) volume := by
     refine hP1.integral_prod_right.neg.aestronglyMeasurable.congr (Eventually.of_forall fun x => ?_)
-    simp [segmentAverage, intervalIntegral.integral_of_le zero_le_one]
-  have hW2 : IntegrableOn (fun x => segmentAverage G' h x ^ 2) (ball 0 t) :=
+    simp [translationSegmentAverage, intervalIntegral.integral_of_le zero_le_one]
+  have hW2 : IntegrableOn (fun x => translationSegmentAverage G' h x ^ 2) (ball 0 t) :=
     Integrable.mono' (hIQ.const_mul (euclideanSq h)).integrableOn (hWm.pow 2).restrict
       (ae_restrict_of_ae (hpt.mono fun x hx => by
         rw [Real.norm_of_nonneg (sq_nonneg _)]; exact hx))
@@ -547,7 +547,7 @@ theorem integral_sq_translate_sub_le {R t : ℝ} {v : Vec d → ℝ} {g : Vec d 
     refine hQtint.integral_prod_left.congr (Eventually.of_forall fun θ => ?_)
     simp only [hQtdef]
     rw [integral_indicator (measurableSet_ball _ _)]
-  calc ∫ x in ball 0 t, segmentAverage G' h x ^ 2
+  calc ∫ x in ball 0 t, translationSegmentAverage G' h x ^ 2
       ≤ ∫ x in ball 0 t, euclideanSq h * ∫ θ in Set.Ioc (0 : ℝ) 1, Q (θ, x) :=
         setIntegral_mono_ae_restrict hW2 (hIQ.const_mul _).integrableOn (ae_restrict_of_ae hpt)
     _ = euclideanSq h * ∫ θ in Set.Ioc (0 : ℝ) 1, ∫ x in ball 0 t, Q (θ, x) := by
