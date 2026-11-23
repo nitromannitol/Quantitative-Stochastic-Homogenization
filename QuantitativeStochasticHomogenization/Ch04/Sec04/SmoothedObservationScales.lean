@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.PolynomialGrowth
 # The scales of the smoothed observation
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)), the exponents. With `S = r^{a₁}`, `ρ = σ S`,
+proof of Lemma 4.21, the exponents of the observation of the smoothed correctors. With `S = r^{a₁}`, `ρ = σ S`,
 `R = S r^{ε'}`, `T = r^{1+δ}` and `ε'(d + 1) ≤ κ a₁/2`, the main term of the Gaussian gradient
 averages decays like `r^{ε'(d+1-κ) - κ a₁} ≤ r^{-κ a₁/2}`, and the Gaussian error terms, which are
 polynomials in `r` times `e^{-r^{2ε'}/(128σ²)}`, are eventually below `r^{-μ}` and `S^{-β}`.

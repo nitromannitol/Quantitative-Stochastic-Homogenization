@@ -4,7 +4,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.SmoothedObservationScales
 # The observation of the smoothed correctors from the linear estimate
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)). If the Gaussian averages of the corrected fields
+proof of Lemma 4.21, the observation of the smoothed correctors. If the Gaussian averages of the corrected fields
 satisfy the linear estimate `|∫ Φ_{z,r} (ξ + ∇φ_ξ) - ξ| ≤ O_s(C (1 + |ξ|) r^{-β})` for `r ≥ 1`
 (`GaussianGradientAverageBound`, the linear estimate of the bootstrap), then the smoothed
 correctors are observed at the exponent `β` (`SmoothedCorrectorObservation`), with constants

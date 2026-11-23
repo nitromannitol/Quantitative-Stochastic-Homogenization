@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevSublinear
 # Gaussian energies from energies on balls around a center
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)). The shell decomposition of the heat kernel
+proof of Lemma 4.21, the observation of the smoothed correctors. The shell decomposition of the heat kernel
 (`integral_heatKernel_mul_le_of_ball`) at the center `z`: if `∫_{B_R(z)} f ≤ M R^d` for `R ≥ X ≥ 1`,
 then `∫ Φ_{z,ρ} f ≤ K_d M X^d` for `ρ ≥ 1`. With the moving of the center, for `|q - z| ≤ R₁`,
 `∫ Φ_{q,ρ} f ≤ 2^{d/2} e^{R₁²/(4ρ²)} K_d M X^d` for `ρ ≥ 1`.

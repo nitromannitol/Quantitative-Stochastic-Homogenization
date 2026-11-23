@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.AveragesFromEnergy
 # Stochastic integrability of the segment averages of the Gaussian gradient averages
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)), the stochastic part. Moving the center of a Gaussian
+proof of Lemma 4.21, the stochastic part of the observation of the smoothed correctors. Moving the center of a Gaussian
 costs a factor: `Φ_{p,ρ} ≤ 2^{d/2} e^{|p-p₀|²/(4ρ²)} Φ_{p₀,√2ρ}`; hence the Gaussian average
 `p ↦ ∫ Φ_{p,ρ} v` of a field whose Gaussian energies are finite is continuous. If `N(p) ≤ O_s(θ₀)`
 for every center `p` with `1 < s < 2`, then the average of `N²` over the segments from `z` to the

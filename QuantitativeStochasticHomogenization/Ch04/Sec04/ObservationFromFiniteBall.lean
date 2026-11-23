@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.LocalizedEnergyFromObserv
 # The observation estimate from a finite-ball observation and the smoothed correctors
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (consultant note S9, step 2, and SCOTT-localization (4)–(6)). Two analytic
+proof of Lemma 4.21, the observation step. Two analytic
 inputs are isolated.
 
 * `FiniteBallObservation d Λ σ θ k`: above a random radius at the center `z`, every
@@ -30,7 +30,7 @@ namespace QSH
 
 variable {d : ℕ} {Λ : ℝ}
 
-/-- **The finite-ball observation** of SCOTT-localization (4) at an arbitrary center: there are
+/-- **The finite-ball observation** at an arbitrary center: there are
 `L₀ ≥ 1` and `C` and, for every `τ < d`, a constant `C_τ` such that for every law and center `z`
 there is a random radius `X ≥ 1` with `X ≤ O_τ(C_τ)` such that almost surely, for `X ≤ S` and
 `L₀ S ≤ T`, every `a`-harmonic `u` on `B_T(z)` satisfies

@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.CorrectorIndependence
 # Deterministic bounds for the cut-off Gaussian observations
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)), the deterministic part. Away from `B_R(z)` the
+proof of Lemma 4.21, the deterministic part of the observation of the smoothed correctors. Away from `B_R(z)` the
 Gaussian `Φ_{p,ρ}` with `|p - z| ≤ R/2` is at most `e^{-R²/(16ρ²)}` times its peak, and at most
 `2^{d/2} e^{-R²/(32ρ²)} Φ_{p,√2ρ}`. A cutoff `χ` of `B_R(z)` has vanishing derivative outside
 `B_R(z)`, so by the weak gradient `∫ χ Φ_{p,ρ} ∂_jφ = -∫ (χ ∂_jΦ_{p,ρ} + ∂_jχ Φ_{p,ρ}) (φ - c)` is at

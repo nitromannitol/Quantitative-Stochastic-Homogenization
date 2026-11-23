@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.TestMollification
 # The error terms of the cut-off Gaussian observations
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)), the deterministic part. Let `χ` be a cutoff of
+proof of Lemma 4.21, the deterministic part of the observation of the smoothed correctors. Let `χ` be a cutoff of
 `B_R(z)` (equal to one on `B_{R/2}(z)`, with gradient at most `D/R`) and let the centers `q` lie
 in `B_{R/4}(z)`. Then:
 

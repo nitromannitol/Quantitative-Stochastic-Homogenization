@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.CoordinateMinimizerCoerci
 # Absorption of the outer term in the finite-ball observation
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (consultant note S9, step 2). For an `a`-harmonic `u` on `B_T(z)` and
+proof of Lemma 4.21, the observation step. For an `a`-harmonic `u` on `B_T(z)` and
 `0 < S ≤ T`, the mean `m` of `u` on `B_T` satisfies `|B_S| m² ≤ 2 ∫_{B_S} u² + 2 ∫_{B_T} (u - m)²`,
 so the outer energy `∫_{B_T} u²` is at most `2 (|B_T|/|B_S|) ∫_{B_S} u²` plus a Poincaré term
 `(1 + 2|B_T|/|B_S|) (2^d 2T)² ∫_{B_T} |∇u|²`. In a finite-ball observation estimate

@@ -8,7 +8,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec04.RescaledSpatialCutoff
 # Differences of cut-off Gaussian observations of a function with a weak gradient
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (consultant note S9, step 2, and SCOTT-localization (5)), prepared for the
+proof of Lemma 4.21, prepared for the
 observation of the smoothed correctors. For a smooth compactly supported cutoff `χ` and a function
 `φ` with weak gradient `g` on `ℝ^d`, the Gaussian observations `F(p) = ∫ χ Φ_{p,ρ} φ` at two
 centers `z` and `z + h` differ by

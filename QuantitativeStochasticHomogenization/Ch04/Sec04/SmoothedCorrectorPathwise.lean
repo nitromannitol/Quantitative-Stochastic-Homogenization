@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.AverageMeasurability
 # The smoothed observation of the correctors above the minimal scale
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)). For a coefficient field at which the correctors
+proof of Lemma 4.21, the observation of the smoothed correctors. For a coefficient field at which the correctors
 have weak gradients, are locally square integrable, have finite Gaussian energies, and satisfy the
 oscillation and energy bounds of E8 on the balls `B_t(z)` with `t ≥ t₀`, the smoothed observation
 of `smoothed_observation_pathwise` applies to every corrector `φ_{e_i}`. On the same coefficient

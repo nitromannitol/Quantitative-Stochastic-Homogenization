@@ -4,7 +4,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.SmoothedObservationDiffer
 # The truncated Gaussian observation of a function by its Gaussian gradient averages
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)). Let `χ` be a cutoff vanishing outside `B_T(z)` and
+proof of Lemma 4.21, the observation of the smoothed correctors. Let `χ` be a cutoff vanishing outside `B_T(z)` and
 choose the constant `c` with `∫ χ Φ_{z,ρ} (φ - c) = 0`. For `y = z + h` the truncated observation
 `∫_{B_T(z)} Φ_{y,ρ} (φ - c)` is the cut-off observation plus the term with `1 - χ`, and the cut-off
 observation is the difference of the cut-off observations at `y` and `z`. With

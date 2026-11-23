@@ -4,7 +4,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.ObservationFromFiniteBall
 # Proof of the observation estimate from the finite-ball observation
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (consultant note S9, step 2). With `S = r^{1+δ-ε}` and `T = r^{1+δ}` one has
+proof of Lemma 4.21, the observation step. With `S = r^{1+δ-ε}` and `T = r^{1+δ}` one has
 `S/T = r^{-ε}`; for `k ≥ d + 1 + β(1+δ)/ε` the absorbed outer term
 `(S/T)^{2k} (T/S)^{2d} T²` is at most `S² (S^{-β})²`, and for large `r` the absorption
 condition and `L₀ S ≤ T` hold. Hence `FiniteBallObservation` and

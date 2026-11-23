@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.HarmonicApproximationProo
 # The localized energy estimate (5.85) from the observation estimate
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-Lemma 4.21 and (5.85). The exponents follow the consultant note S9, step 1: with `β = d/2`,
+Lemma 4.21 and (5.85). The exponents: with `β = d/2`,
 `Δ = β(1 + δ) + δ - γ > 0`, `h = Δ/(2(1 + δ))`, the construction exponent `α = β - h` and the
 regularity exponent `ϑ = 1 - h` satisfy `γ < α(1 + δ) + δ` and, for the intermediate radius
 `S = r^{1+δ-ε}`, `(r/S)^ϑ S^{-β} = r^{-γ-h} ≤ r^{-γ}`. With the excess decay of one slope on
@@ -21,10 +21,10 @@ namespace QSH
 
 variable {d : ℕ}
 
-/-- The decrement `h = (β(1 + δ) + δ - γ)/(2(1 + δ))` of the consultant note S9, step 1. -/
+/-- The decrement `h = (β(1 + δ) + δ - γ)/(2(1 + δ))`. -/
 def localizationDecrement (β δ γ : ℝ) : ℝ := (β * (1 + δ) + δ - γ) / (2 * (1 + δ))
 
-/-- **The exponent budget of S9, step 1**: with `h = localizationDecrement β δ γ`, the
+/-- **The exponent budget**: with `h = localizationDecrement β δ γ`, the
 construction exponent `β - h` is admissible and `(r/S)^{1-h} S^{-β} ≤ r^{-γ}`. -/
 theorem localization_exponent_budget {β δ γ : ℝ} (hβ : 1 ≤ β) (hδ : 0 < δ)
     (hγ1 : β * (1 + δ) < γ) (hγ2 : γ < β * (1 + δ) + δ) :

@@ -4,7 +4,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.SmoothedObservationEnergy
 # The localization objective of a function with a weak gradient by its segment average
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)). Averaging the squared truncated observations over
+proof of Lemma 4.21, the observation of the smoothed correctors. Averaging the squared truncated observations over
 `y ∈ B_{S/θ}(z)` gives, for the cut-off Gaussian mean `c`,
 `I_{z,T,S,σ,θ}[φ - c] ≤ 2 (S/θ)² d Q + 2 E²`, where `Q` is the segment average of the squared
 Gaussian gradient averages `|∫ Φ_{p,σS} ∇φ|²` and `E` collects the three error terms; and `Q` is at

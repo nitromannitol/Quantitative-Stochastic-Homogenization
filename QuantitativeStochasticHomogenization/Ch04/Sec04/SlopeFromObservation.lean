@@ -21,7 +21,7 @@ proof of Lemma 4.21, in the form of the single slope: for the selected coordinat
   `X ≤ t ≤ R`, and `|e_i|² ≤ C_ϑ ⨍_{B_{LR}(z)} |∇v_i|²`.
 
 With `R = S/(2L)` and `Y = (r/S)^ϑ Y₀` they give `LocalizationSlopeEstimate` when
-`(r/S)^ϑ S^{-β} ≤ r^{-γ}`, the exponent budget of the consultant note S9, step 1.
+`(r/S)^ϑ S^{-β} ≤ r^{-γ}`, the exponent budget.
 -/
 
 open MeasureTheory Filter Topology

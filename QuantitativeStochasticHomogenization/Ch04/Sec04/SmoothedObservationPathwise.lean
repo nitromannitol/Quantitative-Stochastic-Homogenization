@@ -4,7 +4,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.SmoothedObservationAverag
 # The smoothed observation of one function from its oscillation and energy on large balls
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21 (SCOTT-localization (5)), one coefficient field. Let `φ` have the weak gradient
+proof of Lemma 4.21, the observation of the smoothed correctors for one coefficient field. Let `φ` have the weak gradient
 `g`, with oscillation `∫_{B_t(z)} (φ - c_t)² ≤ V t` and energy `∫_{B_t(z)} |g|² ≤ M |B_t|` for
 `t ≥ t₀`. For the scales `S, σ, θ, R, T` with `4 S/θ ≤ R ≤ T`, `t₀ ≤ R`, `σ S ≥ 1` and a cutoff of
 `B_R(z)`, the cut-off Gaussian mean `c` satisfies

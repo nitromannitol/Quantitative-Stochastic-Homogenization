@@ -7,8 +7,7 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.HighContrastDivCurl
 # The excess decay of one slope on balls with an arbitrary center
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
-proof of Lemma 4.21, the zoom from the intermediate scale to the scale `r` (consultant note S9,
-step 3). Theorem C of Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high
+proof of Lemma 4.21, the zoom from the intermediate scale to the scale `r`. Theorem C of Armstrong, Kuusi and Loher, *Homogenization at a polynomial scale in high
 contrast*, gives for the dilated law, above the homogenization scale `X`, one slope `e` for every
 solution on the ellipsoid `E_R` of the homogenized matrix with
 `‖∇u - (e + ∇φ_e)‖_{E_ρ} ≤ C_ϑ (ρ/R)^ϑ ‖∇u‖_{E_R}` for `X ≤ ρ ≤ R`, in coefficient-weighted
