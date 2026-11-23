@@ -42,22 +42,54 @@ stationary under translations by `ℤᵈ`, and has a unit range of dependence (t
 
 ## Status
 
-The modules, one per section of the book, carry a docstring and, so far, the notation of the
-frozen statements, the `O_s` calculus of Appendix A and the additive structure of Section 4.2.
 [`ROADMAP.md`](ROADMAP.md) lists every numbered result of the book (226 of them, by chapter and
-section) with its status.
+section) with its status. Where a proof departs from the book, [`CORRESPONDENCE.md`](CORRESPONDENCE.md)
+records it. Proved so far, besides the `O_s` calculus of Appendix A and Definitions 4.7–4.9:
 
-The current priority is the frozen statements needed by
-[einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in
-[`FROZEN.md`](FROZEN.md). Some material was moved here from that repository: the `O_s` calculus of Appendix A,
-Definitions 4.7–4.9, and parts (i), (iii) and (iv) of Theorem 4.6 conditional on
-Propositions 4.10–4.12. Also merged: the harmonic expansion on balls; the first-order Liouville
-theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`), with the harmonic approximation on ellipsoids
-(`harmonicApproximation`) that it rests on, both proved; Lemma 6.1 with the divergence identity (6.6), where the
-statement gives a deterministic vector and the proof identifies it; and Proposition 6.2, with the
-bounds (3.85) and (3.86) of Lemma 3.17 for the correctors, derived from the homogenization theorem
-at a polynomial scale in high contrast. Where a proof departs from the book, [`CORRESPONDENCE.md`](CORRESPONDENCE.md)
-records it.
+- Section 1.3: the limit (1.22) of the expected energy on the triadic cubes and the homogenized
+  matrix of Definition 1.2 (`exists_homogenizedMatrix`), from the parallelogram identity and the
+  subadditivity (1.11) of the energy.
+- Lemma 3.16: every law satisfying (0.10)–(0.11) has first-order correctors with jointly measurable
+  stationary gradients, hence homogenization data (`homogenizationDataExists`), built from the
+  correctors of the homogenization theorem at a polynomial scale in high contrast.
+- The first-order Liouville theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`) with the
+  harmonic approximation on ellipsoids (`harmonicApproximation`) that it rests on, and the harmonic
+  expansion on balls.
+- The bounds (3.85) and (3.86) of Lemma 3.17, Lemma 6.1 with the divergence identity (6.6), where the
+  statement gives a deterministic vector and the proof identifies it, and Proposition 6.2 for the
+  correctors (`sublinearCorrectors`), from the homogenization theorem at a polynomial scale in high
+  contrast.
+- The heat identity (H) of the route of Proposition 4.10 and the pathwise heat bound for every law
+  and all homogenization data (`heatPathwiseBound_of_lawHypotheses`, and with a kernel of mass
+  `(d + 1)/u`, `exists_heatPathwiseKernel`); hence (5.58) for every law, with a constant that depends
+  on the law, from Proposition 3.21, the joint measurability of `J₁` and the conclusions of
+  Propositions 4.11 and 4.12 (`estimate558_of_law`).
+- Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12, and Lemma 5.29
+  (i)–(iii) for centered local additive fields.
+
+Some of this material was moved here from
+[einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current
+priority is the frozen statements E1–E7 needed by that repository, listed in
+[`FROZEN.md`](FROZEN.md), all in the state `draft`. Each is reduced in the library to inputs that are
+not yet proved:
+
+- E2–E4 (Lemma 5.29): `UniformAdditivityJ1`, part (i) of Theorem 4.6 with constants chosen before
+  the law (`blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`,
+  `blockChange_of_uniformAdditivity`).
+- E5 (Lemma 5.24): (5.58) with a constant chosen before the law
+  (`coarsenedCoefficientEstimates_of_energyEstimate`).
+- E1 (Theorem 4.1): the linear estimate `|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-d/2})` with `s`
+  and `C` chosen before the law (`averagedCorrectorGradient_of_linearAverage_uniform`).
+- E7 (Theorem 4.24): the commutator estimate (4.34) and the linear estimate, at the stochastic
+  exponent `1` and the spatial exponent `d/2`, with constants chosen before the law
+  (`negativeSobolevCorrector_of_commutator_linear`).
+- E6 ((5.85)): the single-slope estimate `LocalizationSlopeEstimate`
+  (`localizedEnergy_of_slope_only`).
+
+These inputs are to come from the bootstrap of Chapter 4 run with constants chosen before the law,
+which is not yet in the library; its analytic inputs that remain open are Proposition 3.21 with
+constants chosen before the law and Proposition 4.11 at the exponents of the bootstrap, the latter
+through the single-slope localization estimate for the laws that satisfy the linear estimate.
 
 ## Building
 

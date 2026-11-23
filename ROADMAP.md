@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md). The list is empty so far. The full-book list follows below.
+**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md): seven statements, E1–E7, all in the state `draft`; what each still needs is listed in [README.md](README.md). The full-book list follows below.
 
 ## Numbering and status
 
@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 13 of them are proved or defined, all in Appendix A and Section 4.2, and 11 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 15 of them are proved or defined, in Appendix A, Section 4.2, Definition 1.2 and Lemma 3.16, and 15 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -19,11 +19,11 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
-| 1 | Introduction and Qualitative Theory | 12 | 0 | 0 |
+| 1 | Introduction and Qualitative Theory | 12 | 1 | 1 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
-| 3 | Regularity on Large Scales | 23 | 0 | 3 |
+| 3 | Regularity on Large Scales | 23 | 1 | 5 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 3 | 5 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 1 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 2 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **13** | **11** |
+| | **Total** | **226** | **15** | **15** |
 
 ## Front matter
 
@@ -51,13 +51,13 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 1.1 | Basic properties of μ | not started |
+| Lemma 1.1 | Basic properties of μ | in progress (the parallelogram identity behind (1.10), `dirichletEnergy_parallelogram`, and the subadditivity (1.11) for partitions by disjoint open sets, `dirichletEnergy_le_sum_of_partition`; the first variation is not proved; see CORRESPONDENCE.md) |
 
-### 1.3 Convergence of the Subadditive Quantity, module `Ch01/Sec03ConvergenceOfSubadditiveQuantity.lean`
+### 1.3 Convergence of the Subadditive Quantity, module `Ch01/Sec03ConvergenceOfSubadditiveQuantity.lean` (proofs in `Ch01/Sec03/ParallelogramQuadratic.lean` and `Ch01/Sec03/SubadditiveLimit.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 1.2 | Homogenized coefficients | not started |
+| Definition 1.2 | Homogenized coefficients | defined (the limit (1.22) exists and equals `½ e·āe` with `ā` symmetric, `exists_homogenizedMatrix`; the bounds (1.25) for homogenization data, `HomogenizationData.homogenizedMatrixBounds`; see CORRESPONDENCE.md) |
 | Proposition 1.7 |  | not started |
 | Proposition 1.8 |  | not started |
 
@@ -136,9 +136,9 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 3.14 | Stationary random field | not started |
-| Definition 3.15 | Stationary random potential field | not started |
-| Lemma 3.16 |  | not started |
+| Definition 3.14 | Stationary random field | in progress (used for the corrector gradients only, as the fields `measurable_grad` and `stationary` of `Corrector`) |
+| Definition 3.15 | Stationary random potential field | in progress (used for the corrector gradients only, as the fields `weak_gradient` and `locally_square_integrable` of `Corrector`) |
+| Lemma 3.16 |  | proved (every law satisfying (0.10)–(0.11) has correctors with jointly measurable stationary gradients and homogenization data, `homogenizationDataExists`; the gradients of `A₁` are the corrected fields for all homogenization data, `ae_gradientsOfA1AreCorrected_of_liouville` with `firstOrderLiouville`; see CORRESPONDENCE.md) |
 | Lemma 3.17 |  | in progress (the oscillation and energy bounds (3.85) and (3.86) with the exponent `1 - β(d - s)` of the book, with a random scale that depends on the slope, `sublinearCorrectors`; see CORRESPONDENCE.md) |
 | Proposition 3.21 |  | not started |
 | Lemma 3.22 |  | not started |
@@ -188,7 +188,7 @@ No numbered result.
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
-| Proposition 4.10 | Improvement of additivity | in progress ((5.58) from the pathwise heat-identity bound `HeatPathwiseBound` and the commutator decay; see CORRESPONDENCE.md) |
+| Proposition 4.10 | Improvement of additivity | in progress (the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the joint measurability of `J₁` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; see CORRESPONDENCE.md) |
 | Proposition 4.11 | Localization estimates | not started |
 | Proposition 4.12 | Fluctuation estimates | not started |
 
@@ -265,7 +265,7 @@ No numbered result.
 | Theorem 5.26 |  | not started |
 | Lemma 5.27 |  | not started |
 | Lemma 5.28 |  | not started |
-| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` and the existence of homogenization data (see CORRESPONDENCE.md) |
+| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` alone, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`, the existence of homogenization data being proved (see CORRESPONDENCE.md) |
 | Lemma 5.30 |  | not started |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`
