@@ -165,14 +165,18 @@ of each module names the source files and commits.
 - **Lemmas 4.21–4.22 for a class of laws.** The reduction of (5.85) to the single-slope estimate of
   Lemma 4.21 uses the law only through that estimate, so it is stated for every class `L` of laws
   (`LocalizationSlopeEstimateOn L`, `localizationEstimateOn_of_slopeOn`). Proposition 4.11 at the
-  exponents of the bootstrap is the single-slope estimate on the classes `LinearLaw s β C` of the
-  laws with the linear estimate at `(s, β)`, for localized families of a construction exponent
+  exponents of the bootstrap follows from the single-slope estimate on the classes `LinearLaw s β C`
+  of the laws with the linear estimate at `(s, β)`, for localized families of a construction exponent
   `α < β` with `γ < α(1+δ) + δ` (`LinearSlopeEstimates`, `exists_construction_exponent`): under the
   Gaussian inputs, `Fluc(s, β)` gives this linear estimate with a constant chosen before the law
   (`pilotLocalizationEstimates_of_gaussianInputs_slopeOn`); for `γ ≤ 0` the localization error is
   bounded. The book proves Proposition 4.11 at every `α` with `Fluc(s, α)` as the input and the
   construction at the same exponent; here the input is the linear estimate it implies, and the
-  construction exponent is taken below it, which the slack `η` allows.
+  construction exponent is taken below it, which the slack `η` allows. The single-slope estimate on
+  `LinearLaw` departs from the book's proof of Lemma 4.21, which uses `Fluc(s, α)` beyond the linear
+  estimate: Step 2 goes through Lemma 4.17 and the fluctuation bound (4.63). It follows from the
+  book's argument with the corrected coordinate `ℓ_j + φ_{e_j}` as the competitor in place of `v_j`;
+  Steps 3–6 use only (3.86), (3.101), (4.25), Theorem 3.8 and Lemma 4.20.
 - **What remains.** Theorem 4.6 (i), (iii), (5.58), (5.85), (4.126), Theorem 4.1 and Lemma 5.29 are
   deduced from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a
   kernel of mass `C_k/u`, and the single-slope estimate on the classes `LinearLaw`

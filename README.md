@@ -69,11 +69,13 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
 - Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12 and the initial
   exponent of Proposition 4.3, and Lemma 5.29 (i)–(iii) for centered local additive fields.
 - The bootstrap of Theorem 4.6 with constants chosen before the law: Definitions 4.7–4.9 with their
-  constants, Propositions 4.3, 4.10 and 4.12 and Lemma 4.13 with constants chosen before the law for
-  bounded jointly measurable versions of `J₁`, and Proposition 4.11 at the exponents of the bootstrap
-  from the single-slope estimate of Lemma 4.21 on classes of laws; hence Theorem 4.6 (i) and (iii),
-  the Gaussian gradient bound and (5.58) with constants chosen before the law from Proposition 3.21
-  with constants chosen before the law and that single-slope estimate.
+  constants and Proposition 4.12 with the constant of its conclusion chosen before the law, proved;
+  Proposition 4.3, Lemma 4.13 and Proposition 4.10, with constants chosen before the law for bounded
+  jointly measurable versions of `J₁`, proved from Proposition 3.21 (Lemma 4.13 and Proposition 4.10
+  with the further inputs listed in [`ROADMAP.md`](ROADMAP.md)); and Proposition 4.11 at the
+  exponents of the bootstrap from the single-slope estimate of Lemma 4.21 on classes of laws; hence
+  Theorem 4.6 (i) and (iii), the Gaussian gradient bound and (5.58) with constants chosen before the
+  law from Proposition 3.21 with constants chosen before the law and that single-slope estimate.
 
 Some of this material was moved here from
 [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current

@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 15 of them are proved or defined, in Appendix A, Section 4.2, Definition 1.2 and Lemma 3.16, and 15 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 16 of them are proved or defined, in Appendix A, Section 4.2, Definition 1.2 and Lemma 3.16, and 18 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -22,7 +22,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 1 | Introduction and Qualitative Theory | 12 | 1 | 1 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
 | 3 | Regularity on Large Scales | 23 | 1 | 5 |
-| 4 | Quantitative Description of First-Order Correctors | 25 | 3 | 5 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 4 | 8 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 2 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **15** | **15** |
+| | **Total** | **226** | **16** | **18** |
 
 ## Front matter
 
@@ -176,7 +176,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 4.2 | Nondegeneracy at Ψ | not started |
-| Proposition 4.3 |  | proved from Proposition 3.21, with an explicit constant (`flucEstimateAt_of_gaussianCorrectorRate`, `proposition43_at`; see CORRESPONDENCE.md) |
+| Proposition 4.3 |  | in progress (proved from Proposition 3.21, with an explicit constant, `flucEstimateAt_of_gaussianCorrectorRate`, `proposition43_at`; see CORRESPONDENCE.md) |
 | Lemma 4.4 | Basic properties of J₁ | not started |
 | Definition 4.5 | Minimal scale 𝒴ₛ | not started |
 
@@ -184,19 +184,19 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1`, and parts (i) and (iii) with constants chosen before the law follow from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws (`uniformAdditivityJ1_of_rate_slope`, `uniformFluctuationJ1_of_bootstrap`); part (ii), with (5.58), conditional on the same inputs and (4.70) (`theorem46_expectation_and_558`) and, for every law with a constant that depends on the law, on Proposition 3.21, the Borel joint measurability of `J1Heat` and Propositions 4.11 and 4.12 (`estimate558_of_law`); (5.58) with a constant chosen before the law from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws (`uniformEnergyEstimate_of_rate_slope`) |
+| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1`, and parts (i) and (iii) with constants chosen before the law follow from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws, part (i) by `uniformAdditivityJ1_of_rate_slope` and part (iii) through `pilotLocalizationEstimates_of_rate_slope`, `bootstrapInputs_of_rate_heat_pilot` with `uniformHeatPathwiseKernel`, and `uniformFluctuationJ1_of_uniform_inputs`, with no single theorem for part (iii); part (ii), with (5.58), conditional on the same inputs, (4.70) and the measurability of `a ↦ J1Heat a z r p q` (`theorem46_expectation_and_558`) and, for every law with a constant that depends on the law, on Proposition 3.21, the Borel joint measurability of `J1Heat` and Propositions 4.11 and 4.12 (`estimate558_of_law`); (5.58) with a constant chosen before the law from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws (`uniformEnergyEstimate_of_rate_slope`) |
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
-| Proposition 4.10 | Improvement of additivity | in progress (the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the joint measurability of `J₁` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; with constants chosen before the law for bounded jointly measurable versions of `J₁` from Proposition 3.21 with constants chosen before the law and the heat identity, `uniformImprovementOfAdditivity_of_gaussianInputs`; see CORRESPONDENCE.md) |
-| Proposition 4.11 | Localization estimates | in progress (at the exponents of the bootstrap, with constants chosen before the law, from the single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate, `pilotLocalizationEstimates_of_gaussianInputs_slopeOn`; see CORRESPONDENCE.md) |
+| Proposition 4.10 | Improvement of additivity | in progress (the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the Borel joint measurability of `J1Heat` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; with constants chosen before the law, the Borel measurability being replaced by bounded jointly measurable versions of `J₁`, from Proposition 3.21 with constants chosen before the law and the heat identity, `uniformImprovementOfAdditivity_of_gaussianInputs`; see CORRESPONDENCE.md) |
+| Proposition 4.11 | Localization estimates | in progress (at the exponents of the bootstrap, with constants chosen before the law, from the Gaussian inputs `UniformGaussianInputs`, which are assumed, and the single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate, `pilotLocalizationEstimates_of_gaussianInputs_slopeOn`; see CORRESPONDENCE.md) |
 | Proposition 4.12 | Fluctuation estimates | proved, with the constant of the conclusion chosen before the law (`exists_flucEstimateAt_of_add_local`; see CORRESPONDENCE.md) |
 
 ### 4.3 Improvement of Additivity, module `Ch04/Sec03ImprovementOfAdditivity.lean`
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 4.13 |  | proved from `Fluc(s, α)`, Proposition 3.21 and the expectations (1), with the constant chosen before the law, for a jointly measurable version of `J₁` (`exists_uniform_commutator_of_fluctuations`; see CORRESPONDENCE.md) |
+| Lemma 4.13 |  | in progress (proved from `Fluc(s, α)`, Proposition 3.21 and the expectations (1), with the constant chosen before the law, for a jointly measurable version of `J₁`, `exists_uniform_commutator_of_fluctuations`; see CORRESPONDENCE.md) |
 | Lemma 4.14 |  | not started |
 | Lemma 4.15 |  | not started |
 | Lemma 4.16 |  | not started |
