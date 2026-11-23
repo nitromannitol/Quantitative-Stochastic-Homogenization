@@ -81,7 +81,8 @@ theorem hasCompactSupport_gradient (hv : IsSpatialTest U v) :
     by_contra hxs
     exact hx (gradient_eq_zero_of_notMem_tsupport hxs)
 
-theorem memLp_gradient (hv : IsSpatialTest U v) (μ : Measure (Vec d)) [IsFiniteMeasureOnCompacts μ] :
+theorem memLp_gradient (hv : IsSpatialTest U v) (μ : Measure (Vec d))
+    [IsFiniteMeasureOnCompacts μ] :
     MemLp (gradient v) 2 μ :=
   hv.continuous_gradient.memLp_of_hasCompactSupport hv.hasCompactSupport_gradient
 

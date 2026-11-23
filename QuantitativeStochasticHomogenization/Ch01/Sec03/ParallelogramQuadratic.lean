@@ -24,7 +24,8 @@ variable {d : ℕ}
 def polarization (L : Vec d → ℝ) (x y : Vec d) : ℝ :=
   (L (x + y) - L (x - y)) / 4
 
-private theorem euclideanSq_smul (c : ℝ) (x : Vec d) : euclideanSq (c • x) = c ^ 2 * euclideanSq x := by
+private theorem euclideanSq_smul (c : ℝ) (x : Vec d) :
+    euclideanSq (c • x) = c ^ 2 * euclideanSq x := by
   simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
   exact Finset.sum_congr rfl fun i _ => by ring
 

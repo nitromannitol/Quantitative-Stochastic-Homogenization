@@ -1,6 +1,7 @@
 import QuantitativeStochasticHomogenization.Ch01.Sec02.DirichletEnergyTests
 import QuantitativeStochasticHomogenization.Ch01.Sec03.ParallelogramQuadratic
 import QuantitativeStochasticHomogenization.Ch03.Sec04.CoefficientSigma
+import QuantitativeStochasticHomogenization.Ch04.Sec01.HomogenizedBounds
 
 /-!
 # Section 1.3: the limit of the subadditive quantity
@@ -158,16 +159,9 @@ theorem volume_triadicCube (n : ℕ) :
   congr 2
   ring
 
-theorem volume_triadicCube_ne_top (n : ℕ) : volume (triadicCube d n) ≠ ⊤ := by
-  rw [volume_triadicCube]
-  exact ENNReal.pow_ne_top ENNReal.ofReal_ne_top
-
-theorem volume_triadicCube_ne_zero (n : ℕ) : volume (triadicCube d n) ≠ 0 := by
-  rw [volume_triadicCube]
-  exact pow_ne_zero _ (ENNReal.ofReal_pos.mpr (by positivity)).ne'
-
 theorem volumeReal_triadicCube (n : ℕ) : volume.real (triadicCube d n) = ((3 : ℝ) ^ n) ^ d := by
-  rw [measureReal_def, volume_triadicCube, ENNReal.toReal_pow, ENNReal.toReal_ofReal (by positivity)]
+  rw [measureReal_def, volume_triadicCube, ENNReal.toReal_pow,
+    ENNReal.toReal_ofReal (by positivity)]
 
 theorem volumeReal_triadicSubcube (n : ℕ) (k : Fin d → Fin 3) :
     volume.real (triadicSubcube n k) = ((3 : ℝ) ^ n) ^ d := by
@@ -191,16 +185,16 @@ theorem dirichletEnergy_triadicCube_succ_le (a : CoefficientField d Λ) (n : ℕ
     dirichletEnergy a (triadicCube d (n + 1)) e ≤
       ∑ k : Fin d → Fin 3, (1 / 3 ^ d : ℝ) *
         dirichletEnergy (translate (latticeShift (subcubeOffset n k)) a) (triadicCube d n) e := by
-  have h := dirichletEnergy_le_sum_of_partition a (volume_triadicCube_ne_top (n + 1))
+  have h := dirichletEnergy_le_sum_of_partition a (volume_triadicCube_ne_top d (n + 1))
     (isOpen_triadicSubcube n) (pairwise_disjoint_triadicSubcube n) (triadicSubcube_subset n)
     (volume_triadicCube_diff n) e
   refine h.trans (le_of_eq (Finset.sum_congr rfl fun k _ => ?_))
   rw [volumeReal_triadicSubcube_div, triadicSubcube,
-    dirichletEnergy_preimage_sub a (volume_triadicCube_ne_top n)]
+    dirichletEnergy_preimage_sub a (volume_triadicCube_ne_top d n)]
 
 theorem measurable_dirichletEnergy_triadicCube (hΛ : 0 ≤ Λ) (n : ℕ) (e : Vec d) :
     Measurable (fun a : CoefficientField d Λ => dirichletEnergy a (triadicCube d n) e) :=
-  measurable_dirichletEnergy (volume_triadicCube_ne_top n) hΛ e
+  measurable_dirichletEnergy (volume_triadicCube_ne_top d n) hΛ e
 
 theorem integrable_dirichletEnergy_triadicCube {P : Measure (CoefficientField d Λ)}
     [IsFiniteMeasure P] (hΛ : 0 ≤ Λ) (n : ℕ) (e : Vec d) :
@@ -209,7 +203,8 @@ theorem integrable_dirichletEnergy_triadicCube {P : Measure (CoefficientField d 
     (measurable_dirichletEnergy_triadicCube hΛ n e).aestronglyMeasurable
     (Eventually.of_forall fun a => ?_)
   rw [Real.norm_eq_abs, abs_of_nonneg (dirichletEnergy_nonneg a _ e)]
-  exact dirichletEnergy_le a (volume_triadicCube_ne_zero n) (volume_triadicCube_ne_top n) hΛ e
+  exact dirichletEnergy_le a (volume_triadicCube_ne_zero d n) (volume_triadicCube_ne_top d n)
+    hΛ e
 
 theorem integral_comp_translate {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P)
     (z : LatticeIndex d) {f : CoefficientField d Λ → ℝ} (hf : Measurable f) :
@@ -259,7 +254,8 @@ theorem expectedDirichletEnergy_le {P : Measure (CoefficientField d Λ)} (hP : L
   have := hP.1
   have h := integral_mono (integrable_dirichletEnergy_triadicCube (P := P) hΛ n e)
     (integrable_const ((1 / 2 : ℝ) * Λ * euclideanSq e))
-    fun a => dirichletEnergy_le a (volume_triadicCube_ne_zero n) (volume_triadicCube_ne_top n) hΛ e
+    fun a => dirichletEnergy_le a (volume_triadicCube_ne_zero d n)
+      (volume_triadicCube_ne_top d n) hΛ e
   rwa [integral_const, measureReal_def, measure_univ, ENNReal.toReal_one, one_smul] at h
 
 theorem expectedDirichletEnergy_parallelogram {P : Measure (CoefficientField d Λ)}
@@ -274,7 +270,7 @@ theorem expectedDirichletEnergy_parallelogram {P : Measure (CoefficientField d �
     ← integral_add ((hi _).const_mul _) ((hi _).const_mul _)]
   congr 1
   funext a
-  exact dirichletEnergy_parallelogram a (volume_triadicCube_ne_top n) e f
+  exact dirichletEnergy_parallelogram a (volume_triadicCube_ne_top d n) e f
 
 /-- The limit `μ̄(e) = lim E μ(□_n, e)` of (1.22). -/
 def limitDirichletEnergy (P : Measure (CoefficientField d Λ)) (e : Vec d) : ℝ :=
