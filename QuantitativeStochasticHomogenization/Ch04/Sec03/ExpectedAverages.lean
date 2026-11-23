@@ -80,12 +80,24 @@ theorem j1Functional_eq_averages (a : CoefficientField d Λ) (mask : Vec d → �
   rw [hfun, integral_add hI hgr, integral_sub (henergy.const_mul _) hfl, integral_const_mul,
     dot_integral p hflux, dot_integral q hgrad]
 
-/-- **The expectation of the trial at deterministic slopes from the expected averages.** -/
-theorem trialObjectiveExpectation_of_expectedAverages [IsProbabilityMeasure P]
-    (S : HomogenizationData P) (hint : AveragesIntegrable P S) {β : ℝ}
-    (hE : ExpectedAveragesEstimate P S β) : TrialObjectiveExpectation P S β := by
-  obtain ⟨C, hC, hE⟩ := hE
-  refine ⟨2 * C, by positivity, fun z r hr p q hp hq k => ?_⟩
+/-- **The expectation of the trial at deterministic slopes from the expected averages**, with the
+constant `2 C` from the constant `C` of the expectations (1). -/
+theorem trialObjectiveExpectationAt_of_expectedAverages [IsProbabilityMeasure P]
+    (S : HomogenizationData P) (hint : AveragesIntegrable P S) {β C : ℝ} (hC : 0 < C)
+    (hE : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun a => ∫ x, heatKernel z r x • correctedField S a ξ x) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) P ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • correctedField S a ξ x) ∂P) - ξ) ≤
+        C * euclideanNorm ξ * r ^ (-β) ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) ∂P) -
+        S.homogenized.mulVec ξ) ≤ C * euclideanNorm ξ * r ^ (-β) ∧
+      |(∫ a, (∫ x, heatKernel z r x *
+          dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P) -
+        dot ξ (S.homogenized.mulVec ξ)| ≤ C * euclideanSq ξ * r ^ (-β)) :
+    TrialObjectiveExpectationAt P S β (2 * C) := by
+  intro z r hr p q hp hq k
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   obtain ⟨hi1, hi2, hi3, hb1, hb2, hb3⟩ := hE z r hr k
   have hsplit : (fun a => j1Functional a (heatKernel z r) p q (correctedField S a k)) =ᵐ[P]
@@ -146,6 +158,13 @@ theorem trialObjectiveExpectation_of_expectedAverages [IsProbabilityMeasure P]
     nlinarith [mul_nonneg (mul_nonneg hC.le hk1) hρ]
   rw [abs_le]
   constructor <;> nlinarith [mul_nonneg (mul_nonneg hC.le hk0) hρ]
+
+/-- **The expectation of the trial at deterministic slopes from the expected averages.** -/
+theorem trialObjectiveExpectation_of_expectedAverages [IsProbabilityMeasure P]
+    (S : HomogenizationData P) (hint : AveragesIntegrable P S) {β : ℝ}
+    (hE : ExpectedAveragesEstimate P S β) : TrialObjectiveExpectation P S β := by
+  obtain ⟨C, hC, hE⟩ := hE
+  exact ⟨2 * C, by positivity, trialObjectiveExpectationAt_of_expectedAverages S hint hC hE⟩
 
 end Expected
 

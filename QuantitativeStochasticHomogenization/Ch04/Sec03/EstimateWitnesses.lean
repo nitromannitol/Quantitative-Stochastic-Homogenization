@@ -44,13 +44,6 @@ def CommutatorEstimateAt (P : Measure (CoefficientField d Λ)) (S : Homogenizati
     OsBound P (fun a => euclideanNorm (fluxAverage S a z r (unitVector j) -
       S.homogenized.mulVec (gradientAverage S a z r (unitVector j)))) s (C * r ^ (-α))
 
-/-- **The linear estimate of Step 1 with constant `C`**. -/
-def LinearAverageEstimateAt (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
-    (s α C : ℝ) : Prop :=
-  ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
-    OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) - ξ)) s
-      (C * (1 + euclideanNorm ξ) * r ^ (-α))
-
 variable {P : Measure (CoefficientField d Λ)} {S : HomogenizationData P}
 
 theorem expectedAveragesEstimate_iff_exists_at (β : ℝ) :

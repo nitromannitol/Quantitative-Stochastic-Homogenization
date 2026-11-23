@@ -142,15 +142,20 @@ def gradientAverage {P : Measure (CoefficientField d Λ)} (S : HomogenizationDat
   ∫ x, heatKernel y r x • correctedField S a k x
 
 set_option maxHeartbeats 400000 in
-/-- **The trial gap estimate at one center**, from the bounds on the pieces: the expectation step
-gives `|m₀ - c*|² ≤ G₂ ρ` and the pointwise bound then gives the stochastic bound. -/
+/-- **The trial gap estimate at one center**, for a jointly measurable field `J` bounded by
+`|Λ| + 1` and almost surely equal to `J₁` at all parameters (`J = J₁` when `J₁` is jointly
+measurable), from the bounds on the pieces: the expectation step gives `|m₀ - c*|² ≤ G₂ ρ` and the
+pointwise bound then gives the stochastic bound. -/
 theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hA : HomogenizedMatrixBounds S.homogenized Λ)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
+    (hJ : ∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q)
     {s r ρ κ K B Ks Q1 Apol Epol E4 O4 CE G₁ G₂ L₂ ct Cf α : ℝ} {y p q m₀ cst : Vec d}
     {M : CoefficientField d Λ → Vec d → ℝ} (hr0 : 0 < r)
+    (hJb : ∀ a, |J a y r p q| ≤ |Λ| + 1)
     (hρ : ρ = r ^ (-(2 * α))) (hρ0 : 0 < ρ) (hκ' : 0 < κ) (hK' : 0 < K)
     (hcst : cst = homogenizedSlope S.homogenized p q) (hc4 : euclideanSq cst ≤ 4)
     (hm₀B : euclideanSq m₀ ≤ B) (hcB : euclideanSq cst ≤ B)
@@ -161,14 +166,14 @@ theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hA4 : OsBound P (fun a => (M a y / r) ^ d) (s / 2) (O4 * ρ))
     (hA4i : Integrable (fun a => (M a y / r) ^ d) P)
     (hA4E : ∫ a, (M a y / r) ^ d ∂P ≤ E4 * ρ)
-    (hpos : OsBound P (fun a => euclideanSq (polarizationVector a y r p q - m₀)) (s / 2) (Apol * ρ))
-    (hpi : Integrable (fun a => euclideanSq (polarizationVector a y r p q - m₀)) P)
-    (hpint : ∫ a, euclideanSq (polarizationVector a y r p q - m₀) ∂P ≤ Epol * ρ)
-    (hcomm : ∀ a : CoefficientField d Λ, euclideanNorm (m₀ - polarizationVector a y r p q) ^ 2 =
-      euclideanSq (polarizationVector a y r p q - m₀))
+    (hpos : OsBound P (fun a => euclideanSq (polarizationVectorOf J a y r p q - m₀)) (s / 2) (Apol * ρ))
+    (hpi : Integrable (fun a => euclideanSq (polarizationVectorOf J a y r p q - m₀)) P)
+    (hpint : ∫ a, euclideanSq (polarizationVectorOf J a y r p q - m₀) ∂P ≤ Epol * ρ)
+    (hcomm : ∀ a : CoefficientField d Λ, euclideanNorm (m₀ - polarizationVectorOf J a y r p q) ^ 2 =
+      euclideanSq (polarizationVectorOf J a y r p q - m₀))
     (hpt' : ∀ᵐ a ∂P, ∀ k : Vec d, euclideanSq k ≤ B →
-        J1Heat a y r p q - trialValue S a y r p q k ≤
-          κ * euclideanNorm (gradientAverage S a y r k - polarizationVector a y r p q) ^ 2 +
+        J a y r p q - trialValue S a y r p q k ≤
+          κ * euclideanNorm (gradientAverage S a y r k - polarizationVectorOf J a y r p q) ^ 2 +
             K * (M a y / r) ^ d)
     (hE' : ∀ k : Vec d,
       Integrable (fun a => j1Functional a (heatKernel y r) p q (correctedField S a k)) P ∧
@@ -180,42 +185,39 @@ theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hCf : Cf = ct * (3 * κ * (ct * (ct * (Q1 ^ 2 + G₂ / L₂) + Apol)) + K * O4))
     (hG₂0 : 0 < G₂) (hCE' : 0 < CE)
     (hmeasG : Measurable (Function.uncurry fun (y : Vec d) (a : CoefficientField d Λ) =>
-      max (trialGap S a y r p q) 0)) :
-    OsBound P (fun a => max (trialGap S a y r p q) 0) (s / 2) ((Cf + 1) * ρ) := by
+      max (trialGapOf J S a y r p q) 0)) :
+    OsBound P (fun a => max (trialGapOf J S a y r p q) 0) (s / 2) ((Cf + 1) * ρ) := by
   have hκ : 0 ≤ κ := hκ'.le
   have hK : 0 ≤ K := hK'.le
   have hCE : 0 ≤ CE := hCE'.le
   -- the gaps and their expectations
-  have hJm : Measurable fun a : CoefficientField d Λ => J1Heat a y r p q :=
+  have hJm : Measurable fun a : CoefficientField d Λ => J a y r p q :=
     (hmeasJ r p q).comp (measurable_id.prodMk measurable_const)
-  have hJi : Integrable (fun a => J1Heat a y r p q) P := by
-    refine Integrable.of_bound hJm.aestronglyMeasurable (Λ * euclideanSq p + euclideanSq q)
-      (Filter.Eventually.of_forall fun a => ?_)
-    obtain ⟨h0, h1⟩ := J1Heat_nonneg_le a y hr0 p q
-    rw [Real.norm_eq_abs, abs_of_nonneg h0]
-    exact h1
+  have hJi : Integrable (fun a => J a y r p q) P :=
+    Integrable.of_bound hJm.aestronglyMeasurable (|Λ| + 1)
+      (Filter.Eventually.of_forall fun a => by rw [Real.norm_eq_abs]; exact hJb a)
   obtain ⟨hL₀i, hL₀e⟩ := hE' m₀
   obtain ⟨hLci, hLce⟩ := hE' cst
   obtain ⟨-, hA1mi, hA1me⟩ := hA1 m₀ hm₀B
   have hUi : Integrable (fun a => κ * (2 * (euclideanNorm (gradientAverage S a y r m₀ - m₀) ^ 2 +
-      euclideanSq (polarizationVector a y r p q - m₀))) + K * (M a y / r) ^ d) P :=
+      euclideanSq (polarizationVectorOf J a y r p q - m₀))) + K * (M a y / r) ^ d) P :=
     (((hA1mi.add hpi).const_mul 2).const_mul κ).add (hA4i.const_mul K)
-  have hgU : ∀ᵐ a ∂P, J1Heat a y r p q - trialValue S a y r p q m₀ ≤
+  have hgU : ∀ᵐ a ∂P, J a y r p q - trialValue S a y r p q m₀ ≤
       κ * (2 * (euclideanNorm (gradientAverage S a y r m₀ - m₀) ^ 2 +
-        euclideanSq (polarizationVector a y r p q - m₀))) + K * (M a y / r) ^ d := by
+        euclideanSq (polarizationVectorOf J a y r p q - m₀))) + K * (M a y / r) ^ d := by
     filter_upwards [hpt'] with a ha
     have h1 := ha m₀ hm₀B
     have h2 := euclideanNorm_sub_sq_le_two (gradientAverage S a y r m₀) m₀
-      (polarizationVector a y r p q)
+      (polarizationVectorOf J a y r p q)
     rw [hcomm] at h2
     have h3 := mul_le_mul_of_nonneg_left h2 hκ
     linarith
   have hUe : ∫ a, (κ * (2 * (euclideanNorm (gradientAverage S a y r m₀ - m₀) ^ 2 +
-      euclideanSq (polarizationVector a y r p q - m₀))) + K * (M a y / r) ^ d) ∂P ≤ G₁ * ρ := by
+      euclideanSq (polarizationVectorOf J a y r p q - m₀))) + K * (M a y / r) ^ d) ∂P ≤ G₁ * ρ := by
     have i3 : Integrable (fun a => euclideanNorm (gradientAverage S a y r m₀ - m₀) ^ 2 +
-        euclideanSq (polarizationVector a y r p q - m₀)) P := hA1mi.add hpi
+        euclideanSq (polarizationVectorOf J a y r p q - m₀)) P := hA1mi.add hpi
     have i1 : Integrable (fun a => κ * (2 * (euclideanNorm (gradientAverage S a y r m₀ - m₀) ^ 2 +
-        euclideanSq (polarizationVector a y r p q - m₀)))) P := (i3.const_mul 2).const_mul κ
+        euclideanSq (polarizationVectorOf J a y r p q - m₀)))) P := (i3.const_mul 2).const_mul κ
     have i2 : Integrable (fun a => K * (M a y / r) ^ d) P := hA4i.const_mul K
     rw [integral_add i1 i2, integral_const_mul, integral_const_mul, integral_add hA1mi hpi,
       integral_const_mul, hG₁]
@@ -223,8 +225,9 @@ theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
     have h2 := mul_le_mul_of_nonneg_left (add_le_add hA1me hpint) (by norm_num : (0 : ℝ) ≤ 2)
     have h3 := mul_le_mul_of_nonneg_left h2 hκ
     linarith
-  have hcJ : ∀ᵐ a ∂P, trialValue S a y r p q cst ≤ J1Heat a y r p q := by
-    filter_upwards [hspan] with a hsa
+  have hcJ : ∀ᵐ a ∂P, trialValue S a y r p q cst ≤ J a y r p q := by
+    filter_upwards [hspan, hJ] with a hsa hJa
+    rw [hJa]
     exact j1Functional_correctedField_le_J1Heat S a hsa y hr0 p q cst
   have hdet : IsUnit S.homogenized.det := isUnit_det_of_coercive fun ξ => (hA ξ).1
   have hhc : homogenizedJ1Objective S.homogenized p q cst = homogenizedJ1 S.homogenized p q := by
@@ -253,31 +256,31 @@ theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
       exact mul_le_mul_of_nonneg_right this hρ0.le
     unfold trialValue; linarith
   have hδ := le_of_expectations hJi hL₀i hLci hUi
-    (g := fun a => J1Heat a y r p q - trialValue S a y r p q m₀)
+    (g := fun a => J a y r p q - trialValue S a y r p q m₀)
     (fun a => (add_sub_cancel _ _).symm) hcJ hgU hUe
     hL₀e' hLce' hhc hhm
   have hδ' : euclideanSq (m₀ - cst) ≤ G₂ * ρ := by rw [hG₂]; linarith
   -- the final bound
   have hA2 : euclideanNorm (cst - m₀) ^ 2 ≤ G₂ * ρ := by rw [euclideanNorm_sub_comm_sq]; exact hδ'
   obtain ⟨hA1c, -, -⟩ := hA1 cst hcB
-  have hXm : Measurable fun a : CoefficientField d Λ => max (trialGap S a y r p q) 0 :=
+  have hXm : Measurable fun a : CoefficientField d Λ => max (trialGapOf J S a y r p q) 0 :=
     hmeasG.comp (measurable_const.prodMk measurable_id)
-  have hpos' : OsBound P (fun a => euclideanNorm (m₀ - polarizationVector a y r p q) ^ 2) (s / 2)
+  have hpos' : OsBound P (fun a => euclideanNorm (m₀ - polarizationVectorOf J a y r p q) ^ 2) (s / 2)
       (Apol * ρ) := by
     simpa only [hcomm] using hpos
-  have hfin := osBound_of_four (X := fun a => max (trialGap S a y r p q) 0)
+  have hfin := osBound_of_four (X := fun a => max (trialGapOf J S a y r p q) 0)
     (A₂ := euclideanNorm (cst - m₀) ^ 2) hκ' hK' hXm hA1c hA2 (mul_pos hG₂0 hρ0) hpos' hA4
     (by
-      filter_upwards [hpt', hspan] with a ha hsa
+      filter_upwards [hpt', hspan, hJ] with a ha hsa hJa
       have h1 := ha cst hcB
-      have h0 : 0 ≤ trialGap S a y r p q := by
-        rw [← hcst] at *
+      have h0 : 0 ≤ trialGapOf J S a y r p q := by
+        simp only [trialGapOf, hJa]
         exact sub_nonneg.mpr (j1Functional_correctedField_le_J1Heat S a hsa y hr0 p q _)
       rw [max_eq_left h0]
       have h2 := euclideanNorm_sub_sq_le_three (gradientAverage S a y r cst) cst m₀
-        (polarizationVector a y r p q)
+        (polarizationVectorOf J a y r p q)
       have h3 := mul_le_mul_of_nonneg_left h2 hκ
-      have e : trialGap S a y r p q = J1Heat a y r p q - trialValue S a y r p q cst := by
+      have e : trialGapOf J S a y r p q = J a y r p q - trialValue S a y r p q cst := by
         rw [hcst]; rfl
       rw [e]
       linarith)
@@ -287,35 +290,43 @@ theorem trialGap_osBound_at [IsProbabilityMeasure P] (S : HomogenizationData P)
 
 
 set_option maxHeartbeats 400000 in
-/-- **The trial gap estimate from the pointwise bound** (the probabilistic part of Step 2):
-if almost surely, for every slope `k` with `|k|² ≤ B`,
-`J₁(Φ_{y,r}, p, q) - L(k) ≤ κ |∫ Φ_{y,r} G k - m|² + K (M(y)/r)^d` with `m` the polarization
-vector and `M` a jointly measurable family of scales `1 ≤ M(·, y) ≤ O_τ(C_M)`, `τ > s d/2`, then
-`Fluc(s, α)`, the linear estimate of Step 1 and the expectation of the trial give the trial gap
-estimate `O_{s/2}(C r^{-2α})`. -/
-theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : HomogenizationData P)
-    (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
-    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
-      Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
-    {s α τ CM κ K B : ℝ} (hd : 1 ≤ d) (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
+/-- **The trial gap estimate from the pointwise bound, with the constant chosen before the law**
+(the probabilistic part of Step 2): for the exponents, the constants `C_M`, `κ`, `K`, `B` and the
+constants `C_F`, `C_4`, `C_E` of `Fluc(s, α)`, of the linear estimate and of the expectation of the
+trial, there is `C` such that for every law, homogenization data and jointly measurable field `J`
+bounded by `|Λ| + 1` and almost surely equal to `J₁`: if almost surely, for every slope `k` with
+`|k|² ≤ B`, `J(y, r, p, q) - L(k) ≤ κ |∫ Φ_{y,r} G k - m|² + K (M(y)/r)^d` with `m` the
+polarization vector of `J` and `M` a family of scales `1 ≤ M(·, y) ≤ O_τ(C_M)`, `τ > s d/2`, then the
+trial gap of `J` is `O_{s/2}(C r^{-2α})` at every center. -/
+theorem exists_trialGapEstimateAt_of_pointwise (hd : 1 ≤ d) (hΛ : 0 ≤ Λ)
+    {s α τ CM κ K B CF C4 CE : ℝ} (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
     (hτ : s * ((d : ℝ) / 2) < τ) (hCM : 0 < CM) (hκ' : 0 < κ) (hK' : 0 < K)
-    (hB : max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 ≤ B)
-    (M : CoefficientField d Λ → Vec d → ℝ)
-    (hM1 : ∀ a y, 1 ≤ M a y) (hMos : ∀ y, OsBound P (fun a => M a y) τ CM)
-    (hpt : ∀ (r : ℝ), 1 ≤ r → ∀ p q : Vec d, euclideanNorm p < 1 → euclideanNorm q < 1 →
-      ∀ y : Vec d, ∀ᵐ a ∂P, ∀ k : Vec d, euclideanSq k ≤ B →
-        J1Heat a y r p q - trialValue S a y r p q k ≤
-          κ * euclideanNorm (gradientAverage S a y r k - polarizationVector a y r p q) ^ 2 +
-            K * (M a y / r) ^ d)
-    (hF : FlucJ1 P s α) (h4 : LinearAverageEstimate P S s α)
-    (hE : TrialObjectiveExpectation P S (2 * α)) :
-    TrialGapEstimate P S (s / 2) (2 * α) := by
-  obtain ⟨CF, hCF, hF⟩ := hF
-  obtain ⟨C4, hC4, h4⟩ := h4
-  obtain ⟨CE, hCE, hE⟩ := hE
+    (hB : max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 ≤ B) (hCF : 0 < CF) (hC4 : 0 < C4)
+    (hCE : 0 < CE) :
+    ∃ Cg : ℝ, 0 < Cg ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), HomogenizedMatrixBounds S.homogenized Λ →
+      (∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) →
+      ∀ J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ,
+      (∀ (r : ℝ) (p q : Vec d),
+        Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q) →
+      (∀ a z r p q, 1 ≤ r → euclideanNorm p < 1 → euclideanNorm q < 1 →
+        |J a z r p q| ≤ |Λ| + 1) →
+      (∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q) →
+      (∀ (r : ℝ) (p q k : Vec d),
+        Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k) →
+      ∀ M : CoefficientField d Λ → Vec d → ℝ, (∀ a y, 1 ≤ M a y) →
+      (∀ y, OsBound P (fun a => M a y) τ CM) →
+      (∀ (r : ℝ), 1 ≤ r → ∀ p q : Vec d, euclideanNorm p < 1 → euclideanNorm q < 1 →
+        ∀ y : Vec d, ∀ᵐ a ∂P, ∀ k : Vec d, euclideanSq k ≤ B →
+          J a y r p q - trialValue S a y r p q k ≤
+            κ * euclideanNorm (gradientAverage S a y r k - polarizationVectorOf J a y r p q) ^ 2 +
+              K * (M a y / r) ^ d) →
+      (∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        euclideanNorm p < 1 → euclideanNorm q < 1 →
+        Integrable (fun a => J a z r p q) P ∧
+        OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α))) →
+      LinearAverageEstimateAt P S s α C4 → TrialObjectiveExpectationAt P S (2 * α) CE →
+      TrialGapEstimateAt P S J (s / 2) (2 * α) Cg := by
   have hκ : 0 ≤ κ := hκ'.le
   have hK : 0 ≤ K := hK'.le
   have hd0 : (0 : ℝ) < d := by exact_mod_cast hd
@@ -350,7 +361,7 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
       c = ct * (3 * κ * (ct * (ct * (Q1 ^ 2 + G₂ / L₂) + Apol)) + K * O4) := ⟨_, rfl⟩
   have hCf0 : 0 ≤ Cf := by rw [hCf]; positivity
   refine ⟨Cf + 1, by linarith, ?_⟩
-  intro r hr p q hp hq
+  intro P _ S hA hspan J hmeasJ hJb hJ hmeasL M hM1 hMos hpt hF h4 hE r hr p q hp hq
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   obtain ⟨ρ, hρ⟩ : ∃ c : ℝ, c = r ^ (-(2 * α)) := ⟨_, rfl⟩
   have hρ0 : 0 < ρ := by rw [hρ]; exact Real.rpow_pos_of_pos hr0 _
@@ -358,7 +369,7 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
   have hsq : (r ^ (-α)) ^ 2 = ρ := by
     rw [hρ, ← Real.rpow_natCast, ← Real.rpow_mul hr0.le]; congr 1; push_cast; ring
   have hmeasG : Measurable (Function.uncurry fun (y : Vec d) (a : CoefficientField d Λ) =>
-      max (trialGap S a y r p q) 0) :=
+      max (trialGapOf J S a y r p q) 0) :=
     (((hmeasJ r p q).comp measurable_swap).sub
       (hmeasL r p q (homogenizedSlope S.homogenized p q))).max measurable_const
   refine ⟨hmeasG, fun y => ?_⟩
@@ -366,16 +377,18 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
   obtain ⟨cst, hcst⟩ : ∃ c : Vec d, c = homogenizedSlope S.homogenized p q := ⟨_, rfl⟩
   have hc4 : euclideanSq cst ≤ 4 := by
     rw [hcst]; exact euclideanSq_homogenizedSlope_le (fun ξ => (hA ξ).1) hp.le hq.le
-  obtain ⟨m₀, hm₀⟩ : ∃ m : Vec d, m = fun i => ∫ a, polarizationVector a y r p q i ∂P :=
+  obtain ⟨m₀, hm₀⟩ : ∃ m : Vec d, m = fun i => ∫ a, polarizationVectorOf J a y r p q i ∂P :=
     ⟨_, rfl⟩
   have hm₀B : euclideanSq m₀ ≤ B := by
     refine (euclideanSq_le_of_abs_le (c := 8 * (Λ + 1)) fun i => ?_).trans hBm
     rw [hm₀]
     refine (abs_integral_le_integral_abs).trans ?_
-    calc ∫ a, |polarizationVector a y r p q i| ∂P ≤ ∫ _a, 8 * (Λ + 1) ∂P :=
+    calc ∫ a, |polarizationVectorOf J a y r p q i| ∂P ≤ ∫ _a, 8 * (Λ + 1) ∂P :=
           integral_mono_of_nonneg (Filter.Eventually.of_forall fun _ => abs_nonneg _)
-            (integrable_const _) (Filter.Eventually.of_forall fun a =>
-              abs_polarizationVector_le a hΛ y hr0 hp hq i)
+            (integrable_const _) (by
+              filter_upwards [hJ] with a ha
+              rw [polarizationVectorOf_eq ha]
+              exact abs_polarizationVector_le a hΛ y hr0 hp hq i)
       _ = 8 * (Λ + 1) := by simp
   have hcB : euclideanSq cst ≤ B := hc4.trans hB4
   have hnorm : ∀ k : Vec d, euclideanSq k ≤ B → euclideanNorm k ≤ Real.sqrt B := fun k hk =>
@@ -411,7 +424,7 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
     rw [hCMr, hE4, ← mul_assoc]
     exact mul_le_mul_of_nonneg_left hrd (by positivity)
   -- the polarization vector
-  obtain ⟨hpos, hpi, hpint⟩ := polarizationVector_fluctuation hs0 hCF hmeasJ hF y hr hp hq
+  obtain ⟨hpos, hpi, hpint⟩ := polarizationVector_fluctuation J hs0 hCF hmeasJ hF y hr hp hq
   rw [← hm₀] at hpos hpi hpint
   have hpolsc : ct ^ d * (16 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2) = Apol * ρ := by
     rw [hApol, ← hsq, ← hcs]; ring
@@ -420,57 +433,110 @@ theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : Homogenizati
     rw [hEpol, ← hsq, ← hcs, ← hKs]; ring
   rw [← hct, hpolsc] at hpos
   rw [hpolE] at hpint
-  have hcomm : ∀ a : CoefficientField d Λ, euclideanNorm (m₀ - polarizationVector a y r p q) ^ 2 =
-      euclideanSq (polarizationVector a y r p q - m₀) := fun a => euclideanNorm_sub_comm_sq _ _
+  have hcomm : ∀ a : CoefficientField d Λ,
+      euclideanNorm (m₀ - polarizationVectorOf J a y r p q) ^ 2 =
+        euclideanSq (polarizationVectorOf J a y r p q - m₀) := fun a => euclideanNorm_sub_comm_sq _ _
   have hE' := fun k => hE y r hr p q hp hq k
   rw [← hρ]
-  exact trialGap_osBound_at S hA hspan hmeasJ hr0 hρ hρ0 hκ' hK' hcst hc4
+  exact trialGap_osBound_at S hA hspan J hmeasJ hJ hr0 (fun a => hJb a y r p q hr hp hq) hρ hρ0
+    hκ' hK' hcst hc4
     hm₀B hcB hA1 hA4 hA4i hA4E hpos hpi hpint hcomm (hpt r hr p q hp hq y) hE' hG₁ hG₂ hL₂
     hct hCf hG₂0 hCE hmeasG
 
-/-- **The trial gap estimate under `Fluc(s, α)`** from the linear estimate of Step 1, the
-expectation of the trial, the energy bound below the scale and Proposition 3.21 at an exponent
-`τ > s d/2` (Step 2 of the proof of Proposition 4.10 used here). -/
-theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : HomogenizationData P)
+set_option maxHeartbeats 400000 in
+/-- **The trial gap estimate from the pointwise bound** (the probabilistic part of Step 2):
+if almost surely, for every slope `k` with `|k|² ≤ B`,
+`J₁(Φ_{y,r}, p, q) - L(k) ≤ κ |∫ Φ_{y,r} G k - m|² + K (M(y)/r)^d` with `m` the polarization
+vector and `M` a jointly measurable family of scales `1 ≤ M(·, y) ≤ O_τ(C_M)`, `τ > s d/2`, then
+`Fluc(s, α)`, the linear estimate of Step 1 and the expectation of the trial give the trial gap
+estimate `O_{s/2}(C r^{-2α})`. -/
+theorem trialGapEstimate_of_pointwise [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
       Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
     (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
       Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
-    {s α τ C μ CN : ℝ} (hd : 1 ≤ d) (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
-    (hτ : s * ((d : ℝ) / 2) < τ) (hC : 0 < C) (hμ : 0 < μ) (hCN : 0 < CN)
-    (hrate : GaussianCorrectorRate P S τ C μ) (hN : GaussianEnergyBound P S τ CN)
+    {s α τ CM κ K B : ℝ} (hd : 1 ≤ d) (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
+    (hτ : s * ((d : ℝ) / 2) < τ) (hCM : 0 < CM) (hκ' : 0 < κ) (hK' : 0 < K)
+    (hB : max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 ≤ B)
+    (M : CoefficientField d Λ → Vec d → ℝ)
+    (hM1 : ∀ a y, 1 ≤ M a y) (hMos : ∀ y, OsBound P (fun a => M a y) τ CM)
+    (hpt : ∀ (r : ℝ), 1 ≤ r → ∀ p q : Vec d, euclideanNorm p < 1 → euclideanNorm q < 1 →
+      ∀ y : Vec d, ∀ᵐ a ∂P, ∀ k : Vec d, euclideanSq k ≤ B →
+        J1Heat a y r p q - trialValue S a y r p q k ≤
+          κ * euclideanNorm (gradientAverage S a y r k - polarizationVector a y r p q) ^ 2 +
+            K * (M a y / r) ^ d)
     (hF : FlucJ1 P s α) (h4 : LinearAverageEstimate P S s α)
     (hE : TrialObjectiveExpectation P S (2 * α)) :
     TrialGapEstimate P S (s / 2) (2 * α) := by
-  obtain ⟨Xg, hXgm, hXg⟩ := hrate
-  obtain ⟨XN, hXNm, hXN1, hXNos, hXNb⟩ := hN
+  obtain ⟨CF, hCF, hF⟩ := hF
+  obtain ⟨C4, hC4, h4⟩ := h4
+  obtain ⟨CE, hCE, hE⟩ := hE
+  obtain ⟨Cg, hCg, h⟩ := exists_trialGapEstimateAt_of_pointwise hd hΛ hs0 hα hτ hCM hκ' hK' hB
+    hCF hC4 hCE
+  exact ⟨Cg, hCg, h P S hA hspan J1Heat hmeasJ
+    (fun a z r p q hr hp hq => abs_J1Heat_le_of_pos a z (zero_lt_one.trans_le hr) hp hq)
+    (ae_of_all _ fun _ _ _ _ _ => rfl) hmeasL M hM1 hMos hpt hF h4 hE⟩
+
+/-- **The trial gap estimate under `Fluc(s, α)` with the constant chosen before the law**, from the
+linear estimate of Step 1, the expectation of the trial, the energy bound below the scale and
+Proposition 3.21 at an exponent `τ > s d/2`, each with its constant (Step 2 of the proof of
+Proposition 4.10 used here), for every jointly measurable field `J` bounded by `|Λ| + 1` and almost
+surely equal to `J₁`. -/
+theorem exists_trialGapEstimateAt_of_linearAverages (hd : 1 ≤ d) (hΛ : 0 ≤ Λ)
+    {s α τ C μ CN CF C4 CE : ℝ} (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
+    (hτ : s * ((d : ℝ) / 2) < τ) (hC : 0 < C) (hμ : 0 < μ) (hCN : 0 < CN) (hCF : 0 < CF)
+    (hC4 : 0 < C4) (hCE : 0 < CE) :
+    ∃ Cg : ℝ, 0 < Cg ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), HomogenizedMatrixBounds S.homogenized Λ →
+      (∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) →
+      ∀ J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ,
+      (∀ (r : ℝ) (p q : Vec d),
+        Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q) →
+      (∀ a z r p q, 1 ≤ r → euclideanNorm p < 1 → euclideanNorm q < 1 →
+        |J a z r p q| ≤ |Λ| + 1) →
+      (∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q) →
+      (∀ (r : ℝ) (p q k : Vec d),
+        Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k) →
+      GaussianCorrectorRate P S τ C μ → GaussianEnergyBound P S τ CN →
+      (∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+        euclideanNorm p < 1 → euclideanNorm q < 1 →
+        Integrable (fun a => J a z r p q) P ∧
+        OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α))) →
+      LinearAverageEstimateAt P S s α C4 → TrialObjectiveExpectationAt P S (2 * α) CE →
+      TrialGapEstimateAt P S J (s / 2) (2 * α) Cg := by
   have hτ0 : 0 < τ := lt_of_le_of_lt (by positivity) hτ
   obtain ⟨r₀, hr₀⟩ : ∃ c : ℝ, c = max 1 ((4 * C) ^ μ⁻¹) := ⟨_, rfl⟩
   have hr₀1 : 1 ≤ r₀ := hr₀ ▸ le_max_left _ _
-  obtain ⟨M, hM⟩ : ∃ M : CoefficientField d Λ → Vec d → ℝ,
-      M = fun a y => max (max (Xg a y) r₀) (XN a y) := ⟨_, rfl⟩
-  have hM1 : ∀ a y, 1 ≤ M a y := fun a y => by
-    rw [hM]; exact hr₀1.trans ((le_max_right _ _).trans (le_max_left _ _))
   have hLτ0 : 0 < Real.log 2 ^ τ⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
   obtain ⟨CM, hCM⟩ : ∃ c : ℝ,
       c = (2 : ℝ) ^ τ⁻¹ * max ((2 : ℝ) ^ τ⁻¹ * max C (r₀ / Real.log 2 ^ τ⁻¹)) CN := ⟨_, rfl⟩
   have hCM0 : 0 < CM := by
     rw [hCM]; exact mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_right hCN)
+  obtain ⟨B, hB⟩ : ∃ c : ℝ, c = max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 := ⟨_, rfl⟩
+  have hB0 : 0 ≤ B := by rw [hB]; exact le_max_of_le_right (by norm_num)
+  obtain ⟨Cg, hCg, hpw⟩ := exists_trialGapEstimateAt_of_pointwise (κ := 8 / 9 * (Λ + 1 / 2))
+    (K := 2 * (Λ + 1) + 2 * CN * B) (B := B) hd hΛ hs0 hα hτ hCM0 (by positivity)
+    (by nlinarith [mul_nonneg hCN.le hB0]) hB.ge hCF hC4 hCE
+  refine ⟨Cg, hCg, ?_⟩
+  intro P _ S hA hspan J hmeasJ hJb hJ hmeasL hrate hN hF h4 hE
+  obtain ⟨Xg, hXgm, hXg⟩ := hrate
+  obtain ⟨XN, hXNm, hXN1, hXNos, hXNb⟩ := hN
+  obtain ⟨M, hM⟩ : ∃ M : CoefficientField d Λ → Vec d → ℝ,
+      M = fun a y => max (max (Xg a y) r₀) (XN a y) := ⟨_, rfl⟩
+  have hM1 : ∀ a y, 1 ≤ M a y := fun a y => by
+    rw [hM]; exact hr₀1.trans ((le_max_right _ _).trans (le_max_left _ _))
   have hMos : ∀ y, OsBound P (fun a => M a y) τ CM := fun y => by
     rw [hM, hCM]
     exact osBound_max (osBound_max (hXg y).1 (osBound_of_le_const measurable_const hτ0
       (zero_lt_one.trans_le hr₀1) (Filter.Eventually.of_forall fun _ => le_rfl))) (hXNos y)
-  obtain ⟨B, hB⟩ : ∃ c : ℝ, c = max ((d : ℝ) * (8 * (Λ + 1)) ^ 2) 4 := ⟨_, rfl⟩
-  have hB0 : 0 ≤ B := by rw [hB]; exact le_max_of_le_right (by norm_num)
-  refine trialGapEstimate_of_pointwise S hΛ hA hspan hmeasJ hmeasL (κ := 8 / 9 * (Λ + 1 / 2))
-    (K := 2 * (Λ + 1) + 2 * CN * B) (B := B) hd hs0 hα hτ hCM0 (by positivity)
-    (by nlinarith [mul_nonneg hCN.le hB0]) hB.ge M hM1 hMos ?_ hF h4 hE
+  refine hpw P S hA hspan J hmeasJ hJb hJ hmeasL M hM1 hMos ?_ hF h4 hE
   intro r hr p q hp hq y
   have hr0 : 0 < r := zero_lt_one.trans_le hr
-  filter_upwards [hspan, (hXg y).2, hXNb y] with a hsa hga hNa
+  filter_upwards [hspan, (hXg y).2, hXNb y, hJ] with a hsa hga hNa hJa
   intro k hk
+  rw [hJa, polarizationVectorOf_eq hJa]
   have hgood : max (Xg a y) r₀ ≤ r →
       GaussianAverageBounds a S.homogenized (correctedField S a) y r (min (C * r ^ (-μ)) (1 / 4)) := by
     intro h
@@ -497,6 +563,31 @@ theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : Homogen
     (correctedField S a k)) 0
   unfold trialValue gradientAverage
   linarith
+
+/-- **The trial gap estimate under `Fluc(s, α)`** from the linear estimate of Step 1, the
+expectation of the trial, the energy bound below the scale and Proposition 3.21 at an exponent
+`τ > s d/2` (Step 2 of the proof of Proposition 4.10 used here). -/
+theorem trialGapEstimate_of_linearAverages [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hΛ : 0 ≤ Λ) (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    (hmeasL : ∀ (r : ℝ) (p q k : Vec d),
+      Measurable fun w : Vec d × CoefficientField d Λ => trialValue S w.2 w.1 r p q k)
+    {s α τ C μ CN : ℝ} (hd : 1 ≤ d) (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2)
+    (hτ : s * ((d : ℝ) / 2) < τ) (hC : 0 < C) (hμ : 0 < μ) (hCN : 0 < CN)
+    (hrate : GaussianCorrectorRate P S τ C μ) (hN : GaussianEnergyBound P S τ CN)
+    (hF : FlucJ1 P s α) (h4 : LinearAverageEstimate P S s α)
+    (hE : TrialObjectiveExpectation P S (2 * α)) :
+    TrialGapEstimate P S (s / 2) (2 * α) := by
+  obtain ⟨CF, hCF, hF⟩ := hF
+  obtain ⟨C4, hC4, h4⟩ := h4
+  obtain ⟨CE, hCE, hE⟩ := hE
+  obtain ⟨Cg, hCg, h⟩ := exists_trialGapEstimateAt_of_linearAverages hd hΛ hs0 hα hτ hC hμ hCN
+    hCF hC4 hCE
+  exact ⟨Cg, hCg, h P S hA hspan J1Heat hmeasJ
+    (fun a z r p q hr hp hq => abs_J1Heat_le_of_pos a z (zero_lt_one.trans_le hr) hp hq)
+    (ae_of_all _ fun _ _ _ _ _ => rfl) hmeasL hrate hN hF h4 hE⟩
 
 end Estimate
 

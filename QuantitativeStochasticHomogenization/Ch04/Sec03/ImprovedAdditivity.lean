@@ -157,23 +157,32 @@ theorem improved_scale_second {r K s A₁ C' κ α η : ℝ} (hr : 1 ≤ r) (hK 
     _ ≤ K * (2 * ((2 : ℝ) ^ s⁻¹ * (A₁ * C' ^ κ))) * r ^ (-(α + η)) :=
         mul_le_mul_of_nonneg_left h4 h0
 
-/-- **Proposition 4.10, `Add(s, α + η)`**: under the inputs of Proposition 4.3 at an exponent
-`τ ∈ (s d/2, ∞)` with rate `μ`, the trial gap estimate `O_{s/2}(C r^{-2α})` for some
-`α ≤ d/2`, the almost sure integrability of the trial and the joint measurability of `J₁`,
-`Add(s, α + η)` holds with `η = min(μ/2, τ/s - d/2)`. -/
-theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationData P)
-    (hA : HomogenizedMatrixBounds S.homogenized Λ)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (htrial : TrialIntegrable P S)
-    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    {s α τ C μ : ℝ} (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2) (hτs : s * ((d : ℝ) / 2) < τ)
-    (hC : 0 < C) (hμ : 0 < μ)
-    (hrate : GaussianCorrectorRate P S τ C μ) (hgap : TrialGapEstimate P S (s / 2) (2 * α)) :
-    AddJ1 P s (α + min (μ / 2) (τ / s - (d : ℝ) / 2)) := by
+set_option maxHeartbeats 400000 in
+/-- **Proposition 4.10, `Add(s, α + η)`, with the constant chosen before the law**: for
+`τ ∈ (s d/2, ∞)`, the constant `C` and rate `μ` of Proposition 3.21 at `τ` and the constant `C₂` of
+the trial gap estimate `O_{s/2}(C₂ r^{-2α})` (`α ≤ d/2`), there is `D` such that for every law,
+homogenization data and jointly measurable field `J` bounded by `|Λ| + 1` and almost surely equal
+to `J₁`, `Add(s, α + η)` holds for `J` with constant `D`, `η = min(μ/2, τ/s - d/2)`. -/
+theorem exists_addEstimateAt_improved_of_trialGap {s α τ C μ C₂ : ℝ} (hs0 : 0 < s)
+    (hα : α ≤ (d : ℝ) / 2) (hτs : s * ((d : ℝ) / 2) < τ) (hC : 0 < C) (hμ : 0 < μ)
+    (hC₂ : 0 < C₂) :
+    ∃ D : ℝ, 0 < D ∧ ∀ (P : Measure (CoefficientField d Λ)) [IsProbabilityMeasure P]
+      (S : HomogenizationData P), HomogenizedMatrixBounds S.homogenized Λ →
+      (∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) → TrialIntegrable P S →
+      ∀ J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ,
+      (∀ (r : ℝ) (p q : Vec d),
+        Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q) →
+      (∀ a z r p q, 1 ≤ r → euclideanNorm p < 1 → euclideanNorm q < 1 →
+        |J a z r p q| ≤ |Λ| + 1) →
+      (∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q) →
+      GaussianCorrectorRate P S τ C μ → TrialGapEstimateAt P S J (s / 2) (2 * α) C₂ →
+      AddEstimateAt P J s (α + min (μ / 2) (τ / s - (d : ℝ) / 2)) D := by
   have hd0 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
   have hτ : 0 < τ := lt_of_le_of_lt (mul_nonneg hs0.le (by positivity)) hτs
-  obtain ⟨C', hC', X, hXm, hX1, hX⟩ := proposition43 S hA hspan hτ hC hμ hrate
-  obtain ⟨C₂, hC₂, hgap⟩ := hgap
+  obtain ⟨C', hC'def⟩ : ∃ c : ℝ,
+      c = (2 : ℝ) ^ τ⁻¹ * max C (max 1 ((5 * C) ^ μ⁻¹) / Real.log 2 ^ τ⁻¹) := ⟨_, rfl⟩
+  have hC' : 0 < C' := by
+    rw [hC'def]; exact mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hC)
   set κ : ℝ := τ / s with hκ
   have hκ0 : 0 < κ := div_pos hτ hs0
   have hκd : (d : ℝ) / 2 < κ := by rw [hκ, lt_div_iff₀ hs0]; linarith
@@ -190,22 +199,24 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
     (Real.rpow_pos_of_pos (by positivity) _)
   have hc₂0 : 0 < c₂ := by positivity
   refine ⟨2 * ((2 : ℝ) ^ s⁻¹ * (c₁ + c₂)), by positivity, ?_⟩
+  intro P _ S hA hspan htrial J hmeasJ hJb hJ hrate hgap
+  obtain ⟨X, hXm, hX1, hX⟩ := proposition43_at S hA hspan hτ hμ hrate
+  rw [← hC'def] at hX
   intro z r R hr hrR p q hp hq
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hR : 0 < R := hr0.trans hrR
   obtain ⟨hm, hos⟩ := hgap r hr p q hp hq
   set ρ := Real.sqrt (R ^ 2 - r ^ 2) with hρdef
   have hρ : 0 < ρ := sqrt_sq_sub_sq_pos hrR hr0.le
-  have hJy : ∀ a : CoefficientField d Λ, Measurable fun y => J1Heat a y r p q := fun a =>
+  have hJy : ∀ a : CoefficientField d Λ, Measurable fun y => J a y r p q := fun a =>
     (hmeasJ r p q).comp (measurable_const.prodMk measurable_id)
   have hint : ∀ a : CoefficientField d Λ,
-      Integrable fun x => heatKernel z ρ x * J1Heat a x r p q := by
+      Integrable fun x => heatKernel z ρ x * J a x r p q := by
     intro a
     refine (integrable_heatKernel z hρ).mul_bdd (hJy a).aestronglyMeasurable
-      (c := Λ * euclideanSq p + euclideanSq q) (Filter.Eventually.of_forall fun y => ?_)
-    obtain ⟨h0, h1⟩ := J1Heat_nonneg_le a y hr0 p q
-    rw [Real.norm_eq_abs, abs_of_nonneg h0]
-    exact h1
+      (c := |Λ| + 1) (Filter.Eventually.of_forall fun y => ?_)
+    rw [Real.norm_eq_abs]
+    exact hJb a y r p q hr hp hq
   refine ⟨Filter.Eventually.of_forall hint, ?_⟩
   -- the bounds on `J₁` and the homogenized energy
   have hp2 : euclideanSq p ≤ 1 := by
@@ -247,7 +258,7 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
       _ = δ := by rw [hδ]; ring
   -- the random variables
   set G : CoefficientField d Λ → ℝ :=
-    fun a => ∫ y, heatKernel z ρ y * max (trialGap S a y r p q) 0 with hGdef
+    fun a => ∫ y, heatKernel z ρ y * max (trialGapOf J S a y r p q) 0 with hGdef
   obtain ⟨-, hG⟩ := osBound_integral_heatKernel_mul hm (fun _ _ => le_max_right _ _) hos z hρ
   have hG0 : ∀ a, 0 ≤ G a := fun a =>
     integral_nonneg fun y => mul_nonneg (heatKernel_nonneg _ _ _) (le_max_right _ _)
@@ -284,43 +295,52 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
   -- measurability of the additivity defect
   have hΦm : Measurable fun y : Vec d => heatKernel z ρ y :=
     ((continuous_heatKernel_uncurry ρ).comp (continuous_const.prodMk continuous_id)).measurable
-  have hmR : Measurable fun a : CoefficientField d Λ => J1Heat a z R p q :=
+  have hmR : Measurable fun a : CoefficientField d Λ => J a z R p q :=
     (hmeasJ R p q).comp (measurable_id.prodMk measurable_const)
   have hmI : Measurable fun a : CoefficientField d Λ =>
-      ∫ x, heatKernel z ρ x * J1Heat a x r p q := by
+      ∫ x, heatKernel z ρ x * J a x r p q := by
     have hsm : StronglyMeasurable (Function.uncurry fun (a : CoefficientField d Λ) (x : Vec d) =>
-        heatKernel z ρ x * J1Heat a x r p q) :=
+        heatKernel z ρ x * J a x r p q) :=
       ((hΦm.comp measurable_snd).mul (hmeasJ r p q)).stronglyMeasurable
     exact hsm.integral_prod_right.measurable
   have hmY : Measurable fun a : CoefficientField d Λ =>
-      |J1Heat a z R p q - ∫ x, heatKernel z ρ x * J1Heat a x r p q| :=
+      |J a z R p q - ∫ x, heatKernel z ρ x * J a x r p q| :=
     continuous_abs.measurable.comp (hmR.sub hmI)
   -- the good scales at almost every center, for almost every coefficient field
   set b : ℝ := 7 * (C * r ^ (-μ)) * (euclideanNorm p ^ 2 + euclideanNorm q ^ 2) with hbdef
   have hset : MeasurableSet {w : CoefficientField d Λ × Vec d |
-      X w.1 w.2 ≤ r → |J1Heat w.1 w.2 r p q - c| ≤ b} := by
+      X w.1 w.2 ≤ r → |J w.1 w.2 r p q - c| ≤ b} := by
     have h1 : MeasurableSet {w : CoefficientField d Λ × Vec d | X w.1 w.2 ≤ r} :=
       measurableSet_le hXm measurable_const
-    have h2 : MeasurableSet {w : CoefficientField d Λ × Vec d | |J1Heat w.1 w.2 r p q - c| ≤ b} :=
+    have h2 : MeasurableSet {w : CoefficientField d Λ × Vec d | |J w.1 w.2 r p q - c| ≤ b} :=
       measurableSet_le (continuous_abs.measurable.comp ((hmeasJ r p q).sub measurable_const))
         measurable_const
-    have : {w : CoefficientField d Λ × Vec d | X w.1 w.2 ≤ r → |J1Heat w.1 w.2 r p q - c| ≤ b} =
+    have : {w : CoefficientField d Λ × Vec d | X w.1 w.2 ≤ r → |J w.1 w.2 r p q - c| ≤ b} =
         {w : CoefficientField d Λ × Vec d | X w.1 w.2 ≤ r}ᶜ ∪
-          {w : CoefficientField d Λ × Vec d | |J1Heat w.1 w.2 r p q - c| ≤ b} :=
+          {w : CoefficientField d Λ × Vec d | |J w.1 w.2 r p q - c| ≤ b} :=
       Set.ext fun w => imp_iff_not_or
     rw [this]
     exact h1.compl.union h2
   have hgoodY : ∀ᵐ a ∂P, ∀ᵐ y ∂(volume : Measure (Vec d)),
-      X a y ≤ r → |J1Heat a y r p q - c| ≤ b :=
-    (Measure.ae_ae_comm hset).mpr (Filter.Eventually.of_forall fun y =>
-      (hX y).2.mono fun a ha h => ha r h p q)
+      X a y ≤ r → |J a y r p q - c| ≤ b :=
+    (Measure.ae_ae_comm hset).mpr (Filter.Eventually.of_forall fun y => by
+      filter_upwards [(hX y).2, hJ] with a ha hJa h
+      rw [hJa]
+      exact ha r h p q)
   -- the pointwise bound
-  have hle : ∀ᵐ a ∂P, |J1Heat a z R p q - ∫ x, heatKernel z ρ x * J1Heat a x r p q| ≤
+  have hle : ∀ᵐ a ∂P, |J a z R p q - ∫ x, heatKernel z ρ x * J a x r p q| ≤
       Real.sqrt (2 * δ) * Real.sqrt (G a) +
         K * ((∫ y, heatKernel z ρ y * F y a) + (R⁻¹ * X a z) ^ κ) := by
-    filter_upwards [hspan, htrial z, (hX z).2, hgoodY, hB₁i] with a hsa hta hgz hgy hB1int
+    filter_upwards [hspan, htrial z, (hX z).2, hgoodY, hB₁i, hJ] with a hsa hta hgz hgy hB1int hJa
+    have hGa : G a = ∫ y, heatKernel z ρ y * max (trialGap S a y r p q) 0 := by
+      simp only [hGdef, trialGapOf, trialGap, hJa]
+    have hinta : Integrable fun x => heatKernel z ρ x * J1Heat a x r p q := by
+      simpa only [hJa] using hint a
+    simp only [hJa] at hgy ⊢
+    rw [hGa]
     obtain ⟨h0, h1⟩ := additivityDefect_le_trialGap S a hsa z hr0 hrR p q
-      (hJy a).aestronglyMeasurable (hta R (hr.trans hrR.le) p q)
+      ((hJy a).aestronglyMeasurable.congr (Filter.Eventually.of_forall fun y => hJa y r p q))
+      (hta R (hr.trans hrR.le) p q)
     have hRb := hgood a z R hrR.le (fun h => hgz R h p q)
     have hyb : ∀ᵐ y ∂(volume : Measure (Vec d)),
         heatKernel z ρ y * J1Heat a y r p q ≤ heatKernel z ρ y * (c + δ + K * F y a) := by
@@ -340,7 +360,7 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
         funext y; ring
       rw [e, integral_add ((integrable_heatKernel z hρ).mul_const _) (hB1int.const_mul K),
         integral_mul_const, integral_heatKernel z hρ, one_mul, integral_const_mul]
-    have hJr := integral_mono_ae (hint a) hI2 hyb
+    have hJr := integral_mono_ae hinta hI2 hyb
     rw [hI2v] at hJr
     have hB0 : 0 ≤ (∫ y, heatKernel z ρ y * F y a) + (R⁻¹ * X a z) ^ κ :=
       add_nonneg (integral_nonneg fun y => mul_nonneg (heatKernel_nonneg _ _ _) (hF0 y a))
@@ -374,6 +394,25 @@ theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationD
         gcongr
         exact hmax.trans (add_le_add hθ₁ hθ₂)
     _ = 2 * ((2 : ℝ) ^ s⁻¹ * (c₁ + c₂)) * r ^ (-(α + η)) := by ring
+
+/-- **Proposition 4.10, `Add(s, α + η)`**: under the inputs of Proposition 4.3 at an exponent
+`τ ∈ (s d/2, ∞)` with rate `μ`, the trial gap estimate `O_{s/2}(C r^{-2α})` for some
+`α ≤ d/2`, the almost sure integrability of the trial and the joint measurability of `J₁`,
+`Add(s, α + η)` holds with `η = min(μ/2, τ/s - d/2)`. -/
+theorem addJ1_improved_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (htrial : TrialIntegrable P S)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    {s α τ C μ : ℝ} (hs0 : 0 < s) (hα : α ≤ (d : ℝ) / 2) (hτs : s * ((d : ℝ) / 2) < τ)
+    (hC : 0 < C) (hμ : 0 < μ)
+    (hrate : GaussianCorrectorRate P S τ C μ) (hgap : TrialGapEstimate P S (s / 2) (2 * α)) :
+    AddJ1 P s (α + min (μ / 2) (τ / s - (d : ℝ) / 2)) := by
+  obtain ⟨C₂, hC₂, hgap⟩ := hgap
+  obtain ⟨D, hD, h⟩ := exists_addEstimateAt_improved_of_trialGap (Λ := Λ) hs0 hα hτs hC hμ hC₂
+  exact ⟨D, hD, h P S hA hspan htrial J1Heat hmeasJ
+    (fun a z r p q hr hp hq => abs_J1Heat_le_of_pos a z (zero_lt_one.trans_le hr) hp hq)
+    (ae_of_all _ fun _ _ _ _ _ => rfl) hrate hgap⟩
 
 end Improvement
 

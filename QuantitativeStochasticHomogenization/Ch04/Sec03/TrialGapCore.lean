@@ -160,6 +160,22 @@ def TrialObjectiveExpectation (P : Measure (CoefficientField d Λ)) (S : Homogen
     |(∫ a, j1Functional a (heatKernel z r) p q (correctedField S a k) ∂P) -
         homogenizedJ1Objective S.homogenized p q k| ≤ C * (1 + euclideanSq k) * r ^ (-β)
 
+/-- **The linear estimate of Step 1 with constant `C`**. -/
+def LinearAverageEstimateAt (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (s α C : ℝ) : Prop :=
+  ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+    OsBound P (fun a => euclideanNorm ((∫ x, heatKernel z r x • correctedField S a ξ x) - ξ)) s
+      (C * (1 + euclideanNorm ξ) * r ^ (-α))
+
+/-- **The expectation of the trial at a deterministic slope with constant `C`**. -/
+def TrialObjectiveExpectationAt (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (β C : ℝ) : Prop :=
+  ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+    euclideanNorm p < 1 → euclideanNorm q < 1 → ∀ k : Vec d,
+    Integrable (fun a => j1Functional a (heatKernel z r) p q (correctedField S a k)) P ∧
+    |(∫ a, j1Functional a (heatKernel z r) p q (correctedField S a k) ∂P) -
+        homogenizedJ1Objective S.homogenized p q k| ≤ C * (1 + euclideanSq k) * r ^ (-β)
+
 /-- **The energy of the corrected fields below the scale**: a jointly measurable family of scales
 `1 ≤ X(·, z) ≤ O_τ(C)` with, for every center `z`, almost surely
 `∫ Φ_{z,r} G ξ·aG ξ ≤ C (1 + (X/r)^d) |ξ|²` for `r ≥ 1`. -/
@@ -241,26 +257,28 @@ section Fluctuation
 
 variable {P : Measure (CoefficientField d Λ)}
 
-/-- **Fluctuations of the polarization vector**: under `Fluc(s, α)` with constant `C_F`, the
+/-- **Fluctuations of the polarization vector** of a field `J` (`J = J₁` or a jointly measurable
+version of it): under `Fluc(s, α)` with constant `C_F`, the
 squared distance of the polarization vector to its expectation is `O_{s/2}(C r^{-2α})` and has
 mean at most `C' r^{-2α}`. -/
-theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} (hs0 : 0 < s)
+theorem polarizationVector_fluctuation [IsProbabilityMeasure P]
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) {s α CF : ℝ} (hs0 : 0 < s)
     (hCF : 0 < CF)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
     (hF : ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
       euclideanNorm p < 1 → euclideanNorm q < 1 →
-      Integrable (fun a => J1Heat a z r p q) P ∧
-      OsBound P (fun a => |J1Heat a z r p q - ∫ a', J1Heat a' z r p q ∂P|) s (CF * r ^ (-α)))
+      Integrable (fun a => J a z r p q) P ∧
+      OsBound P (fun a => |J a z r p q - ∫ a', J a' z r p q ∂P|) s (CF * r ^ (-α)))
     (y : Vec d) {r : ℝ} (hr : 1 ≤ r) {p q : Vec d} (hp : euclideanNorm p < 1)
     (hq : euclideanNorm q < 1) :
-    OsBound P (fun a => euclideanSq (polarizationVector a y r p q -
-        fun i => ∫ a', polarizationVector a' y r p q i ∂P)) (s / 2)
+    OsBound P (fun a => euclideanSq (polarizationVectorOf J a y r p q -
+        fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P)) (s / 2)
       ((2 * (2 : ℝ) ^ (s / 2)⁻¹) ^ d * (16 * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) ∧
-    Integrable (fun a => euclideanSq (polarizationVector a y r p q -
-        fun i => ∫ a', polarizationVector a' y r p q i ∂P)) P ∧
-    ∫ a, euclideanSq (polarizationVector a y r p q -
-        fun i => ∫ a', polarizationVector a' y r p q i ∂P) ∂P ≤
+    Integrable (fun a => euclideanSq (polarizationVectorOf J a y r p q -
+        fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P)) P ∧
+    ∫ a, euclideanSq (polarizationVectorOf J a y r p q -
+        fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) ∂P ≤
       d * (16 * (momentConstant (s / 2) * ((2 * (2 : ℝ) ^ s⁻¹) ^ 2 * (CF * r ^ (-α))) ^ 2)) := by
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   set θ : ℝ := CF * r ^ (-α) with hθ
@@ -282,11 +300,11 @@ theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} 
     hhalf _ (by rw [euclideanNorm_unitVector]; norm_num)
   have h0 : euclideanNorm (0 : Vec d) < 1 := by simp [euclideanNorm, euclideanSq, dot]
   set J₁ : Fin d → CoefficientField d Λ → ℝ :=
-    fun i a => J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) with hJ₁
-  set J₂ : CoefficientField d Λ → ℝ := fun a => J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q)
+    fun i a => J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) with hJ₁
+  set J₂ : CoefficientField d Λ → ℝ := fun a => J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q)
     with hJ₂
   set J₃ : Fin d → CoefficientField d Λ → ℝ :=
-    fun i a => J1Heat a y r 0 ((1 / 2 : ℝ) • unitVector i) with hJ₃
+    fun i a => J a y r 0 ((1 / 2 : ℝ) • unitVector i) with hJ₃
   have hF₁ := fun i => hF y r hr _ _ hp' (hqe i)
   have hF₂ := hF y r hr _ _ hp' hq'
   have hF₃ := fun i => hF y r hr _ _ h0 (he i)
@@ -304,18 +322,18 @@ theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} 
     ring
   -- the polarization vector and its mean
   have hpol : ∀ (a : CoefficientField d Λ) (i : Fin d),
-      polarizationVector a y r p q i = 4 * (J₁ i a - J₂ a - J₃ i a) := fun a i => rfl
-  have hmean : ∀ i, ∫ a', polarizationVector a' y r p q i ∂P =
+      polarizationVectorOf J a y r p q i = 4 * (J₁ i a - J₂ a - J₃ i a) := fun a i => rfl
+  have hmean : ∀ i, ∫ a', polarizationVectorOf J a' y r p q i ∂P =
       4 * ((∫ a', J₁ i a' ∂P) - (∫ a', J₂ a' ∂P) - ∫ a', J₃ i a' ∂P) := by
     intro i
     have i12 : Integrable (fun a => J₁ i a - J₂ a) P := (hF₁ i).1.sub hF₂.1
     simp only [hpol]
     rw [integral_const_mul, integral_sub i12 (hF₃ i).1, integral_sub (hF₁ i).1 hF₂.1]
-  have hcomp : ∀ (a : CoefficientField d Λ) (i : Fin d), (polarizationVector a y r p q -
-      fun i => ∫ a', polarizationVector a' y r p q i ∂P) i ^ 2 ≤ 16 * T i a ^ 2 := by
+  have hcomp : ∀ (a : CoefficientField d Λ) (i : Fin d), (polarizationVectorOf J a y r p q -
+      fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) i ^ 2 ≤ 16 * T i a ^ 2 := by
     intro a i
-    have hdiff : (polarizationVector a y r p q -
-        fun i => ∫ a', polarizationVector a' y r p q i ∂P) i =
+    have hdiff : (polarizationVectorOf J a y r p q -
+        fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) i =
         4 * ((J₁ i a - ∫ a', J₁ i a' ∂P) - (J₂ a - ∫ a', J₂ a' ∂P) -
           (J₃ i a - ∫ a', J₃ i a' ∂P)) := by
       simp only [Pi.sub_apply]
@@ -331,19 +349,19 @@ theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} 
       linarith
     have hb2 := sq_le_sq' (abs_le.mp hb).1 (abs_le.mp hb).2
     nlinarith
-  have hbound : ∀ a : CoefficientField d Λ, euclideanSq (polarizationVector a y r p q -
-      fun i => ∫ a', polarizationVector a' y r p q i ∂P) ≤ ∑ i, 16 * T i a ^ 2 := by
+  have hbound : ∀ a : CoefficientField d Λ, euclideanSq (polarizationVectorOf J a y r p q -
+      fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) ≤ ∑ i, 16 * T i a ^ 2 := by
     intro a
     simp only [euclideanSq, dot, ← sq]
     exact Finset.sum_le_sum fun i _ => hcomp a i
   -- measurability
-  have hJm : ∀ p' q' : Vec d, Measurable fun a : CoefficientField d Λ => J1Heat a y r p' q' :=
+  have hJm : ∀ p' q' : Vec d, Measurable fun a : CoefficientField d Λ => J a y r p' q' :=
     fun p' q' => (hmeasJ r p' q').comp (measurable_id.prodMk measurable_const)
-  have hpolm : ∀ i, Measurable fun a : CoefficientField d Λ => polarizationVector a y r p q i :=
+  have hpolm : ∀ i, Measurable fun a : CoefficientField d Λ => polarizationVectorOf J a y r p q i :=
     fun i =>
     measurable_const.mul (((hJm _ _).sub (hJm _ _)).sub (hJm _ _))
-  have hYm : Measurable fun a : CoefficientField d Λ => euclideanSq (polarizationVector a y r p q -
-      fun i => ∫ a', polarizationVector a' y r p q i ∂P) := by
+  have hYm : Measurable fun a : CoefficientField d Λ => euclideanSq (polarizationVectorOf J a y r p q -
+      fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) := by
     simp only [euclideanSq, dot, Pi.sub_apply]
     exact Finset.measurable_sum _ fun i _ =>
       ((hpolm i).sub measurable_const).mul ((hpolm i).sub measurable_const)
@@ -360,14 +378,14 @@ theorem polarizationVector_fluctuation [IsProbabilityMeasure P] {s α CF : ℝ} 
     (hTos i).integral_sq_le (hT0 i)
   have hsumi : Integrable (fun a => ∑ i, 16 * T i a ^ 2) P :=
     integrable_finsetSum _ fun i _ => (hmom i).1.const_mul 16
-  have hYi : Integrable (fun a => euclideanSq (polarizationVector a y r p q -
-      fun i => ∫ a', polarizationVector a' y r p q i ∂P)) P :=
+  have hYi : Integrable (fun a => euclideanSq (polarizationVectorOf J a y r p q -
+      fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P)) P :=
     hsumi.mono' hYm.aestronglyMeasurable (Filter.Eventually.of_forall fun a => by
       rw [Real.norm_eq_abs, abs_of_nonneg (euclideanSq_nonneg _)]
       exact hbound a)
   refine ⟨hos, hYi, ?_⟩
-  calc ∫ a, euclideanSq (polarizationVector a y r p q -
-        fun i => ∫ a', polarizationVector a' y r p q i ∂P) ∂P
+  calc ∫ a, euclideanSq (polarizationVectorOf J a y r p q -
+        fun i => ∫ a', polarizationVectorOf J a' y r p q i ∂P) ∂P
       ≤ ∫ a, ∑ i, 16 * T i a ^ 2 ∂P :=
         integral_mono_ae hYi hsumi (Filter.Eventually.of_forall hbound)
     _ = ∑ i, 16 * ∫ a, T i a ^ 2 ∂P := by

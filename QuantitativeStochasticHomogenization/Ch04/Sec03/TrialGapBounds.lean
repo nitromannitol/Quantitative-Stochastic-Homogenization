@@ -53,6 +53,18 @@ def polarizationVector (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : 
   fun i => 4 * (J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) -
     J1Heat a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J1Heat a y r 0 ((1 / 2 : ℝ) • unitVector i))
 
+/-- The vector `polarizationVector` with a field `J` in place of `J₁(Φ_{y,r}, ·, ·)`. -/
+def polarizationVectorOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
+    (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : Vec d :=
+  fun i => 4 * (J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) -
+    J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J a y r 0 ((1 / 2 : ℝ) • unitVector i))
+
+theorem polarizationVectorOf_eq {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
+    {a : CoefficientField d Λ} (h : ∀ z r p q, J a z r p q = J1Heat a z r p q) (y : Vec d)
+    (r : ℝ) (p q : Vec d) : polarizationVectorOf J a y r p q = polarizationVector a y r p q := by
+  funext i
+  simp only [polarizationVectorOf, polarizationVector, h]
+
 section Polarization
 
 variable {P : Measure (CoefficientField d Λ)}

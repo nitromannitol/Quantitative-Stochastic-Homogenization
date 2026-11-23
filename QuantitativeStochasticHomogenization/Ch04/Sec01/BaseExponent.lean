@@ -156,22 +156,24 @@ theorem abs_J1Heat_sub_homogenizedJ1_le (S : HomogenizationData P) (a : Coeffici
   obtain ⟨h1, h2, h3, h4, h5, h6⟩ := havg ξ
   exact abs_j1Functional_sub_le_of_averages a _ _ p q ξ _ h1 h2 h3 h4 h5 h6
 
-/-- **Proposition 4.3**, (4.10), at every center. Given the structure (4.12) of `A₁` almost
-surely, the bounds on `ā` and Proposition 3.21 at the exponent `τ` with constant `C` and rate
-`μ`, there are `C'` and a jointly measurable family of random scales `1 ≤ X(·, z) ≤ O_τ(C')`
-such that for every `z`, almost surely,
-`|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ 7 C r^{-μ} (|p|² + |q|²)` for all
-`r ≥ X(·, z)` and all `p, q`. -/
-theorem proposition43 [IsProbabilityMeasure P] (S : HomogenizationData P)
+/-- **Proposition 4.3 with the constant of the random scales explicit**: given the structure (4.12)
+of `A₁` almost surely, the bounds on `ā` and Proposition 3.21 at the exponent `τ` with constant `C`
+and rate `μ`, the random scales `X = max(X_{3.21}, r₀)`, `r₀ = max 1 ((5C)^{1/μ})`, are
+`O_τ(2^{1/τ} max(C, r₀ (log 2)^{-1/τ}))` and above them (4.10) holds. -/
+theorem proposition43_at [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hA : HomogenizedMatrixBounds S.homogenized Λ)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) {τ C μ : ℝ} (hτ : 0 < τ) (hC : 0 < C)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) {τ C μ : ℝ} (hτ : 0 < τ)
     (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ C μ) :
-    ∃ C' : ℝ, 0 < C' ∧ ∃ X : CoefficientField d Λ → Vec d → ℝ,
+    ∃ X : CoefficientField d Λ → Vec d → ℝ,
       Measurable (Function.uncurry X) ∧ (∀ a z, 1 ≤ X a z) ∧ ∀ z : Vec d,
-        OsBound P (fun a => X a z) τ C' ∧
+        OsBound P (fun a => X a z) τ
+          ((2 : ℝ) ^ τ⁻¹ * max C (max 1 ((5 * C) ^ μ⁻¹) / Real.log 2 ^ τ⁻¹)) ∧
         ∀ᵐ a ∂P, ∀ r : ℝ, X a z ≤ r → ∀ p q : Vec d,
           |J1Heat a z r p q - homogenizedJ1 S.homogenized p q| ≤
             7 * (C * r ^ (-μ)) * (euclideanNorm p ^ 2 + euclideanNorm q ^ 2) := by
+  have hC : 0 < C := by
+    obtain ⟨X, -, hX⟩ := hrate
+    exact (hX 0).1.scale_pos
   set r₀ : ℝ := max 1 ((5 * C) ^ μ⁻¹) with hr₀
   have hr₀1 : 1 ≤ r₀ := le_max_left _ _
   have hr₀0 : 0 < r₀ := zero_lt_one.trans_le hr₀1
@@ -179,9 +181,7 @@ theorem proposition43 [IsProbabilityMeasure P] (S : HomogenizationData P)
   obtain ⟨X, hXm, hXz⟩ := hrate
   have hconst : OsBound P (fun _ => r₀) τ (r₀ / Real.log 2 ^ τ⁻¹) :=
     osBound_of_le_const measurable_const hτ hr₀0 (Filter.Eventually.of_forall fun _ => le_rfl)
-  refine ⟨(2 : ℝ) ^ τ⁻¹ * max C (r₀ / Real.log 2 ^ τ⁻¹),
-    mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hC),
-    fun a z => max (X a z) r₀, hXm.max measurable_const,
+  refine ⟨fun a z => max (X a z) r₀, hXm.max measurable_const,
     fun a z => hr₀1.trans (le_max_right _ _), fun z => ?_⟩
   obtain ⟨hX, hgood⟩ := hXz z
   refine ⟨osBound_max hX hconst, ?_⟩
@@ -200,6 +200,25 @@ theorem proposition43 [IsProbabilityMeasure P] (S : HomogenizationData P)
     linarith
   exact abs_J1Heat_sub_homogenizedJ1_le S a hA hsp z r
     (mul_nonneg hC.le (Real.rpow_nonneg hr0.le _)) hε (ha r hr1 hXr) p q
+
+/-- **Proposition 4.3**, (4.10), at every center. Given the structure (4.12) of `A₁` almost
+surely, the bounds on `ā` and Proposition 3.21 at the exponent `τ` with constant `C` and rate
+`μ`, there are `C'` and a jointly measurable family of random scales `1 ≤ X(·, z) ≤ O_τ(C')`
+such that for every `z`, almost surely
+`|J₁(Φ_{z,r}, p, q) - (½ p·āp + ½ q·ā⁻¹q - p·q)| ≤ 7 C r^{-μ} (|p|² + |q|²)` for all
+`r ≥ X(·, z)` and all `p, q`. -/
+theorem proposition43 [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) {τ C μ : ℝ} (hτ : 0 < τ) (hC : 0 < C)
+    (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ C μ) :
+    ∃ C' : ℝ, 0 < C' ∧ ∃ X : CoefficientField d Λ → Vec d → ℝ,
+      Measurable (Function.uncurry X) ∧ (∀ a z, 1 ≤ X a z) ∧ ∀ z : Vec d,
+        OsBound P (fun a => X a z) τ C' ∧
+        ∀ᵐ a ∂P, ∀ r : ℝ, X a z ≤ r → ∀ p q : Vec d,
+          |J1Heat a z r p q - homogenizedJ1 S.homogenized p q| ≤
+            7 * (C * r ^ (-μ)) * (euclideanNorm p ^ 2 + euclideanNorm q ^ 2) :=
+  ⟨_, mul_pos (Real.rpow_pos_of_pos two_pos _) (lt_max_of_lt_left hC),
+    proposition43_at S hA hspan hτ hμ hrate⟩
 
 end Proposition43
 

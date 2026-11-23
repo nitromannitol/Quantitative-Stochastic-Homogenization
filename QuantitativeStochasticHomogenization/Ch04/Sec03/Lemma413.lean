@@ -182,23 +182,11 @@ theorem osBound_euclideanNorm_of_sq {Ω : Type*} [MeasurableSpace Ω] {P : Measu
 
 variable {P : Measure (CoefficientField d Λ)}
 
-/-- The vector `polarizationVector` with a field `J` in place of `J₁(Φ_{y,r}, ·, ·)`. -/
-def polarizationVectorOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
-    (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : Vec d :=
-  fun i => 4 * (J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • (q + unitVector i)) -
-    J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J a y r 0 ((1 / 2 : ℝ) • unitVector i))
-
 /-- The vector `fluxPolarizationVector` with a field `J` in place of `J₁(Φ_{y,r}, ·, ·)`. -/
 def fluxPolarizationVectorOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
     (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : Vec d :=
   fun i => -4 * (J a y r ((1 / 2 : ℝ) • (p + unitVector i)) ((1 / 2 : ℝ) • q) -
     J a y r ((1 / 2 : ℝ) • p) ((1 / 2 : ℝ) • q) - J a y r ((1 / 2 : ℝ) • unitVector i) 0)
-
-theorem polarizationVectorOf_eq {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
-    {a : CoefficientField d Λ} (h : ∀ z r p q, J a z r p q = J1Heat a z r p q) (y : Vec d)
-    (r : ℝ) (p q : Vec d) : polarizationVectorOf J a y r p q = polarizationVector a y r p q := by
-  funext i
-  simp only [polarizationVectorOf, polarizationVector, h]
 
 theorem fluxPolarizationVectorOf_eq {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
     {a : CoefficientField d Λ} (h : ∀ z r p q, J a z r p q = J1Heat a z r p q) (y : Vec d)

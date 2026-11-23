@@ -148,6 +148,13 @@ theorem AddEstimateAt.mono_rate {s α β C : ℝ} (h : AddEstimateAt P J s α C)
   obtain ⟨hi, hb⟩ := h z r R hr hrR p q hp hq
   exact ⟨hi, hb.mono_scale (mul_le_mul_of_nonneg_left (rpow_neg_le_rpow_neg hr hβα) hC)⟩
 
+theorem AddEstimateAt.mono_const {s α C C' : ℝ} (h : AddEstimateAt P J s α C) (hCC : C ≤ C') :
+    AddEstimateAt P J s α C' := by
+  intro z r R hr hrR p q hp hq
+  obtain ⟨hi, hb⟩ := h z r R hr hrR p q hp hq
+  exact ⟨hi, hb.mono_scale (mul_le_mul_of_nonneg_right hCC
+    (Real.rpow_nonneg (zero_le_one.trans hr) _))⟩
+
 theorem LocFieldEstimateAt.mono_rate {s δ α β C : ℝ} (h : LocFieldEstimateAt P F J s δ α C)
     (hC : 0 ≤ C) (hβα : β ≤ α) : LocFieldEstimateAt P F J s δ β C := by
   intro r hr p q hp hq

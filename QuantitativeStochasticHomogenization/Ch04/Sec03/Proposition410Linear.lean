@@ -34,13 +34,12 @@ section Linear
 variable {P : Measure (CoefficientField d Λ)}
 
 /-- The expectation of the trial at deterministic slopes gives the expectation of the trial at the
-homogenized slope. -/
-theorem trialExpectationEstimate_of_objective (S : HomogenizationData P)
-    (hA : HomogenizedMatrixBounds S.homogenized Λ) {β : ℝ}
-    (hE : TrialObjectiveExpectation P S β) : TrialExpectationEstimate P S β := by
-  obtain ⟨C, hC, hE⟩ := hE
+homogenized slope, with the constant `5 C`. -/
+theorem trialExpectationEstimateAt_of_objective (S : HomogenizationData P)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ) {β C : ℝ} (hC : 0 < C)
+    (hE : TrialObjectiveExpectationAt P S β C) : TrialExpectationEstimateAt P S β (5 * C) := by
   have hdet : IsUnit S.homogenized.det := isUnit_det_of_coercive fun ξ => (hA ξ).1
-  refine ⟨5 * C, by positivity, fun z r hr p q hp hq => ?_⟩
+  intro z r hr p q hp hq
   obtain ⟨hi, hb⟩ := hE z r hr p q hp hq (homogenizedSlope S.homogenized p q)
   have hhc : homogenizedJ1Objective S.homogenized p q (homogenizedSlope S.homogenized p q) =
       homogenizedJ1 S.homogenized p q := by
@@ -54,6 +53,14 @@ theorem trialExpectationEstimate_of_objective (S : HomogenizationData P)
   refine hb.trans ?_
   have : C * (1 + euclideanSq (homogenizedSlope S.homogenized p q)) ≤ 5 * C := by nlinarith
   exact mul_le_mul_of_nonneg_right this hρ
+
+/-- The expectation of the trial at deterministic slopes gives the expectation of the trial at the
+homogenized slope. -/
+theorem trialExpectationEstimate_of_objective (S : HomogenizationData P)
+    (hA : HomogenizedMatrixBounds S.homogenized Λ) {β : ℝ}
+    (hE : TrialObjectiveExpectation P S β) : TrialExpectationEstimate P S β := by
+  obtain ⟨C, hC, hE⟩ := hE
+  exact ⟨5 * C, by positivity, trialExpectationEstimateAt_of_objective S hA hC hE⟩
 
 /-- **Proposition 4.10** (with (4.70)) from the linear estimate of Step 1 and the inputs listed in
 the module docstring. -/
