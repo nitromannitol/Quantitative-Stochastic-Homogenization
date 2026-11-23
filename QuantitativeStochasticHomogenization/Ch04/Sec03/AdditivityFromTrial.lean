@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec03.HeatSemigroupAverages
 import QuantitativeStochasticHomogenization.Ch04.Sec02.Theorem46Expectation
+import QuantitativeStochasticHomogenization.Ch04.Sec02.UniformBootstrap
 
 /-!
 # Additivity and the expectation of `J₁` from a deterministic trial
@@ -145,6 +146,53 @@ def TrialExpectationEstimate (P : Measure (CoefficientField d Λ)) (S : Homogeni
       (correctedField S a (homogenizedSlope S.homogenized p q)) ∂P) -
         homogenizedJ1 S.homogenized p q| ≤ C * r ^ (-β)
 
+/-- The trial gap `J(y, r, p, q) - L_r(c*)(y)` of a field `J` (`J = J₁` or a jointly measurable
+version of it). -/
+def trialGapOf (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ)
+    (S : HomogenizationData P) (a : CoefficientField d Λ) (y : Vec d) (r : ℝ) (p q : Vec d) : ℝ :=
+  J a y r p q -
+    j1Functional a (heatKernel y r) p q (correctedField S a (homogenizedSlope S.homogenized p q))
+
+/-- **The trial gap estimate for a field `J` with constant `C`**. -/
+def TrialGapEstimateAt (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ) (t β C : ℝ) : Prop :=
+  ∀ r : ℝ, 1 ≤ r → ∀ p q : Vec d, euclideanNorm p < 1 → euclideanNorm q < 1 →
+    Measurable (Function.uncurry fun (y : Vec d) (a : CoefficientField d Λ) =>
+      max (trialGapOf J S a y r p q) 0) ∧
+    ∀ y : Vec d, OsBound P (fun a => max (trialGapOf J S a y r p q) 0) t (C * r ^ (-β))
+
+/-- **The expectation of the trial with constant `C`**. -/
+def TrialExpectationEstimateAt (P : Measure (CoefficientField d Λ)) (S : HomogenizationData P)
+    (β C : ℝ) : Prop :=
+  ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ p q : Vec d,
+    euclideanNorm p < 1 → euclideanNorm q < 1 →
+    Integrable (fun a => j1Functional a (heatKernel z r) p q
+      (correctedField S a (homogenizedSlope S.homogenized p q))) P ∧
+    |(∫ a, j1Functional a (heatKernel z r) p q
+      (correctedField S a (homogenizedSlope S.homogenized p q)) ∂P) -
+        homogenizedJ1 S.homogenized p q| ≤ C * r ^ (-β)
+
+theorem trialGapEstimate_iff_exists_at (S : HomogenizationData P) (t β : ℝ) :
+    TrialGapEstimate P S t β ↔ ∃ C > 0, TrialGapEstimateAt P S J1Heat t β C := Iff.rfl
+
+theorem trialExpectationEstimate_iff_exists_at (S : HomogenizationData P) (β : ℝ) :
+    TrialExpectationEstimate P S β ↔ ∃ C > 0, TrialExpectationEstimateAt P S β C := Iff.rfl
+
+/-- `|J₁(Φ_{z,r}, p, q)| ≤ |Λ| + 1` for `r > 0` and `p, q` in the open unit ball. -/
+theorem abs_J1Heat_le_of_pos (a : CoefficientField d Λ) (z : Vec d) {r : ℝ} (hr : 0 < r)
+    {p q : Vec d} (hp : euclideanNorm p < 1) (hq : euclideanNorm q < 1) :
+    |J1Heat a z r p q| ≤ |Λ| + 1 := by
+  obtain ⟨h0, h1⟩ := J1Heat_nonneg_le a z hr p q
+  have hp2 : euclideanSq p ≤ 1 := by
+    rw [← euclideanNorm_sq]; nlinarith [euclideanNorm_nonneg p]
+  have hq2 : euclideanSq q ≤ 1 := by
+    rw [← euclideanNorm_sq]; nlinarith [euclideanNorm_nonneg q]
+  have : Λ * euclideanSq p ≤ |Λ| :=
+    (mul_le_mul_of_nonneg_right (le_abs_self Λ) (euclideanSq_nonneg p)).trans
+      (by nlinarith [abs_nonneg Λ])
+  rw [abs_of_nonneg h0]
+  linarith
+
 /-- The functional of (4.8) at a corrected field is at most `J₁` when the corrected fields are
 gradients of `A₁`. -/
 theorem j1Functional_correctedField_le_J1Heat (S : HomogenizationData P)
@@ -216,39 +264,42 @@ theorem additivityDefect_le_trialGap (S : HomogenizationData P) (a : Coefficient
         integral_mono_ae hdiff hdiff.pos_part
           (Filter.Eventually.of_forall fun y => le_max_left _ _)
 
-/-- **`Add(t, β)` from the trial gap estimate** (Step 3 of the proof of Proposition 4.10): if the
-corrected fields are almost surely the gradients of `A₁`, the trial is almost surely integrable
-against every mask, `(a, x) ↦ J₁(Φ_{x,r}, p, q)` is measurable, and the trial gap is
-`O_t(C r^{-β})` at every center, then `Add(t, β)` holds for `J₁`. -/
-theorem addJ1_of_trialGapEstimate [IsProbabilityMeasure P] (S : HomogenizationData P)
+/-- **`Add(t, β)` from the trial gap estimate, for a version of `J₁`, with an explicit constant**
+(Step 3 of the proof of Proposition 4.10): if the corrected fields are almost surely the gradients
+of `A₁`, the trial is almost surely integrable against every mask, `J` is jointly measurable in
+the coefficients and the center, bounded by `|Λ| + 1`, almost surely equal to `J₁` at all
+parameters, and the trial gap of `J` is `O_t(C r^{-β})` at every center, then `Add(t, β)` holds for
+`J` with the constant `max 1 ((1 + (1 - t)/(t log 2))^{1/t}) C`. -/
+theorem addEstimateAt_of_trialGapEstimateAt [IsProbabilityMeasure P] (S : HomogenizationData P)
     (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (htrial : TrialIntegrable P S)
+    {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
-      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
-    {t β : ℝ} (hgap : TrialGapEstimate P S t β) : AddJ1 P t β := by
-  obtain ⟨C, hC, hgap⟩ := hgap
+      Measurable fun w : CoefficientField d Λ × Vec d => J w.1 w.2 r p q)
+    (hJb : ∀ a z r p q, 1 ≤ r → euclideanNorm p < 1 → euclideanNorm q < 1 →
+      |J a z r p q| ≤ |Λ| + 1)
+    (hJ : ∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q)
+    {t β C : ℝ} (hC : 0 < C) (hgap : TrialGapEstimateAt P S J t β C) :
+    AddEstimateAt P J t β (max 1 ((1 + (1 - t) / (t * Real.log 2)) ^ t⁻¹) * C) := by
   set Ct : ℝ := max 1 ((1 + (1 - t) / (t * Real.log 2)) ^ t⁻¹) with hCt
   have hCt1 : 1 ≤ Ct := le_max_left _ _
-  refine ⟨Ct * C, mul_pos (zero_lt_one.trans_le hCt1) hC, ?_⟩
   intro z r R hr hrR p q hp hq
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hR : 0 < R := hr0.trans hrR
   obtain ⟨hm, hos⟩ := hgap r hr p q hp hq
   set ρ := Real.sqrt (R ^ 2 - r ^ 2) with hρdef
   have hρ : 0 < ρ := sqrt_sq_sub_sq_pos hrR hr0.le
-  have hJy : ∀ a : CoefficientField d Λ, Measurable fun y => J1Heat a y r p q := fun a =>
+  have hJy : ∀ a : CoefficientField d Λ, Measurable fun y => J a y r p q := fun a =>
     (hmeasJ r p q).comp (measurable_const.prodMk measurable_id)
   have hint : ∀ a : CoefficientField d Λ,
-      Integrable fun x => heatKernel z ρ x * J1Heat a x r p q := by
+      Integrable fun x => heatKernel z ρ x * J a x r p q := by
     intro a
     refine (integrable_heatKernel z hρ).mul_bdd (hJy a).aestronglyMeasurable
-      (c := Λ * euclideanSq p + euclideanSq q) (Filter.Eventually.of_forall fun y => ?_)
-    obtain ⟨h0, h1⟩ := J1Heat_nonneg_le a y hr0 p q
-    rw [Real.norm_eq_abs, abs_of_nonneg h0]
-    exact h1
+      (c := |Λ| + 1) (Filter.Eventually.of_forall fun y => ?_)
+    rw [Real.norm_eq_abs]
+    exact hJb a y r p q hr hp hq
   refine ⟨Filter.Eventually.of_forall hint, ?_⟩
-  -- the family for Lemma A.4
   set X : Vec d → CoefficientField d Λ → ℝ :=
-    fun y a => heatKernel z ρ y * max (trialGap S a y r p q) 0 with hX
+    fun y a => heatKernel z ρ y * max (trialGapOf J S a y r p q) 0 with hX
   have hΦm : Measurable fun y : Vec d => heatKernel z ρ y :=
     ((continuous_heatKernel_uncurry ρ).comp (continuous_const.prodMk continuous_id)).measurable
   have hXm : Measurable (Function.uncurry X) := (hΦm.comp measurable_fst).mul hm
@@ -272,25 +323,85 @@ theorem addJ1_of_trialGapEstimate [IsProbabilityMeasure P] (S : HomogenizationDa
       rw [hθint] at h
       exact h.mono_scale (mul_le_mul_of_nonneg_right (le_max_right _ _)
         (mul_pos hC (Real.rpow_pos_of_pos hr0 _)).le)
-  -- measurability of the additivity defect
-  have hmR : Measurable fun a : CoefficientField d Λ => J1Heat a z R p q :=
+  have hmR : Measurable fun a : CoefficientField d Λ => J a z R p q :=
     (hmeasJ R p q).comp (measurable_id.prodMk measurable_const)
   have hmI : Measurable fun a : CoefficientField d Λ =>
-      ∫ x, heatKernel z ρ x * J1Heat a x r p q := by
+      ∫ x, heatKernel z ρ x * J a x r p q := by
     have hsm : StronglyMeasurable (Function.uncurry fun (a : CoefficientField d Λ) (x : Vec d) =>
-        heatKernel z ρ x * J1Heat a x r p q) :=
+        heatKernel z ρ x * J a x r p q) :=
       ((hΦm.comp measurable_snd).mul (hmeasJ r p q)).stronglyMeasurable
     exact hsm.integral_prod_right.measurable
   have hmY : Measurable fun a : CoefficientField d Λ =>
-      |J1Heat a z R p q - ∫ x, heatKernel z ρ x * J1Heat a x r p q| :=
+      |J a z R p q - ∫ x, heatKernel z ρ x * J a x r p q| :=
     continuous_abs.measurable.comp (hmR.sub hmI)
   rw [mul_assoc]
   refine hA4.of_le_ae hmY ?_
-  filter_upwards [hspan, htrial z] with a hsa hta
-  obtain ⟨h0, h1⟩ := additivityDefect_le_trialGap S a hsa z hr0 hrR p q
-    (hJy a).aestronglyMeasurable (hta R (hr.trans hrR.le) p q)
+  filter_upwards [hspan, htrial z, hJ] with a hsa hta hJa
+  have hJya : AEStronglyMeasurable (fun y => J1Heat a y r p q) volume :=
+    (hJy a).aestronglyMeasurable.congr (Filter.Eventually.of_forall fun y => hJa y r p q)
+  obtain ⟨h0, h1⟩ := additivityDefect_le_trialGap S a hsa z hr0 hrR p q hJya
+    (hta R (hr.trans hrR.le) p q)
+  simp only [hX, trialGapOf, hJa]
+  simp only [trialGap] at h1
   rw [abs_sub_comm, abs_of_nonneg h0]
   exact h1
+
+/-- **`Add(t, β)` from the trial gap estimate** (Step 3 of the proof of Proposition 4.10): if the
+corrected fields are almost surely the gradients of `A₁`, the trial is almost surely integrable
+against every mask, `(a, x) ↦ J₁(Φ_{x,r}, p, q)` is measurable, and the trial gap is
+`O_t(C r^{-β})` at every center, then `Add(t, β)` holds for `J₁`. -/
+theorem addJ1_of_trialGapEstimate [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a) (htrial : TrialIntegrable P S)
+    (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
+      Measurable fun w : CoefficientField d Λ × Vec d => J1Heat w.1 w.2 r p q)
+    {t β : ℝ} (hgap : TrialGapEstimate P S t β) : AddJ1 P t β := by
+  obtain ⟨C, hC, hgap⟩ := hgap
+  exact ⟨max 1 ((1 + (1 - t) / (t * Real.log 2)) ^ t⁻¹) * C,
+    mul_pos (zero_lt_one.trans_le (le_max_left _ _)) hC,
+    addEstimateAt_of_trialGapEstimateAt S hspan htrial hmeasJ
+      (fun a z r p q hr hp hq => abs_J1Heat_le_of_pos a z (zero_lt_one.trans_le hr) hp hq)
+      (ae_of_all _ fun _ _ _ _ _ => rfl) hC hgap⟩
+
+/-- **The expectation estimate from the trial, for a version of `J₁`, with an explicit constant**
+(Remark 4.18): if the corrected fields are almost surely the gradients of `A₁`, `J` is almost
+surely equal to `J₁` at all parameters, the trial gap of `J` is `O_t(C₁ r^{-β})` and the
+expectation of the trial is within `C₂ r^{-β}` of the homogenized energy, then the expectation of
+`J₁` is within `(K C₁ + C₂) r^{-β}` of it, `K = 1 + 2 ⌈1/t⌉!`. -/
+theorem abs_integral_J1Heat_sub_le_of_trialGap [IsProbabilityMeasure P] (S : HomogenizationData P)
+    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
+    {J : CoefficientField d Λ → Vec d → ℝ → Vec d → Vec d → ℝ}
+    (hJ : ∀ᵐ a ∂P, ∀ z r p q, J a z r p q = J1Heat a z r p q) {t β C₁ C₂ : ℝ}
+    (hgap : TrialGapEstimateAt P S J t β C₁) (hexp : TrialExpectationEstimateAt P S β C₂)
+    (z : Vec d) (r : ℝ) (hr : 1 ≤ r) (p q : Vec d) (hp : euclideanNorm p < 1)
+    (hq : euclideanNorm q < 1) :
+    |(∫ a, J1Heat a z r p q ∂P) - homogenizedJ1 S.homogenized p q| ≤
+      ((1 + 2 * ((Nat.ceil t⁻¹).factorial : ℝ)) * C₁ + C₂) * r ^ (-β) := by
+  set K : ℝ := 1 + 2 * ((Nat.ceil t⁻¹).factorial : ℝ) with hK
+  have hK0 : 0 < K := by positivity
+  have hr0 : 0 < r := zero_lt_one.trans_le hr
+  obtain ⟨-, hos⟩ := hgap r hr p q hp hq
+  obtain ⟨hLint, hL⟩ := hexp z r hr p q hp hq
+  obtain ⟨hZint, hZ⟩ := (hos z).integral_le_factorial_mul fun a => le_max_right _ _
+  set L : CoefficientField d Λ → ℝ := fun a => j1Functional a (heatKernel z r) p q
+    (correctedField S a (homogenizedSlope S.homogenized p q)) with hLdef
+  have hJe : (fun a => J1Heat a z r p q) =ᵐ[P] fun a => max (trialGapOf J S a z r p q) 0 + L a := by
+    filter_upwards [hspan, hJ] with a hsa hJa
+    have h0 := trialGap_nonneg S a hsa z hr0 p q
+    simp only [trialGap] at h0
+    simp only [trialGapOf, hJa]
+    rw [max_eq_left h0]
+    ring
+  have hJint : ∫ a, J1Heat a z r p q ∂P =
+      (∫ a, max (trialGapOf J S a z r p q) 0 ∂P) + ∫ a, L a ∂P := by
+    rw [integral_congr_ae hJe, integral_add hZint hLint]
+  have hZ0 : 0 ≤ ∫ a, max (trialGapOf J S a z r p q) 0 ∂P :=
+    integral_nonneg fun a => le_max_right _ _
+  have hρ : 0 ≤ r ^ (-β) := Real.rpow_nonneg hr0.le _
+  have hKC : 0 ≤ K * (C₁ * r ^ (-β)) := hZ0.trans hZ
+  rw [hJint]
+  obtain ⟨hL1, hL2⟩ := abs_le.mp hL
+  rw [abs_le]
+  constructor <;> nlinarith
 
 /-- **The expectation estimate from the trial** (Remark 4.18): if the corrected fields are almost
 surely the gradients of `A₁`, the trial gap is `O_t(C r^{-β})` and the expectation of the trial is
@@ -301,30 +412,8 @@ theorem expectationJ1Estimate_of_trialGap [IsProbabilityMeasure P] (S : Homogeni
     ExpectationJ1Estimate P S.homogenized β := by
   obtain ⟨C₁, hC₁, hgap⟩ := hgap
   obtain ⟨C₂, hC₂, hexp⟩ := hexp
-  set K : ℝ := 1 + 2 * ((Nat.ceil t⁻¹).factorial : ℝ) with hK
-  have hK0 : 0 < K := by positivity
-  refine ⟨K * C₁ + C₂, by positivity, ?_⟩
-  intro z r hr p q hp hq
-  have hr0 : 0 < r := zero_lt_one.trans_le hr
-  obtain ⟨-, hos⟩ := hgap r hr p q hp hq
-  obtain ⟨hLint, hL⟩ := hexp z r hr p q hp hq
-  obtain ⟨hZint, hZ⟩ := (hos z).integral_le_factorial_mul fun a => le_max_right _ _
-  set L : CoefficientField d Λ → ℝ := fun a => j1Functional a (heatKernel z r) p q
-    (correctedField S a (homogenizedSlope S.homogenized p q)) with hLdef
-  have hJ : (fun a => J1Heat a z r p q) =ᵐ[P] fun a => max (trialGap S a z r p q) 0 + L a := by
-    filter_upwards [hspan] with a hsa
-    rw [max_eq_left (trialGap_nonneg S a hsa z hr0 p q), trialGap]
-    ring
-  have hJint : ∫ a, J1Heat a z r p q ∂P =
-      (∫ a, max (trialGap S a z r p q) 0 ∂P) + ∫ a, L a ∂P := by
-    rw [integral_congr_ae hJ, integral_add hZint hLint]
-  have hZ0 : 0 ≤ ∫ a, max (trialGap S a z r p q) 0 ∂P :=
-    integral_nonneg fun a => le_max_right _ _
-  have hρ : 0 ≤ r ^ (-β) := Real.rpow_nonneg hr0.le _
-  rw [hJint]
-  obtain ⟨hL1, hL2⟩ := abs_le.mp hL
-  rw [abs_le]
-  constructor <;> nlinarith
+  exact ⟨_, by positivity, abs_integral_J1Heat_sub_le_of_trialGap S hspan
+    (ae_of_all _ fun _ _ _ _ _ => rfl) hgap hexp⟩
 
 end Trial
 
