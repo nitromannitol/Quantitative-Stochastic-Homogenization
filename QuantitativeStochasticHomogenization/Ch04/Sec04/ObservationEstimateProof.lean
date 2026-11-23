@@ -24,7 +24,7 @@ theorem rpow_sub_div_rpow {r a b : ℝ} (hr : 0 < r) : r ^ a / r ^ b = r ^ (a - 
   (Real.rpow_sub hr a b).symm
 
 /-- **The absorbed outer term is below the fluctuation scale.** -/
-theorem observation_error_le {r δ ε β k : ℝ} (hr : 1 ≤ r) (hε : 0 < ε) (hεδ : ε ≤ δ)
+theorem observation_error_le {r δ ε β k : ℝ} (hr : 1 ≤ r) (hε : 0 < ε)
     (hβ : 0 ≤ β) (hk : (d : ℝ) + 1 + β * (1 + δ) / ε ≤ k) :
     (r ^ (1 + δ - ε) / r ^ (1 + δ)) ^ (2 * k) * (r ^ (1 + δ) / r ^ (1 + δ - ε)) ^ (2 * d) *
         (r ^ (1 + δ)) ^ 2 ≤
@@ -78,7 +78,7 @@ theorem eventually_observation_conditions {δ ε k L₀ CD : ℝ} (hε : 0 < ε)
       _ = 2 * CD * r ^ (-(ε * (2 * k - d))) := by rw [e]
       _ ≤ 1 / 2 := h
 
-theorem vectorRms_le_of_integral_le {z : Vec d} {T A : ℝ} (hT : 0 < T) (hA : 0 ≤ A)
+theorem vectorRms_le_of_integral_le {z : Vec d} {T A : ℝ} (hT : 0 < T)
     {G : Vec d → Vec d} (h : ∫ x in ball z T, euclideanSq (G x) ≤ A * volume.real (ball z T)) :
     vectorRms volume (ball z T) G ≤ Real.sqrt A := by
   unfold vectorRms
@@ -244,13 +244,13 @@ theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < 
       have henergy := (hE8a i Tr hXE').2
       have hadm : vectorRms volume (ball z Tr) (fun x => unitVector i +
           (S.corrector (unitVector i)).grad a x) ≤ C₀ :=
-        (vectorRms_le_of_integral_le (lt_of_lt_of_le hS0 hST) hAE.le henergy).trans hC₀
+        (vectorRms_le_of_integral_le (lt_of_lt_of_le hS0 hST) henergy).trans hC₀
       have hDa' := hDa Sr Tr (hXDr.trans hrS) hLST
       have hmain := selected_observation_le hS0 hST (mul_pos hσ hS0).ne' hC₀0.le hCD.le hDa'
         habs ((W a z r hr).coordinate i) ((W a z r hr).selected i).1 (hwg i) (hloc i) (harm i)
         c hadm hc
       refine ⟨-c, hmain.trans ?_⟩
-      have herr := observation_error_le hr1 hε hεδ hβ.le hk
+      have herr := observation_error_le hr1 hε hβ.le hk
       have hq0 : 0 ≤ (Sr / Tr) ^ (2 * k) := Real.rpow_nonneg (div_nonneg hS0.le
         (hS0.le.trans hST)) _
       have hE : 24 * CD * (Sr / Tr) ^ (2 * k) * (Tr / Sr) ^ (2 * d) * (2 ^ d * (2 * Tr)) ^ 2 *
@@ -289,5 +289,42 @@ theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < 
             mul_le_mul_of_nonneg_left hfin hB
         _ = (Sr * (Real.sqrt (8 * CD) * YG a + Real.sqrt KE * Sr ^ (-β))) ^ 2 *
               volume.real (ball z Sr) := by ring
+
+/-- **(5.85) from the finite-ball observation and the observation of the smoothed
+correctors.** If for every `k > 0` some `σ, θ ∈ (0, 1/2]` carry the finite-ball observation, and
+for every window, construction exponent and `σ, θ > 0` the smoothed correctors are observed at
+the fluctuation exponent `d/2`, then `QSH.Frozen.localizedEnergy` holds. -/
+theorem localizedEnergy_of_finiteBall_smoothed
+    (hD : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ k : ℝ, 0 < k →
+      ∃ σ θ : ℝ, 0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧ FiniteBallObservation d Λ σ θ k)
+    (hG : ∀ (d : ℕ), 2 ≤ d → ∀ Λ s δ γ : ℝ,
+      1 < Λ → 1 < s → s < 2 → 0 < δ →
+      (d : ℝ) / 2 * (1 + δ) < γ →
+      γ < min ((d : ℝ) / s) ((d : ℝ) / 2 * (1 + δ) + δ) →
+      ∀ α : ℝ, 0 < α → α ≤ (d : ℝ) / 2 → γ < α * (1 + δ) + δ → ∀ σ θ : ℝ, 0 < σ → 0 < θ →
+      ∃ μ C : ℝ, 0 < μ ∧ 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+        ∃ S : HomogenizationData P, SmoothedCorrectorObservation S s δ γ α σ θ ((d : ℝ) / 2) μ C) :
+    QSH.Frozen.localizedEnergy := by
+  refine localizedEnergy_of_observation fun d hd Λ s δ γ hΛ hs1 hs2 hδ hγ1 hγ2 α hα hαd hαγ => ?_
+  have hε : 0 < localizationEpsilon δ α γ := localizationEpsilon_pos hδ hα hαγ
+  have hd0 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
+  have hβ : 0 < (d : ℝ) / 2 := by
+    have : (2 : ℝ) ≤ d := by exact_mod_cast hd
+    linarith
+  set k : ℝ := (d : ℝ) + 1 + (d : ℝ) / 2 * (1 + δ) / localizationEpsilon δ α γ with hk
+  have hk0 : 0 < k := by
+    have : 0 ≤ (d : ℝ) / 2 * (1 + δ) / localizationEpsilon δ α γ :=
+      div_nonneg (mul_nonneg hβ.le (by linarith)) hε.le
+    linarith
+  obtain ⟨σ, θ, hσ, hσ2, hθ, hθ2, hDσ⟩ := hD d hd Λ hΛ k hk0
+  have hs0 : 0 < s := by linarith
+  have hγ0 : 0 < γ := lt_of_le_of_lt (mul_nonneg hβ.le (by linarith)) hγ1
+  have hγs : s * γ < d := by
+    have h1 : γ < (d : ℝ) / s := lt_of_lt_of_le hγ2 (min_le_left _ _)
+    rw [lt_div_iff₀ hs0] at h1
+    linarith
+  obtain ⟨C₀, hC₀, hobs⟩ := localizationObservationEstimate_of_finiteBall hd hΛ hs1.le hδ hα hαγ
+    hγ0 hγs hβ hσ le_rfl hDσ (hG d hd Λ s δ γ hΛ hs1 hs2 hδ hγ1 hγ2 α hα hαd hαγ σ θ hσ hθ)
+  exact ⟨σ, θ, C₀, hσ, hσ2, hθ, hθ2, hC₀, hobs C₀ le_rfl⟩
 
 end QSH
