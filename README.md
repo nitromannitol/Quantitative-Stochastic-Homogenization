@@ -68,7 +68,9 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
   linear estimate (`smoothedCorrectorObservation_of_gaussianGradient`), the single-slope estimate on
   the classes of laws with the linear estimate from the finite-ball observation
   (`slopeEstimateOnClass_of_linear_finiteBall`), and the finite-ball observation from the estimate
-  with compact tests (`finiteBallObservation_of_compactTests`).
+  with compact tests (`finiteBallObservation_of_compactTests`); and the estimate with compact tests
+  itself, for every `d ≥ 2`, `Λ > 1` and `k > 0` (`compactTestFiniteBall`), from the first-order and
+  flux correctors above their random scale, with tests adapted to the homogenized matrix of the law.
 - The heat identity (H) of the route of Proposition 4.10 and the pathwise heat bound for every law
   and all homogenization data (`heatPathwiseBound_of_lawHypotheses`, and with a kernel of mass
   `(d + 1)/u`, `exists_heatPathwiseKernel`); hence (5.58) for every law, with a constant that depends
@@ -90,29 +92,44 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
   gradient bound and (5.58) with constants chosen before the law from that single-slope estimate
   alone (`uniformAdditivityJ1_of_linearSlope`, `uniformFluctuationJ1_of_linearSlope`,
   `uniformEnergyEstimate_of_linearSlope`).
+- With no hypothesis (`Ch05/Sec04/FrozenProved.lean`): the single-slope estimate of Lemma 4.21 on
+  the classes of laws with the linear estimate (`uniformLinearSlopeEstimates_holds`), Proposition
+  4.11 at the exponents of the bootstrap (`uniformLocalizationEstimates_holds`), Theorem 4.6 (i) and
+  (iii) and (5.58) with constants chosen before the law (`uniformAdditivityJ1_holds`,
+  `uniformFluctuationJ1_holds`, `uniformEnergyEstimate_holds`), and the frozen statements E1–E7.
 
 Some of this material was moved here from
 [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current
 priority is the frozen statements E1–E7 needed by that repository, listed in
-[`FROZEN.md`](FROZEN.md), all in the state `draft`. All seven are proved in the library from one
-input that is not yet proved (`Ch05/Sec04/FrozenFromCompactTests.lean`): the estimate with
-compact tests `CompactTestFiniteBall d Λ k` for every `d ≥ 2`, `Λ > 1` and `k > 0`
-(`UniformCompactTestFiniteBall`): a deterministic finite-ball estimate for `a`-harmonic functions
-above a random radius at every center, bounding their square integrals on the balls between an
-inner and an outer radius by finitely many pairings with compact tests at the inner scale, chosen
-for each law, and the outer term. It takes the place of AKM Lemma 4.20, which uses Theorem 3.8 at a
-high order. The theorems are
-`averagedCorrectorGradient_of_compactTests` (E1), `blockBoundary_of_compactTests` (E2),
-`blockChange_of_compactTests` (E3), `blockCLT_of_compactTests` (E4),
-`coarsenedCoefficientEstimates_of_compactTests` (E5, through (5.58)),
-`localizedEnergy_of_compactTests` (E6) and `negativeSobolevCorrector_of_compactTests` (E7).
-Proposition 3.21, the heat identity (H), the existence of homogenization data and the observation
-of the smoothed correctors enter through `uniformGaussianCorrectorRate`,
-`exists_heatPathwiseKernel`, `homogenizationDataExists` and
+[`FROZEN.md`](FROZEN.md). All seven are proved with no hypothesis in
+`Ch05/Sec04/FrozenProved.lean`: `averagedCorrectorGradient_holds` (E1), `blockBoundary_holds` (E2),
+`blockChange_holds` (E3), `blockCLT_holds` (E4), `coarsenedCoefficientEstimates_holds` (E5),
+`localizedEnergy_holds` (E6) and `negativeSobolevCorrector_holds` (E7); each depends only on the
+axioms `propext`, `Classical.choice` and `Quot.sound`. Their rows in `FROZEN.md` stay in the state
+`draft`: the convention asks for the proof after the second marker of the frozen file, and each
+frozen file is imported by the modules of its proof, whose last steps have the frozen proposition
+as their type (for instance `Frozen/AveragedCorrectorGradient.lean` is imported by
+`Ch04/Opening/Theorem41.lean`), so a proof there would close an import cycle.
+
+The proofs go through the estimate with compact tests `CompactTestFiniteBall d Λ k`, proved for
+every `d ≥ 2`, `Λ > 1` and `k > 0` (`compactTestFiniteBall`, `UniformCompactTestFiniteBall`): a
+deterministic finite-ball estimate for `a`-harmonic functions above a random radius at every
+center, bounding their square integrals on the balls between an inner and an outer radius by
+finitely many pairings with compact tests at the inner scale and the outer term. It takes the place
+of AKM Lemma 4.20, which uses Theorem 3.8 at a high order. The tests are rescaled derivatives of a
+compact profile adapted to the homogenized matrix of the law, so they are chosen for each law, while
+their number, their bounds and the constants are chosen before it. The proof uses the first-order
+correctors and the skew flux correctors of Lemma 3.17, Lemma 6.1 and Proposition 6.2 through the
+tensor identity of Section 3.3 (`Ch04/Sec04/CompactTest*.lean`). From it, the finite-ball
+observation (`finiteBallObservation_of_compactTests`) gives the theorems of
+`Ch05/Sec04/FrozenFromCompactTests.lean`; Proposition 3.21, the heat identity (H), the existence of
+homogenization data and the observation of the smoothed correctors enter through
+`uniformGaussianCorrectorRate`, `exists_heatPathwiseKernel`, `homogenizationDataExists` and
 `smoothedCorrectorObservation_of_gaussianGradient`. The same statements from the single-slope
 estimate of Lemma 4.21 on the classes of laws with the linear estimate (`UniformLinearSlopeEstimates`)
 are in `Ch05/Sec04/FrozenFromSlope.lean`, and from it and Proposition 3.21 in
-`Ch05/Sec04/FrozenFromInputs.lean`.
+`Ch05/Sec04/FrozenFromInputs.lean`. The departures from the book are recorded in
+[`CORRESPONDENCE.md`](CORRESPONDENCE.md).
 
 ## Building
 

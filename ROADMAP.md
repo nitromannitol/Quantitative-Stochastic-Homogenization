@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md): seven statements, E1–E7, all in the state `draft`; what each still needs is listed in [README.md](README.md). The full-book list follows below.
+**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md): seven statements, E1–E7. All seven are proved with no hypothesis (`Ch05/Sec04/FrozenProved.lean`); their rows stay in the state `draft`, because a proof after the markers of a frozen file would close an import cycle, as explained in [README.md](README.md). The full-book list follows below.
 
 ## Numbering and status
 
@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 20 of them are proved or defined, in Appendix A, Section 1.3 (Definition 1.2), Section 3.4 (Lemma 3.16 and Proposition 3.21), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10 and 4.12) and Section 4.3 (Lemma 4.13), and 15 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 25 of them are proved or defined, in Appendix A, Section 1.3 (Definition 1.2), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24) and Section 5.4 (Lemma 5.29), and 10 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -22,8 +22,8 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 1 | Introduction and Qualitative Theory | 12 | 1 | 1 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
 | 3 | Regularity on Large Scales | 23 | 2 | 5 |
-| 4 | Quantitative Description of First-Order Correctors | 25 | 7 | 5 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 0 | 2 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 10 | 2 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 2 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **20** | **15** |
+| | **Total** | **226** | **25** | **10** |
 
 ## Front matter
 
@@ -169,7 +169,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.1 |  | in progress ((4.2) with `s = 1` from the linear estimate with a constant chosen before the law, `averagedCorrectorGradient_of_linearAverage_uniform`; from the single-slope estimate on classes of laws alone, Proposition 3.21 being proved, `averagedCorrectorGradient_of_linearSlope`, and from the estimate with compact tests alone, `averagedCorrectorGradient_of_compactTests`; see CORRESPONDENCE.md) |
+| Theorem 4.1 |  | proved, (4.2) with `s = 1`, with a constant chosen before the law: the frozen statement E1 with no hypothesis (`averagedCorrectorGradient_holds`), from the estimate with compact tests (`compactTestFiniteBall`, `averagedCorrectorGradient_of_compactTests`) through the single-slope estimate on classes of laws (`averagedCorrectorGradient_of_linearSlope`) and the linear estimate (`averagedCorrectorGradient_of_linearAverage_uniform`); see CORRESPONDENCE.md |
 
 ### 4.1 The Energy Quantity J₁ and Its Basic Properties, module `Ch04/Sec01EnergyQuantityJ1.lean`
 
@@ -184,12 +184,12 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1`, and parts (i) and (iii) with constants chosen before the law follow from the single-slope estimate on classes of laws alone, Proposition 3.21 being proved (`uniformAdditivityJ1_of_linearSlope`, `uniformFluctuationJ1_of_linearSlope`), hence from the estimate with compact tests alone (`uniformAdditivityJ1_of_compactTests`, `uniformFluctuationJ1_of_compactTests`); part (ii), with (5.58), conditional on the same inputs, (4.70) and the measurability of `a ↦ J1Heat a z r p q` (`theorem46_expectation_and_558`) and, for every law with a constant that depends on the law, on Proposition 3.21, the Borel joint measurability of `J1Heat` and Propositions 4.11 and 4.12 (`estimate558_of_law`); (5.58) with a constant chosen before the law from the single-slope estimate on classes of laws alone (`uniformEnergyEstimate_of_linearSlope`) |
+| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); parts (i) and (iii) with constants chosen before the law proved (`uniformAdditivityJ1_holds`, `uniformFluctuationJ1_holds`, the statements `UniformAdditivityJ1` and `UniformFluctuationJ1`), and part (iv) in the form (5.85), the frozen statement E6 (`localizedEnergy_holds`); part (ii), with (5.58), conditional on the same inputs, (4.70) and the measurability of `a ↦ J1Heat a z r p q` (`theorem46_expectation_and_558`) and, for every law with a constant that depends on the law, on Proposition 3.21, the Borel joint measurability of `J1Heat` and Propositions 4.11 and 4.12 (`estimate558_of_law`); (5.58) with a constant chosen before the law proved (`uniformEnergyEstimate_holds`) |
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
 | Proposition 4.10 | Improvement of additivity | proved, for bounded jointly measurable versions of `J₁` and with constants chosen before the law, with (4.70) (`uniformImprovementOfAdditivity_holds`, `uniformExpectationEstimates_holds`), from Proposition 3.21 and the heat identity (H) (`uniformGaussianInputs_holds`); also: the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the Borel joint measurability of `J1Heat` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; with constants chosen before the law, the Borel measurability being replaced by bounded jointly measurable versions of `J₁`, from Proposition 3.21 with constants chosen before the law and the heat identity, `uniformImprovementOfAdditivity_of_gaussianInputs`; see CORRESPONDENCE.md |
-| Proposition 4.11 | Localization estimates | in progress (at the exponents of the bootstrap, with constants chosen before the law, from the single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate, the Gaussian inputs being proved, `uniformLocalizationEstimates_of_linearSlope`, and so from the estimate with compact tests `CompactTestFiniteBall` alone, `uniformLinearSlopeEstimates_of_compactTests`; see CORRESPONDENCE.md) |
+| Proposition 4.11 | Localization estimates | proved, at the exponents of the bootstrap, with constants chosen before the law, for bounded jointly measurable versions of `J₁` (`uniformLocalizationEstimates_holds`), from the single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate (`uniformLocalizationEstimates_of_linearSlope`), the Gaussian inputs being proved; see CORRESPONDENCE.md |
 | Proposition 4.12 | Fluctuation estimates | proved, with the constant of the conclusion chosen before the law (`exists_flucEstimateAt_of_add_local`; see CORRESPONDENCE.md) |
 
 ### 4.3 Improvement of Additivity, module `Ch04/Sec03ImprovementOfAdditivity.lean`
@@ -207,8 +207,8 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Lemma 4.19 | Multiscale Poincaré inequality, heat kernel version | not started |
-| Lemma 4.20 |  | not started (for Lemma 4.21 it is replaced by the finite-ball observation from the estimate with compact tests, `finiteBallObservation_of_compactTests`; see CORRESPONDENCE.md) |
-| Lemma 4.21 |  | in progress ((5.85) from `firstOrderLiouville` and the assumed single-slope estimate `LocalizationSlopeEstimate`; for a class of laws, `localizationEstimateOn_of_slopeOn`; the single-slope estimate on the classes of laws with the linear estimate at an exponent above the construction exponent from the excess decay of one slope in high contrast (`ballExcessDecay`), the observation of the smoothed correctors (`smoothedCorrectorObservation_of_gaussianGradient`) and the finite-ball observation (`slopeEstimateOnClass_of_linear_finiteBall`); the finite-ball observation from the estimate with compact tests `CompactTestFiniteBall`, a deterministic finite-ball estimate above a random radius with tests chosen for each law, which is not proved (`finiteBallObservation_of_compactTests`); (5.85) from the single-slope estimate alone, `localizedEnergy_of_linearSlope`, and from the estimate with compact tests alone, `localizedEnergy_of_compactTests`; see CORRESPONDENCE.md) |
+| Lemma 4.20 |  | not started (for Lemma 4.21 it is replaced by the finite-ball observation (`finiteBallObservation_of_compactTests`) from the estimate with compact tests, a deterministic finite-ball estimate above a random radius with tests chosen for each law, which is proved from the first-order and flux correctors (`compactTestFiniteBall`); see CORRESPONDENCE.md) |
+| Lemma 4.21 |  | proved, on the classes of laws with the linear estimate at an exponent above the construction exponent, with constants chosen before the law (`uniformLinearSlopeEstimates_holds`), and (5.85): the frozen statement E6 with no hypothesis (`localizedEnergy_holds`); the single-slope estimate from the excess decay of one slope in high contrast (`ballExcessDecay`), the observation of the smoothed correctors (`smoothedCorrectorObservation_of_gaussianGradient`) and the finite-ball observation (`slopeEstimateOnClass_of_linear_finiteBall`), the finite-ball observation from the estimate with compact tests (`finiteBallObservation_of_compactTests`, `compactTestFiniteBall`), and (5.85) from the single-slope estimate (`localizedEnergy_of_linearSlope`, `localizedEnergy_of_compactTests`); see CORRESPONDENCE.md |
 | Lemma 4.22 |  | not started |
 
 ### 4.5 Fluctuation Estimates, module `Ch04/Sec05FluctuationEstimates.lean`
@@ -221,7 +221,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) at integer orders from the commutator and linear estimates with constants chosen before the law, `negativeSobolevCorrector_of_commutator_linear`; from the single-slope estimate on classes of laws alone, `negativeSobolevCorrector_of_linearSlope`, and from the estimate with compact tests alone, `negativeSobolevCorrector_of_compactTests`; see CORRESPONDENCE.md) |
+| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) with `p = 2`, integer `m > d/2` and `s = 1`: the frozen statement E7 with no hypothesis (`negativeSobolevCorrector_holds`), from the commutator and linear estimates with constants chosen before the law (`negativeSobolevCorrector_of_commutator_linear`, `negativeSobolevCorrector_of_compactTests`); see CORRESPONDENCE.md) |
 | Lemma 4.25 |  | not started |
 
 ### 4.7 Corrector Oscillation Estimates in Two Dimensions, module `Ch04/Sec07CorrectorOscillationInTwoDimensions.lean`
@@ -255,7 +255,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 5.23 | Coarsened coefficients | not started |
-| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; with the theorem proved, from (5.58) alone, `coarsenedCoefficientEstimates_of_energyEstimate`; from the single-slope estimate on classes of laws alone, `coarsenedCoefficientEstimates_of_linearSlope`, and from the estimate with compact tests alone, `coarsenedCoefficientEstimates_of_compactTests`; see CORRESPONDENCE.md) |
+| Lemma 5.24 |  | proved, (5.63)-(5.64) with `s = 1`: the frozen statement E5 with no hypothesis (`coarsenedCoefficientEstimates_holds`), from (5.58) with a constant chosen before the law (`uniformEnergyEstimate_holds`) and the first-order Liouville theorem (`coarsenedCoefficientEstimates_of_energyEstimate`, `coarsenedCoefficientEstimates_of_compactTests`); see CORRESPONDENCE.md |
 
 ### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
 
@@ -265,7 +265,7 @@ No numbered result.
 | Theorem 5.26 |  | not started |
 | Lemma 5.27 |  | not started |
 | Lemma 5.28 |  | not started |
-| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` alone, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`, the existence of homogenization data being proved; from the single-slope estimate on classes of laws alone, `blockCLT_of_linearSlope`, `blockBoundary_of_linearSlope`, `blockChange_of_linearSlope`, and from the estimate with compact tests alone, `blockCLT_of_compactTests`, `blockBoundary_of_compactTests`, `blockChange_of_compactTests` (see CORRESPONDENCE.md) |
+| Lemma 5.29 |  | proved: (i)-(iii) for centered local additive fields, and for the localized energy the frozen statements E4, E2 and E3 with no hypothesis (`blockCLT_holds`, `blockBoundary_holds`, `blockChange_holds`), from Theorem 4.6 (i) with constants chosen before the law (`uniformAdditivityJ1_holds`, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`); see CORRESPONDENCE.md |
 | Lemma 5.30 |  | not started |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`

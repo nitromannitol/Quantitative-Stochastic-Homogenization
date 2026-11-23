@@ -118,7 +118,8 @@ of each module names the source files and commits.
   auxiliary exponent is `α = d/2 - δ/(2(1+δ))`, for which `α(1+δ) + δ = d/2 (1+δ) + δ/2 >
   d/2 (1+δ)`. Part (ii) is not formalized. Part (i) with its constant `C(s, d, Λ)` chosen
   before the law is the statement `QSH.UniformAdditivityJ1` (`Ch04/Sec02/UniformAdditivity.lean`),
-  not proved; it is the hypothesis of the Section 5.4 block estimates for the localized energy.
+  proved with no hypothesis (`QSH.uniformAdditivityJ1_holds`, `Ch05/Sec04/FrozenProved.lean`); it is
+  the hypothesis of the Section 5.4 block estimates for the localized energy.
 - **`LocFieldEstimate`.** The proof of Proposition 4.12 integrates the localized variables
   `x ↦ J₁^{(δ)}(x, r, p, q)` over boxes and uses the independence of integrals over boxes at
   distance larger than one, which needs a family that is jointly measurable in the coefficients
@@ -194,6 +195,9 @@ of each module names the source files and commits.
   estimate with compact tests `CompactTestFiniteBall d Λ k`, `k > 0` (a deterministic finite-ball
   estimate above a random radius, with tests chosen for each law), alone (`Ch05/Sec04/FrozenFromCompactTests.lean`); for (5.85) the linear estimate at `d/2` with one
   constant for all laws comes from the same chain (`uniformLinearAverageEstimate_of_compactTests`).
+  The estimate with compact tests is proved for every `d ≥ 2`, `Λ > 1` and `k > 0`
+  (`compactTestFiniteBall`, Section 4.4 below), so E1–E7 hold with no hypothesis
+  (`Ch05/Sec04/FrozenProved.lean`).
 
 ## Section 4.4: the localization of pp. 155-156
 
@@ -798,28 +802,41 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   differs from the pairing of the Gaussian average of `1_{B_T} u` by at most a Gaussian moment of
   the shifts times `σ` and the growth constant, which is absorbed for small `σ`
   (`QSH.integral_sq_ball_le_of_compactTests`); the observation ball is `B_{2S}(z)`, `θ = 1/2`.
-  The estimate with compact tests is not proved in the library.
+  The estimate with compact tests is proved (`QSH.compactTestFiniteBall`, next section).
 
-## Lemma 4.21: the finite-ball observation from compact tests (`Ch04/Sec04/CompactTest*.lean`)
+## Lemma 4.21: the estimate with compact tests and the frozen statements (`Ch04/Sec04/CompactTest*.lean`, `Ch05/Sec04/FrozenProved.lean`)
 
-- **Route.** The proof of Lemma 4.20 in the book controls a solution on the intermediate ball by its
-  truncated Gaussian observation through the higher-order Liouville theorem (Theorem 3.8 at order
-  `k`), which is not formalized. The Lean proof (`QSH.finiteBallObservation_of_laws`) uses instead a
-  finite-ball estimate with compact tests, proved from the first-order correctors only:
-  `∫_{B_t(z)} u² ≤ C (∑ₗ Oₗ² + (S/T)^{2k} ⨍_{B_T(z)} u²) (t/S)^{2k} |B_t|` for `S ≤ t ≤ T`,
-  where `Oₗ` are the pairings of `u` with finitely many rescaled compact tests at the scale `S`
-  (`QSH.compactTestFiniteBallLaw`), followed by the absorption of the tests into the truncated
-  Gaussian observation (`QSH.finiteBallObservation_of_compactTestsLaw`).
-- **The compact tests.** For the symmetric part `Dₛ` of the homogenized matrix, the profile
-  `ρ` and the partner `χ` with `Dₛ∇χ = yρ` (`QSH.adaptedRho`, `QSH.adaptedChi`) give
-  `∂_b ρ_b = b L χ_b`, `L = -∇·Dₛ∇`; with the tensor identity of Section 3.3 (the flux correctors of
-  Lemma 6.1 and Proposition 6.2), the averages `U_t = ρ_{λt} * u` change in the scale at the rate
-  `t^{-|α|-1-μ}` in their derivatives of order `|α|`, and `u - U_t` is small by the translation
-  estimate and the Caccioppoli inequality. Integrating the derivatives of order `< ⌈k⌉` outwards
-  and those of order `⌈k⌉` inwards and absorbing gives the estimate. The tests are the rescaled
-  derivatives of `ρ` of order `< ⌈k⌉`; they depend on the law through `Dₛ`, while their number,
-  their bounds and the constants are chosen before the law (`QSH.CompactTestFiniteBallLaw`).
-- **Random radius.** The correctors above the random scale of Lemma 3.17 and Proposition 6.2 at the
-  nearest lattice point are translated to the center (`QSH.SublinearCorrectorFamily.translate`),
-  so the radius has the stochastic integrability of that scale at every center.
-
+- **Lemma 4.20 is replaced.** The proof of Lemma 4.20 in the book controls a solution on the
+  intermediate ball by its truncated Gaussian observation through the higher-order Liouville theorem
+  (Theorem 3.8 at order `k`), which is not formalized. The Lean proof uses instead the estimate with
+  compact tests `QSH.CompactTestFiniteBall d Λ k`, proved for every `d ≥ 2`, `Λ > 1` and `k > 0`
+  from the first-order and flux correctors only (`QSH.compactTestFiniteBall`):
+  `∫_{B_t(z)} u² ≤ C (∑ₗ Oₗ² + (S/T)^{2k} ⨍_{B_T(z)} u²) (t/S)^{2k} |B_t|` for `S ≤ t ≤ T` above a
+  random radius at every center, where `Oₗ` are the pairings of `u` with finitely many rescaled
+  compact tests at the scale `S`. The absorption of the tests into the truncated Gaussian
+  observation gives the finite-ball observation (`QSH.finiteBallObservation_of_compactTests`).
+- **Flux correctors and the tensor identity.** For the symmetric part `Dₛ` of the homogenized
+  matrix, the profile `ρ` and the partner `χ` with `Dₛ∇χ = yρ` (`QSH.adaptedRho`, `QSH.adaptedChi`)
+  give `∂_b ρ_b = b L χ_b`, `L = -∇·Dₛ∇`. The pairing of a solution with `L χ_b` is computed with
+  the tensor identity of Section 3.3, that is with the first-order correctors and the skew flux
+  correctors of Lemma 3.17, Lemma 6.1 and Proposition 6.2 above their random scale
+  (`QSH.exists_ae_sublinearCorrectorFamily`), in place of a weak flux pairing. So the averages
+  `U_t = ρ_{λt} * u` change in the scale at the rate `t^{-|α|-1-μ}` in their derivatives of order
+  `|α|`, and `u - U_t` is small by the translation estimate and the Caccioppoli inequality.
+  Integrating the derivatives of order `< ⌈k⌉` outwards and those of order `⌈k⌉` inwards and
+  absorbing gives the estimate (`QSH.compactTest_core`).
+- **Tests depending on the law.** The tests are the rescaled derivatives of `ρ` of order `< ⌈k⌉`,
+  so they depend on the law through `Dₛ`; `CompactTestFiniteBall` chooses them after the law, while
+  their number, their bounds and the constants are chosen before it. The absorption uses only
+  these.
+- **Random radius.** The correctors above the random scale at the nearest lattice point are
+  translated to the center (`QSH.SublinearCorrectorFamily.translate`), so the radius has the
+  stochastic integrability of that scale at every center.
+- **The frozen statements.** `QSH.uniformCompactTestFiniteBall` gives the theorems of
+  `Ch05/Sec04/FrozenFromCompactTests.lean` with no hypothesis: E1–E7
+  (`QSH.averagedCorrectorGradient_holds`, `QSH.blockBoundary_holds`, `QSH.blockChange_holds`,
+  `QSH.blockCLT_holds`, `QSH.coarsenedCoefficientEstimates_holds`, `QSH.localizedEnergy_holds`,
+  `QSH.negativeSobolevCorrector_holds`), the single-slope estimate on the classes `LinearLaw`,
+  Proposition 4.11 at the exponents of the bootstrap, Theorem 4.6 (i) and (iii) and (5.58) with
+  constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
+  the markers of the frozen files, since each frozen file is imported by the modules of its proof.
