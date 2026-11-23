@@ -118,8 +118,8 @@ of each module names the source files and commits.
   auxiliary exponent is `α = d/2 - δ/(2(1+δ))`, for which `α(1+δ) + δ = d/2 (1+δ) + δ/2 >
   d/2 (1+δ)`. Part (ii) is formalized only conditionally, together with (5.58), in the forms listed
   in the entry for Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) below
-  (`theorem46_expectation_and_558`, `estimate558_of_law`); (5.58) with a constant chosen before the
-  law is proved (`uniformEnergyEstimate_holds`). Part (i) with its constant `C(s, d, Λ)` chosen
+  (`theorem46_expectation_and_558`, `estimate558_of_law`); (5.58) at `s = 1` with a constant chosen before
+  the law is proved (`uniformEnergyEstimate_holds`). Part (i) with its constant `C(s, d, Λ)` chosen
   before the law is the statement `QSH.UniformAdditivityJ1` (`Ch04/Sec02/UniformAdditivity.lean`),
   proved with no hypothesis (`QSH.uniformAdditivityJ1_holds`, `Ch05/Sec04/FrozenProved.lean`); it is
   the hypothesis of the Section 5.4 block estimates for the localized energy.
@@ -276,7 +276,7 @@ of each module names the source files and commits.
   `QSH.LocalizationSlopeEstimate` (the book's (4.101)) of these reductions, which are stated for it
   (it is proved on the classes of laws with the linear estimate in the next entries), and Theorem C
   of Armstrong, Kuusi and Loher is its source (`QSH.exists_highContrastExcessPackage`, used in
-  `QSH.ballExcessDecay`; and `QSH.caccioppoli_ball`). The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
+  `QSH.ballExcessDecay`; the Caccioppoli inequality on balls `QSH.caccioppoli_ball` is also proved). The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
   `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with a fluctuation bound at an exponent above the chosen `α < d/2`
   (`Fluc(s, d/2)` being the natural one).
   Above the slope scale the Lean route uses the total energy bound on `B_{r^{1+δ}}(z)`, summed over Gaussian shells
