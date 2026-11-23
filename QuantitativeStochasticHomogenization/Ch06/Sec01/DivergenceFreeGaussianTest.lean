@@ -25,13 +25,6 @@ private theorem abs_dot_le_sum (u v : Vec d) : |dot u v| ≤ ∑ k, |u k| * |v k
   calc |∑ k, u k * v k| ≤ ∑ k, |u k * v k| := Finset.abs_sum_le_sum_abs _ _
     _ = ∑ k, |u k| * |v k| := Finset.sum_congr rfl fun k _ => abs_mul _ _
 
-private theorem abs_apply_le_euclideanNorm_aux (v : Vec d) (k : Fin d) : |v k| ≤ euclideanNorm v := by
-  unfold euclideanNorm euclideanSq dot
-  apply Real.abs_le_sqrt
-  rw [sq]
-  exact Finset.single_le_sum (f := fun j => v j * v j) (fun j _ => mul_self_nonneg _)
-    (Finset.mem_univ k)
-
 private theorem coordinateDerivative_mul {f g : Vec d → ℝ} (hf : Differentiable ℝ f)
     (hg : Differentiable ℝ g) (k : Fin d) (y : Vec d) :
     coordinateDerivative k (fun z => f z * g z) y =
@@ -89,7 +82,7 @@ theorem integral_dot_gradient_eq_zero_of_hasWeakDivergence {q : Vec d → Vec d}
     refine (abs_dot_le_sum _ _).trans ?_
     rw [hQ, Finset.mul_sum]
     refine Finset.sum_le_sum fun k _ => ?_
-    have h1 := (abs_apply_le_euclideanNorm_aux (gradient ψ y) k).trans (hψg y)
+    have h1 := (abs_apply_le_euclideanNorm (gradient ψ y) k).trans (hψg y)
     calc |q y k| * |gradient ψ y k| ≤ |q y k| * (B' * euclideanHeatKernel s (x₀ - y)) :=
           mul_le_mul_of_nonneg_left h1 (abs_nonneg _)
       _ = B' * (euclideanHeatKernel s (x₀ - y) * |q y k|) := by ring
