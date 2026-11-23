@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevLinearEstimates
+import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatFormula
 import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatGram
 
 /-!
@@ -175,10 +176,6 @@ theorem euclideanSq_correctedField_le (S : HomogenizationData P) (a : Coefficien
         pow_le_pow_left₀ (euclideanNorm_nonneg _) h1 2
     _ ≤ _ := h2
     _ = _ := by rw [h3, h4]
-
-theorem measurable_correctorColumn (S : HomogenizationData P) (a : CoefficientField d Λ)
-    (i : Fin d) : Measurable (correctorColumn S a i) :=
-  measurable_const.add ((S.corrector (unitVector i)).measurable_grad.comp measurable_prodMk_left)
 
 /-- **The Gaussian averages of the corrected fields exist** for every law satisfying the
 assumptions. -/

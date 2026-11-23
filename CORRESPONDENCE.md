@@ -105,7 +105,7 @@ of each module names the source files and commits.
   for `1 ≤ r < R` (the book writes `1 ≤ r ≤ R`; the mask `Φ_{z,0}` is not defined), with the
   almost sure integrability of `x ↦ Φ_{z,√(R²-r²)}(x) J(x, r, p, q)`; Definition 4.8 includes the
   integrability of `J(z, r, p, q)`.
-- **Propositions 4.10–4.12** are not proved. Their conclusions are the definitions
+- **Propositions 4.10–4.12** are proved, in the forms stated in ROADMAP.md. Their conclusions are the definitions
   `ImprovementOfAdditivity`, `LocalizationEstimates` and `FluctuationEstimates` (and
   `LocalizationEstimatesFor`, `FluctuationEstimatesFor` for any localization statement monotone in
   its exponent).
@@ -178,7 +178,7 @@ of each module names the source files and commits.
   estimate: Step 2 goes through Lemma 4.17 and the fluctuation bound (4.63). It follows from the
   book's argument with the corrected coordinate `ℓ_j + φ_{e_j}` as the competitor in place of `v_j`;
   Steps 3–6 use only (3.86), (3.101), (4.25), Theorem 3.8 and Lemma 4.20.
-- **What remains.** Theorem 4.6 (i), (iii), (5.58), (5.85), (4.126), Theorem 4.1 and Lemma 5.29 are
+- Theorem 4.6 (i), (iii), (5.58), (5.85), (4.126), Theorem 4.1 and Lemma 5.29 are
   deduced from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a
   kernel of mass `C_k/u`, and the single-slope estimate on the classes `LinearLaw`
   (`LinearSlopeEstimates`) (`bootstrapInputs_of_rate_heat_pilot`,
@@ -270,8 +270,7 @@ of each module names the source files and commits.
   the selected coordinates by heterogeneous polynomials of high degree at the intermediate scale and
   uses the case `k = 1` of Theorem 3.8 at the scale `r`; the single-slope step is assumed as
   `QSH.LocalizationSlopeEstimate` (the book's (4.101)), and Theorem C of Armstrong, Kuusi and Loher
-  is its intended source; `QSH.exists_highContrastExcessPackage` and `QSH.caccioppoli_ball` are proved
-  but not yet used. The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
+  is its intended source; `QSH.exists_highContrastExcessPackage` and `QSH.caccioppoli_ball` are proved. The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
   `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with a fluctuation bound at an exponent above the chosen `α < d/2`
   (`Fluc(s, d/2)` being the natural one).
   Above the slope scale the Lean route uses the total energy bound on `B_{r^{1+δ}}(z)`, summed over Gaussian shells

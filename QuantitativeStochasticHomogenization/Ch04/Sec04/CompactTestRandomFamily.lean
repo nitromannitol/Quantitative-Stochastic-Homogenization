@@ -28,7 +28,8 @@ namespace QSH
 
 variable {d : ℕ}
 
-/-- **Corrector families above a random scale**, with constants chosen before the law. -/
+/-- **Corrector families above a random scale**, with constants chosen before the law. The
+ellipticity bound used for `D` is `Λ ^ 2`, not the book's `Λ`; only the constants are affected. -/
 theorem exists_ae_sublinearCorrectorFamily (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) :
     ∃ β C : ℝ, 0 < β ∧ 0 < C ∧ ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
