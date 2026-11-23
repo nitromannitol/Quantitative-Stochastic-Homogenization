@@ -5,7 +5,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.HarmonicPairSpace
 /-!
 # The pairing of a local solution with second derivatives of compact tests
 
-The first-order estimate behind (3) of the finite-ball estimate (consultant note T22, (2)) of the
+The first-order estimate behind (3) of the finite-ball estimate of the
 proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*.
 
@@ -15,7 +15,7 @@ flux correctors `σᵢ` with homogenized matrix `D` whose oscillations on `B_r`,
 identity of the harmonic approximation (on the ball, with correctors centered on `B_r`) and
 Cauchy–Schwarz give
 `|∫_{B_r} v ∑ᵢⱼ (D eᵢ)ⱼ ∂ⱼ∂ᵢψ| ≤ S (d³ + d²√d Λ) |B_r|^{1/2} C₁ r^{1-μ} ‖∇v‖_{L²(B_r)}`.
-This replaces the weak flux pairing of T22 (W) by the flux correctors.
+The flux correctors take the place of a weak flux pairing.
 -/
 
 open MeasureTheory Filter Set

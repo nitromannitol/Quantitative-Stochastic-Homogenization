@@ -3,7 +3,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec04.CompactTestDerivatives
 /-!
 # Pairings of a function with compact kernels
 
-Calculus for the averages `ρ_b * v` of the finite-ball estimate (consultant note T22, (2)) of the
+Calculus for the averages `ρ_b * v` of the finite-ball estimate of the
 proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*.
 

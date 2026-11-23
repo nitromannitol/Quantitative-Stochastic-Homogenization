@@ -4,7 +4,7 @@ import HCPoly.Geometry.OperatorOrder
 /-!
 # The compact profile adapted to the homogenized matrix
 
-The compact profile `ρ` and its partner `χ` of the finite-ball estimate (consultant note T22, (2))
+The compact profile `ρ` and its partner `χ` of the finite-ball estimate
 of the proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization
 and Large-Scale Regularity*.
 

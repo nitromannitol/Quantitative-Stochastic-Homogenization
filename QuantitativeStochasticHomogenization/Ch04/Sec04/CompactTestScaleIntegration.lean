@@ -3,8 +3,8 @@ import Mathlib
 /-!
 # Integration in the scale
 
-Two elementary facts for the integration in the scale of the finite-ball estimate (consultant
-note T22, (2)) of the proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic
+Two elementary facts for the integration in the scale of the finite-ball estimate with compact
+tests of the proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic
 Homogenization and Large-Scale Regularity*: a function whose derivative is dominated by the
 derivative of `g` on `[a, b]` changes by at most `g b - g a`, and the power `t^e / e` is an
 antiderivative of `t^{e-1}` for `e ≠ 0`, `t > 0`.

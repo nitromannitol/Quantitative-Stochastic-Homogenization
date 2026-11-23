@@ -7,7 +7,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.TestMollification
 /-!
 # The translation estimate for functions with a weak gradient on a ball
 
-The segment translation inequality of the finite-ball estimate (consultant note T22, (3)) of the
+The segment translation inequality of the finite-ball estimate of the
 proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*: if `v` has the weak gradient `g` on `B_R` with `v, g ∈ L²(B_R)` and
 `t + |h| ≤ R`, then

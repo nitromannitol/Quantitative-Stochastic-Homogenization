@@ -8,7 +8,7 @@ import QuantitativeStochasticHomogenization.Ch06.Sec01.HeatFormulaLocal
 /-!
 # Iterated coordinate derivatives of compact tests
 
-Calculus for the compact tests of the finite-ball estimate (consultant note T22, (2)) of the
+Calculus for the compact tests of the finite-ball estimate of the
 proof of Lemma 4.21 in Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and
 Large-Scale Regularity*.
 
