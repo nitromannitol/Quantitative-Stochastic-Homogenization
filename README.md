@@ -55,17 +55,19 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
 - The first-order Liouville theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`) with the
   harmonic approximation on ellipsoids (`harmonicApproximation`) that it rests on, and the harmonic
   expansion on balls.
-- The bounds (3.85) and (3.86) of Lemma 3.17, Lemma 6.1 with the divergence identity (6.6), where the
-  statement gives a deterministic vector and the proof identifies it, and Proposition 6.2 for the
-  correctors (`sublinearCorrectors`), from the homogenization theorem at a polynomial scale in high
-  contrast.
+- The bounds (3.85) and (3.86) of Lemma 3.17, parts of Lemma 6.1 (the skew symmetry up to a constant
+  matrix and the divergence identity (6.6), where the statement gives a deterministic vector and the
+  proof identifies it), and the flux-corrector oscillation bound of Proposition 6.2
+  (`sublinearCorrectors`), from the homogenization theorem at a polynomial scale in high contrast.
 - The heat identity (H) of the route of Proposition 4.10 and the pathwise heat bound for every law
   and all homogenization data (`heatPathwiseBound_of_lawHypotheses`, and with a kernel of mass
   `(d + 1)/u`, `exists_heatPathwiseKernel`); hence (5.58) for every law, with a constant that depends
-  on the law, from Proposition 3.21, the joint measurability of `J₁` and the conclusions of
-  Propositions 4.11 and 4.12 (`estimate558_of_law`).
-- Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12, and Lemma 5.29
-  (i)–(iii) for centered local additive fields.
+  on the law, from Proposition 3.21, the Borel joint measurability of `J1Heat` and the conclusions
+  of Propositions 4.11 and 4.12 (`estimate558_of_law`). The library proves only the almost sure
+  measurability of `J1Heat`; the bootstrap below uses bounded jointly measurable versions of `J₁`
+  in place of the Borel measurability.
+- Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12 and the initial
+  exponent of Proposition 4.3, and Lemma 5.29 (i)–(iii) for centered local additive fields.
 - The bootstrap of Theorem 4.6 with constants chosen before the law: Definitions 4.7–4.9 with their
   constants, Propositions 4.3, 4.10 and 4.12 and Lemma 4.13 with constants chosen before the law for
   bounded jointly measurable versions of `J₁`, and Proposition 4.11 at the exponents of the bootstrap
