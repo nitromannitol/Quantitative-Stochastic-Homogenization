@@ -44,13 +44,19 @@ theorem heatKernel_le_mul (z : Vec d) {r R : ℝ} (hr : 0 < r) (hrR : r ≤ R) (
   exact mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hexp
     (Real.rpow_nonneg (by positivity) _)) (pow_nonneg (div_nonneg hR.le hr.le) _)
 
+/-- The constant `max (2^{1/τ} max(C, (log 2)^{-1/τ})) (K + 2C)` of the energy bound below the
+scale, from Proposition 3.21 with constant `C` and the upper bound `ξ·āξ ≤ K |ξ|²`. -/
+def gaussianRateEnergyScale (τ C K : ℝ) : ℝ :=
+  max ((2 : ℝ) ^ τ⁻¹ * max C (1 / Real.log 2 ^ τ⁻¹)) (K + 2 * C)
+
 /-- **The energy bound below the scale from Proposition 3.21** and an upper bound
-`ξ·āξ ≤ K |ξ|²`. -/
-theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P]
-    (S : HomogenizationData P) {K : ℝ}
+`ξ·āξ ≤ K |ξ|²`, with the constant `gaussianRateEnergyScale τ C K`. -/
+theorem gaussianEnergyBound_of_rate_at {P : Measure (CoefficientField d Λ)}
+    [IsProbabilityMeasure P] (S : HomogenizationData P) {K : ℝ}
     (hK : ∀ ξ : Vec d, dot ξ (S.homogenized.mulVec ξ) ≤ K * euclideanSq ξ) {τ C μ : ℝ}
     (hτ : 0 < τ) (hμ : 0 ≤ μ) (hrate : GaussianCorrectorRate P S τ C μ) :
-    ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN := by
+    0 < gaussianRateEnergyScale τ C K ∧
+      GaussianEnergyBound P S τ (gaussianRateEnergyScale τ C K) := by
   obtain ⟨X, hXm, hX⟩ := hrate
   have hC : 0 < C := (hX 0).1.scale_pos
   set CM : ℝ := (2 : ℝ) ^ τ⁻¹ * max C (1 / Real.log 2 ^ τ⁻¹) with hCMdef
@@ -59,8 +65,9 @@ theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsPro
       (Eventually.of_forall fun _ => le_rfl))
   have hCM : 0 < CM := (hX'os 0).scale_pos
   set CE : ℝ := K + 2 * C with hCEdef
+  rw [show gaussianRateEnergyScale τ C K = max CM CE by rw [hCMdef, hCEdef]; rfl]
   have hCN0 : 0 ≤ max CM CE := le_max_of_le_left hCM.le
-  refine ⟨max CM CE, lt_max_of_lt_left hCM, fun a z => max (X a z) 1, hXm.max measurable_const,
+  refine ⟨lt_max_of_lt_left hCM, fun a z => max (X a z) 1, hXm.max measurable_const,
     fun a z => le_max_right _ _, fun z => (hX'os z).mono_scale (le_max_left _ _), fun z => ?_⟩
   filter_upwards [(hX z).2] with a ha
   intro r hr ξ
@@ -143,6 +150,15 @@ theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsPro
       _ ≤ max CM CE * (1 + (max (X a z) 1 / r) ^ d) * euclideanSq ξ := by
           rw [max_eq_left hR1]
           nlinarith [mul_nonneg hCN0 hs, mul_nonneg (mul_nonneg ht hs) (sub_nonneg.mpr hCE)]
+
+/-- **The energy bound below the scale from Proposition 3.21** and an upper bound
+`ξ·āξ ≤ K |ξ|²`. -/
+theorem gaussianEnergyBound_of_rate {P : Measure (CoefficientField d Λ)} [IsProbabilityMeasure P]
+    (S : HomogenizationData P) {K : ℝ}
+    (hK : ∀ ξ : Vec d, dot ξ (S.homogenized.mulVec ξ) ≤ K * euclideanSq ξ) {τ C μ : ℝ}
+    (hτ : 0 < τ) (hμ : 0 ≤ μ) (hrate : GaussianCorrectorRate P S τ C μ) :
+    ∃ CN : ℝ, 0 < CN ∧ GaussianEnergyBound P S τ CN :=
+  ⟨_, gaussianEnergyBound_of_rate_at S hK hτ hμ hrate⟩
 
 /-- **(5.58) and Theorem 4.6 (ii)** from the inputs of `estimate558_of_heat`, without the energy
 bound below the scale and the integrability of the averages and of the trial (consequences of

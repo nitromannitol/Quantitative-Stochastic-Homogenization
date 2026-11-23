@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec03.ExpectedDensities
 import QuantitativeStochasticHomogenization.Ch04.Sec01.EuclideanLipschitz
+import QuantitativeStochasticHomogenization.Ch04.Sec03.EstimateWitnesses
 
 /-!
 # The expectations (1) from Proposition 3.21 and stationarity
@@ -220,17 +221,25 @@ theorem ae_tendsto_averages_of_rate {P : Measure (CoefficientField d Λ)} (S : H
 
 /-! ## The expectations (1) -/
 
-/-- **The expectations (1) of the Gaussian averages** for every `β > 0`, from the energy bound
-below the scale and Proposition 3.21 at one exponent with a positive rate, for a law satisfying
-(0.10)–(0.11). -/
-theorem expectedAveragesEstimate_of_energy_and_rate {P : Measure (CoefficientField d Λ)}
+/-- **The expectations (1) of the Gaussian averages with an explicit constant**, from scales `X`
+of the energy bound below the scale, Proposition 3.21 at one exponent with a positive rate and a
+bound `C_β r^{-β}` of the periodization error: the constant is
+`(d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + E[X(0)^d]))` with `c = cellHeatLower d`. -/
+theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ)}
     (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
-    (hN : GaussianEnergyBound P S τ CN) {τ' C μ : ℝ} (hμ : 0 < μ)
-    (hrate : GaussianCorrectorRate P S τ' C μ) {β : ℝ} (hβ : 0 < β) :
-    ExpectedAveragesEstimate P S β := by
+    (X : CoefficientField d Λ → Vec d → ℝ) (hX1 : ∀ a z, 1 ≤ X a z)
+    (hXos : ∀ z, OsBound P (fun a => X a z) τ CN)
+    (hXb : ∀ z : Vec d, ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun x => heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
+      (∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ≤
+        CN * (1 + (X a z / r) ^ d) * euclideanSq ξ)
+    {τ' C μ : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ' C μ) {β Cβ : ℝ}
+    (hCβ : 0 < Cβ) (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * r ^ (-β)) :
+    ExpectedAveragesEstimateAt P S β (((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+      (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P))) := by
   have : IsProbabilityMeasure P := hP.1
   have hinv := hP.2.1
-  obtain ⟨X, -, hX1, hXos, hXb⟩ := hN
   have hCN : 0 < CN := (hXos 0).scale_pos
   have hX0 : ∀ a z, 0 ≤ X a z := fun a z => zero_le_one.trans (hX1 a z)
   have hXd : ∀ z, Integrable (fun a => X a z ^ d) P := by
@@ -244,10 +253,8 @@ theorem expectedAveragesEstimate_of_energy_and_rate {P : Measure (CoefficientFie
       simpa only [Real.rpow_natCast] using h
   have hE0 : 0 ≤ ∫ a, X a 0 ^ d ∂P := integral_nonneg fun a => pow_nonneg (hX0 a 0) d
   have hM : 0 < 1 + CN * (1 + ∫ a, X a 0 ^ d ∂P) := by positivity
-  obtain ⟨Cβ, hCβ, hCβb⟩ := periodizationError_le_rpow (d := d) hβ
   have hc0 : 0 < (cellHeatLower d)⁻¹ := inv_pos.mpr (cellHeatLower_pos d)
-  refine ⟨((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
-    (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)), by positivity, fun z r hr ξ => ?_⟩
+  intro z r hr ξ
   have hr0 : 0 < r := zero_lt_one.trans_le hr
   have hBint : ∀ z, Integrable (fun a => CN * (1 + X a z ^ d)) P := fun z =>
     ((integrable_const 1).add (hXd z)).const_mul CN
@@ -370,6 +377,53 @@ theorem expectedAveragesEstimate_of_energy_and_rate {P : Measure (CoefficientFie
           gcongr
           nlinarith
       _ = ((d : ℝ) + 1) * Cβ * c0 * (Λ + 1) * M * euclideanSq ξ * ρ := by ring
+
+/-- **The expectations (1) of the Gaussian averages** for every `β > 0`, from the energy bound
+below the scale and Proposition 3.21 at one exponent with a positive rate, for a law satisfying
+(0.10)–(0.11). -/
+theorem expectedAveragesEstimate_of_energy_and_rate {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
+    (hN : GaussianEnergyBound P S τ CN) {τ' C μ : ℝ} (hμ : 0 < μ)
+    (hrate : GaussianCorrectorRate P S τ' C μ) {β : ℝ} (hβ : 0 < β) :
+    ExpectedAveragesEstimate P S β := by
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨X, -, hX1, hXos, hXb⟩ := hN
+  obtain ⟨Cβ, hCβ, hCβb⟩ := periodizationError_le_rpow (d := d) hβ
+  have hCN : 0 < CN := (hXos 0).scale_pos
+  have hE0 : 0 ≤ ∫ a, X a 0 ^ d ∂P :=
+    integral_nonneg fun a => pow_nonneg (zero_le_one.trans (hX1 a 0)) d
+  have hc0 : 0 < (cellHeatLower d)⁻¹ := inv_pos.mpr (cellHeatLower_pos d)
+  exact ⟨_, by positivity,
+    expectedAveragesEstimateAt_of_scales hP S hΛ X hX1 hXos hXb hμ hrate hCβ hCβb⟩
+
+/-- **The expectations (1) with a constant chosen before the law**: for `d ≥ 1`, the energy bound
+below the scale at the exponent `τ` with constant `C_N`, Proposition 3.21 at one exponent with a
+positive rate and a bound `C_β r^{-β}` of the periodization error give the expectations (1) with
+the constant `(d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + K C_N^d))`, `K = momentConstant (τ/d)`,
+which depends only on `d, Λ, τ, C_N, C_β`. -/
+theorem expectedAveragesEstimateAt_of_energy_and_rate {P : Measure (CoefficientField d Λ)}
+    (hd : 0 < d) (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
+    (hN : GaussianEnergyBound P S τ CN) {τ' C μ : ℝ} (hμ : 0 < μ)
+    (hrate : GaussianCorrectorRate P S τ' C μ) {β Cβ : ℝ} (hCβ : 0 < Cβ)
+    (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * r ^ (-β)) :
+    ExpectedAveragesEstimateAt P S β (((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+      (1 + CN * (1 + momentConstant (τ / d) * CN ^ (d : ℝ)))) := by
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨X, -, hX1, hXos, hXb⟩ := hN
+  have hCN : 0 < CN := (hXos 0).scale_pos
+  have hX0 : ∀ a, 0 ≤ X a 0 := fun a => zero_le_one.trans (hX1 a 0)
+  have hdr : (0 : ℝ) < d := Nat.cast_pos.mpr hd
+  obtain ⟨-, hm⟩ := ((hXos 0).rpow hX0 hdr).integral_le_factorial_mul fun a =>
+    Real.rpow_nonneg (hX0 a) _
+  have hEX : ∫ a, X a 0 ^ d ∂P ≤ momentConstant (τ / d) * CN ^ (d : ℝ) := by
+    simpa only [Real.rpow_natCast, momentConstant] using hm
+  have hc0 : 0 < (cellHeatLower d)⁻¹ := inv_pos.mpr (cellHeatLower_pos d)
+  refine (expectedAveragesEstimateAt_of_scales hP S hΛ X hX1 hXos hXb hμ hrate hCβ hCβb).mono_const
+    ?_
+  have hK : 0 ≤ ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) := by positivity
+  refine mul_le_mul_of_nonneg_left ?_ hK
+  have := mul_le_mul_of_nonneg_left (add_le_add_left hEX 1) hCN.le
+  linarith
 
 /-- **The expectations (1) from Proposition 3.21 alone**: for a law satisfying (0.10)–(0.11),
 Proposition 3.21 at one exponent with a positive rate gives `ExpectedAveragesEstimate P S β` for
