@@ -191,8 +191,8 @@ of each module names the source files and commits.
   `uniformExpectationEstimates_holds`, `exists_uniform_commutator_linear_of_fluctuations`), and
   E1–E7 follow from `UniformLinearSlopeEstimates` alone (`Ch05/Sec04/FrozenFromSlope.lean`). With
   the single-slope estimate from the finite-ball observation (next section), E1–E7 follow from the
-  estimate with compact tests `CompactTestFiniteBall d Λ k`, `k > 0` (consultant note T22, (2)),
-  alone (`Ch05/Sec04/FrozenFromCompactTests.lean`); for (5.85) the linear estimate at `d/2` with one
+  estimate with compact tests `CompactTestFiniteBall d Λ k`, `k > 0` (a deterministic finite-ball
+  estimate above a random radius, with tests chosen for each law), alone (`Ch05/Sec04/FrozenFromCompactTests.lean`); for (5.85) the linear estimate at `d/2` with one
   constant for all laws comes from the same chain (`uniformLinearAverageEstimate_of_compactTests`).
 
 ## Section 4.4: the localization of pp. 155-156
@@ -791,9 +791,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - **The finite-ball observation** (Lemma 4.20 and its transfer, pp. 152-155). The book proves the
   observation (4.73) for the elements of `A_k` with Theorem 3.8 at the order `k` and transfers it to
   general solutions by approximation. The library has Theorem 3.8 only at `k = 1`. Here the
-  finite-ball observation follows (`QSH.finiteBallObservation_of_compactTests`, consultant note
-  SCOTT-localization, (D) and (4)) from the estimate with compact tests of consultant note T22, (2)
-  (`QSH.CompactTestFiniteBall`): the growth of `∫_{B_t(z)} u²`, `S ≤ t ≤ T`, is controlled by the
+  finite-ball observation follows (`QSH.finiteBallObservation_of_compactTests`) from a deterministic
+  finite-ball estimate with compact tests above a random radius (`QSH.CompactTestFiniteBall`), in
+  which the tests may depend on the law through its homogenized matrix: the growth of `∫_{B_t(z)} u²`, `S ≤ t ≤ T`, is controlled by the
   pairings of `u` with finitely many tests supported in `B_S(z)` and the outer term. Each pairing
   differs from the pairing of the Gaussian average of `1_{B_T} u` by at most a Gaussian moment of
   the shifts times `σ` and the growth constant, which is absorbed for small `σ`

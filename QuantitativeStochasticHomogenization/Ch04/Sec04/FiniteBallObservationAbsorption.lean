@@ -8,18 +8,20 @@ import QuantitativeStochasticHomogenization.Ch04.Sec05.FluctuationPieces
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
 proof of Lemma 4.21: the observation of a solution on the intermediate ball by its truncated
-Gaussian averages (consultant notes SCOTT-localization, (D) and (4), and T22, (2)).
+Gaussian averages, in place of Lemma 4.20 (which uses Theorem 3.8 at a high order).
 
 Let `u` be square integrable on `B_T(z)`, `S ≤ T`, and suppose that for every `t ∈ [S, T]`
 `∫_{B_t(z)} u² ≤ G (t/S)^{2k} |B_t|` with
 `G = C (∑_ℓ O_ℓ² + (S/T)^{2k} ⨍_{B_T(z)} u²)`, where `O_ℓ = |B_S|⁻¹ ∫_{B_T(z)} u ψ_ℓ((x - z)/S)` are
-the pairings of `u` with finitely many Lipschitz tests `ψ_ℓ` supported in the unit ball. This is
-the form of T22 (2), the tests being the derivatives of the compact profile at the inner scale.
+the pairings of `u` with finitely many Lipschitz tests `ψ_ℓ` supported in the unit ball: a
+deterministic finite-ball estimate with compact tests, as obtained from first-order homogenization
+data with tests given by derivatives of a compact profile adapted to the homogenized matrix at the
+inner scale.
 
 Then `∫_{B_S(z)} u² ≤ C' (|B_S| I + (S/T)^{2k} ∫_{B_T(z)} u²)`, where `I` is the objective of the
 coordinate minimization of Section 4.4, the truncated Gaussian observation at the scale `σ S` on
 `B_{2S}(z)`, for every `σ ∈ (0, 1]` with `2 N C (L σ M)² ≤ 1/2`
-(`integral_sq_ball_le_of_compactTests`). The proof is that of SCOTT-localization (4): the pairing
+(`integral_sq_ball_le_of_compactTests`). The proof is an absorption: the pairing
 `O_ℓ` differs from the pairing of the Gaussian average of `1_{B_T} u` with `ψ_ℓ` by at most
 `L σ M √G`, since a shift `x''` changes the rescaled test by at most `L |x''|/S` on
 `B_{S + |x''|}(z)`, where `1_{B_T} u` has the growth of the hypothesis, and the Gaussian moments
@@ -27,9 +29,9 @@ of this bound are finite (`integral_heatKernel_mul_le_of_ball_growth_univ`); the
 Gaussian average is at most `L 2^{d/2} √I` by Cauchy–Schwarz; and the term `L σ M √G` is absorbed.
 
 `CompactTestFiniteBall d Λ k` states the hypothesis above a random radius at every center for the
-`a`-harmonic functions on `B_T(z)`, `T ≥ L₁ S`, with tests and constants chosen before the law; it
-gives the finite-ball observation with `σ` chosen from the constants and `θ = 1/2`
-(`finiteBallObservation_of_compactTests`).
+`a`-harmonic functions on `B_T(z)`, `T ≥ L₁ S`, with the number of tests and the constants chosen
+before the law and the tests chosen for each law; it gives the finite-ball observation with `σ`
+chosen from the constants and `θ = 1/2` (`finiteBallObservation_of_compactTests`).
 -/
 
 open MeasureTheory Filter
@@ -528,8 +530,8 @@ theorem integral_heatKernel_mul_le_moment {S σ k B M₀ : ℝ} (hS : 0 < S) (h�
 
 /-! ## The absorption -/
 
-/-- **The finite-ball observation from the estimate with compact tests** (SCOTT-localization (4)
-from (D)): under the growth hypothesis of T22 (2) on `[S, T]`, the square integral of `u` on
+/-- **The finite-ball observation from the estimate with compact tests**: under the growth
+hypothesis on `[S, T]` with compact tests, the square integral of `u` on
 `B_S(z)` is bounded by the truncated Gaussian observation at the scale `σ S` on `B_{2S}(z)` and
 the outer term, for `σ ∈ (0, 1]` with `2 N C (L σ M)² ≤ 1/2`. -/
 theorem integral_sq_ball_le_of_compactTests {z : Vec d} {S T k C L σ : ℝ} {N : ℕ}
@@ -761,18 +763,20 @@ theorem integral_sq_ball_le_of_compactTests {z : Vec d} {S T k C L σ : ℝ} {N 
 
 /-! ## Above a random radius at every center -/
 
-/-- **The estimate with compact tests above a random radius at every center** (consultant T22,
-(2), in the form of SCOTT-localization (D)): there are finitely many tests `ψ_ℓ` supported in the
-unit ball, `L₁ ≥ 1` and `C ≥ 0` and, for every `τ < d`, a constant `C_τ` such that for every law
-and center `z` there is a random radius `X ≥ 1` with `X ≤ O_τ(C_τ)` such that almost surely, for
-`X ≤ S`, `L₁ S ≤ T`, every `a`-harmonic `u` on `B_T(z)` and every `t ∈ [S, T]`,
+/-- **The estimate with compact tests above a random radius at every center**, a deterministic
+finite-ball estimate for `a`-harmonic functions above a random radius: there are a number
+`N` of tests, a bound `L`, `L₁ ≥ 1` and `C ≥ 0` and, for every `τ < d`, a constant `C_τ` such that
+for every law there are `N` tests `ψ_ℓ` supported in the unit ball, bounded and `L`-Lipschitz
+(they may depend on the law, for instance through its homogenized matrix), and for every center
+`z` a random radius `X ≥ 1` with `X ≤ O_τ(C_τ)`, such that almost surely, for `X ≤ S`, `L₁ S ≤ T`,
+every `a`-harmonic `u` on `B_T(z)` and every `t ∈ [S, T]`,
 `∫_{B_t(z)} u² ≤ C (∑_ℓ O_ℓ² + (S/T)^{2k} ⨍_{B_T(z)} u²) (t/S)^{2k} |B_t|`, with
 `O_ℓ = |B_S|⁻¹ ∫_{B_T(z)} u ψ_ℓ((x - z)/S)`. -/
 def CompactTestFiniteBall (d : ℕ) (Λ k : ℝ) : Prop :=
-  ∃ (N : ℕ) (ψ : Fin N → Vec d → ℝ) (L L₁ C : ℝ), 0 ≤ L ∧ (∀ ℓ, IsUnitTest (ψ ℓ) L) ∧
-    1 ≤ L₁ ∧ 0 ≤ C ∧
+  ∃ (N : ℕ) (L L₁ C : ℝ), 0 ≤ L ∧ 1 ≤ L₁ ∧ 0 ≤ C ∧
     ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
-      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ z : Vec d,
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ ψ : Fin N → Vec d → ℝ, (∀ ℓ, IsUnitTest (ψ ℓ) L) ∧ ∀ z : Vec d,
         ∃ X : CoefficientField d Λ → ℝ, Measurable X ∧ OsBound P X τ Cτ ∧ (∀ a, 1 ≤ X a) ∧
           ∀ᵐ a ∂P, ∀ S T : ℝ, X a ≤ S → L₁ * S ≤ T → ∀ u : LocalHarmonic a z T,
             ∀ t : ℝ, S ≤ t → t ≤ T → ∫ x in ball z t, u.potential x ^ 2 ≤
@@ -820,7 +824,7 @@ theorem absorptionMoment_nonneg (d : ℕ) (k : ℝ) : 0 ≤ absorptionMoment d k
     (mul_nonneg (mul_nonneg (by positivity) measureReal_nonneg)
       (tsum_nonneg fun j => by positivity))
 
-/-- **The finite-ball observation from the estimate with compact tests** (SCOTT-localization (4)):
+/-- **The finite-ball observation from the estimate with compact tests**:
 `CompactTestFiniteBall d Λ k` gives `σ, θ ∈ (0, 1/2]` (`θ = 1/2`) and the finite-ball
 observation `∫_{B_S(z)} u² ≤ C (|B_S| I + (S/T)^{2k} ∫_{B_T(z)} u²)` above the same random radius,
 with `I = localizationObjective z T S σ θ u`. The statement is the body of `FiniteBallObservation`
@@ -835,7 +839,7 @@ theorem finiteBallObservation_of_compactTests {Λ k : ℝ} (hk : 0 ≤ k)
               ∫ x in ball z S, u.potential x ^ 2 ≤
                 C * (volume.real (ball z S) * localizationObjective z T S σ θ u.potential +
                   (S / T) ^ (2 * k) * ∫ x in ball z T, u.potential x ^ 2) := by
-  obtain ⟨N, ψ, L, L₁, C, hL, hψ, hL₁, hC, hmain⟩ := h
+  obtain ⟨N, L, L₁, C, hL, hL₁, hC, hmain⟩ := h
   obtain ⟨hσ0, hσ2, hσ⟩ := absorption_fraction (N := N) hC hL (absorptionMoment_nonneg d k)
   set σ := 1 / (2 * (1 + L * absorptionMoment d k) * (1 + N * C)) with hσdef
   refine ⟨σ, 1 / 2, hσ0, hσ2, by norm_num, le_rfl, L₁,
@@ -843,7 +847,8 @@ theorem finiteBallObservation_of_compactTests {Λ k : ℝ} (hk : 0 ≤ k)
     fun τ hτ0 hτd => ?_⟩
   obtain ⟨Cτ, hCτ, hP⟩ := hmain τ hτ0 hτd
   refine ⟨Cτ, hCτ, fun P hPl z => ?_⟩
-  obtain ⟨X, hXm, hXos, hX1, hae⟩ := hP P hPl z
+  obtain ⟨ψ, hψ, hPz⟩ := hP P hPl
+  obtain ⟨X, hXm, hXos, hX1, hae⟩ := hPz z
   refine ⟨X, hXm, hXos, hX1, ?_⟩
   filter_upwards [hae] with a ha
   intro S T hXS hST u

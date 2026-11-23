@@ -10,9 +10,9 @@ Lemma 4.21 and its consequences: Proposition 4.11, Theorem 4.6, Theorem 4.1, (4.
 Lemma 5.24, Lemma 5.29 and (5.85).
 
 The single input is `UniformCompactTestFiniteBall`: for every `d ≥ 2`, `Λ > 1` and `k > 0`, the
-estimate with compact tests `CompactTestFiniteBall d Λ k` (consultant note T22, (2)), a
-deterministic finite-ball estimate for `a`-harmonic functions above the high-contrast radius at
-every center. It gives the finite-ball observation (`finiteBallObservation_of_compactTests`), and
+estimate with compact tests `CompactTestFiniteBall d Λ k`, a deterministic finite-ball estimate
+for `a`-harmonic functions above a random radius at every center, with tests chosen for each law
+(in place of AKM Lemma 4.20, which uses Theorem 3.8 at a high order). It gives the finite-ball observation (`finiteBallObservation_of_compactTests`), and
 with the observation of the smoothed correctors (`smoothedCorrectorObservation_of_gaussianGradient`)
 and the excess decay of one slope (`ballExcessDecay`) the single-slope estimate on the classes of
 laws with the linear estimate (`slopeEstimateOnClass_of_linear_finiteBall`). The class of the laws
@@ -33,8 +33,7 @@ namespace QSH
 
 variable {d : ℕ} {Λ : ℝ}
 
-/-- **The estimate with compact tests** (consultant note T22, (2)) for every `d ≥ 2`, `Λ > 1` and
-`k > 0`. -/
+/-- **The estimate with compact tests** for every `d ≥ 2`, `Λ > 1` and `k > 0`. -/
 def UniformCompactTestFiniteBall : Prop :=
   ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∀ k : ℝ, 0 < k → CompactTestFiniteBall d Λ k
 

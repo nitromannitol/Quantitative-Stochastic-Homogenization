@@ -97,8 +97,11 @@ priority is the frozen statements E1–E7 needed by that repository, listed in
 [`FROZEN.md`](FROZEN.md), all in the state `draft`. All seven are proved in the library from one
 input that is not yet proved (`Ch05/Sec04/FrozenFromCompactTests.lean`): the estimate with
 compact tests `CompactTestFiniteBall d Λ k` for every `d ≥ 2`, `Λ > 1` and `k > 0`
-(`UniformCompactTestFiniteBall`; consultant note T22, (2)), a deterministic finite-ball estimate
-for `a`-harmonic functions above the high-contrast radius at every center. The theorems are
+(`UniformCompactTestFiniteBall`): a deterministic finite-ball estimate for `a`-harmonic functions
+above a random radius at every center, bounding their square integrals on the balls between an
+inner and an outer radius by finitely many pairings with compact tests at the inner scale, chosen
+for each law, and the outer term. It takes the place of AKM Lemma 4.20, which uses Theorem 3.8 at a
+high order. The theorems are
 `averagedCorrectorGradient_of_compactTests` (E1), `blockBoundary_of_compactTests` (E2),
 `blockChange_of_compactTests` (E3), `blockCLT_of_compactTests` (E4),
 `coarsenedCoefficientEstimates_of_compactTests` (E5, through (5.58)),
