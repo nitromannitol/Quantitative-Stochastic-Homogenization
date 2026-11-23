@@ -116,7 +116,10 @@ of each module names the source files and commits.
   book with two changes: Proposition 4.12 is stated for `s ∈ (1, 2]`, so Steps 1 and 2 are run for
   `s ∈ (1, 2)` and the exponents `s ≤ 1` are reached by `OsBound.mono_exponent`; in Step 3 the
   auxiliary exponent is `α = d/2 - δ/(2(1+δ))`, for which `α(1+δ) + δ = d/2 (1+δ) + δ/2 >
-  d/2 (1+δ)`. Part (ii) is not formalized. Part (i) with its constant `C(s, d, Λ)` chosen
+  d/2 (1+δ)`. Part (ii) is formalized only conditionally, together with (5.58), in the forms listed
+  in the entry for Proposition 4.3, Proposition 4.10 and Theorem 4.6 (ii) below
+  (`theorem46_expectation_and_558`, `estimate558_of_law`); (5.58) with a constant chosen before the
+  law is proved (`uniformEnergyEstimate_holds`). Part (i) with its constant `C(s, d, Λ)` chosen
   before the law is the statement `QSH.UniformAdditivityJ1` (`Ch04/Sec02/UniformAdditivity.lean`),
   proved with no hypothesis (`QSH.uniformAdditivityJ1_holds`, `Ch05/Sec04/FrozenProved.lean`); it is
   the hypothesis of the Section 5.4 block estimates for the localized energy.
@@ -260,17 +263,20 @@ of each module names the source files and commits.
   (`QSH.LocalizationApproximationAtUniform.of_matched`) to properties of the corrected
   coordinates (sublinearity on `B_r(z)`, Gaussian energies at scale `√2 r`, the first-order
   Liouville representation of `A₁`) and to fields `V_i` matched with the localized coordinates in
-  `L²(Φ_{z,r}, B_T(z))`. The construction of the matched fields (the proof of Lemma 4.21 proper)
-  and the stochastic bounds are not formalized yet.
+  `L²(Φ_{z,r}, B_T(z))`; these fields are the corrected gradients of slopes close to the unit
+  vectors (`Ch04/Sec04/SlopeMatchedColumns.lean`), whose closeness to the localized coordinates is
+  the single-slope estimate of the next entries.
 - **Lemma 4.21 with one slope** (`QSH.localizedEnergy_of_slope`). (5.85) is reduced to the
   first-order Liouville theorem and the single-slope estimate `QSH.LocalizationSlopeEstimate`:
   above a random radius `X` with `X^γ ≤ O_s(C)`, the gradient of each selected coordinate is within
   `√K₁ Y (t/r)` of one corrected gradient `W_i + ∑_j b_{ij} W_j` in `L̲²(B_t(z))` for
   `r ≤ t ≤ c r^{1+δ-ε}`, with `Y ≤ O_s(C r^{-γ})`. The book's proof (pp. 156-162) approximates
   the selected coordinates by heterogeneous polynomials of high degree at the intermediate scale and
-  uses the case `k = 1` of Theorem 3.8 at the scale `r`; the single-slope step is assumed as
-  `QSH.LocalizationSlopeEstimate` (the book's (4.101)), and Theorem C of Armstrong, Kuusi and Loher
-  is its intended source; `QSH.exists_highContrastExcessPackage` and `QSH.caccioppoli_ball` are proved. The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
+  uses the case `k = 1` of Theorem 3.8 at the scale `r`; the single-slope step is the hypothesis
+  `QSH.LocalizationSlopeEstimate` (the book's (4.101)) of these reductions, which are stated for it
+  (it is proved on the classes of laws with the linear estimate in the next entries), and Theorem C
+  of Armstrong, Kuusi and Loher is its source (`QSH.exists_highContrastExcessPackage`, used in
+  `QSH.ballExcessDecay`; and `QSH.caccioppoli_ball`). The decay `(t/S)^ϑ` of Theorem C with `ϑ < 1` cannot meet the book's exact budget
   `(r/S)² S^{-2α} = r^{-2γ}` at `α = d/2`; it can only work with a fluctuation bound at an exponent above the chosen `α < d/2`
   (`Fluc(s, d/2)` being the natural one).
   Above the slope scale the Lean route uses the total energy bound on `B_{r^{1+δ}}(z)`, summed over Gaussian shells
@@ -352,7 +358,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `LocalizedAdditivityProof.lean`). Theorem 4.6 (i) is
   used at the stochastic exponent `t = sγ/d`, with its constant `C(2t, d, Λ)` (in the book's parametrization, where the exponent `s` of
   Theorem 4.6 (i) gives `O_{s/2}`) chosen before the law
-  (`QSH.UniformAdditivityJ1`, `Ch04/Sec02/UniformAdditivity.lean`, an explicit hypothesis); since
+  (`QSH.UniformAdditivityJ1`, `Ch04/Sec02/UniformAdditivity.lean`, a hypothesis of
+  `QSH.localizedAdditivityInput_of_uniform`, proved by `QSH.uniformAdditivityJ1_holds`); since
   the defect lies in `[0, Λ + 1]`, it is `O_s(C r^{-γ})`. Integrating the localization error over
   the inner centers needs a version of `J₁(Φ_{x,r}, p, q)` jointly measurable in the coefficients
   and `x`, which the book does not discuss: where (4.12) holds and the corrected coordinates have
@@ -459,8 +466,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `Φ_{0,ρ} ≤ (Xᵢ/ρ)^d Φ_{0,Xᵢ}` below it); the square root is at most `B ∑ᵢ Xᵢ^{d/2} = O_1`
   (`Ch04/Sec06/NegativeSobolevSublinear.lean`). Thus (4.126) rests on the commutator estimate and
   the linear estimate at `s = 1` and the exponent `d/2`, with constants chosen before the law
-  (`negativeSobolevCorrector_of_commutator_linear`); the repository proves these two estimates only with the constant
-  chosen after the law (`commutator_linearAverage_half_dim`).
+  (`negativeSobolevCorrector_of_commutator_linear`). The repository proves both estimates with
+  constants chosen before the law for every `s ∈ (0, 2)` (`exists_uniform_commutator_linear_half_dim`,
+  from the Gaussian inputs and Propositions 4.10 and 4.11 with constants chosen before the law,
+  which are proved by `uniformGaussianInputs_holds`, `uniformImprovementOfAdditivity_holds` and
+  `uniformLocalizationEstimates_holds`; `negativeSobolevCorrector_of_uniform_inputs`), and for a
+  single law with a constant that depends on the law (`commutator_linearAverage_half_dim`).
 - **The bounds `1 ≤ ā ≤ Λ`** (`HomogenizationData.homogenizedMatrixBounds`) use the measurability of
   `a ↦ μ(U, e)`, which the book takes for granted. It is proved in
   `Ch01/Sec02/DirichletEnergyMeasurability.lean`: the infimum (1.7) over the gradients of `H¹₀(U)`
