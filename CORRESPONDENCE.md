@@ -433,8 +433,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `|∫ Φ_{z,r} (eᵢ + ∇φ_{eᵢ}) - eᵢ| ≤ O_s(C r^{-α})` (`gradient_sub_osBound_of_heat`,
   `gradient_sub_osBound`), and linearity in the slope gives `LinearAverageEstimate`
   (`linearAverageEstimate_of_heat`). `estimate558_of_heatIdentity` proves (5.58) with this
-  hypothesis in place of the linear estimate. The identity (H) itself (anisotropic Gaussians,
-  integration by parts against the corrector, the limit `T → ∞`) is not formalized.
+  hypothesis in place of the linear estimate. The identity (H) itself is formalized below
+  (**The heat identity (H)**).
 - **Integrability and measurability of the averages.** The gradient averages are jointly
   measurable in the center, the radius and the coefficient field (`measurable_gradientAverage_uncurry`,
   from the joint measurability of the corrector gradients); the flux averages involve `a(x)`, and
@@ -476,7 +476,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`expectedCommutatorDecay_of_rate`, using that a nonnegative `O_s(θ)` variable has mean at most
   `θ(1 + 2⌈1/s⌉!)`), so by Tonelli the first moment of the time integral is finite and the lower
   integral is almost surely the Bochner integral. `estimate558_of_pathwise_and_law` is (5.58) with
-  `HeatPathwiseBound` in place of `HeatIdentityBound`. The identity (H) itself is not formalized.
+  `HeatPathwiseBound` in place of `HeatIdentityBound`.
+- **The heat identity (H).** Not the book's argument for the linear estimate (the book uses the
+  multiscale estimates of Lemmas 4.14–4.16): `heatIdentity_bound`
+  (`Ch04/Sec03/HeatIdentityDeterministic.lean`) proves (H) and the resulting bound for a fixed
+  coefficient field from the weak gradient of the corrector, the divergence-free flux, their
+  integrability against heat kernels and the sublinearity of the corrector. The homogenized matrix
+  is diagonalized in an orthonormal frame (`exists_eigenframe`), in which the Gaussians of
+  covariance `2B(u)`, `B(u) = r²I + 2(u - r²/2)ā`, are products of one-dimensional heat kernels
+  (`anisoKernel`). The time derivative of their average of `∇φ_{eᵢ}` follows from the heat equation
+  in each coordinate; the identities of the weak gradient and of the corrector equation extend from
+  compactly supported tests to these Gaussian tests by cutoffs
+  (`integral_mul_add_dot_gradient_eq_zero`), which turns `ā : ∇²` into the divergence of
+  `(a - ā)(eᵢ + ∇φ_{eᵢ})`; the splitting `G_{B(u)} = G_{B(u) - uI} ∗ Φ_u` and Fubini's theorem
+  give the Hessian of `G_{B(u) - uI}` against the commutator at scale `√u`. The terminal value at
+  time `T` is at most `C T^{-1/2} ∫ Φ_{4ΛT}(z - y)|φ_{eᵢ}(y)| dy`, which tends to `0` because the
+  Gaussian averages of `φ²_{eᵢ}` are `o(T)` by the sublinearity
+  (`exists_integral_heatKernel_mul_abs_le_of_sublinear`, shells of radius `(k + 3)√T`). The
+  Hessian is bounded by the isotropic kernel `(8Λ + 1)u⁻¹(4πu)^{-d/2}e^{-|x|²/(16Λu)}` of mass
+  `(8Λ + 1)(4Λ)^{d/2}/u`, independent of the law (`heatPathwiseBound_of_lawHypotheses`), or by the
+  sharp kernel `u⁻¹(1 + ½ x·E⁻¹x)G_E(x)`, `E = B(u) - uI`, of mass `(d + 1)/u`
+  (`exists_heatPathwiseKernel`). For every law satisfying the assumptions and all homogenization
+  data the almost sure inputs are the fields of `Corrector`, the finite Gaussian energy of the
+  corrected coordinates (Lemma 3.17) and the bounds `1 ≤ ā ≤ Λ`. `estimate558_of_law` is (5.58)
+  without the heat bound as a hypothesis.
 - **(4.15), (4.22).** `J1_nonneg` and `J1_le`: `0 ≤ J₁(Ψ, p, q) ≤ Λ|p|² + |q|²` for every
   coefficient field and every nonnegative integrable mask of mass at most one, with the explicit
   constant and without Theorem 3.8 (the zero element of `A₁` and the Cauchy–Schwarz inequality

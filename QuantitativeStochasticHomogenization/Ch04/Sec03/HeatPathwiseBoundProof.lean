@@ -3,6 +3,8 @@ import QuantitativeStochasticHomogenization.Ch04.Sec03.Estimate558Pathwise
 import QuantitativeStochasticHomogenization.Ch04.Opening.Theorem41Energy
 import QuantitativeStochasticHomogenization.Ch04.Sec01.HomogenizedBoundsFromMeasurability
 import QuantitativeStochasticHomogenization.Ch04.Sec06.NegativeSobolevLinearEstimates
+import QuantitativeStochasticHomogenization.Ch05.Sec03.CoarsenedCoefficientEstimatesLiouville
+import QuantitativeStochasticHomogenization.Ch03.Sec03.HarmonicApproximationProof
 
 /-!
 # The pathwise heat bound for every law, and (5.58) without it
@@ -18,8 +20,9 @@ is sublinear; these give the integrability against heat kernels required by `hea
 Hence, for every law satisfying the assumptions and all homogenization data, `HeatPathwiseBound`
 holds with the explicit kernel `k(r, u, x) = (8Λ + 1) v⁻¹ (4πv)^{-d/2} e^{-|x|²/(16Λv)}`,
 `v = max(u, 1)`, of mass `(8Λ + 1)(4Λ)^{d/2}/u` for `u ≥ 1` (`heatPathwiseBound_of_lawHypotheses`),
-and (5.58) follows from Proposition 3.21, (4.12), the measurability of `J₁` and Propositions 4.11 and
-4.12 (`estimate558_of_law`).
+the sharp kernel `u⁻¹(1 + ½ x·E⁻¹x)G_E(x)` has mass `(d + 1)/u` (`exists_heatPathwiseKernel`,
+`heatIdentityBound_succ_of_rate`), and (5.58) follows from Proposition 3.21, the measurability of `J₁`
+and Propositions 4.11 and 4.12 (`estimate558_of_law`).
 -/
 
 open MeasureTheory Filter Set
@@ -430,12 +433,22 @@ section Estimate558
 
 open BaseExponent
 
-/-- **(5.58) and Theorem 4.6 (ii)** for a law satisfying (0.10)–(0.11), from (4.12), Proposition
-3.21 at every exponent in `(0, d)`, the measurability of `J₁` and the conclusions of Propositions
-4.11 and 4.12; the heat identity (H) is `heatPathwiseBound_of_lawHypotheses`. -/
+/-- **`HeatIdentityBound` with the constant `d + 1`** for every law satisfying the assumptions and
+all homogenization data, given Proposition 3.21 at one exponent with a positive rate. -/
+theorem heatIdentityBound_succ_of_rate (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P) (S : HomogenizationData P)
+    {τ C μ : ℝ} (hτ : 0 < τ) (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ C μ) :
+    HeatIdentityBound P S ((d : ℝ) + 1) := by
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨k, hkm, hk0, hki, hpath⟩ := exists_heatPathwiseKernel d hd Λ hΛ P hP S
+  exact heatIdentityBound_of_pathwise_of_rate S (by linarith) hkm hk0 hki hpath hτ hμ hrate
+
+/-- **(5.58) and Theorem 4.6 (ii)** for a law satisfying (0.10)–(0.11), from Proposition 3.21 at
+every exponent in `(0, d)`, the measurability of `J₁` and the conclusions of Propositions 4.11 and
+4.12; the heat identity (H) is `heatPathwiseBound_of_lawHypotheses` and (4.12) is the first-order
+Liouville theorem. -/
 theorem estimate558_of_law {P : Measure (CoefficientField d Λ)}
     (hP : LawHypotheses P) (hd : 2 ≤ d) (S : HomogenizationData P) (hΛ : 1 < Λ)
-    (hspan : ∀ᵐ a ∂P, GradientsOfA1AreCorrected S a)
     (hrate : ∀ τ : ℝ, 0 < τ → τ < d → ∃ C μ : ℝ, 0 < C ∧ 0 < μ ∧
       GaussianCorrectorRate P S τ C μ)
     (hmeasJ : ∀ (r : ℝ) (p q : Vec d),
@@ -448,6 +461,7 @@ theorem estimate558_of_law {P : Measure (CoefficientField d Λ)}
         OsBound P (fun a => |J1Heat a z r p q - homogenizedJ1 S.homogenized p q|) s
           (C * r ^ (-((d : ℝ) / 2))) := by
   have hΛ0 : 0 < Λ := by linarith
+  have hspan := ae_gradientsOfA1AreCorrected_of_liouville firstOrderLiouville hd hΛ hP S
   exact estimate558_of_pathwise_and_law hP hd S hΛ0 hspan hrate hmeasJ
     (measurable_heatPathwiseKernel_uncurry (d := d) (Λ := Λ))
     (heatPathwiseKernel_pos hΛ0) (fun r u hu => heatPathwiseKernel_mass hΛ0 r hu)

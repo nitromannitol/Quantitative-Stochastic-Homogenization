@@ -29,7 +29,10 @@ heat kernel and `φ` sublinear in the sense `∫ Φ_s(x - y) |φ(y)| dy = o(√s
 * `F(T) → 0` as `T → ∞`: after the weak integration by parts `F(T) = ∫ φ ∂_ŵ G_{B(T)}(z - ·)` and
   the gradient bound, `|F(T)| ≤ C T^{-1/2} ∫ Φ_{4ΛT}(z - y) |φ(y)| dy = o(1)`.
 
-Hence `|∫ Φ_{z,r} g| ≤ ∫⁻_{u > u₀} ∫⁻ k(u, x) |C_u(z - x)| dx du` (`heatIdentity_bound`).
+Hence `|∫ Φ_{z,r} g| ≤ ∫⁻_{u > u₀} ∫⁻ K(u, x) |C_u(z - x)| dx du` for every kernel `K` bounding the
+Hessian term (`heatIdentity_bound_of_kernel`), in particular for the isotropic kernel `k`
+(`heatIdentity_bound`) and for the sharp kernel `u⁻¹(1 + ½ (Qx)·E⁻¹(Qx)) G_E(Qx)` of mass `(d + 1)/u`
+(`heatIdentity_bound_sharp`).
 -/
 
 open MeasureTheory Filter Set
