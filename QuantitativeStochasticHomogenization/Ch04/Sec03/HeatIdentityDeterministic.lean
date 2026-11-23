@@ -575,7 +575,7 @@ theorem integral_time_derivative_eq {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : 
     intro n f hf
     obtain ⟨Bn, hBn⟩ := exists_abs_rotKernel_le hQ hτ₁ hτ hb n z
     exact hf.integrable_mul (measurable_rotKernel Q b n z).aestronglyMeasurable hs hBn
-  -- step A: pull out the sum over m
+  -- the sum over m
   have hA1 : ∫ y, (∑ m, 2 * lam m * rotKernel Q b (Pi.single m 2) z y) * dot w (g y) =
       ∑ m, 2 * lam m * ∫ y, rotKernel Q b (Pi.single m 2) z y * dot w (g y) := by
     have hpt : ∀ y, (∑ m, 2 * lam m * rotKernel Q b (Pi.single m 2) z y) * dot w (g y) =
@@ -589,7 +589,7 @@ theorem integral_time_derivative_eq {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : 
     rw [integral_const_mul]
     congr 1
     exact integral_congr_ae (Eventually.of_forall fun y => mul_comm _ _)
-  -- steps B and C: the symmetry step and the expansion of the sum over k
+  -- the symmetry of the weak second derivatives
   have hBC : ∀ m, ∫ y, rotKernel Q b (Pi.single m 2) z y * dot w (g y) =
       ∑ k, (Q *ᵥ w) k * ∫ y, (Q *ᵥ g y) m *
         rotKernel Q b (Pi.single k 1 + Pi.single m 1) z y := by
@@ -606,7 +606,7 @@ theorem integral_time_derivative_eq {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : 
     rw [integral_congr_ae (Eventually.of_forall hpt),
       integral_finsetSum _ fun k _ => (hRint _ (hQgI m)).const_mul _]
     exact Finset.sum_congr rfl fun k _ => integral_const_mul _ _
-  -- steps D and E: the equation step
+  -- the corrector equation
   have hDE : ∑ m, 2 * lam m * ∫ y, rotKernel Q b (Pi.single m 2) z y * dot w (g y) =
       2 * ∑ k, (Q *ᵥ w) k * -∫ y, ∑ m, (Q *ᵥ (a y *ᵥ (e + g y) - A *ᵥ (e + g y))) m *
         rotKernel Q b (Pi.single k 1 + Pi.single m 1) z y := by
@@ -617,7 +617,7 @@ theorem integral_time_derivative_eq {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : 
     refine Finset.sum_congr rfl fun k _ => ?_
     rw [← sum_lam_integral_eq hQ hA hdiv hgI hfI hτ₁ hτ hb z k, Finset.mul_sum, Finset.mul_sum]
     exact Finset.sum_congr rfl fun m _ => by ring
-  -- steps F and G: splitting and Fubini
+  -- the splitting with the heat kernel and Fubini's theorem
   have hbfun : (fun j => E j + u) = b := funext fun k => (hbE k).symm
   have hsplit0 := integral_anisoKernel_sub_mul_heatKernel hE hu
   have hsplit1 : ∀ k w, ∫ y, anisoKernel E (Pi.single k 1) (w - y) * euclideanHeatKernel u y =
