@@ -210,6 +210,38 @@ def LocalizationObservationEstimate (d : ℕ) (Λ s δ γ α σ θ C₀ β : ℝ
               (localizationIntermediateRadius δ α γ r * Y a) ^ 2 *
                 volume.real (ball z (localizationIntermediateRadius δ α γ r))
 
+/-- The observation estimate on a class `L` of laws: `LocalizationObservationEstimate` with the
+laws restricted to `L` and the constants chosen before the law. -/
+def LocalizationObservationEstimateOn {d : ℕ} {Λ : ℝ} (L : Measure (CoefficientField d Λ) → Prop)
+    (s δ γ α σ θ C₀ β : ℝ) : Prop :=
+  ∃ μ C₁ : ℝ, 0 < μ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P → ∃ S : HomogenizationData P,
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧
+          AEOsBound P Y s (C₁ * localizationIntermediateRadius δ α γ r ^ (-β)) ∧
+          ∀ᵐ a ∂P, X a ≤ r → Y a ≤ C₁ * r ^ (-μ) ∧ ∀ i, ∃ k : ℝ,
+            ∫ x in ball z (localizationIntermediateRadius δ α γ r),
+                (((W a z r hr).coordinate i).potential x - (x - z) i -
+                  (S.corrector (unitVector i)).potential a x - k) ^ 2 ≤
+              (localizationIntermediateRadius δ α γ r * Y a) ^ 2 *
+                volume.real (ball z (localizationIntermediateRadius δ α γ r))
+
+/-- **The single-slope estimate of Lemma 4.21 on a class `L` of laws**, with the constants chosen
+before the law: `LocalizationSlopeEstimate` with the laws restricted to `L`. -/
+def SlopeEstimateOnClass {d : ℕ} {Λ : ℝ} (L : Measure (CoefficientField d Λ) → Prop)
+    (s δ γ α σ θ C₀ : ℝ) : Prop :=
+  ∃ (c K₁ C₁ : ℝ), 0 < c ∧ c ≤ 1 ∧ 0 ≤ K₁ ∧ 0 < C₁ ∧
+    ∀ P : Measure (CoefficientField d Λ), L P → ∃ S : HomogenizationData P,
+      ∀ (W : LocalizedFamily d Λ δ γ α σ θ C₀) (z : Vec d) (r : ℝ) (hr : 2 ≤ r),
+        ∃ X Y : CoefficientField d Λ → ℝ, (∀ a, 0 ≤ X a) ∧ (∀ a, 0 ≤ Y a) ∧
+          AEOsBound P (fun a => X a ^ γ) s C₁ ∧ AEOsBound P Y s (C₁ * r ^ (-γ)) ∧
+          ∀ᵐ a ∂P, X a ≤ r → ∃ b : Fin d → Fin d → ℝ, ∑ i, ∑ j, b i j ^ 2 ≤ 1 / 4 ∧
+            ∀ i, ∀ t : ℝ, r ≤ t → t ≤ c * localizationIntermediateRadius δ α γ r →
+              ∫ x in ball z t, euclideanSq (((W a z r hr).coordinate i).grad x -
+                (correctorColumn S a i x + ∑ j, b i j • correctorColumn S a j x)) ≤
+                  K₁ * Y a ^ 2 * (t / r) ^ 2 * volume.real (ball z t)
+
 theorem le_localizationIntermediateRadius {δ α γ r : ℝ} (hδ : 0 < δ) (hr : 1 ≤ r) :
     r ≤ localizationIntermediateRadius δ α γ r := by
   have hε : localizationEpsilon δ α γ ≤ δ / 2 := min_le_right _ _
@@ -238,13 +270,14 @@ theorem rpow_le_sq_of_one_le {x ϑ : ℝ} (hx : 1 ≤ x) (hϑ : ϑ ≤ 1) : x ^ 
 
 /-- **The single-slope estimate of Lemma 4.21 from the excess decay of one slope and the
 observation estimate**, for every exponent budget `(r/S)^ϑ S^{-β} ≤ r^{-γ}`. -/
-theorem localizationSlopeEstimate_of_excess_observation (hΛ : 1 ≤ Λ)
+theorem slopeEstimateOnClass_of_excess_observation (hΛ : 1 ≤ Λ)
+    {Lw : Measure (CoefficientField d Λ) → Prop} (hLw : ∀ P, Lw P → LawHypotheses P)
     {s δ γ α σ θ C₀ β ϑ : ℝ} (hs : 1 ≤ s) (hδ : 0 < δ) (hα : 0 < α)
     (hαγ : γ < α * (1 + δ) + δ) (hγ : 0 < γ) (hγs : s * γ < d) (hϑ0 : 0 < ϑ) (hϑ1 : ϑ < 1)
     (hexp : ∀ r : ℝ, 1 ≤ r → (r / localizationIntermediateRadius δ α γ r) ^ ϑ *
       localizationIntermediateRadius δ α γ r ^ (-β) ≤ r ^ (-γ))
-    (hA : BallExcessDecay d Λ) (hC : LocalizationObservationEstimate d Λ s δ γ α σ θ C₀ β) :
-    LocalizationSlopeEstimate d Λ s δ γ α σ θ C₀ := by
+    (hA : BallExcessDecay d Λ) (hC : LocalizationObservationEstimateOn Lw s δ γ α σ θ C₀ β) :
+    SlopeEstimateOnClass Lw s δ γ α σ θ C₀ := by
   obtain ⟨L, Cϑ, hL, hCϑ, hAτ⟩ := hA
   have hs0 : 0 < s := by linarith
   obtain ⟨Cτ, hCτ, hAP⟩ := hAτ (s * γ) (by positivity) hγs
@@ -263,11 +296,12 @@ theorem localizationSlopeEstimate_of_excess_observation (hΛ : 1 ≤ Λ)
     div_pos one_pos (by linarith), by rw [div_le_one (by linarith)]; linarith,
     mul_nonneg hA₀0.le (sq_nonneg _),
     by have := div_pos hRγ hl2; have := mul_pos h2Lγ hCτγ; linarith, fun P hP => ?_⟩
-  have : IsProbabilityMeasure P := hP.1
+  have hPl : LawHypotheses P := hLw P hP
+  have : IsProbabilityMeasure P := hPl.1
   obtain ⟨S, hSobs⟩ := hCP P hP
   refine ⟨S, fun W z r hr => ?_⟩
   obtain ⟨X₁, Y₀, hX₁0, hY₀0, hX₁os, hY₀os, hCae⟩ := hSobs W z r hr
-  obtain ⟨X₂, hX₂m, hX₂os, hX₂1, hAae⟩ := hAP P hP S z
+  obtain ⟨X₂, hX₂m, hX₂os, hX₂1, hAae⟩ := hAP P hPl S z
   have hr0 : 0 < r := by linarith
   have hr1 : 1 ≤ r := by linarith
   set Sr := localizationIntermediateRadius δ α γ r with hSr
@@ -445,5 +479,17 @@ theorem localizationSlopeEstimate_of_excess_observation (hΛ : 1 ≤ Λ)
         (mul_le_mul_of_nonneg_left hpow hA₀0.le) (sq_nonneg _)) measureReal_nonneg).trans
           (le_of_eq ?_)
       ring
+
+/-- **The single-slope estimate of Lemma 4.21 from the excess decay of one slope and the
+observation estimate**, for every exponent budget `(r/S)^ϑ S^{-β} ≤ r^{-γ}`. -/
+theorem localizationSlopeEstimate_of_excess_observation (hΛ : 1 ≤ Λ)
+    {s δ γ α σ θ C₀ β ϑ : ℝ} (hs : 1 ≤ s) (hδ : 0 < δ) (hα : 0 < α)
+    (hαγ : γ < α * (1 + δ) + δ) (hγ : 0 < γ) (hγs : s * γ < d) (hϑ0 : 0 < ϑ) (hϑ1 : ϑ < 1)
+    (hexp : ∀ r : ℝ, 1 ≤ r → (r / localizationIntermediateRadius δ α γ r) ^ ϑ *
+      localizationIntermediateRadius δ α γ r ^ (-β) ≤ r ^ (-γ))
+    (hA : BallExcessDecay d Λ) (hC : LocalizationObservationEstimate d Λ s δ γ α σ θ C₀ β) :
+    LocalizationSlopeEstimate d Λ s δ γ α σ θ C₀ :=
+  slopeEstimateOnClass_of_excess_observation hΛ (Lw := LawHypotheses) (fun _ h => h) hs hδ hα
+    hαγ hγ hγs hϑ0 hϑ1 hexp hA hC
 
 end QSH

@@ -88,17 +88,19 @@ theorem vectorRms_le_of_integral_le {z : Vec d} {T A : ℝ} (hT : 0 < T)
   linarith
 
 set_option maxHeartbeats 400000 in
-/-- **The observation estimate** from the finite-ball observation and the observation of the
-smoothed correctors, for every cap `C₀` above the energy bound of Lemma 3.17. -/
-theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < Λ)
+/-- **The observation estimate on a class of laws** from the finite-ball observation and the
+observation of the smoothed correctors on the class, for every cap `C₀` above the energy bound
+of Lemma 3.17. -/
+theorem observationEstimateOn_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {Lw : Measure (CoefficientField d Λ) → Prop} (hLw : ∀ P, Lw P → LawHypotheses P)
     {s δ γ α σ θ β k : ℝ} (hs : 1 ≤ s) (hδ : 0 < δ) (hα : 0 < α)
     (hαγ : γ < α * (1 + δ) + δ) (hγ : 0 < γ) (hγs : s * γ < d) (hβ : 0 < β) (hσ : 0 < σ)
     (hk : (d : ℝ) + 1 + β * (1 + δ) / localizationEpsilon δ α γ ≤ k)
     (hD : FiniteBallObservation d Λ σ θ k)
-    (hG : ∃ μ C : ℝ, 0 < μ ∧ 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+    (hG : ∃ μ C : ℝ, 0 < μ ∧ 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), Lw P →
       ∃ S : HomogenizationData P, SmoothedCorrectorObservation S s δ γ α σ θ β μ C) :
     ∃ C₀min : ℝ, 0 < C₀min ∧ ∀ C₀ : ℝ, C₀min ≤ C₀ →
-      LocalizationObservationEstimate d Λ s δ γ α σ θ C₀ β := by
+      LocalizationObservationEstimateOn Lw s δ γ α σ θ C₀ β := by
   obtain ⟨βE, CE, hβE, hCE, hE8⟩ := exists_translated_corrector_bounds hd hΛ
   have hAE : 0 < 2 ^ (d + 1) * (1 + CE ^ 2) := by positivity
   refine ⟨Real.sqrt (2 ^ (d + 1) * (1 + CE ^ 2)), Real.sqrt_pos.2 hAE, fun C₀ hC₀ => ?_⟩
@@ -131,12 +133,13 @@ theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < 
     Real.sqrt (8 * CD) * CG + Real.sqrt KE / Real.log 2 ^ s⁻¹ + Real.sqrt KE with hC₁
   have hC₁pos : 0 < C₁ := by positivity
   refine ⟨min μG β, C₁, lt_min hμG hβ, hC₁pos, fun P hP => ?_⟩
-  have : IsProbabilityMeasure P := hP.1
+  have hPl : LawHypotheses P := hLw P hP
+  have : IsProbabilityMeasure P := hPl.1
   obtain ⟨S, hS⟩ := hGP P hP
   refine ⟨S, fun W z r hr => ?_⟩
   obtain ⟨XG, YG, hXG0, hYG0, hXGos, hYGos, hGae⟩ := hS z r hr
-  obtain ⟨XD, hXDm, hXDos, hXD1, hDae⟩ := hDP P hP z
-  obtain ⟨XE, hXEm, hXEos, hXE1, hE8ae⟩ := hE8P P hP S z
+  obtain ⟨XD, hXDm, hXDos, hXD1, hDae⟩ := hDP P hPl z
+  obtain ⟨XE, hXEm, hXEos, hXE1, hE8ae⟩ := hE8P P hPl S z
   have hr0 : 0 < r := by linarith
   have hr1 : 1 ≤ r := by linarith
   set Sr := localizationIntermediateRadius δ α γ r with hSrdef
@@ -289,6 +292,41 @@ theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < 
             mul_le_mul_of_nonneg_left hfin hB
         _ = (Sr * (Real.sqrt (8 * CD) * YG a + Real.sqrt KE * Sr ^ (-β))) ^ 2 *
               volume.real (ball z Sr) := by ring
+
+/-- **The observation estimate** from the finite-ball observation and the observation of the
+smoothed correctors, for every cap `C₀` above the energy bound of Lemma 3.17. -/
+theorem localizationObservationEstimate_of_finiteBall (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {s δ γ α σ θ β k : ℝ} (hs : 1 ≤ s) (hδ : 0 < δ) (hα : 0 < α)
+    (hαγ : γ < α * (1 + δ) + δ) (hγ : 0 < γ) (hγs : s * γ < d) (hβ : 0 < β) (hσ : 0 < σ)
+    (hk : (d : ℝ) + 1 + β * (1 + δ) / localizationEpsilon δ α γ ≤ k)
+    (hD : FiniteBallObservation d Λ σ θ k)
+    (hG : ∃ μ C : ℝ, 0 < μ ∧ 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ S : HomogenizationData P, SmoothedCorrectorObservation S s δ γ α σ θ β μ C) :
+    ∃ C₀min : ℝ, 0 < C₀min ∧ ∀ C₀ : ℝ, C₀min ≤ C₀ →
+      LocalizationObservationEstimate d Λ s δ γ α σ θ C₀ β :=
+  observationEstimateOn_of_finiteBall hd hΛ (Lw := LawHypotheses) (fun _ h => h) hs hδ hα hαγ hγ
+    hγs hβ hσ hk hD hG
+
+/-- **The single-slope estimate on a class of laws (`[S']`)** from the excess decay of one slope,
+the finite-ball observation and the observation of the smoothed correctors on the class, for a
+class exponent `β` with the budget `(r/S)^ϑ S^{-β} ≤ r^{-γ}`. -/
+theorem slopeEstimateOnClass_of_finiteBall_smoothed (hd : 2 ≤ d) (hΛ : 1 < Λ)
+    {Lw : Measure (CoefficientField d Λ) → Prop} (hLw : ∀ P, Lw P → LawHypotheses P)
+    {s δ γ α σ θ β k ϑ : ℝ} (hs : 1 ≤ s) (hδ : 0 < δ) (hα : 0 < α)
+    (hαγ : γ < α * (1 + δ) + δ) (hγ : 0 < γ) (hγs : s * γ < d) (hβ : 0 < β) (hσ : 0 < σ)
+    (hϑ0 : 0 < ϑ) (hϑ1 : ϑ < 1)
+    (hexp : ∀ r : ℝ, 1 ≤ r → (r / localizationIntermediateRadius δ α γ r) ^ ϑ *
+      localizationIntermediateRadius δ α γ r ^ (-β) ≤ r ^ (-γ))
+    (hk : (d : ℝ) + 1 + β * (1 + δ) / localizationEpsilon δ α γ ≤ k)
+    (hD : FiniteBallObservation d Λ σ θ k)
+    (hG : ∃ μ C : ℝ, 0 < μ ∧ 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), Lw P →
+      ∃ S : HomogenizationData P, SmoothedCorrectorObservation S s δ γ α σ θ β μ C) :
+    ∃ C₀min : ℝ, 0 < C₀min ∧ ∀ C₀ : ℝ, C₀min ≤ C₀ →
+      SlopeEstimateOnClass Lw s δ γ α σ θ C₀ := by
+  obtain ⟨C₀min, hC₀min, hobs⟩ :=
+    observationEstimateOn_of_finiteBall hd hΛ hLw hs hδ hα hαγ hγ hγs hβ hσ hk hD hG
+  exact ⟨C₀min, hC₀min, fun C₀ hC₀ => slopeEstimateOnClass_of_excess_observation hΛ.le hLw hs hδ
+    hα hαγ hγ hγs hϑ0 hϑ1 hexp (ballExcessDecay hd hΛ) (hobs C₀ hC₀)⟩
 
 /-- **(5.85) from the finite-ball observation and the observation of the smoothed
 correctors.** If for every `k > 0` some `σ, θ ∈ (0, 1/2]` carry the finite-ball observation, and
