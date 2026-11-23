@@ -516,4 +516,19 @@ theorem compactTestFiniteBallLaw (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : �
           exact le_of_le_of_eq h (by ring)
       _ = _ := by rw [hsq2, hsq1]
 
+/-- **The finite-ball observation of the proof of Lemma 4.21**, for every growth exponent `k > 0`:
+`σ, θ ∈ (0, 1/2]` and constants chosen before the law, and at every center a random radius
+`X ≤ O_τ(C_τ)`, `τ < d`, above which `∫_{B_S(z)} u² ≤ C (|B_S| I + (S/T)^{2k} ∫_{B_T(z)} u²)` for
+the `a`-harmonic functions on `B_T(z)`, `T ≥ L₀ S`, with `I` the truncated Gaussian observation. -/
+theorem finiteBallObservation_of_laws (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {k : ℝ} (hk : 0 < k) :
+    ∃ σ θ : ℝ, 0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧
+      ∃ (L₀ C : ℝ), 1 ≤ L₀ ∧ 0 < C ∧ ∀ τ : ℝ, 0 < τ → τ < d → ∃ Cτ : ℝ, 0 < Cτ ∧
+        ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ z : Vec d,
+          ∃ X : CoefficientField d Λ → ℝ, Measurable X ∧ OsBound P X τ Cτ ∧ (∀ a, 1 ≤ X a) ∧
+            ∀ᵐ a ∂P, ∀ S T : ℝ, X a ≤ S → L₀ * S ≤ T → ∀ u : LocalHarmonic a z T,
+              ∫ x in ball z S, u.potential x ^ 2 ≤
+                C * (volume.real (ball z S) * localizationObjective z T S σ θ u.potential +
+                  (S / T) ^ (2 * k) * ∫ x in ball z T, u.potential x ^ 2) :=
+  finiteBallObservation_of_compactTestsLaw hk.le (compactTestFiniteBallLaw hd hΛ hk)
+
 end QSH

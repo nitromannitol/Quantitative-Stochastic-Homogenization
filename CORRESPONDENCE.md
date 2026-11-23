@@ -799,3 +799,27 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   the shifts times `σ` and the growth constant, which is absorbed for small `σ`
   (`QSH.integral_sq_ball_le_of_compactTests`); the observation ball is `B_{2S}(z)`, `θ = 1/2`.
   The estimate with compact tests is not proved in the library.
+
+## Lemma 4.21: the finite-ball observation from compact tests (`Ch04/Sec04/CompactTest*.lean`)
+
+- **Route.** The proof of Lemma 4.20 in the book controls a solution on the intermediate ball by its
+  truncated Gaussian observation through the higher-order Liouville theorem (Theorem 3.8 at order
+  `k`), which is not formalized. The Lean proof (`QSH.finiteBallObservation_of_laws`) uses instead a
+  finite-ball estimate with compact tests, proved from the first-order correctors only:
+  `∫_{B_t(z)} u² ≤ C (∑ₗ Oₗ² + (S/T)^{2k} ⨍_{B_T(z)} u²) (t/S)^{2k} |B_t|` for `S ≤ t ≤ T`,
+  where `Oₗ` are the pairings of `u` with finitely many rescaled compact tests at the scale `S`
+  (`QSH.compactTestFiniteBallLaw`), followed by the absorption of the tests into the truncated
+  Gaussian observation (`QSH.finiteBallObservation_of_compactTestsLaw`).
+- **The compact tests.** For the symmetric part `Dₛ` of the homogenized matrix, the profile
+  `ρ` and the partner `χ` with `Dₛ∇χ = yρ` (`QSH.adaptedRho`, `QSH.adaptedChi`) give
+  `∂_b ρ_b = b L χ_b`, `L = -∇·Dₛ∇`; with the tensor identity of Section 3.3 (the flux correctors of
+  Lemma 6.1 and Proposition 6.2), the averages `U_t = ρ_{λt} * u` change in the scale at the rate
+  `t^{-|α|-1-μ}` in their derivatives of order `|α|`, and `u - U_t` is small by the translation
+  estimate and the Caccioppoli inequality. Integrating the derivatives of order `< ⌈k⌉` outwards
+  and those of order `⌈k⌉` inwards and absorbing gives the estimate. The tests are the rescaled
+  derivatives of `ρ` of order `< ⌈k⌉`; they depend on the law through `Dₛ`, while their number,
+  their bounds and the constants are chosen before the law (`QSH.CompactTestFiniteBallLaw`).
+- **Random radius.** The correctors above the random scale of Lemma 3.17 and Proposition 6.2 at the
+  nearest lattice point are translated to the center (`QSH.SublinearCorrectorFamily.translate`),
+  so the radius has the stochastic integrability of that scale at every center.
+

@@ -274,15 +274,15 @@ def frameRadius (K : ℝ) : ℝ := (2 * Real.sqrt K)⁻¹
 def frameMatrix (A : Mat d) (K : ℝ) : Mat d := (frameRadius K)⁻¹ • A
 
 /-- The normalizing constant `c = |det A'| / ∫ ρ₀`. -/
-def frameConst (A : Mat d) (K : ℝ) : ℝ := |(frameMatrix A K).det| / ∫ y : Vec d, baseRho y
+def profileFrameConst (A : Mat d) (K : ℝ) : ℝ := |(frameMatrix A K).det| / ∫ y : Vec d, baseRho y
 
 /-- **The adapted profile** `ρ(y) = c ρ₀(A' y)`. -/
 def adaptedRho (A : Mat d) (K : ℝ) (y : Vec d) : ℝ :=
-  frameConst A K * baseRho ((frameMatrix A K).mulVec y)
+  profileFrameConst A K * baseRho ((frameMatrix A K).mulVec y)
 
 /-- **The adapted partner** `χ(y) = r² c χ₀(A' y)`. -/
 def adaptedChi (A : Mat d) (K : ℝ) (y : Vec d) : ℝ :=
-  frameRadius K ^ 2 * frameConst A K * baseChi ((frameMatrix A K).mulVec y)
+  frameRadius K ^ 2 * profileFrameConst A K * baseChi ((frameMatrix A K).mulVec y)
 
 variable {D A : Mat d} {K : ℝ}
 
@@ -336,7 +336,7 @@ theorem sum_mul_coordinateDerivative_adaptedChi (hA : ProfileFrame D A K) (hK : 
     ∑ j, D i j * coordinateDerivative j (adaptedChi A K) y = y i * adaptedRho A K y := by
   set A' := frameMatrix A K with hA'
   set r := frameRadius K with hr
-  set c := frameConst A K with hc
+  set c := profileFrameConst A K with hc
   have hr0 := frameRadius_pos hK
   have hdet := frameMatrix_det_ne hA hK
   have hgrad : ∀ j, coordinateDerivative j (adaptedChi A K) y =

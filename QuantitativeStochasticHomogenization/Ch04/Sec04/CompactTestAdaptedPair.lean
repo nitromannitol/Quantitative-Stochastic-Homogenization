@@ -36,17 +36,17 @@ theorem integral_comp_mulVec {M : Mat d} (hdet : M.det ≠ 0) (g : Vec d → ℝ
         rw [hmap, integral_smul_measure, ENNReal.toReal_ofReal (abs_nonneg _), smul_eq_mul,
           abs_inv]
 
-theorem frameConst_nonneg' (A : Mat d) (K : ℝ) : 0 ≤ frameConst A K :=
+theorem profileFrameConst_nonneg (A : Mat d) (K : ℝ) : 0 ≤ profileFrameConst A K :=
   div_nonneg (abs_nonneg _) (integral_nonneg baseRho_nonneg)
 
 theorem adaptedRho_nonneg (A : Mat d) (K : ℝ) (y : Vec d) : 0 ≤ adaptedRho A K y :=
-  mul_nonneg (frameConst_nonneg' A K) (baseRho_nonneg _)
+  mul_nonneg (profileFrameConst_nonneg A K) (baseRho_nonneg _)
 
 theorem integral_adaptedRho (hd : 0 < d) (hA : ProfileFrame D A K) (hK : 0 < K) :
     ∫ y, adaptedRho A K y = 1 := by
   have hdet := frameMatrix_det_ne hA hK
   unfold adaptedRho
-  rw [integral_const_mul, integral_comp_mulVec hdet, frameConst]
+  rw [integral_const_mul, integral_comp_mulVec hdet, profileFrameConst]
   have hm := integral_baseRho_pos (d := d) hd
   have hdet' : 0 < |(frameMatrix A K).det| := abs_pos.2 hdet
   field_simp
@@ -69,9 +69,9 @@ theorem abs_frameMatrix_entry_le (hA : ProfileFrame D A K) (hK : 0 < K) (l i : F
   rw [Matrix.smul_apply, smul_eq_mul, abs_mul, abs_of_pos (inv_pos.2 (frameRadius_pos hK))]
   exact mul_le_of_le_one_right (inv_pos.2 (frameRadius_pos hK)).le (hA.entry l i)
 
-theorem frameConst_le (hA : ProfileFrame D A K) (hK : 0 < K) :
-    frameConst A K ≤ (Nat.factorial d * (frameRadius K)⁻¹ ^ d) / ∫ y : Vec d, baseRho y := by
-  unfold frameConst
+theorem profileFrameConst_le (hA : ProfileFrame D A K) (hK : 0 < K) :
+    profileFrameConst A K ≤ (Nat.factorial d * (frameRadius K)⁻¹ ^ d) / ∫ y : Vec d, baseRho y := by
+  unfold profileFrameConst
   refine div_le_div_of_nonneg_right ?_ (integral_nonneg baseRho_nonneg)
   have h := Matrix.det_le (A := frameMatrix A K) (abv := AbsoluteValue.abs)
     (x := (frameRadius K)⁻¹) (fun l i => by
@@ -96,19 +96,19 @@ theorem exists_adaptedPair_bounds (hK : 0 < K) (j : ℕ) :
   refine ⟨c * (q ^ j * K₁), frameRadius K ^ 2 * c * (q ^ j * K₂), by positivity, by positivity,
     fun {D A} hA => ⟨fun β y => ?_, fun β y => ?_⟩⟩
   · have hdet := frameMatrix_det_ne hA hK
-    have e : adaptedRho A K = fun y => frameConst A K * baseRho ((frameMatrix A K).mulVec y) := rfl
+    have e : adaptedRho A K = fun y => profileFrameConst A K * baseRho ((frameMatrix A K).mulVec y) := rfl
     rw [e, iterDeriv_const_mul β (contDiff_comp_mulVec contDiff_baseRho _), abs_mul,
-      abs_of_nonneg (frameConst_nonneg' A K)]
-    exact mul_le_mul (frameConst_le hA hK)
+      abs_of_nonneg (profileFrameConst_nonneg A K)]
+    exact mul_le_mul (profileFrameConst_le hA hK)
       (abs_iterDeriv_comp_mulVec_le hdet (inv_pos.2 (frameRadius_pos hK)).le
         (abs_frameMatrix_entry_le hA hK) contDiff_baseRho hK₁ β y) (abs_nonneg _) hc0
   · have hdet := frameMatrix_det_ne hA hK
-    have e : adaptedChi A K = fun y => frameRadius K ^ 2 * frameConst A K *
+    have e : adaptedChi A K = fun y => frameRadius K ^ 2 * profileFrameConst A K *
         baseChi ((frameMatrix A K).mulVec y) := rfl
     rw [e, iterDeriv_const_mul β (contDiff_comp_mulVec contDiff_baseChi _), abs_mul,
-      abs_of_nonneg (mul_nonneg (sq_nonneg _) (frameConst_nonneg' A K))]
+      abs_of_nonneg (mul_nonneg (sq_nonneg _) (profileFrameConst_nonneg A K))]
     refine mul_le_mul ?_ (abs_iterDeriv_comp_mulVec_le hdet (inv_pos.2 (frameRadius_pos hK)).le
         (abs_frameMatrix_entry_le hA hK) contDiff_baseChi hK₂ β y) (abs_nonneg _) (by positivity)
-    exact mul_le_mul_of_nonneg_left (frameConst_le hA hK) (sq_nonneg _)
+    exact mul_le_mul_of_nonneg_left (profileFrameConst_le hA hK) (sq_nonneg _)
 
 end QSH
