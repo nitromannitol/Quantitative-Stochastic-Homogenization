@@ -66,30 +66,26 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
   Propositions 4.11 and 4.12 (`estimate558_of_law`).
 - Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12, and Lemma 5.29
   (i)–(iii) for centered local additive fields.
+- The bootstrap of Theorem 4.6 with constants chosen before the law: Definitions 4.7–4.9 with their
+  constants, Propositions 4.3, 4.10 and 4.12 and Lemma 4.13 with constants chosen before the law for
+  bounded jointly measurable versions of `J₁`, and Proposition 4.11 at the exponents of the bootstrap
+  from the single-slope estimate of Lemma 4.21 on classes of laws; hence Theorem 4.6 (i) and (iii),
+  the Gaussian gradient bound and (5.58) with constants chosen before the law from Proposition 3.21
+  with constants chosen before the law and that single-slope estimate.
 
 Some of this material was moved here from
 [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current
 priority is the frozen statements E1–E7 needed by that repository, listed in
-[`FROZEN.md`](FROZEN.md), all in the state `draft`. Each is reduced in the library to inputs that are
-not yet proved:
-
-- E2–E4 (Lemma 5.29): `UniformAdditivityJ1`, part (i) of Theorem 4.6 with constants chosen before
-  the law (`blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`,
-  `blockChange_of_uniformAdditivity`).
-- E5 (Lemma 5.24): (5.58) with a constant chosen before the law
-  (`coarsenedCoefficientEstimates_of_energyEstimate`).
-- E1 (Theorem 4.1): the linear estimate `|∫ Φ_{z,r} G ξ - ξ| ≤ O_s(C (1 + |ξ|) r^{-d/2})` with `s`
-  and `C` chosen before the law (`averagedCorrectorGradient_of_linearAverage_uniform`).
-- E7 (Theorem 4.24): the commutator estimate (4.34) and the linear estimate, at the stochastic
-  exponent `1` and the spatial exponent `d/2`, with constants chosen before the law
-  (`negativeSobolevCorrector_of_commutator_linear`).
-- E6 ((5.85)): the single-slope estimate `LocalizationSlopeEstimate`
-  (`localizedEnergy_of_slope_only`).
-
-These inputs are to come from the bootstrap of Chapter 4 run with constants chosen before the law,
-which is not yet in the library; its analytic inputs that remain open are Proposition 3.21 with
-constants chosen before the law and Proposition 4.11 at the exponents of the bootstrap, the latter
-through the single-slope localization estimate for the laws that satisfy the linear estimate.
+[`FROZEN.md`](FROZEN.md), all in the state `draft`. All seven are proved in the library from two
+inputs with constants chosen before the law that are not yet proved
+(`Ch05/Sec04/FrozenFromInputs.lean`): Proposition 3.21 (`UniformGaussianCorrectorRate`) and the
+single-slope estimate of Lemma 4.21 on the classes of the laws with the linear estimate at an
+exponent above the construction exponent (`UniformLinearSlopeEstimates`). The theorems are
+`averagedCorrectorGradient_of_rate_slope` (E1), `blockBoundary_of_rate_slope` (E2),
+`blockChange_of_rate_slope` (E3), `blockCLT_of_rate_slope` (E4),
+`coarsenedCoefficientEstimates_of_rate_slope` (E5, through (5.58)), `localizedEnergy_of_rate_slope`
+(E6) and `negativeSobolevCorrector_of_rate_slope` (E7). The heat identity (H) and the existence of
+homogenization data enter through `exists_heatPathwiseKernel` and `homogenizationDataExists`.
 
 ## Building
 

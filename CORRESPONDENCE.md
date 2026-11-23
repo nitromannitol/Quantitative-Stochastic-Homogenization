@@ -126,7 +126,7 @@ of each module names the source files and commits.
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
 
 
-## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`, `Ch04/Sec04/PilotLocalization.lean`)
+## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`, `Ch04/Sec04/PilotLocalization.lean`, `Ch05/Sec04/FrozenFromInputs.lean`)
 
 - **The quantifier order.** The book's constants depend only on `(s, d, Λ)`. In the bootstrap this
   is the statement that each of Propositions 4.3, 4.10, 4.11 and 4.12 turns a constant of its
@@ -176,8 +176,12 @@ of each module names the source files and commits.
 - **What remains.** Theorem 4.6 (i), (iii), (5.58), (5.85), (4.126), Theorem 4.1 and Lemma 5.29 are
   deduced from Proposition 3.21 with constants chosen before the law, the heat identity (H) with a
   kernel of mass `C_k/u`, and the single-slope estimate on the classes `LinearLaw`
-  (`LinearSlopeEstimates`), which are not proved (`bootstrapInputs_of_rate_heat_pilot`,
-  `pilotLocalizationEstimates_of_rate_heat_slope`, `localizedEnergy_of_rate_heat_slope`).
+  (`LinearSlopeEstimates`) (`bootstrapInputs_of_rate_heat_pilot`,
+  `pilotLocalizationEstimates_of_rate_heat_slope`, `localizedEnergy_of_rate_heat_slope`). With the
+  heat identity `exists_heatPathwiseKernel` and the homogenization data `homogenizationDataExists`,
+  the frozen statements E1–E7 follow from the two unproved inputs `UniformGaussianCorrectorRate`
+  (Proposition 3.21) and `UniformLinearSlopeEstimates` (`Ch05/Sec04/FrozenFromInputs.lean`, E5
+  through (5.58)).
 
 ## Section 4.4: the localization of pp. 155-156
 

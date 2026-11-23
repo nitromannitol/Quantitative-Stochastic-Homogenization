@@ -169,14 +169,14 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.1 |  | in progress ((4.2) with `s = 1` from the linear estimate with a constant chosen before the law, `averagedCorrectorGradient_of_linearAverage_uniform`; see CORRESPONDENCE.md) |
+| Theorem 4.1 |  | in progress ((4.2) with `s = 1` from the linear estimate with a constant chosen before the law, `averagedCorrectorGradient_of_linearAverage_uniform`; from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws, `averagedCorrectorGradient_of_rate_slope`; see CORRESPONDENCE.md) |
 
 ### 4.1 The Energy Quantity J₁ and Its Basic Properties, module `Ch04/Sec01EnergyQuantityJ1.lean`
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 4.2 | Nondegeneracy at Ψ | not started |
-| Proposition 4.3 |  | not started |
+| Proposition 4.3 |  | proved from Proposition 3.21, with an explicit constant (`flucEstimateAt_of_gaussianCorrectorRate`, `proposition43_at`; see CORRESPONDENCE.md) |
 | Lemma 4.4 | Basic properties of J₁ | not started |
 | Definition 4.5 | Minimal scale 𝒴ₛ | not started |
 
@@ -184,19 +184,19 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1` (not proved); part (ii) not started |
+| Theorem 4.6 | The additive structure of J₁ | in progress: parts (i), (iii), (iv) proved conditional on Propositions 4.10–4.12 and the initial exponent of Proposition 4.3 (see CORRESPONDENCE.md); part (i) with constants chosen before the law is the statement `UniformAdditivityJ1`, and parts (i) and (iii) with constants chosen before the law follow from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws (`uniformAdditivityJ1_of_rate_slope`, `uniformFluctuationJ1_of_bootstrap`); part (ii) not started |
 | Definition 4.7 | Add(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.8 | Fluc(s, α) | defined (see CORRESPONDENCE.md) |
 | Definition 4.9 | Loc(s, δ, α) | defined (see CORRESPONDENCE.md) |
-| Proposition 4.10 | Improvement of additivity | in progress (the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the joint measurability of `J₁` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; see CORRESPONDENCE.md) |
-| Proposition 4.11 | Localization estimates | not started |
-| Proposition 4.12 | Fluctuation estimates | not started |
+| Proposition 4.10 | Improvement of additivity | in progress (the heat identity (H) of the route and the pathwise heat bound for every law and all homogenization data, `heatPathwiseBound_of_lawHypotheses`, with a kernel of mass `(d + 1)/u` in `exists_heatPathwiseKernel`; (5.58) for every law from Proposition 3.21, the joint measurability of `J₁` and the conclusions of Propositions 4.11 and 4.12, `estimate558_of_law`, with a constant that depends on the law; with constants chosen before the law for bounded jointly measurable versions of `J₁` from Proposition 3.21 with constants chosen before the law and the heat identity, `uniformImprovementOfAdditivity_of_gaussianInputs`; see CORRESPONDENCE.md) |
+| Proposition 4.11 | Localization estimates | in progress (at the exponents of the bootstrap, with constants chosen before the law, from the single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate, `pilotLocalizationEstimates_of_gaussianInputs_slopeOn`; see CORRESPONDENCE.md) |
+| Proposition 4.12 | Fluctuation estimates | proved, with the constant of the conclusion chosen before the law (`exists_flucEstimateAt_of_add_local`; see CORRESPONDENCE.md) |
 
 ### 4.3 Improvement of Additivity, module `Ch04/Sec03ImprovementOfAdditivity.lean`
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 4.13 |  | not started |
+| Lemma 4.13 |  | proved from `Fluc(s, α)`, Proposition 3.21 and the expectations (1), with the constant chosen before the law, for a jointly measurable version of `J₁` (`exists_uniform_commutator_of_fluctuations`; see CORRESPONDENCE.md) |
 | Lemma 4.14 |  | not started |
 | Lemma 4.15 |  | not started |
 | Lemma 4.16 |  | not started |
@@ -208,7 +208,7 @@ No numbered result.
 | --- | --- | --- |
 | Lemma 4.19 | Multiscale Poincaré inequality, heat kernel version | not started |
 | Lemma 4.20 |  | not started |
-| Lemma 4.21 |  | in progress ((5.85) from `firstOrderLiouville` and the assumed single-slope estimate `LocalizationSlopeEstimate`; see CORRESPONDENCE.md) |
+| Lemma 4.21 |  | in progress ((5.85) from `firstOrderLiouville` and the assumed single-slope estimate `LocalizationSlopeEstimate`; for a class of laws, `localizationEstimateOn_of_slopeOn`; (5.85) from Proposition 3.21 with constants chosen before the law and the single-slope estimate on the classes of laws with the linear estimate, `localizedEnergy_of_rate_slope`; see CORRESPONDENCE.md) |
 | Lemma 4.22 |  | not started |
 
 ### 4.5 Fluctuation Estimates, module `Ch04/Sec05FluctuationEstimates.lean`
@@ -221,7 +221,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) at integer orders from the commutator and linear estimates with constants chosen before the law, `negativeSobolevCorrector_of_commutator_linear`; see CORRESPONDENCE.md) |
+| Theorem 4.24 | Corrector estimates in W^{-α,p} | in progress ((4.126) at integer orders from the commutator and linear estimates with constants chosen before the law, `negativeSobolevCorrector_of_commutator_linear`; from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws, `negativeSobolevCorrector_of_rate_slope`; see CORRESPONDENCE.md) |
 | Lemma 4.25 |  | not started |
 
 ### 4.7 Corrector Oscillation Estimates in Two Dimensions, module `Ch04/Sec07CorrectorOscillationInTwoDimensions.lean`
@@ -255,7 +255,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 5.23 | Coarsened coefficients | not started |
-| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; with the theorem proved, from (5.58) alone, `coarsenedCoefficientEstimates_of_energyEstimate`; see CORRESPONDENCE.md) |
+| Lemma 5.24 |  | in progress ((5.63)-(5.64) with `s = 1` from (5.58) with a law-uniform constant and the first-order Liouville theorem, `coarsenedCoefficientEstimates_of_energyEstimate_liouville`; with the theorem proved, from (5.58) alone, `coarsenedCoefficientEstimates_of_energyEstimate`; from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws, `coarsenedCoefficientEstimates_of_rate_slope`; see CORRESPONDENCE.md) |
 
 ### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
 
@@ -265,7 +265,7 @@ No numbered result.
 | Theorem 5.26 |  | not started |
 | Lemma 5.27 |  | not started |
 | Lemma 5.28 |  | not started |
-| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` alone, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`, the existence of homogenization data being proved (see CORRESPONDENCE.md) |
+| Lemma 5.29 |  | in progress: (i)-(iii) proved for centered local additive fields; for the localized energy from `UniformAdditivityJ1` alone, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`, the existence of homogenization data being proved; from Proposition 3.21 with constants chosen before the law and the single-slope estimate on classes of laws, `blockCLT_of_rate_slope`, `blockBoundary_of_rate_slope`, `blockChange_of_rate_slope` (see CORRESPONDENCE.md) |
 | Lemma 5.30 |  | not started |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`
