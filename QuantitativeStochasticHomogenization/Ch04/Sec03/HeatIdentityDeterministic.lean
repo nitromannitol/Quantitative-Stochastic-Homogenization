@@ -306,7 +306,7 @@ theorem single_add_single_self (m : Fin d) :
     (Pi.single m 1 + Pi.single m 1 : Fin d → ℕ) = Pi.single m 2 := by
   rw [← Pi.single_add]
 
-theorem integrable_dot_gradient {F : Vec d → Vec d} (hF : ∀ k, GaussianIntegrable (fun y => F y k))
+theorem integrable_dot_gradient_of_gaussian {F : Vec d → Vec d} (hF : ∀ k, GaussianIntegrable (fun y => F y k))
     {ψ : Vec d → ℝ} (hψ : ContDiff ℝ (⊤ : ℕ∞) ψ) {s B' : ℝ} (hs : 0 < s) {x₀ : Vec d}
     (hψg : ∀ y, euclideanNorm (gradient ψ y) ≤ B' * euclideanHeatKernel s (x₀ - y)) :
     Integrable (fun y => dot (F y) (gradient ψ y)) := by
@@ -388,11 +388,11 @@ theorem sum_lam_integral_eq {Q : Mat d} (hQ : Q.transpose * Q = 1) {A : Mat d}
     intro y
     simp only [hXi, dot, Matrix.mulVec_add, Pi.sub_apply, Pi.add_apply, ← Finset.sum_sub_distrib]
     exact Finset.sum_congr rfl fun j _ => by ring
-  have i1 := integrable_dot_gradient hfI hψs hs hψg
-  have i2 := integrable_dot_gradient hXiI hψs hs hψg
+  have i1 := integrable_dot_gradient_of_gaussian hfI hψs hs hψg
+  have i2 := integrable_dot_gradient_of_gaussian hXiI hψs hs hψg
   have i12 : Integrable (fun y => dot (a y *ᵥ (e + g y)) (gradient (rotKernel Q b (Pi.single k 1) z) y) -
       dot (Xi y) (gradient (rotKernel Q b (Pi.single k 1) z) y)) := i1.sub i2
-  have i3 := integrable_dot_gradient (fun j => GaussianIntegrable.const (d := d) ((A *ᵥ e) j))
+  have i3 := integrable_dot_gradient_of_gaussian (fun j => GaussianIntegrable.const (d := d) ((A *ᵥ e) j))
     hψs hs hψg
   have hAg : ∫ y, dot (A *ᵥ g y) (gradient (rotKernel Q b (Pi.single k 1) z) y) = -∫ y, dot (Xi y) (gradient (rotKernel Q b (Pi.single k 1) z) y) := by
     rw [integral_congr_ae (Eventually.of_forall hpt), integral_sub i12 i3,
