@@ -23,7 +23,8 @@ these classes at `γ = (α(1+δ) + δ) ∧ d/s - η` gives `PilotLocalizationEst
 `localizationCap d Λ`). Under the Gaussian inputs, `Fluc(s, α)` gives the linear estimate at
 `(s, α)` with a constant chosen before the law (Lemma 4.13 and the heat identity,
 `exists_uniform_commutator_linear`), so the single-slope estimate is needed only on the classes
-`LinearLaw s α C` of the laws with the linear estimate at `(s, α)`
+`LinearLaw s α C` of the laws with the linear estimate at `(s, α)`, for localized families of a
+construction exponent below `α` (`exists_construction_exponent`)
 (`LinearSlopeEstimates`, `pilotLocalizationEstimates_of_gaussianInputs_slopeOn`).
 
 With Proposition 3.21 and the heat identity (H) with constants chosen before the law, the
@@ -134,23 +135,45 @@ theorem pilot_exponent_bounds {s α δ η : ℝ} (hs : 0 < s) (hη : 0 < η) :
   rw [mul_sub]
   linarith
 
+/-- **A construction exponent below the fluctuation exponent**: for `β > 0`, `δ > 0` and
+`γ < β(1+δ) + δ` there is `α ∈ (0, β)` with `γ < α(1+δ) + δ`. -/
+theorem exists_construction_exponent {β δ γ : ℝ} (hβ : 0 < β) (hδ : 0 < δ)
+    (hγ : γ < β * (1 + δ) + δ) : ∃ α : ℝ, 0 < α ∧ α < β ∧ γ < α * (1 + δ) + δ := by
+  obtain ⟨h, hh⟩ : ∃ h : ℝ, h = min (β / 2) ((β * (1 + δ) + δ - γ) / (2 * (1 + δ))) :=
+    ⟨_, rfl⟩
+  have h1δ : 0 < 1 + δ := by linarith
+  have hgap : 0 < β * (1 + δ) + δ - γ := by linarith
+  have hpos : 0 < h := by rw [hh]; exact lt_min (by linarith) (by positivity)
+  have hle1 : h ≤ β / 2 := by rw [hh]; exact min_le_left _ _
+  have hle2 : h * (2 * (1 + δ)) ≤ β * (1 + δ) + δ - γ := by
+    have h2 := min_le_right (β / 2) ((β * (1 + δ) + δ - γ) / (2 * (1 + δ)))
+    rw [← hh, le_div_iff₀ (by positivity)] at h2
+    exact h2
+  have hX : 0 < h * (2 * (1 + δ)) := by positivity
+  refine ⟨β - h, by linarith, by linarith, ?_⟩
+  have hexp : (β - h) * (1 + δ) + δ = β * (1 + δ) + δ - h * (2 * (1 + δ)) / 2 := by ring
+  rw [hexp]
+  linarith
+
 /-- **Proposition 4.11 at the exponents of the bootstrap from the single-slope estimate** on the
-classes `FlucLaw s α C`, with the structural constants and the constant of the estimate chosen
-before the law. -/
+classes `FlucLaw s β C`, with a construction exponent `α < β` of the localized families, and the
+structural constants and the constant of the estimate chosen before the law. -/
 theorem pilotLocalizationEstimates_of_slopeOn (hd : 2 ≤ d) (hΛ : 1 < Λ)
-    (h : ∀ s α δ γ C : ℝ, 1 < s → s < 2 → 0 < α → α ≤ (d : ℝ) / 2 → 0 < δ → 0 < γ →
-      γ < α * (1 + δ) + δ → s * γ < d → 0 < C →
+    (h : ∀ s β α δ γ C : ℝ, 1 < s → s < 2 → 0 < α → α < β → β ≤ (d : ℝ) / 2 → 0 < δ →
+      0 < γ → γ < α * (1 + δ) + δ → s * γ < d → 0 < C →
       ∃ σ θ C₀ : ℝ, 0 < σ ∧ 0 < θ ∧ 0 < C₀ ∧
-        LocalizationSlopeEstimateOn (FlucLaw (d := d) (Λ := Λ) s α C) s δ γ α σ θ C₀) :
+        LocalizationSlopeEstimateOn (FlucLaw (d := d) (Λ := Λ) s β C) s δ γ α σ θ C₀) :
     PilotLocalizationEstimates d Λ := by
   intro s α δ η C hs1 hs2 hα0 hα hδ hη hC
   have hs0 : 0 < s := by linarith
   obtain ⟨hαγ, hγs⟩ := pilot_exponent_bounds (d := d) (α := α) (δ := δ) hs0 hη
   by_cases hγ : 0 < min (α * (1 + δ) + δ) ((d : ℝ) / s) - η
-  · obtain ⟨σ, θ, C₀, hσ, hθ, hC₀, hslope⟩ := h s α δ _ C hs1 hs2 hα0 hα hδ hγ hαγ hγs hC
+  · obtain ⟨αc, hαc0, hαcα, hαcγ⟩ := exists_construction_exponent hα0 hδ hαγ
+    obtain ⟨σ, θ, C₀, hσ, hθ, hC₀, hslope⟩ :=
+      h s α αc δ _ C hs1 hs2 hαc0 hαcα hα hδ hγ hαcγ hγs hC
     obtain ⟨D, hD, hest⟩ := localizationEstimateOn_of_slopeOn hd hΛ (fun P hP => hP.1) hs1.le
-      hδ hα0 hαγ hγ hγs hσ hθ hC₀ hslope
-    exact ⟨α, σ, θ, C₀, D, hσ, hθ, hC₀, hD, fun P hP J hJ hF => hest P ⟨hP, J, hJ, hF⟩⟩
+      hδ hαc0 hαcγ hγ hγs hσ hθ hC₀ hslope
+    exact ⟨αc, σ, θ, C₀, D, hσ, hθ, hC₀, hD, fun P hP J hJ hF => hest P ⟨hP, J, hJ, hF⟩⟩
   · have hΛ0 : 0 ≤ Λ := by linarith
     have hcap := localizationCap_pos (d := d) hΛ0
     have hl2 : 0 < Real.log 2 ^ s⁻¹ := Real.rpow_pos_of_pos (Real.log_pos one_lt_two) _
@@ -160,25 +183,27 @@ theorem pilotLocalizationEstimates_of_slopeOn (hd : 2 ≤ d) (hΛ : 1 < Λ)
           hr p q hp hq⟩
 
 /-- **The single-slope estimate of Lemma 4.21 on the classes of laws with the linear estimate**:
-for `s ∈ (1, 2)`, `α ∈ (0, d/2]`, `δ > 0`, `0 < γ < α(1+δ) + δ` with `sγ < d` and `C > 0`, there are
-structural constants `σ, θ ∈ (0, 1/2]`, `C₀ > 0` with the single-slope estimate on the class
-`LinearLaw s α C`. -/
+for `s ∈ (1, 2)`, a fluctuation exponent `β ≤ d/2` of the linear estimate, a construction exponent
+`α ∈ (0, β)` of the localized families, `δ > 0`, `0 < γ < α(1+δ) + δ` with `sγ < d` and `C > 0`,
+there are structural constants `σ, θ ∈ (0, 1/2]`, `C₀ > 0` with the single-slope estimate on the
+class `LinearLaw s β C`. -/
 def LinearSlopeEstimates (d : ℕ) (Λ : ℝ) : Prop :=
-  ∀ s α δ γ C : ℝ, 1 < s → s < 2 → 0 < α → α ≤ (d : ℝ) / 2 → 0 < δ → 0 < γ →
+  ∀ s β α δ γ C : ℝ, 1 < s → s < 2 → 0 < α → α < β → β ≤ (d : ℝ) / 2 → 0 < δ → 0 < γ →
     γ < α * (1 + δ) + δ → s * γ < d → 0 < C →
     ∃ σ θ C₀ : ℝ, 0 < σ ∧ σ ≤ 1 / 2 ∧ 0 < θ ∧ θ ≤ 1 / 2 ∧ 0 < C₀ ∧
-      LocalizationSlopeEstimateOn (LinearLaw (d := d) (Λ := Λ) s α C) s δ γ α σ θ C₀
+      LocalizationSlopeEstimateOn (LinearLaw (d := d) (Λ := Λ) s β C) s δ γ α σ θ C₀
 
 /-- **Proposition 4.11 at the exponents of the bootstrap from the Gaussian inputs and the
-single-slope estimate** on the classes `LinearLaw s α C`: under the Gaussian inputs, `Fluc(s, α)`
-for a bounded jointly measurable version of `J₁` gives the linear estimate at `(s, α)` with a
+single-slope estimate** on the classes `LinearLaw s β C`: under the Gaussian inputs, `Fluc(s, β)`
+for a bounded jointly measurable version of `J₁` gives the linear estimate at `(s, β)` with a
 constant chosen before the law (`exists_uniform_commutator_linear`, at `τ = (s d/2 + d)/2`). -/
 theorem pilotLocalizationEstimates_of_gaussianInputs_slopeOn (hd : 2 ≤ d) (hΛ : 1 < Λ)
     (hG : UniformGaussianInputs d Λ) (h : LinearSlopeEstimates d Λ) :
     PilotLocalizationEstimates d Λ := by
   obtain ⟨Cr, μ, CE, Ck, hCE, hCμ, hG⟩ := hG
   refine pilotLocalizationEstimates_of_slopeOn hd hΛ
-    fun s α δ γ C hs1 hs2 hα0 hα hδ hγ hαγ hγs hC => ?_
+    fun s β α δ γ C hs1 hs2 hα0 hαβ hβ hδ hγ hαγ hγs hC => ?_
+  have hβ0 : 0 < β := hα0.trans hαβ
   have hs0 : 0 < s := by linarith
   have hd2 : (2 : ℝ) ≤ d := by exact_mod_cast hd
   have hb2 : 0 < (d : ℝ) / 2 := by linarith
@@ -189,8 +214,9 @@ theorem pilotLocalizationEstimates_of_gaussianInputs_slopeOn (hd : 2 ≤ d) (hΛ
   have hτs : s ≤ τ / ((d : ℝ) / 2) := by rw [le_div_iff₀ hb2]; exact hτ1
   obtain ⟨hCτ, hμτ⟩ := hCμ τ hτ0 hτ2
   obtain ⟨_, Cl, _, hCl, hlin⟩ := exists_uniform_commutator_linear (Ck := Ck) hd hΛ
-    hs0 hα0 hα hC hτ0 hCτ hμτ hCE hτs
-  obtain ⟨σ, θ, C₀, hσ, -, hθ, -, hC₀, hslope⟩ := h s α δ γ Cl hs1 hs2 hα0 hα hδ hγ hαγ hγs hCl
+    hs0 hβ0 hβ hC hτ0 hCτ hμτ hCE hτs
+  obtain ⟨σ, θ, C₀, hσ, -, hθ, -, hC₀, hslope⟩ :=
+    h s β α δ γ Cl hs1 hs2 hα0 hαβ hβ hδ hγ hαγ hγs hCl
   refine ⟨σ, θ, C₀, hσ, hθ, hC₀, hslope.mono fun P hP => ⟨hP.1, ?_⟩⟩
   obtain ⟨hPl, J, hJ, hF⟩ := hP
   obtain ⟨S, hH, hE, hr⟩ := hG P hPl
@@ -221,8 +247,9 @@ theorem pilotLocalizationEstimates_of_rate_heat_slope
 /-- **`QSH.Frozen.localizedEnergy` (E6)** from Proposition 3.21, the heat identity (H) and the
 single-slope estimate on the classes `LinearLaw`, all with constants chosen before the law: the
 bootstrap gives the Gaussian gradient bound, i.e. every law satisfying the assumptions is in a class
-`LinearLaw s (d/2) C` with `C` chosen before the law, and the single-slope estimate at `α = d/2`
-on this class is `LocalizationSlopeEstimate` (`localizedEnergy_of_slope`). -/
+`LinearLaw s (d/2) C` with `C` chosen before the law, and the single-slope estimate on this class,
+at a construction exponent `α < d/2` with `γ < α(1+δ) + δ`, is `LocalizationSlopeEstimate`
+(`localizedEnergy_of_slope`). -/
 theorem localizedEnergy_of_rate_heat_slope
     (hrate : ∀ (d : ℕ), 2 ≤ d → ∀ Λ : ℝ, 1 < Λ → ∃ C μ : ℝ → ℝ,
       (∀ τ : ℝ, 0 < τ → τ < d → 0 < C τ ∧ 0 < μ τ) ∧
@@ -249,9 +276,10 @@ theorem localizedEnergy_of_rate_heat_slope
     rw [lt_div_iff₀ hs0] at h1
     linarith
   obtain ⟨Cl, hCl, hlin⟩ := hG d hd Λ s hΛ hs0 hs2
+  obtain ⟨α, hα0, hαβ, hαγ'⟩ := exists_construction_exponent hb2 hδ hαγ
   obtain ⟨σ, θ, C₀, hσ, hσ2, hθ, hθ2, hC₀, hslope⟩ :=
-    hS d hd Λ hΛ s ((d : ℝ) / 2) δ γ Cl hs1 hs2 hb2 le_rfl hδ hγ0 hαγ hγs hCl
-  exact ⟨(d : ℝ) / 2, σ, θ, C₀, hb2, le_rfl, hαγ, hσ, hσ2, hθ, hθ2, hC₀,
+    hS d hd Λ hΛ s ((d : ℝ) / 2) α δ γ Cl hs1 hs2 hα0 hαβ le_rfl hδ hγ0 hαγ' hγs hCl
+  exact ⟨α, σ, θ, C₀, hα0, hαβ.le, hαγ', hσ, hσ2, hθ, hθ2, hC₀,
     hslope.mono (L := LawHypotheses) fun P hP => ⟨hP, hlin P hP⟩⟩
 
 end QSH
