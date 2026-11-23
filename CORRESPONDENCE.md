@@ -731,3 +731,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (0.10)–(0.11) has homogenization data, and `blockCLT_of_uniformAdditivity` and its two
   companions (`Ch05/Sec04/BlockEstimatesFromCorrectors.lean`) give Lemma 5.29 (i)–(iii) from
   Theorem 4.6 (i) with constants uniform over the laws.
+
+## Proposition 3.21 with constants chosen before the law (`Ch04/Sec01/UniformGaussianRate.lean`)
+
+- Lean: `QSH.uniformGaussianCorrectorRate` (for `d ≥ 2`, `Λ > 1`: `C(τ), μ(τ) > 0` for
+  `0 < τ < d`, and for every law homogenization data `S` with `GaussianCorrectorRate P S τ C(τ) μ(τ)`).
+- Route. The book proves (3.101)–(3.103) from the quantitative convergence of the subadditive
+  quantities of Chapter 2. Here the correctors are those of the homogenization theorem of
+  Armstrong, Kuusi and Loher, and the bounds are proved at a realization, above `Y = B X` (`X` the
+  homogenization scale of that theorem, `B` dimensional), at every mask `Φ_{x₀,r}` with `|x₀| ≤ r`
+  (`gaussianBasisBounds_of_realization`, `exists_ae_gaussianBasisBounds`):
+  `∫ Φ ∂ₖφ = -∫ (φ - c) ∂ₖΦ` and the dyadic telescoping of the oscillation bound of Lemma 3.17 give
+  `|∫ Φ ∇φ| ≤ C (Y/r)^θ` (`Ch03/Sec04/GaussianSublinearity.lean`, `GaussianCorrectorBounds.lean`);
+  the flux follows from the pairing bound of the fluxes (`exists_uniform_flux_pairing`) and
+  `exists_heatConv_le`; the energy from `∫ Φ ∇φₗ · a Gᵢ = -∫ (φₗ - c) a Gᵢ · ∇Φ`, the test identity
+  for `η (φ - c) ∈ H¹₀` (`CutoffTestIdentity.lean`, `GaussianTestExtension.lean`). The matrix of
+  these bounds is the high-contrast homogenized matrix `ā`.
+- Departure: the identification `S.homogenized = ā` (`homogenized_eq_of_basisBounds`,
+  `Ch04/Sec01/HomogenizedFluxIdentification.lean`) is not in the book, whose matrix is defined by
+  (1.22) and whose correctors are built from it. Lower bound: `μ(□ₙ, e) ≥ ⨍ (e·aG − ½ G·aG)` (the
+  dual bound, `Ch01/Sec03/DirichletEnergyCorrectorBounds.lean`), whose expectation is the cell mean
+  `½ e·āe` of a stationary density (`StationaryCubeAverages.lean`, `HomogenizedGaussianLimits.lean`).
+  Upper bound: the trial function `η (φ_e − c)` with the inner cutoff of relative width `τ`, the
+  error `4dτ|e|² + K E ψₙ(Y) → 4dτ|e|²` by the sublinearity of the correctors and dominated
+  convergence.
+- Centers: for a center `z` the bounds are transported from the nearest lattice point by
+  stationarity, with the scale `X(a, z) = max(Y(T_k a), √d)^p`, `p = 2d/(d+τ)`, `O_τ(C)` by the
+  tail `exp(-t^d)` of the high-contrast scale; the rate is `μ = θ (d − τ)/(2d)`.
