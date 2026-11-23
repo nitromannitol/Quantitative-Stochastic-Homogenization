@@ -126,7 +126,7 @@ of each module names the source files and commits.
   `LocEstimate` (`LocFieldEstimate.locEstimate`).
 
 
-## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`, `Ch04/Sec04/PilotLocalization.lean`, `Ch05/Sec04/FrozenFromInputs.lean`)
+## Theorem 4.6 with constants chosen before the law (`Ch04/Sec02/UniformBootstrap.lean`, `Ch04/Sec02/Theorem46Uniform.lean`, `Ch04/Sec02/Theorem46UniformBase.lean`, `Ch04/Sec03/Proposition410Uniform.lean`, `Ch04/Sec04/LocalizationUniform.lean`, `Ch04/Sec06/UniformCorrectorEstimates.lean`, `Ch05/Sec03/UniformEnergyEstimate.lean`, `Ch04/Sec04/PilotLocalization.lean`, `Ch05/Sec04/FrozenFromInputs.lean`, `Ch05/Sec04/FrozenFromSlope.lean`, `Ch05/Sec04/FrozenFromCompactTests.lean`)
 
 - **The quantifier order.** The book's constants depend only on `(s, d, Λ)`. In the bootstrap this
   is the statement that each of Propositions 4.3, 4.10, 4.11 and 4.12 turns a constant of its
@@ -183,9 +183,17 @@ of each module names the source files and commits.
   (`LinearSlopeEstimates`) (`bootstrapInputs_of_rate_heat_pilot`,
   `pilotLocalizationEstimates_of_rate_heat_slope`, `localizedEnergy_of_rate_heat_slope`). With the
   heat identity `exists_heatPathwiseKernel` and the homogenization data `homogenizationDataExists`,
-  the frozen statements E1–E7 follow from the two unproved inputs `UniformGaussianCorrectorRate`
-  (Proposition 3.21) and `UniformLinearSlopeEstimates` (`Ch05/Sec04/FrozenFromInputs.lean`, E5
-  through (5.58)).
+  the frozen statements E1–E7 follow from `UniformGaussianCorrectorRate` (Proposition 3.21) and
+  `UniformLinearSlopeEstimates` (`Ch05/Sec04/FrozenFromInputs.lean`, E5 through (5.58)).
+  Proposition 3.21 is proved (`uniformGaussianCorrectorRate`), so Propositions 4.3 and 4.10, (4.70)
+  and Lemma 4.13 with constants chosen before the law hold for the bounded jointly measurable
+  versions of `J₁` (`uniformBaseFluctuation_holds`, `uniformImprovementOfAdditivity_holds`,
+  `uniformExpectationEstimates_holds`, `exists_uniform_commutator_linear_of_fluctuations`), and
+  E1–E7 follow from `UniformLinearSlopeEstimates` alone (`Ch05/Sec04/FrozenFromSlope.lean`). With
+  the single-slope estimate from the finite-ball observation (next section), E1–E7 follow from the
+  estimate with compact tests `CompactTestFiniteBall d Λ k`, `k > 0` (consultant note T22, (2)),
+  alone (`Ch05/Sec04/FrozenFromCompactTests.lean`); for (5.85) the linear estimate at `d/2` with one
+  constant for all laws comes from the same chain (`uniformLinearAverageEstimate_of_compactTests`).
 
 ## Section 4.4: the localization of pp. 155-156
 
@@ -780,3 +788,14 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`QSH.osBound_sqrt_segmentAverage`). The cutoff is taken at `R = S r^{ε'}`; its error terms are
   Gaussian tails, and the smallness on the event `{X ≤ r}` comes from the oscillation bound of the
   correctors on `B_R(z)` above the minimal scale.
+- **The finite-ball observation** (Lemma 4.20 and its transfer, pp. 152-155). The book proves the
+  observation (4.73) for the elements of `A_k` with Theorem 3.8 at the order `k` and transfers it to
+  general solutions by approximation. The library has Theorem 3.8 only at `k = 1`. Here the
+  finite-ball observation follows (`QSH.finiteBallObservation_of_compactTests`, consultant note
+  SCOTT-localization, (D) and (4)) from the estimate with compact tests of consultant note T22, (2)
+  (`QSH.CompactTestFiniteBall`): the growth of `∫_{B_t(z)} u²`, `S ≤ t ≤ T`, is controlled by the
+  pairings of `u` with finitely many tests supported in `B_S(z)` and the outer term. Each pairing
+  differs from the pairing of the Gaussian average of `1_{B_T} u` by at most a Gaussian moment of
+  the shifts times `σ` and the growth constant, which is absorbed for small `σ`
+  (`QSH.integral_sq_ball_le_of_compactTests`); the observation ball is `B_{2S}(z)`, `θ = 1/2`.
+  The estimate with compact tests is not proved in the library.

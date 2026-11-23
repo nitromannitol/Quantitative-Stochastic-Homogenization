@@ -52,6 +52,10 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
 - Lemma 3.16: every law satisfying (0.10)–(0.11) has first-order correctors with jointly measurable
   stationary gradients, hence homogenization data (`homogenizationDataExists`), built from the
   correctors of the homogenization theorem at a polynomial scale in high contrast.
+- Proposition 3.21 with constants chosen before the law and at every center
+  (`uniformGaussianCorrectorRate`), from the homogenization theorem at a polynomial scale in high
+  contrast; the homogenized matrix of the homogenization data is identified with the matrix of these
+  bounds (`homogenized_eq_of_basisBounds`).
 - The first-order Liouville theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`) with the
   harmonic approximation on ellipsoids (`harmonicApproximation`) that it rests on, and the harmonic
   expansion on balls.
@@ -59,6 +63,12 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
   matrix and the divergence identity (6.6), where the statement gives a deterministic vector and the
   proof identifies it), and the flux-corrector oscillation bound of Proposition 6.2
   (`sublinearCorrectors`), from the homogenization theorem at a polynomial scale in high contrast.
+- For Lemma 4.21: the excess decay of one slope on balls at every center from the homogenization
+  theorem in high contrast (`ballExcessDecay`), the observation of the smoothed correctors from the
+  linear estimate (`smoothedCorrectorObservation_of_gaussianGradient`), the single-slope estimate on
+  the classes of laws with the linear estimate from the finite-ball observation
+  (`slopeEstimateOnClass_of_linear_finiteBall`), and the finite-ball observation from the estimate
+  with compact tests (`finiteBallObservation_of_compactTests`).
 - The heat identity (H) of the route of Proposition 4.10 and the pathwise heat bound for every law
   and all homogenization data (`heatPathwiseBound_of_lawHypotheses`, and with a kernel of mass
   `(d + 1)/u`, `exists_heatPathwiseKernel`); hence (5.58) for every law, with a constant that depends
@@ -69,27 +79,37 @@ records it. Proved so far, besides the `O_s` calculus of Appendix A and Definiti
 - Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12 and the initial
   exponent of Proposition 4.3, and Lemma 5.29 (i)–(iii) for centered local additive fields.
 - The bootstrap of Theorem 4.6 with constants chosen before the law: Definitions 4.7–4.9 with their
-  constants and Proposition 4.12 with the constant of its conclusion chosen before the law, proved;
-  Proposition 4.3, Lemma 4.13 and Proposition 4.10, with constants chosen before the law for bounded
-  jointly measurable versions of `J₁`, proved from Proposition 3.21 (Lemma 4.13 and Proposition 4.10
-  with the further inputs listed in [`ROADMAP.md`](ROADMAP.md)); and Proposition 4.11 at the
-  exponents of the bootstrap from the single-slope estimate of Lemma 4.21 on classes of laws; hence
-  Theorem 4.6 (i) and (iii), the Gaussian gradient bound and (5.58) with constants chosen before the
-  law from Proposition 3.21 with constants chosen before the law and that single-slope estimate.
+  constants and Proposition 4.12 with the constant of its conclusion chosen before the law;
+  Proposition 4.3 (`uniformBaseFluctuation_holds`), Proposition 4.10 with (4.70)
+  (`uniformImprovementOfAdditivity_holds`, `uniformExpectationEstimates_holds`) and Lemma 4.13 with
+  the linear estimate (`exists_uniform_commutator_linear_of_fluctuations`), with constants chosen
+  before the law for bounded jointly measurable versions of `J₁`, from Proposition 3.21 and the heat
+  identity (H) (`uniformGaussianInputs_holds`); and Proposition 4.11 at the exponents of the
+  bootstrap from the single-slope estimate of Lemma 4.21 on classes of laws
+  (`uniformLocalizationEstimates_of_linearSlope`); hence Theorem 4.6 (i) and (iii), the Gaussian
+  gradient bound and (5.58) with constants chosen before the law from that single-slope estimate
+  alone (`uniformAdditivityJ1_of_linearSlope`, `uniformFluctuationJ1_of_linearSlope`,
+  `uniformEnergyEstimate_of_linearSlope`).
 
 Some of this material was moved here from
 [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current
 priority is the frozen statements E1–E7 needed by that repository, listed in
-[`FROZEN.md`](FROZEN.md), all in the state `draft`. All seven are proved in the library from two
-inputs with constants chosen before the law that are not yet proved
-(`Ch05/Sec04/FrozenFromInputs.lean`): Proposition 3.21 (`UniformGaussianCorrectorRate`) and the
-single-slope estimate of Lemma 4.21 on the classes of the laws with the linear estimate at an
-exponent above the construction exponent (`UniformLinearSlopeEstimates`). The theorems are
-`averagedCorrectorGradient_of_rate_slope` (E1), `blockBoundary_of_rate_slope` (E2),
-`blockChange_of_rate_slope` (E3), `blockCLT_of_rate_slope` (E4),
-`coarsenedCoefficientEstimates_of_rate_slope` (E5, through (5.58)), `localizedEnergy_of_rate_slope`
-(E6) and `negativeSobolevCorrector_of_rate_slope` (E7). The heat identity (H) and the existence of
-homogenization data enter through `exists_heatPathwiseKernel` and `homogenizationDataExists`.
+[`FROZEN.md`](FROZEN.md), all in the state `draft`. All seven are proved in the library from one
+input that is not yet proved (`Ch05/Sec04/FrozenFromCompactTests.lean`): the estimate with
+compact tests `CompactTestFiniteBall d Λ k` for every `d ≥ 2`, `Λ > 1` and `k > 0`
+(`UniformCompactTestFiniteBall`; consultant note T22, (2)), a deterministic finite-ball estimate
+for `a`-harmonic functions above the high-contrast radius at every center. The theorems are
+`averagedCorrectorGradient_of_compactTests` (E1), `blockBoundary_of_compactTests` (E2),
+`blockChange_of_compactTests` (E3), `blockCLT_of_compactTests` (E4),
+`coarsenedCoefficientEstimates_of_compactTests` (E5, through (5.58)),
+`localizedEnergy_of_compactTests` (E6) and `negativeSobolevCorrector_of_compactTests` (E7).
+Proposition 3.21, the heat identity (H), the existence of homogenization data and the observation
+of the smoothed correctors enter through `uniformGaussianCorrectorRate`,
+`exists_heatPathwiseKernel`, `homogenizationDataExists` and
+`smoothedCorrectorObservation_of_gaussianGradient`. The same statements from the single-slope
+estimate of Lemma 4.21 on the classes of laws with the linear estimate (`UniformLinearSlopeEstimates`)
+are in `Ch05/Sec04/FrozenFromSlope.lean`, and from it and Proposition 3.21 in
+`Ch05/Sec04/FrozenFromInputs.lean`.
 
 ## Building
 
