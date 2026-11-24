@@ -73,7 +73,10 @@ theorem abs_dot_le_euclideanSq_add (u v : Vec d) : |dot u v| ≤ euclideanSq u +
   have hv : 0 ≤ dotProduct v v := euclideanSq_nonneg' v
   constructor <;> linarith
 
-private theorem measurable_dot_rep_mulVec {Λ : ℝ} (a : CoefficientField d Λ) {u v : Vec d → Vec d}
+/-- The bilinear form of the measurable representative of a coefficient field along measurable
+fields is measurable. -/
+theorem measurable_dot_coefficientRepresentative_mulVec {Λ : ℝ} (a : CoefficientField d Λ)
+    {u v : Vec d → Vec d}
     (hu : Measurable u) (hv : Measurable v) :
     Measurable fun x => dot (u x) ((coefficientRepresentative a x).mulVec (v x)) := by
   have hrep (k l : Fin d) : Measurable (fun y => coefficientRepresentative a y k l) :=
@@ -86,10 +89,12 @@ private theorem measurable_dot_rep_mulVec {Λ : ℝ} (a : CoefficientField d Λ)
   refine ((measurable_pi_apply k).comp hu).mul (Finset.measurable_sum _ fun l _ => ?_)
   exact (hrep k l).mul ((measurable_pi_apply l).comp hv)
 
-private theorem aestronglyMeasurable_dot_mulVec {Λ : ℝ} (a : CoefficientField d Λ)
+/-- The bilinear form `u·a v` of a coefficient field along measurable fields is almost everywhere
+strongly measurable. -/
+theorem aestronglyMeasurable_dot_mulVec_of_measurable {Λ : ℝ} (a : CoefficientField d Λ)
     {u v : Vec d → Vec d} (hu : Measurable u) (hv : Measurable v) :
     AEStronglyMeasurable (fun x => dot (u x) ((a x).mulVec (v x))) volume := by
-  refine (measurable_dot_rep_mulVec a hu hv).aestronglyMeasurable.congr ?_
+  refine (measurable_dot_coefficientRepresentative_mulVec a hu hv).aestronglyMeasurable.congr ?_
   filter_upwards [coefficientRepresentative_ae_eq a] with x hx
   rw [hx]
 
@@ -119,7 +124,8 @@ theorem integrable_heatKernel_gram_load {Λ : ℝ} {P : Measure (CoefficientFiel
   have hWm := measurable_correctorColumn S a
   refine ⟨fun i j => ?_, fun i => ?_⟩
   · refine (((hW i).add (hW j)).const_mul Λ).mono'
-      (hkm.aestronglyMeasurable.mul (aestronglyMeasurable_dot_mulVec a (hWm i) (hWm j)))
+      (hkm.aestronglyMeasurable.mul
+        (aestronglyMeasurable_dot_mulVec_of_measurable a (hWm i) (hWm j)))
       (Filter.Eventually.of_forall fun x => ?_)
     rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg (hk0 x)]
     calc heatKernel z r x * |dot (correctorColumn S a i x) ((a x).mulVec (correctorColumn S a j x))|
@@ -133,7 +139,8 @@ theorem integrable_heatKernel_gram_load {Λ : ℝ} {P : Measure (CoefficientFiel
     have hdotq : AEStronglyMeasurable (fun x => dot q (correctorColumn S a i x)) volume := by
       have hc : Continuous fun v : Vec d => dot q v := by unfold dot; fun_prop
       exact (hc.measurable.comp (hWm i)).aestronglyMeasurable
-    have hdotp := aestronglyMeasurable_dot_mulVec a (u := fun _ => p) measurable_const (hWm i)
+    have hdotp := aestronglyMeasurable_dot_mulVec_of_measurable a (u := fun _ => p)
+      measurable_const (hWm i)
     refine (hconst.add ((hW i).const_mul (Λ + 1))).mono'
       (hkm.aestronglyMeasurable.mul (hdotp.neg.add hdotq))
       (Filter.Eventually.of_forall fun x => ?_)
