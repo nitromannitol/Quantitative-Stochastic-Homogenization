@@ -1078,3 +1078,19 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   at the points `¼eₖ` and, for `a(U)`, the bound of the entries of the nonnegative matrix
   `a(U) - a*(U)` by the Cauchy–Schwarz inequality and `a(U) - a*(U) ≤ Λ`, in place of the book's
   minimization in `p`.
+
+## Section 2.2: Lemma 2.12 and Definition 2.14, and the measurability of μ* (`Ch02/Sec02/Lemma212.lean`, `Ch02/Sec02/Definition214.lean`, `Ch02/Sec01/DualEnergyMeasurability.lean`)
+
+- Lean: `QSH.lemma_2_12`, `QSH.averagedDualMatrix` (`ā_U` of (2.41)) with `expectedDualInvMatrix`,
+  `QSH.averagedDualMatrix_bounds` ((2.42)) and `QSH.measurable_dualEnergy`.
+- Lemma 2.12: for a bounded open set `U`, a partition of `U`, up to a null set, by pairwise disjoint
+  open sets, and given maximizers of (2.9) on `U` and on the pieces (they exist on convex sets); the
+  norm `½‖a^{1/2}X‖²_{L̲²(Uⱼ)}` is `⨍_{Uⱼ} ½ X·aX`. The proof is the book's, with the additivity of the
+  functional of (2.9) over the partition (`defectTrialEnergy_eq_sum_of_partition`).
+- Definition 2.14: the expectation of the matrix `a*⁻¹(U)` is taken entrywise. Its entries are
+  measurable (`measurable_coarseDualInvMatrix_apply`): `μ*(U, q)` is the supremum of the functional
+  of (2.1) over a countable dense set of gradients of `H¹(U)` in `L²(U)`, independent of the
+  coefficient field (`exists_countable_dualEnergy_eq_iSup`), as for the Dirichlet energy in (1.29).
+  (2.42) comes from `Λ⁻¹ Id ≤ a*⁻¹(U) ≤ Id` and the bounds of the inverse of a symmetric positive
+  definite matrix (`inv_mulVec_bounds`).
+
