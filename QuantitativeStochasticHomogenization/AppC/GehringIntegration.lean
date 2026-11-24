@@ -100,4 +100,86 @@ theorem rpow_mul_min_rpow_le {a K m q ε : ℝ} (ha : 0 ≤ a) (hK : 1 ≤ 8 * K
         gcongr
     _ = (8 * K) ^ (2 + ε - q) * (a ^ (2 : ℝ) * min a m ^ ε) := by rw [h4]
 
+theorem enorm_rpow_eq_ofReal (x : ℝ) {s : ℝ} (hs : 0 ≤ s) :
+    ‖x‖ₑ ^ s = ENNReal.ofReal (|x| ^ s) := by
+  rw [Real.enorm_eq_ofReal_abs, ENNReal.ofReal_rpow_of_nonneg (abs_nonneg _) hs]
+
+/-- The `f`-part of the integrated level set estimate. -/
+theorem gehring_fterm {B : Set (Vec d)} {K q ε m c : ℝ} (hK : 1 ≤ K) (hq0 : 0 ≤ q) (hq : q < 2)
+    (hε : 0 < ε)
+    (hm : 0 ≤ m) (hc : 0 ≤ c) {f : Vec d → ℝ} (hfm : Measurable f) :
+    ENNReal.ofReal ε * ∫⁻ t in Ioi 0, ENNReal.ofReal c *
+        ((∫⁻ x in B ∩ {x | t < min (8 * K * |f x|) m}, ‖f x‖ₑ ^ q) *
+          ENNReal.ofReal (t ^ (2 + ε - q - 1))) ≤
+      ENNReal.ofReal (ε / (2 + ε - q) * (c * (8 * K) ^ (2 + ε - q))) *
+        ∫⁻ x in B, ‖f x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (min |f x| m ^ ε) := by
+  have hp : 0 < 2 + ε - q := by linarith
+  have hφm : Measurable fun x => min (8 * K * |f x|) m :=
+    (measurable_const.mul hfm.abs).min measurable_const
+  have hlc := setLIntegral_mul_ofReal_rpow_eq (B := B) (hfm.enorm.pow_const q) hφm
+    (fun x => le_min (by have := abs_nonneg (f x); positivity) hm) hp
+  have hmeasT : Measurable fun t : ℝ =>
+      (∫⁻ x in B ∩ {x | t < min (8 * K * |f x|) m}, ‖f x‖ₑ ^ q) *
+        ENNReal.ofReal (t ^ (2 + ε - q - 1)) :=
+    measurable_setLIntegral_levelSet.mul (ENNReal.measurable_ofReal.comp (measurable_id.pow_const _))
+  rw [lintegral_const_mul _ hmeasT]
+  have hcoef : ENNReal.ofReal ε * ENNReal.ofReal c =
+      ENNReal.ofReal (ε / (2 + ε - q) * c) * ENNReal.ofReal (2 + ε - q) := by
+    rw [← ENNReal.ofReal_mul hε.le, ← ENNReal.ofReal_mul (by positivity)]
+    congr 1
+    field_simp
+  rw [← mul_assoc, hcoef, mul_assoc, ← hlc]
+  have hpt : ∀ x, ‖f x‖ₑ ^ q * ENNReal.ofReal (min (8 * K * |f x|) m ^ (2 + ε - q)) ≤
+      ENNReal.ofReal ((8 * K) ^ (2 + ε - q)) *
+        (‖f x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (min |f x| m ^ ε)) := by
+    intro x
+    rw [enorm_rpow_eq_ofReal _ hq0, enorm_rpow_eq_ofReal _ (by norm_num),
+      ← ENNReal.ofReal_mul (by positivity), ← ENNReal.ofReal_mul (by positivity),
+      ← ENNReal.ofReal_mul (by positivity)]
+    exact ENNReal.ofReal_le_ofReal
+      (rpow_mul_min_rpow_le (abs_nonneg _) (by linarith) hm hq hε)
+  calc ENNReal.ofReal (ε / (2 + ε - q) * c) *
+        ∫⁻ x in B, ‖f x‖ₑ ^ q * ENNReal.ofReal (min (8 * K * |f x|) m ^ (2 + ε - q))
+      ≤ ENNReal.ofReal (ε / (2 + ε - q) * c) * ∫⁻ x in B, ENNReal.ofReal ((8 * K) ^ (2 + ε - q)) *
+          (‖f x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (min |f x| m ^ ε)) :=
+        mul_le_mul_of_nonneg_left (lintegral_mono fun x => hpt x) bot_le
+    _ = ENNReal.ofReal (ε / (2 + ε - q) * (c * (8 * K) ^ (2 + ε - q))) *
+          ∫⁻ x in B, ‖f x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (min |f x| m ^ ε) := by
+        have hmeas : Measurable fun x => ‖f x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal (min |f x| m ^ ε) :=
+          (hfm.enorm.pow_const _).mul
+            (ENNReal.measurable_ofReal.comp ((hfm.abs.min measurable_const).pow_const _))
+        rw [lintegral_const_mul _ hmeas, ← mul_assoc, ← ENNReal.ofReal_mul (by positivity)]
+        congr 2
+        ring
+
+/-- The `g`-part of the integrated level set estimate. -/
+theorem gehring_gterm {B : Set (Vec d)} {K ε c : ℝ} (hK : 1 ≤ K) (hε : 0 < ε) (hc : 0 ≤ c)
+    {g : Vec d → ℝ} (hgm : Measurable g) :
+    ENNReal.ofReal ε * ∫⁻ t in Ioi 0, ENNReal.ofReal c *
+        ((∫⁻ x in B ∩ {x | t < 8 * K * |g x|}, ‖g x‖ₑ ^ (2 : ℝ)) *
+          ENNReal.ofReal (t ^ (ε - 1))) ≤
+      ENNReal.ofReal (c * (8 * K) ^ ε) * ∫⁻ x in B, ‖g x‖ₑ ^ (2 + ε) := by
+  have hφm : Measurable fun x => 8 * K * |g x| := measurable_const.mul hgm.abs
+  have hlc := setLIntegral_mul_ofReal_rpow_eq (B := B) (hgm.enorm.pow_const (2 : ℝ)) hφm
+    (fun x => by have := abs_nonneg (g x); positivity) hε
+  have hmeasT : Measurable fun t : ℝ =>
+      (∫⁻ x in B ∩ {x | t < 8 * K * |g x|}, ‖g x‖ₑ ^ (2 : ℝ)) * ENNReal.ofReal (t ^ (ε - 1)) :=
+    measurable_setLIntegral_levelSet.mul (ENNReal.measurable_ofReal.comp (measurable_id.pow_const _))
+  rw [lintegral_const_mul _ hmeasT, mul_left_comm, ← hlc]
+  have hpt : ∀ x, ‖g x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal ((8 * K * |g x|) ^ ε) ≤
+      ENNReal.ofReal ((8 * K) ^ ε) * ‖g x‖ₑ ^ (2 + ε) := by
+    intro x
+    rw [enorm_rpow_eq_ofReal _ (by norm_num), enorm_rpow_eq_ofReal _ (by linarith),
+      ← ENNReal.ofReal_mul (by positivity), ← ENNReal.ofReal_mul (by positivity)]
+    refine ENNReal.ofReal_le_ofReal (le_of_eq ?_)
+    rw [Real.mul_rpow (by linarith) (abs_nonneg _), Real.rpow_add' (abs_nonneg _) (by linarith)]
+    ring
+  calc ENNReal.ofReal c * ∫⁻ x in B, ‖g x‖ₑ ^ (2 : ℝ) * ENNReal.ofReal ((8 * K * |g x|) ^ ε)
+      ≤ ENNReal.ofReal c * ∫⁻ x in B, ENNReal.ofReal ((8 * K) ^ ε) * ‖g x‖ₑ ^ (2 + ε) :=
+        mul_le_mul_of_nonneg_left (lintegral_mono fun x => hpt x) bot_le
+    _ = ENNReal.ofReal (c * (8 * K) ^ ε) * ∫⁻ x in B, ‖g x‖ₑ ^ (2 + ε) := by
+        have hmeas : Measurable fun x => ‖g x‖ₑ ^ (2 + ε) := hgm.enorm.pow_const _
+        rw [lintegral_const_mul _ hmeas, ← mul_assoc,
+          ← ENNReal.ofReal_mul hc]
+
 end QSH
