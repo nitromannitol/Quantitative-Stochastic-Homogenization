@@ -1249,3 +1249,18 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   step; the bookkeeping is the discrete lemma `QSH.discrete_flatness_iteration` and the geometric
   bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
   Theorem 2.18 (Section 2.3, not formalized).
+
+## Section 5.1: Lemma 5.2 (`Ch05/Sec01/Lemma52.lean`)
+
+- Lemma 5.2 (1): `QSH.lemma_5_2_tendstoInDistribution`: for `Vec d`-valued random variables `Xₙ` on
+  probability spaces `(Ωₙ, Pₙ)` and `X` on `(Ω', P')`, almost everywhere measurable, if
+  `λ·Xₙ → λ·X` in distribution (`TendstoInDistribution`) for every `λ`, then `Xₙ → X` in
+  distribution.
+- Lemma 5.2 (2): `QSH.lemma_5_2_map_eq`: if the laws of `λ·X₁` and `λ·X` agree for every `λ`, then
+  the laws of `X₁` and `X` agree (`P₁.map X₁ = P.map X`).
+- Proof: the book refers to the Fourier transform. The vectors are carried to
+  `EuclideanSpace ℝ (Fin d)` (`⟪x, t⟫ = t·x`, `inner_euclideanSpace_equiv_symm`); (1) is Lévy's
+  continuity theorem (`TendstoInDistribution.of_tendsto_charFun`) with
+  `charFun_map_eq_charFun_map_inner_one`, as in Mathlib's Cramér–Wold theorem
+  `tendstoInDistribution_iff_tendstoInDistribution_inner` (one probability space there), and (2) is
+  the uniqueness of characteristic functions (`Measure.ext_of_charFun`).
