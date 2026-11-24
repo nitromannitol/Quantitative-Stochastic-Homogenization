@@ -743,4 +743,434 @@ theorem sum_rpow_neg_le {θ ρ R₀ α : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1) (h
 
 end Iteration
 
+section Lemma34
+
+/-- `r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ (t/r)^{d/2} (t/r) t⁻¹ ‖u - (u)_{B_t}‖_{L̲²(B_t)}`
+for `r ≤ t`. -/
+theorem one_div_mul_scalarRms_sub_setAverage_le {r t : ℝ} (hr : 0 < r) (hrt : r ≤ t)
+    {u : Vec d → ℝ} (hu : MemLp u 2 (volume.restrict (ball (0 : Vec d) t))) :
+    1 / r * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
+      Real.sqrt ((t / r) ^ d) * (t / r) *
+        (1 / t * scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y)) := by
+  have ht : 0 < t := lt_of_lt_of_le hr hrt
+  have h := scalarRms_sub_setAverage_ball_le hr hrt hu
+  calc 1 / r * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)
+      ≤ 1 / r * (Real.sqrt ((t / r) ^ d) *
+          scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y)) :=
+        mul_le_mul_of_nonneg_left h (by positivity)
+    _ = _ := by field_simp
+
+theorem sqrt_pow_le_sqrt_pow {x y : ℝ} (hx : 0 ≤ x) (hxy : x ≤ y) :
+    Real.sqrt (x ^ d) ≤ Real.sqrt (y ^ d) :=
+  Real.sqrt_le_sqrt (pow_le_pow_left₀ hx hxy d)
+
+/-- **The bound of Lemma 3.4 above the scale `R₀`**, from the iteration of the improvement of
+flatness along the radii `θ^j R/2`. -/
+theorem lemma_3_4_aux {C₁ θ b β γ μ c₄ c₅ K α R R₀ X s₂ : ℝ} (hC₁ : 0 ≤ C₁) (hθ0 : 0 < θ)
+    (hθ1 : θ < 1) (hθΛ : θ < 1 / (2 * Real.sqrt Λ)) (hcontr : 4 * C₁ * θ * s₂ ≤ 1 / 2)
+    (hs₂ : s₂ = Real.sqrt (2 ^ d)) (hs₂1 : 1 ≤ s₂)
+    (hbdef : b = Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2) (hb0 : 0 < b)
+    (hβdef : β = b / θ) (hγdef : γ = 2 * C₁ * s₂) (hμdef : μ = θ ^ (-α))
+    (hc₄ : c₄ = 2 * β + γ + 2 * γ * β) (hc₅ : c₅ = 2 * (2 + 2 * γ)) (hα : 0 < α) (hK : 1 ≤ K)
+    (hR₀0 : 0 < R₀) (hR₀X : X ≤ R₀) (hsmall : c₄ * (K * R₀ ^ (-α) / (μ - 1)) ≤ 1 / 2)
+    {A : Mat d} (hsym : A.transpose = A) (hA : HomogenizedMatrixBounds A Λ)
+    (himp : ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ θ : ℝ, 0 < θ → θ < 1 / (2 * Real.sqrt Λ) →
+      ∀ r : ℝ, 0 < r → ∀ u w : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 r)) →
+      IsL2HarmonicOn A (ball 0 (r / 2)) w → ∀ (c : ℝ) (q : Vec d),
+      ∃ (c' : ℝ) (q' : Vec d),
+        scalarRms volume (ball 0 (θ * r)) (fun x => u x - (c' + dot q' x)) ≤
+          4 * C₁ * θ ^ 2 * Real.sqrt (2 ^ d) *
+              scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) +
+            (Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2) *
+              scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ∧
+        euclideanNorm (q' - q) ≤ 2 * C₁ / r *
+          (scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) +
+            Real.sqrt (2 ^ d) * scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x))))
+    {u : Vec d → ℝ} (hu : MemLp u 2 (volume.restrict (ball 0 R)))
+    {osc : ℝ → ℝ} (hosc : ∀ t, osc t =
+      scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y))
+    (hyp : ∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 r) w ∧
+        scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤ K * r ^ (-α) * osc r)
+    {r' : ℝ} (hR₀r' : R₀ ≤ r') (hr'R : r' ≤ R / 2) :
+    1 / r' * osc r' ≤
+      Real.sqrt ((1 / θ) ^ d) * (1 / θ) * c₅ * (2 * s₂) * (1 / R * osc R) := by
+  have hosc0 : ∀ t, 0 ≤ osc t := fun t => by rw [hosc]; exact scalarRms_nonneg _ _
+  have hR₀R : R₀ ≤ R / 2 := hR₀r'.trans hr'R
+  have hR2 : 0 < R / 2 := by linarith
+  have hR : 0 < R := by linarith
+  have hmem : ∀ t, t ≤ R → MemLp u 2 (volume.restrict (ball (0 : Vec d) t)) := fun t ht =>
+    hu.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero ht) le_rfl)
+  have hβ0 : 0 < β := by rw [hβdef]; exact div_pos hb0 hθ0
+  have hγ0 : 0 ≤ γ := by rw [hγdef]; have : 0 ≤ s₂ := by linarith
+                         positivity
+  obtain ⟨rr, hrr⟩ : ∃ rr : ℕ → ℝ, ∀ j, rr j = θ ^ j * (R / 2) := ⟨_, fun j => rfl⟩
+  have hrr0 : ∀ j, 0 < rr j := fun j => by rw [hrr]; positivity
+  have hrr_succ : ∀ j, rr (j + 1) = θ * rr j := fun j => by rw [hrr, hrr, pow_succ]; ring
+  have hrr_le : ∀ j, rr j ≤ R / 2 := fun j => by
+    have : θ ^ j ≤ 1 := pow_le_one₀ hθ0.le hθ1.le
+    rw [hrr]
+    nlinarith
+  have hrr_anti : ∀ i j, i ≤ j → rr j ≤ rr i := fun i j hij => by
+    rw [hrr, hrr]
+    exact mul_le_mul_of_nonneg_right (pow_le_pow_of_le_one hθ0.le hθ1.le hij) hR2.le
+  have hex : ∀ t : ℝ, 0 < t → ∃ n, rr (n + 1) < t := by
+    intro t ht
+    obtain ⟨n, hn⟩ := exists_pow_lt_of_lt_one (div_pos ht hR2) hθ1
+    refine ⟨n, lt_of_le_of_lt (hrr_anti n (n + 1) (Nat.le_succ n)) ?_⟩
+    rw [hrr]
+    rwa [lt_div_iff₀ hR2] at hn
+  classical
+  obtain ⟨J, hJ1, hJ2⟩ : ∃ J : ℕ, rr (J + 1) < R₀ ∧ ∀ j ≤ J, R₀ ≤ rr j := by
+    refine ⟨Nat.find (hex R₀ hR₀0), Nat.find_spec (hex R₀ hR₀0), fun j hj => ?_⟩
+    rcases j with _ | i
+    · rw [hrr, pow_zero, one_mul]
+      exact hR₀R
+    · exact not_lt.1 (Nat.find_min (hex R₀ hR₀0) (show i < Nat.find (hex R₀ hR₀0) by omega))
+  have hstep : ∀ (j : ℕ) (p : ℝ × Vec d), ∃ p' : ℝ × Vec d, R₀ ≤ rr j →
+      scalarRms volume (ball 0 (rr (j + 1))) (fun x => u x - (p'.1 + dot p'.2 x)) ≤
+        4 * C₁ * θ ^ 2 * s₂ *
+            scalarRms volume (ball 0 (rr j)) (fun x => u x - (p.1 + dot p.2 x)) +
+          b * (K * rr j ^ (-α) * osc (rr j)) ∧
+      euclideanNorm (p'.2 - p.2) ≤ 2 * C₁ / rr j *
+        (K * rr j ^ (-α) * osc (rr j) +
+          s₂ * scalarRms volume (ball 0 (rr j)) (fun x => u x - (p.1 + dot p.2 x))) := by
+    intro j p
+    by_cases hj : R₀ ≤ rr j
+    · obtain ⟨w, hw, hη⟩ := hyp (rr j) (hR₀X.trans hj) (hrr_le j)
+      have hw2 : IsL2HarmonicOn A (ball 0 (rr j / 2)) w :=
+        hw.mono (ball_zero_subset_ball_zero (by linarith [hrr0 j]))
+      obtain ⟨c', q', h1, h2⟩ := himp A hsym hA θ hθ0 hθΛ (rr j) (hrr0 j) u w
+        (hmem _ ((hrr_le j).trans (by linarith))) hw2 p.1 p.2
+      rw [← hs₂, ← hbdef] at h1
+      rw [← hs₂] at h2
+      refine ⟨(c', q'), fun _ => ⟨?_, ?_⟩⟩
+      · rw [hrr_succ]
+        have hη' : b * scalarRms volume (ball 0 (rr j / 2)) (fun x => u x - w x) ≤
+            b * (K * rr j ^ (-α) * osc (rr j)) := mul_le_mul_of_nonneg_left hη hb0.le
+        linarith
+      · have hs : 2 * C₁ / rr j * scalarRms volume (ball 0 (rr j / 2)) (fun x => u x - w x) ≤
+            2 * C₁ / rr j * (K * rr j ^ (-α) * osc (rr j)) :=
+          mul_le_mul_of_nonneg_left hη (by have := hrr0 j; positivity)
+        have e1 : 2 * C₁ / rr j * (scalarRms volume (ball 0 (rr j / 2)) (fun x => u x - w x) +
+            s₂ * scalarRms volume (ball 0 (rr j)) (fun x => u x - (p.1 + dot p.2 x))) =
+            2 * C₁ / rr j * scalarRms volume (ball 0 (rr j / 2)) (fun x => u x - w x) +
+            2 * C₁ / rr j * (s₂ * scalarRms volume (ball 0 (rr j))
+              (fun x => u x - (p.1 + dot p.2 x))) := by ring
+        have e2 : 2 * C₁ / rr j * (K * rr j ^ (-α) * osc (rr j) +
+            s₂ * scalarRms volume (ball 0 (rr j)) (fun x => u x - (p.1 + dot p.2 x))) =
+            2 * C₁ / rr j * (K * rr j ^ (-α) * osc (rr j)) +
+            2 * C₁ / rr j * (s₂ * scalarRms volume (ball 0 (rr j))
+              (fun x => u x - (p.1 + dot p.2 x))) := by ring
+        rw [e2]
+        rw [e1] at h2
+        linarith
+    · exact ⟨p, fun h => absurd h hj⟩
+  choose step hstep using hstep
+  obtain ⟨seq, hseq0, hseqs⟩ : ∃ seq : ℕ → ℝ × Vec d,
+      seq 0 = ((⨍ y in ball 0 (R / 2), u y), (0 : Vec d)) ∧ ∀ j, seq (j + 1) = step j (seq j) :=
+    ⟨fun j => Nat.rec ((⨍ y in ball 0 (R / 2), u y), (0 : Vec d)) (fun j p => step j p) j,
+      rfl, fun j => rfl⟩
+  obtain ⟨F, hF⟩ : ∃ F : ℕ → ℝ, ∀ j, F j =
+      scalarRms volume (ball 0 (rr j)) (fun x => u x - ((seq j).1 + dot (seq j).2 x)) :=
+    ⟨_, fun j => rfl⟩
+  have hF0 : ∀ j, 0 ≤ F j := fun j => by rw [hF]; exact scalarRms_nonneg _ _
+  obtain ⟨G, hG⟩ : ∃ G : ℕ → ℝ, ∀ j, G j = F j / rr j := ⟨_, fun j => rfl⟩
+  obtain ⟨Q, hQ⟩ : ∃ Q : ℕ → ℝ, ∀ j, Q j = euclideanNorm (seq j).2 := ⟨_, fun j => rfl⟩
+  obtain ⟨Dj, hDj⟩ : ∃ Dj : ℕ → ℝ, ∀ j, Dj j = osc (rr j) / rr j := ⟨_, fun j => rfl⟩
+  obtain ⟨ε, hε⟩ : ∃ ε : ℕ → ℝ, ∀ j, ε j = K * rr j ^ (-α) := ⟨_, fun j => rfl⟩
+  have hG0 : ∀ j, 0 ≤ G j := fun j => by rw [hG]; exact div_nonneg (hF0 j) (hrr0 j).le
+  have hD0 : ∀ j, 0 ≤ Dj j := fun j => by rw [hDj]; exact div_nonneg (hosc0 _) (hrr0 j).le
+  have hε0 : ∀ j, 0 ≤ ε j := fun j => by
+    have := Real.rpow_pos_of_pos (hrr0 j) (-α)
+    rw [hε]
+    positivity
+  have hrecG : ∀ j < J, G (j + 1) ≤ G j / 2 + β * ε j * Dj j := by
+    intro j hj
+    have h := (hstep j (seq j) (hJ2 j hj.le)).1
+    rw [← hseqs, ← hF, ← hF] at h
+    have hr0 := hrr0 j
+    have hθr : 0 < θ * rr j := mul_pos hθ0 hr0
+    rw [hG, hG, hε, hDj, hβdef, hrr_succ]
+    have e : (4 * C₁ * θ ^ 2 * s₂ * F j + b * (K * rr j ^ (-α) * osc (rr j))) / (θ * rr j) =
+        (4 * C₁ * θ * s₂) * (F j / rr j) + b / θ * (K * rr j ^ (-α)) * (osc (rr j) / rr j) := by
+      field_simp
+    have hFr := div_nonneg (hF0 j) hr0.le
+    calc F (j + 1) / (θ * rr j)
+        ≤ (4 * C₁ * θ ^ 2 * s₂ * F j + b * (K * rr j ^ (-α) * osc (rr j))) / (θ * rr j) :=
+          div_le_div_of_nonneg_right h hθr.le
+      _ = (4 * C₁ * θ * s₂) * (F j / rr j) + b / θ * (K * rr j ^ (-α)) * (osc (rr j) / rr j) := e
+      _ ≤ F j / rr j / 2 + b / θ * (K * rr j ^ (-α)) * (osc (rr j) / rr j) := by nlinarith
+  have hrecQ : ∀ j < J, Q (j + 1) ≤ Q j + γ * (ε j * Dj j + G j) := by
+    intro j hj
+    have h := (hstep j (seq j) (hJ2 j hj.le)).2
+    rw [← hseqs, ← hF] at h
+    have hr0 := hrr0 j
+    have htri : Q (j + 1) ≤ Q j + euclideanNorm ((seq (j + 1)).2 - (seq j).2) := by
+      rw [hQ, hQ]
+      have := BaseExponent.euclideanNorm_add_le (seq j).2 ((seq (j + 1)).2 - (seq j).2)
+      rwa [add_sub_cancel] at this
+    have heq : 2 * C₁ / rr j * (K * rr j ^ (-α) * osc (rr j) + s₂ * F j) =
+        2 * C₁ * (ε j * Dj j + s₂ * G j) := by
+      rw [hε, hDj, hG]
+      field_simp
+    have hle : 2 * C₁ * (ε j * Dj j + s₂ * G j) ≤ γ * (ε j * Dj j + G j) := by
+      rw [hγdef]
+      have h1 := mul_nonneg (sub_nonneg.2 hs₂1) (mul_nonneg hC₁ (mul_nonneg (hε0 j) (hD0 j)))
+      have h2 : 2 * C₁ * s₂ * (ε j * Dj j + G j) - 2 * C₁ * (ε j * Dj j + s₂ * G j) =
+          2 * ((s₂ - 1) * (C₁ * (ε j * Dj j))) := by ring
+      linarith
+    linarith
+  have hDQ : ∀ j ≤ J, Dj j ≤ G j + Q j := by
+    intro j _
+    have hr0 := hrr0 j
+    have h := scalarRms_sub_setAverage_le_affine hr0.le
+      (hmem _ ((hrr_le j).trans (by linarith))) (seq j).1 (seq j).2
+    rw [← hosc, ← hF, ← hQ] at h
+    rw [hDj, hG, div_add' _ _ _ hr0.ne', div_le_div_iff_of_pos_right hr0]
+    exact h
+  have hQ0 : Q 0 = 0 := by
+    rw [hQ, hseq0]
+    simp [euclideanNorm, euclideanSq, dot]
+  have hE : ∑ j ∈ Finset.range J, ε j ≤ K * R₀ ^ (-α) / (μ - 1) := by
+    have hJ' : R₀ ≤ θ ^ J * (R / 2) := by rw [← hrr]; exact hJ2 J le_rfl
+    have h := sum_rpow_neg_le hθ0 hθ1 hα hR2 hR₀0 hJ'
+    have e : ∑ j ∈ Finset.range J, ε j = K * ∑ j ∈ Finset.range J, (θ ^ j * (R / 2)) ^ (-α) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun j _ => by rw [hε, hrr]
+    rw [e, mul_div_assoc, hμdef]
+    exact mul_le_mul_of_nonneg_left h (by linarith)
+  have hit := discrete_flatness_iteration hβ0.le hγ0 hG0 hD0 hε0 hrecG hrecQ hDQ hQ0 hE
+    (by rw [← hc₄]; exact hsmall)
+  rw [← hc₅] at hit
+  -- the initial flatness
+  have hG00 : G 0 ≤ 2 * s₂ * (1 / R * osc R) := by
+    have e : F 0 = osc (R / 2) := by
+      rw [hF, hosc, hseq0, hrr, pow_zero, one_mul]
+      congr 1
+      funext x
+      simp [dot]
+    have h := scalarRms_sub_setAverage_ball_le hR2 (by linarith : R / 2 ≤ R) hu
+    rw [← hosc, ← hosc] at h
+    have e2 : R / (R / 2) = 2 := by field_simp
+    rw [e2, ← hs₂] at h
+    rw [hG, e, hrr, pow_zero, one_mul, div_le_iff₀ hR2]
+    have hRR : 2 * s₂ * (1 / R * osc R) * (R / 2) = s₂ * osc R := by field_simp
+    linarith
+  -- locate `r'` between two consecutive radii
+  have hr'0 : 0 < r' := lt_of_lt_of_le hR₀0 hR₀r'
+  obtain ⟨j₀, hj₀1, hj₀2⟩ : ∃ j₀ : ℕ, rr (j₀ + 1) < r' ∧ r' ≤ rr j₀ := by
+    refine ⟨Nat.find (hex r' hr'0), Nat.find_spec (hex r' hr'0), ?_⟩
+    rcases hj : Nat.find (hex r' hr'0) with _ | i
+    · rw [hrr, pow_zero, one_mul]
+      exact hr'R
+    · have := Nat.find_min (hex r' hr'0) (show i < Nat.find (hex r' hr'0) by omega)
+      exact not_lt.1 this
+  have hj₀J : j₀ ≤ J := by
+    by_contra hcon
+    have h1 := hrr_anti (J + 1) j₀ (by omega)
+    linarith
+  have hcmp := one_div_mul_scalarRms_sub_setAverage_le hr'0 hj₀2
+    (hmem _ ((hrr_le j₀).trans (by linarith)))
+  rw [← hosc, ← hosc] at hcmp
+  have hratio : rr j₀ / r' ≤ 1 / θ := by
+    rw [hrr_succ] at hj₀1
+    rw [div_le_div_iff₀ hr'0 hθ0]
+    linarith
+  have hratio0 : 0 ≤ rr j₀ / r' := div_nonneg (hrr0 j₀).le hr'0.le
+  have hDj₀ : 1 / rr j₀ * osc (rr j₀) ≤ c₅ * G 0 := by
+    have := hit j₀ hj₀J
+    rw [hDj] at this
+    rw [one_div_mul_eq_div]
+    exact this
+  have hfac : Real.sqrt ((rr j₀ / r') ^ d) * (rr j₀ / r') ≤ Real.sqrt ((1 / θ) ^ d) * (1 / θ) :=
+    mul_le_mul (sqrt_pow_le_sqrt_pow hratio0 hratio) hratio hratio0 (Real.sqrt_nonneg _)
+  have hDn : 0 ≤ 1 / rr j₀ * osc (rr j₀) := by
+    have := hosc0 (rr j₀); have := hrr0 j₀; positivity
+  have hG0n := hG0 0
+  have hc₅0 : 0 ≤ c₅ := by rw [hc₅]; positivity
+  calc 1 / r' * osc r' ≤ Real.sqrt ((rr j₀ / r') ^ d) * (rr j₀ / r') *
+        (1 / rr j₀ * osc (rr j₀)) := hcmp
+    _ ≤ Real.sqrt ((1 / θ) ^ d) * (1 / θ) * (c₅ * G 0) :=
+        mul_le_mul hfac hDj₀ hDn (by positivity)
+    _ ≤ Real.sqrt ((1 / θ) ^ d) * (1 / θ) * (c₅ * (2 * s₂ * (1 / R * osc R))) := by
+        gcongr
+    _ = Real.sqrt ((1 / θ) ^ d) * (1 / θ) * c₅ * (2 * s₂) * (1 / R * osc R) := by ring
+
+/-- **Lemma 3.4.** Let `α > 0`, `K ≥ 1` and `A` symmetric with `1 ≤ A ≤ Λ`. There is
+`C(α, K, d, Λ)` such that, for `X ≥ 1`, `R ≥ 2X` and `u ∈ L²(B_R)` such that for every
+`r ∈ [X, R/2]` some `A`-harmonic `w` in `B_r` satisfies (3.21),
+`‖u - w‖_{L̲²(B_{r/2})} ≤ K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, the bound (3.22)
+`r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ C R⁻¹ ‖u - (u)_{B_R}‖_{L̲²(B_R)}` holds for every `r ∈ [X, R]`. -/
+theorem lemma_3_4 (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α K : ℝ} (hα : 0 < α) (hK : 1 ≤ K) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ X R : ℝ, 1 ≤ X → 2 * X ≤ R → ∀ u : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 R)) →
+      (∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 r) w ∧
+        scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤
+          K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) →
+      ∀ r : ℝ, X ≤ r → r ≤ R →
+        1 / r * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
+          C / R * scalarRms volume (ball 0 R) (fun x => u x - ⨍ y in ball 0 R, u y) := by
+  obtain ⟨C₁, hC₁, himp⟩ := exists_affine_improvement hd hΛ
+  have hΛ0 : 0 < Λ := by linarith
+  have hsΛ1 : 1 ≤ Real.sqrt Λ := by
+    rw [show (1 : ℝ) = Real.sqrt 1 from Real.sqrt_one.symm]
+    exact Real.sqrt_le_sqrt hΛ
+  obtain ⟨s₂, hs₂⟩ : ∃ s : ℝ, s = Real.sqrt (2 ^ d) := ⟨_, rfl⟩
+  have hs₂1 : 1 ≤ s₂ := by
+    rw [hs₂, show (1 : ℝ) = Real.sqrt 1 from Real.sqrt_one.symm]
+    exact Real.sqrt_le_sqrt (one_le_pow₀ (by norm_num))
+  obtain ⟨θ, hθdef⟩ : ∃ θ : ℝ, θ = min (1 / (4 * Real.sqrt Λ)) (1 / (8 * (C₁ + 1) * s₂)) :=
+    ⟨_, rfl⟩
+  have hθ0 : 0 < θ := by rw [hθdef]; exact lt_min (by positivity) (by positivity)
+  have hθ4 : θ ≤ 1 / (4 * Real.sqrt Λ) := by rw [hθdef]; exact min_le_left _ _
+  have hθ8 : θ ≤ 1 / (8 * (C₁ + 1) * s₂) := by rw [hθdef]; exact min_le_right _ _
+  have h4Λ : 1 / (4 * Real.sqrt Λ) ≤ 1 / 4 := by
+    apply div_le_div_of_nonneg_left (by norm_num) (by norm_num); linarith
+  have hθ1 : θ < 1 := by linarith
+  have hθΛ : θ < 1 / (2 * Real.sqrt Λ) := by
+    have : 1 / (4 * Real.sqrt Λ) < 1 / (2 * Real.sqrt Λ) :=
+      one_div_lt_one_div_of_lt (by positivity) (by linarith)
+    linarith
+  have hcontr : 4 * C₁ * θ * s₂ ≤ 1 / 2 := by
+    have h1 : 8 * (C₁ + 1) * s₂ * θ ≤ 1 := by
+      rw [le_div_iff₀ (by positivity)] at hθ8
+      linarith
+    nlinarith
+  obtain ⟨b, hbdef⟩ : ∃ b : ℝ, b = Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2 := ⟨_, rfl⟩
+  have hb0 : 0 < b := by
+    have : 0 < Real.sqrt ((1 / (2 * θ)) ^ d) := Real.sqrt_pos.2 (by positivity)
+    rw [hbdef]
+    positivity
+  obtain ⟨β, hβdef⟩ : ∃ β : ℝ, β = b / θ := ⟨_, rfl⟩
+  have hβ0 : 0 < β := by rw [hβdef]; exact div_pos hb0 hθ0
+  obtain ⟨γ, hγdef⟩ : ∃ γ : ℝ, γ = 2 * C₁ * s₂ := ⟨_, rfl⟩
+  have hγ0 : 0 ≤ γ := by rw [hγdef]; have : 0 ≤ s₂ := by linarith
+                         positivity
+  obtain ⟨μ, hμdef⟩ : ∃ μ : ℝ, μ = θ ^ (-α) := ⟨_, rfl⟩
+  have hμ1 : 1 < μ := by
+    rw [hμdef]; exact Real.one_lt_rpow_of_pos_of_lt_one_of_neg hθ0 hθ1 (by linarith)
+  obtain ⟨c₄, hc₄⟩ : ∃ c : ℝ, c = 2 * β + γ + 2 * γ * β := ⟨_, rfl⟩
+  have hc₄0 : 0 < c₄ := by rw [hc₄]; positivity
+  obtain ⟨H, hHdef⟩ : ∃ H : ℝ, H = max 1 ((2 * c₄ * K / (μ - 1)) ^ α⁻¹) := ⟨_, rfl⟩
+  have hH1 : 1 ≤ H := by rw [hHdef]; exact le_max_left _ _
+  have hH0 : 0 < H := by linarith
+  obtain ⟨c₅, hc₅⟩ : ∃ c : ℝ, c = 2 * (2 + 2 * γ) := ⟨_, rfl⟩
+  obtain ⟨cB, hcB⟩ : ∃ c : ℝ, c = Real.sqrt ((1 / θ) ^ d) * (1 / θ) * c₅ * (2 * s₂) :=
+    ⟨_, rfl⟩
+  obtain ⟨cA, hcA⟩ : ∃ c : ℝ, c = 2 * s₂ := ⟨_, rfl⟩
+  have hcB0 : 0 ≤ cB := by
+    rw [hcB, hc₅]; have : 0 ≤ s₂ := by linarith
+    positivity
+  have hcA0 : 0 ≤ cA := by rw [hcA]; linarith
+  refine ⟨cA + cB + Real.sqrt (H ^ d) * H * (cA + cB) + Real.sqrt ((2 * H) ^ d) * (2 * H),
+    by positivity, ?_⟩
+  intro A hsym hA X R hX hXR u hu hyp r hXr hrR
+  have hR : 0 < R := by linarith
+  obtain ⟨osc, hosc⟩ : ∃ osc : ℝ → ℝ, ∀ t, osc t =
+      scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y) := ⟨_, fun t => rfl⟩
+  simp only [← hosc] at hyp ⊢
+  have hosc0 : ∀ t, 0 ≤ osc t := fun t => by rw [hosc]; exact scalarRms_nonneg _ _
+  have hDR0 : 0 ≤ 1 / R * osc R := by have := hosc0 R; positivity
+  have hmem : ∀ t, t ≤ R → MemLp u 2 (volume.restrict (ball (0 : Vec d) t)) := fun t ht =>
+    hu.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero ht) le_rfl)
+  obtain ⟨R₀, hR₀def⟩ : ∃ R₀ : ℝ, R₀ = max X H := ⟨_, rfl⟩
+  have hR₀X : X ≤ R₀ := by rw [hR₀def]; exact le_max_left _ _
+  have hR₀H : H ≤ R₀ := by rw [hR₀def]; exact le_max_right _ _
+  have hR₀0 : 0 < R₀ := by linarith
+  have hsmall : c₄ * (K * R₀ ^ (-α) / (μ - 1)) ≤ 1 / 2 := by
+    have hμ0 : 0 < μ - 1 := by linarith
+    have hx0 : 0 ≤ 2 * c₄ * K / (μ - 1) := by positivity
+    have hR₀α : 2 * c₄ * K / (μ - 1) ≤ R₀ ^ α := by
+      have h1 : (2 * c₄ * K / (μ - 1)) ^ α⁻¹ ≤ R₀ := by
+        rw [hHdef] at hR₀H
+        exact (le_max_right _ _).trans hR₀H
+      have h2 := Real.rpow_le_rpow (Real.rpow_nonneg hx0 _) h1 hα.le
+      rwa [Real.rpow_inv_rpow hx0 hα.ne'] at h2
+    have hRα : 0 < R₀ ^ α := Real.rpow_pos_of_pos hR₀0 α
+    rw [Real.rpow_neg hR₀0.le]
+    rw [div_le_iff₀ hμ0] at hR₀α
+    have e : c₄ * (K * (R₀ ^ α)⁻¹ / (μ - 1)) = c₄ * K / (R₀ ^ α * (μ - 1)) := by
+      field_simp
+    rw [e, div_le_iff₀ (mul_pos hRα hμ0)]
+    linarith
+  have hKB : ∀ r' : ℝ, R₀ ≤ r' → r' ≤ R / 2 → 1 / r' * osc r' ≤ cB * (1 / R * osc R) := by
+    intro r' h1 h2
+    rw [hcB]
+    exact lemma_3_4_aux hC₁ hθ0 hθ1 hθΛ hcontr hs₂ hs₂1 hbdef hb0 hβdef hγdef hμdef hc₄ hc₅ hα
+      hK hR₀0 hR₀X hsmall hsym hA himp hu hosc hyp h1 h2
+  have hcmpR : ∀ t : ℝ, 0 < t → t ≤ R → 1 / t * osc t ≤
+      Real.sqrt ((R / t) ^ d) * (R / t) * (1 / R * osc R) := fun t ht htR => by
+    have := one_div_mul_scalarRms_sub_setAverage_le ht htR hu
+    rwa [← hosc, ← hosc] at this
+  have hr0 : 0 < r := by linarith
+  rw [show (cA + cB + Real.sqrt (H ^ d) * H * (cA + cB) + Real.sqrt ((2 * H) ^ d) * (2 * H)) / R *
+    osc R = (cA + cB + Real.sqrt (H ^ d) * H * (cA + cB) + Real.sqrt ((2 * H) ^ d) * (2 * H)) *
+      (1 / R * osc R) by ring]
+  have hsH : 0 ≤ Real.sqrt (H ^ d) * H * (cA + cB) := by positivity
+  have hs2H : 0 ≤ Real.sqrt ((2 * H) ^ d) * (2 * H) := by positivity
+  have hmono : ∀ c : ℝ, c ≤ cA + cB + Real.sqrt (H ^ d) * H * (cA + cB) +
+      Real.sqrt ((2 * H) ^ d) * (2 * H) → c * (1 / R * osc R) ≤
+      (cA + cB + Real.sqrt (H ^ d) * H * (cA + cB) + Real.sqrt ((2 * H) ^ d) * (2 * H)) *
+        (1 / R * osc R) := fun c hc => mul_le_mul_of_nonneg_right hc hDR0
+  by_cases hA1 : R / 2 ≤ r
+  · have h := hcmpR r hr0 hrR
+    have hRr : R / r ≤ 2 := by rw [div_le_iff₀ hr0]; linarith
+    have hRr0 : 0 ≤ R / r := by positivity
+    have hfac : Real.sqrt ((R / r) ^ d) * (R / r) ≤ s₂ * 2 := by
+      rw [hs₂]
+      exact mul_le_mul (sqrt_pow_le_sqrt_pow hRr0 hRr) hRr hRr0 (Real.sqrt_nonneg _)
+    have : 1 / r * osc r ≤ cA * (1 / R * osc R) := by
+      calc 1 / r * osc r ≤ Real.sqrt ((R / r) ^ d) * (R / r) * (1 / R * osc R) := h
+        _ ≤ s₂ * 2 * (1 / R * osc R) := mul_le_mul_of_nonneg_right hfac hDR0
+        _ = cA * (1 / R * osc R) := by rw [hcA]; ring
+    exact this.trans (hmono _ (by linarith))
+  rw [not_le] at hA1
+  by_cases hB1 : R₀ ≤ r
+  · exact (hKB r hB1 hA1.le).trans (hmono _ (by linarith))
+  rw [not_le] at hB1
+  have hR₀eq : R₀ = H := by
+    rw [hR₀def]
+    rcases le_total X H with h | h
+    · exact max_eq_right h
+    · exfalso
+      have : R₀ = X := by rw [hR₀def]; exact max_eq_left h
+      linarith
+  have hr1 : 1 ≤ r := hX.trans hXr
+  by_cases hC1 : H ≤ R / 2
+  · have hKH := hKB H (by rw [hR₀eq]) hC1
+    have hrH : r ≤ H := by rw [← hR₀eq]; exact hB1.le
+    have h := one_div_mul_scalarRms_sub_setAverage_le hr0 hrH (hmem H (by linarith))
+    rw [← hosc, ← hosc] at h
+    have hHr : H / r ≤ H := by
+      rw [div_le_iff₀ hr0]
+      have := mul_le_mul_of_nonneg_left hr1 hH0.le
+      linarith
+    have hHr0 : 0 ≤ H / r := by positivity
+    have hfac : Real.sqrt ((H / r) ^ d) * (H / r) ≤ Real.sqrt (H ^ d) * H :=
+      mul_le_mul (sqrt_pow_le_sqrt_pow hHr0 hHr) hHr hHr0 (Real.sqrt_nonneg _)
+    have hDH : 0 ≤ 1 / H * osc H := by have := hosc0 H; positivity
+    have hcBA : cB * (1 / R * osc R) ≤ (cA + cB) * (1 / R * osc R) :=
+      mul_le_mul_of_nonneg_right (by linarith) hDR0
+    have : 1 / r * osc r ≤ Real.sqrt (H ^ d) * H * (cA + cB) * (1 / R * osc R) := by
+      calc 1 / r * osc r ≤ Real.sqrt ((H / r) ^ d) * (H / r) * (1 / H * osc H) := h
+        _ ≤ Real.sqrt (H ^ d) * H * ((cA + cB) * (1 / R * osc R)) :=
+            mul_le_mul hfac (hKH.trans hcBA) hDH (by positivity)
+        _ = Real.sqrt (H ^ d) * H * (cA + cB) * (1 / R * osc R) := by ring
+    exact this.trans (hmono _ (by linarith))
+  · rw [not_le] at hC1
+    have h := hcmpR r hr0 hrR
+    have hRr : R / r ≤ 2 * H := by
+      rw [div_le_iff₀ hr0]
+      have := mul_le_mul_of_nonneg_left hr1 (by linarith : (0 : ℝ) ≤ 2 * H)
+      linarith
+    have hRr0 : 0 ≤ R / r := by positivity
+    have hfac : Real.sqrt ((R / r) ^ d) * (R / r) ≤ Real.sqrt ((2 * H) ^ d) * (2 * H) :=
+      mul_le_mul (sqrt_pow_le_sqrt_pow hRr0 hRr) hRr hRr0 (Real.sqrt_nonneg _)
+    have : 1 / r * osc r ≤ Real.sqrt ((2 * H) ^ d) * (2 * H) * (1 / R * osc R) :=
+      h.trans (mul_le_mul_of_nonneg_right hfac hDR0)
+    exact this.trans (hmono _ (by linarith))
+
+end Lemma34
+
 end QSH
