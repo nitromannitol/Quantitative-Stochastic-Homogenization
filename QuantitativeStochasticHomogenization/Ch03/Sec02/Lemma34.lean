@@ -391,8 +391,9 @@ theorem scalarRms_dot_ball_le (q : Vec d) {r : ℝ} (hr : 0 ≤ r) :
 
 /-- **The improvement of flatness** ((3.29) for `k = 1`, for a given affine function): if `w` is
 `A`-harmonic in `B_{r/2}`, then for every affine `ℓ = c + q·x` there is an affine `ℓ'` with
-`‖u - ℓ'‖_{L̲²(B_{θr})} ≤ 4 C θ² 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)} + ((2θ)^{-d/2} + 4 C θ²) ‖u - w‖_{L̲²(B_{r/2})}`
-and `|∇ℓ' - ∇ℓ| ≤ 2 C r⁻¹ (‖u - w‖_{L̲²(B_{r/2})} + 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)})`. -/
+`‖u - ℓ'‖_{L̲²(B_{θr})} ≤ 4 C θ² 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)}
++ ((2θ)^{-d/2} + 4 C θ²) ‖u - w‖_{L̲²(B_{r/2})}` and
+`|∇ℓ' - ∇ℓ| ≤ 2 C r⁻¹ (‖u - w‖_{L̲²(B_{r/2})} + 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)})`. -/
 theorem exists_affine_improvement (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) :
     ∃ C₁ : ℝ, 0 ≤ C₁ ∧ ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
       ∀ θ : ℝ, 0 < θ → θ < 1 / (2 * Real.sqrt Λ) →
@@ -487,5 +488,118 @@ theorem exists_affine_improvement (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) :
       _ = 2 * C₁ / r * (η + Real.sqrt (2 ^ d) * F) := by field_simp
 
 end Improvement
+
+section Lemma36
+
+/-- The flatness `inf_ℓ ‖u - ℓ‖_{L̲²(B_r)}` of `u` over the affine functions `ℓ` (the quantity of
+(3.29) for `k = 1`, and `r E₁(r)` in (3.32)). -/
+def affineFlatness (u : Vec d → ℝ) (r : ℝ) : ℝ :=
+  ⨅ p : ℝ × Vec d, scalarRms volume (ball 0 r) (fun x => u x - (p.1 + dot p.2 x))
+
+theorem bddBelow_affineFlatness (u : Vec d → ℝ) (r : ℝ) :
+    BddBelow (Set.range fun p : ℝ × Vec d =>
+      scalarRms volume (ball 0 r) (fun x => u x - (p.1 + dot p.2 x))) :=
+  ⟨0, by rintro _ ⟨p, rfl⟩; exact scalarRms_nonneg _ _⟩
+
+theorem affineFlatness_le (u : Vec d → ℝ) (r c : ℝ) (q : Vec d) :
+    affineFlatness u r ≤ scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) :=
+  ciInf_le (bddBelow_affineFlatness u r) (c, q)
+
+theorem affineFlatness_nonneg (u : Vec d → ℝ) (r : ℝ) : 0 ≤ affineFlatness u r :=
+  le_ciInf fun _ => scalarRms_nonneg _ _
+
+/-- **Lemma 3.6 for `k = 1`**: there are `θ(α, d, Λ) ∈ (0, ½)` and `C(α, d, Λ)` such that, if for
+every `r ∈ [X, R]` some `A`-harmonic `w_r` in `B_{r/2}` satisfies (3.28),
+`‖u - w_r‖_{L̲²(B_{r/2})} ≤ K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, then (3.29) holds:
+`inf_ℓ ‖u - ℓ‖_{L̲²(B_{θr})} ≤ ¼ θ^{2-α/2} inf_ℓ ‖u - ℓ‖_{L̲²(B_r)}
++ C K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}` for every `r ∈ [X, R]`, the infima over the affine
+functions `ℓ` (the `A`-harmonic polynomials of degree at most one). -/
+theorem lemma_3_6_one (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α : ℝ} (hα : 0 < α) :
+    ∃ θ C : ℝ, 0 < θ ∧ θ < 1 / 2 ∧ 0 ≤ C ∧
+      ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ K X R : ℝ, 1 ≤ X → ∀ u : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 R)) →
+      (∀ r : ℝ, X ≤ r → r ≤ R → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 (r / 2)) w ∧
+        scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤
+          K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) →
+      ∀ r : ℝ, X ≤ r → r ≤ R →
+        affineFlatness u (θ * r) ≤ 1 / 4 * θ ^ (2 - α / 2) * affineFlatness u r +
+          C * K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) := by
+  obtain ⟨C₁, hC₁, himp⟩ := exists_affine_improvement hd hΛ
+  have hΛ0 : 0 < Λ := by linarith
+  have hsΛ1 : 1 ≤ Real.sqrt Λ := by
+    rw [show (1 : ℝ) = Real.sqrt 1 from Real.sqrt_one.symm]
+    exact Real.sqrt_le_sqrt hΛ
+  set s₂ : ℝ := Real.sqrt (2 ^ d) with hs₂
+  have hs₂0 : 0 ≤ s₂ := Real.sqrt_nonneg _
+  set B : ℝ := 16 * (C₁ + 1) * s₂ with hB
+  have hs₂1 : 1 ≤ s₂ := by
+    rw [hs₂, show (1 : ℝ) = Real.sqrt 1 from Real.sqrt_one.symm]
+    exact Real.sqrt_le_sqrt (one_le_pow₀ (by norm_num))
+  have hB0 : 0 < B := by positivity
+  set θ : ℝ := min (1 / (4 * Real.sqrt Λ)) (B ^ (-(2 / α))) with hθdef
+  have hθ0 : 0 < θ := lt_min (by positivity) (Real.rpow_pos_of_pos hB0 _)
+  have hθ4 : θ ≤ 1 / (4 * Real.sqrt Λ) := min_le_left _ _
+  have hθB : θ ≤ B ^ (-(2 / α)) := min_le_right _ _
+  have h4Λ : 1 / (4 * Real.sqrt Λ) ≤ 1 / 4 := by
+    apply div_le_div_of_nonneg_left (by norm_num) (by norm_num); linarith
+  have hθΛ : θ < 1 / (2 * Real.sqrt Λ) := by
+    have : 1 / (4 * Real.sqrt Λ) < 1 / (2 * Real.sqrt Λ) :=
+      one_div_lt_one_div_of_lt (by positivity) (by linarith)
+    linarith
+  set C : ℝ := Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2 with hCdef
+  have hC0 : 0 ≤ C := by positivity
+  refine ⟨θ, C, hθ0, by linarith, hC0, ?_⟩
+  -- the contraction factor
+  set a : ℝ := 4 * C₁ * θ ^ 2 * s₂ with ha
+  have ha0 : 0 ≤ a := by positivity
+  have hpow : θ ^ (α / 2) ≤ B⁻¹ := by
+    have h1 : θ ^ (α / 2) ≤ (B ^ (-(2 / α))) ^ (α / 2) :=
+      Real.rpow_le_rpow hθ0.le hθB (by positivity)
+    rw [← Real.rpow_mul hB0.le] at h1
+    have e : -(2 / α) * (α / 2) = -1 := by field_simp
+    rwa [e, Real.rpow_neg_one] at h1
+  have hθpos : 0 < θ ^ (α / 2) := Real.rpow_pos_of_pos hθ0 _
+  have hrpow : θ ^ (2 - α / 2) = θ ^ 2 / θ ^ (α / 2) := by
+    rw [Real.rpow_sub hθ0, Real.rpow_two]
+  have hale : a ≤ 1 / 4 * θ ^ (2 - α / 2) := by
+    rw [hrpow, ha]
+    have hBθ : B * θ ^ (α / 2) ≤ 1 := by
+      calc B * θ ^ (α / 2) ≤ B * B⁻¹ := mul_le_mul_of_nonneg_left hpow hB0.le
+        _ = 1 := mul_inv_cancel₀ hB0.ne'
+    rw [← mul_div_assoc, le_div_iff₀ hθpos]
+    have hθ2 : 0 ≤ θ ^ 2 := sq_nonneg θ
+    have : 4 * C₁ * s₂ * θ ^ (α / 2) ≤ 1 / 4 := by
+      have h2 : 4 * C₁ * s₂ ≤ B / 4 := by rw [hB]; nlinarith
+      calc 4 * C₁ * s₂ * θ ^ (α / 2) ≤ B / 4 * θ ^ (α / 2) :=
+            mul_le_mul_of_nonneg_right h2 hθpos.le
+        _ = (B * θ ^ (α / 2)) / 4 := by ring
+        _ ≤ 1 / 4 := by linarith
+    nlinarith [mul_le_mul_of_nonneg_right this hθ2]
+  intro A hsym hA K X R hX u hu hyp r hXr hrR
+  have hr : 0 < r := by linarith
+  obtain ⟨w, hw, hη⟩ := hyp r hXr hrR
+  have hur : MemLp u 2 (volume.restrict (ball (0 : Vec d) r)) :=
+    hu.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero hrR) le_rfl)
+  set η := scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) with hηdef
+  have key : ∀ p : ℝ × Vec d, affineFlatness u (θ * r) - C * η ≤
+      a * scalarRms volume (ball 0 r) (fun x => u x - (p.1 + dot p.2 x)) := by
+    intro p
+    obtain ⟨c', q', h1, -⟩ := himp A hsym hA θ hθ0 hθΛ r hr u w hur hw p.1 p.2
+    have h2 := affineFlatness_le u (θ * r) c' q'
+    rw [← hηdef] at h1
+    linarith
+  have hinf : affineFlatness u (θ * r) - C * η ≤ a * affineFlatness u r := by
+    unfold affineFlatness
+    rw [Real.mul_iInf_of_nonneg ha0]
+    exact le_ciInf key
+  have hF0 := affineFlatness_nonneg u r
+  have h3 : C * η ≤ C * (K * r ^ (-α) *
+      scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) :=
+    mul_le_mul_of_nonneg_left hη hC0
+  have h4 : a * affineFlatness u r ≤ 1 / 4 * θ ^ (2 - α / 2) * affineFlatness u r :=
+    mul_le_mul_of_nonneg_right hale hF0
+  nlinarith
+
+end Lemma36
 
 end QSH
