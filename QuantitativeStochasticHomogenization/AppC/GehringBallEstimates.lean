@@ -70,7 +70,7 @@ theorem ofReal_setAverage_abs_le_eLpMeanNormOn_two {U : Set (Vec d)} (hU0 : volu
   exact eLpNorm_le_eLpNorm_of_exponent_le one_le_two
 
 /-- If `c t < ‖h‖_{L̲^s(B)}` with `c^s ≥ 2`, then `|B| ≤ t^{-s} ∫_{B ∩ {|h| > t}} |h|^s`. -/
-theorem volume_le_of_lt_eLpMeanNormOn {B : Set (Vec d)} (hB0 : volume B ≠ 0)
+theorem volume_le_of_lt_eLpMeanNormOn {B : Set (Vec d)}
     (hBt : volume B ≠ ⊤) {h : Vec d → ℝ} (hhm : Measurable h) {s t c : ℝ} (hs : 0 < s)
     (ht : 0 < t) (hc0 : 0 < c) (hc : 2 ≤ c ^ s)
     (hlt : ENNReal.ofReal (c * t) < PDE.eLpMeanNormOn B (ENNReal.ofReal s) h) :
