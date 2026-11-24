@@ -87,7 +87,7 @@ No numbered result.
 | --- | --- | --- |
 | Lemma 2.1 |  | proved for bounded open convex sets (`lemma_2_1`: (2.9) with `dualityDefect`, the quantity `J` of (2.6), and `dualEnergy`, the quantity `μ*` of (2.1); the maximizer of (2.1) exists, `exists_isDualMaximizer`, and the maximizer of (2.9) is its difference with the minimizer of (1.7)); see CORRESPONDENCE.md |
 | Lemma 2.2 | Basic properties of J | proved for bounded open convex sets (`lemma_2_2`: the matrices `coarseDualMatrix` `a*(U)` and `coarseDualInvMatrix` `a*⁻¹(U)`, (2.11)–(2.17)); see CORRESPONDENCE.md |
-| Theorem 2.4 |  | in progress: the bound of `J(U, p, q)` by a primal trial and the divergence of a skew family (`dualityDefect_le_of_trials`, `dualityDefect_le_of_skew`), the first step of the route from first-order correctors, and the measurability of `μ*(U, q)` (`measurable_dualEnergy`) |
+| Theorem 2.4 |  | in progress: the bound of `J(U, p, Dp)` by a corrector and a skew flux corrector cut off in `U` (`dualityDefect_le_of_trials`, `dualityDefect_le_of_skew`, `dualityDefect_le_of_correctors`, `setAverage_trialError_le`), the first step of the route from first-order correctors, and the measurability of `μ*(U, q)` (`measurable_dualEnergy`) |
 | Lemma 2.7 |  | proved for bounded open convex sets (`lemma_2_7`, for the Frobenius norm); see CORRESPONDENCE.md |
 
 ### 2.2 Quantitative Convergence of the Subadditive Quantities, module `Ch02/Sec02QuantitativeConvergence.lean` (proofs in `Ch02/Sec02/Lemma212.lean` and `Ch02/Sec02/Definition214.lean`)
