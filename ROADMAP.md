@@ -1,6 +1,6 @@
 # Roadmap
 
-**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md): seven statements, E1–E7. All seven are proved with no hypothesis (`Ch05/Sec04/FrozenProved.lean`); their rows stay in the state `draft`, because a proof after the markers of a frozen file would close an import cycle, as explained in [README.md](README.md). The full-book list follows below.
+**Current priority.** The frozen statements needed by [einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean), listed in [FROZEN.md](FROZEN.md): seven statements, E1–E7. All seven are proved with no hypothesis (`Ch05/Sec04/FrozenProved.lean`); their rows in FROZEN.md are in the state `proved` and point to these theorems, since a proof after the markers of a frozen file would close an import cycle, as explained in [README.md](README.md). The full-book list follows below.
 
 ## Numbering and status
 

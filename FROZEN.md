@@ -21,22 +21,25 @@ the formalization of the Einstein relation in
   and its docstring is written above the first marker. The definitions it uses are those of the
   section modules of the library; the ones that determine its meaning are listed, with their hashes,
   in the vocabulary table below. A proof, when there is one, is a theorem whose type is the
-  proposition, written after the second marker.
+  proposition, written after the second marker or in another module (see the table of proofs).
 - The hash is the SHA-256 of the UTF-8 bytes strictly between the two markers, with the newline that
   follows the first marker dropped and the newline before the second marker kept. The recipe is that of
   the other repositories of this owner.
 - The state of a statement is `draft` or `proved`. A `draft` statement has no proof in the library
   yet: after the second marker there is nothing, or a proof attempt containing exactly one `sorry`. A
-  `proved` statement has, after the second marker, a theorem whose type is the proposition, and its
-  file contains no `sorry`. No `axiom` is allowed.
+  `proved` statement has a theorem whose type is the proposition, and its file contains no `sorry`.
+  The theorem is written after the second marker or, when the modules of its proof import the frozen
+  file (so that a proof after the marker would close an import cycle), in another module of the
+  library imported by `QuantitativeStochasticHomogenization.lean`, stated with no hypothesis and with
+  the proposition as its type, and recorded in the table of proofs below. No `axiom` is allowed.
 - A statement changes only by editing its file and its row together, and the change is a decision
   of the owner.
 - The same holds for the definitions in the vocabulary table: a change to one of them changes the
   meaning of every statement that uses it. It is made together with the row, it is a decision of the
   owner, and the statements listed in the row are reviewed again before their hashes are recorded.
 - [`scripts/check_frozen.py`](scripts/check_frozen.py) checks the rows against the files, the hashes of
-  the statements and of the vocabulary, the declaration names and the absence of forbidden tokens in
-  the library; CI runs it. The lists below may be empty.
+  the statements and of the vocabulary, the declaration names, the theorems of the table of proofs
+  and the absence of forbidden tokens in the library; CI runs it. The lists below may be empty.
 
 ## Frozen statements
 
@@ -46,14 +49,33 @@ the statement, and the numbered result of the book that it states or uses.
 <!-- FROZEN-LIST-BEGIN -->
 | id | file | declaration | state | sha256 | source |
 | --- | --- | --- | --- | --- | --- |
-| E1 | `QuantitativeStochasticHomogenization/Frozen/AveragedCorrectorGradient.lean` | `QSH.Frozen.averagedCorrectorGradient` | draft | `dfa9a663aef3678e8ac56dc64ddf4077f1f246fa7dfc8dbe3a3e141b098fba11` | AKM Theorem 4.1, (4.2) |
-| E2 | `QuantitativeStochasticHomogenization/Frozen/BlockBoundary.lean` | `QSH.Frozen.blockBoundary` | draft | `07cb3cb3cb449389d13bee767db4039e90cd420cd800a758965198b13fc69e5a` | AKM Lemma 5.29 (ii), (5.91)-(5.92) |
-| E3 | `QuantitativeStochasticHomogenization/Frozen/BlockChange.lean` | `QSH.Frozen.blockChange` | draft | `f6c9a87d9780b8e97c2a3846b830df9bb729d93e83e10b46aad17e1b6735c25d` | AKM Lemma 5.29 (iii) |
-| E4 | `QuantitativeStochasticHomogenization/Frozen/BlockCLT.lean` | `QSH.Frozen.blockCLT` | draft | `9b68b375fc207f830dcecaa101e1f1551ff879609427aa3ecd4854c65a133e3e` | AKM Lemma 5.29 (i), (5.90) |
-| E5 | `QuantitativeStochasticHomogenization/Frozen/CoarsenedCoefficientEstimates.lean` | `QSH.Frozen.coarsenedCoefficientEstimates` | draft | `24884a3b7fced117b752797d6c9e6a04a8ea08456f242e97fbe696cdbf5e2284` | AKM Lemma 5.24, (5.63)-(5.64) |
-| E6 | `QuantitativeStochasticHomogenization/Frozen/LocalizedEnergy.lean` | `QSH.Frozen.localizedEnergy` | draft | `0e115524a724935971182f635b142a8761749a1806f47c61381d39e4283a5f96` | AKM (5.85), Theorem 4.6 (iv), Section 4.4 |
-| E7 | `QuantitativeStochasticHomogenization/Frozen/NegativeSobolevCorrector.lean` | `QSH.Frozen.negativeSobolevCorrector` | draft | `c44e747110e9234c0865539a143c530f6ea87dfc2455649ae42c1f43f7aa78ac` | AKM (4.126), Theorem 4.24 |
+| E1 | `QuantitativeStochasticHomogenization/Frozen/AveragedCorrectorGradient.lean` | `QSH.Frozen.averagedCorrectorGradient` | proved | `dfa9a663aef3678e8ac56dc64ddf4077f1f246fa7dfc8dbe3a3e141b098fba11` | AKM Theorem 4.1, (4.2) |
+| E2 | `QuantitativeStochasticHomogenization/Frozen/BlockBoundary.lean` | `QSH.Frozen.blockBoundary` | proved | `07cb3cb3cb449389d13bee767db4039e90cd420cd800a758965198b13fc69e5a` | AKM Lemma 5.29 (ii), (5.91)-(5.92) |
+| E3 | `QuantitativeStochasticHomogenization/Frozen/BlockChange.lean` | `QSH.Frozen.blockChange` | proved | `f6c9a87d9780b8e97c2a3846b830df9bb729d93e83e10b46aad17e1b6735c25d` | AKM Lemma 5.29 (iii) |
+| E4 | `QuantitativeStochasticHomogenization/Frozen/BlockCLT.lean` | `QSH.Frozen.blockCLT` | proved | `9b68b375fc207f830dcecaa101e1f1551ff879609427aa3ecd4854c65a133e3e` | AKM Lemma 5.29 (i), (5.90) |
+| E5 | `QuantitativeStochasticHomogenization/Frozen/CoarsenedCoefficientEstimates.lean` | `QSH.Frozen.coarsenedCoefficientEstimates` | proved | `24884a3b7fced117b752797d6c9e6a04a8ea08456f242e97fbe696cdbf5e2284` | AKM Lemma 5.24, (5.63)-(5.64) |
+| E6 | `QuantitativeStochasticHomogenization/Frozen/LocalizedEnergy.lean` | `QSH.Frozen.localizedEnergy` | proved | `0e115524a724935971182f635b142a8761749a1806f47c61381d39e4283a5f96` | AKM (5.85), Theorem 4.6 (iv), Section 4.4 |
+| E7 | `QuantitativeStochasticHomogenization/Frozen/NegativeSobolevCorrector.lean` | `QSH.Frozen.negativeSobolevCorrector` | proved | `c44e747110e9234c0865539a143c530f6ea87dfc2455649ae42c1f43f7aa78ac` | AKM (4.126), Theorem 4.24 |
 <!-- FROZEN-LIST-END -->
+
+## Proofs in other modules
+
+Each row gives the identifier of a `proved` statement whose proof is not in its frozen file, the
+library file of the proof and the fully qualified theorem, stated with no hypothesis and with the
+frozen proposition as its type. Each frozen file below is imported by the modules of its proof, so
+the proof cannot be written after its second marker.
+
+<!-- FROZEN-PROOFS-BEGIN -->
+| id | file | theorem |
+| --- | --- | --- |
+| E1 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.averagedCorrectorGradient_holds` |
+| E2 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.blockBoundary_holds` |
+| E3 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.blockChange_holds` |
+| E4 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.blockCLT_holds` |
+| E5 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.coarsenedCoefficientEstimates_holds` |
+| E6 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.localizedEnergy_holds` |
+| E7 | `QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean` | `QSH.negativeSobolevCorrector_holds` |
+<!-- FROZEN-PROOFS-END -->
 
 ## Vocabulary
 

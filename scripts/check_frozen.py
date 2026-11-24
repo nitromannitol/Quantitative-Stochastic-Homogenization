@@ -22,8 +22,16 @@ Checks, in order:
   4. every `.lean` file under Frozen/ other than `Overview.lean` is the file of a row;
   5. in the library, no `axiom`, `admit`, `sorryAx`, `native_decide`, `implemented_by`, `extern`,
      `unsafe` or `opaque` occurs outside comments and strings;
-  6. `sorry` occurs only in the file of a `draft` row, exactly once, after the END marker, and the
-     file of a `proved` row contains a `theorem` or `lemma` after the END marker;
+  6. `sorry` occurs only in the file of a `draft` row, exactly once, after the END marker, and a
+     `proved` row has a proof: a `theorem` or `lemma` after the END marker of its file, or the
+     theorem recorded for its id in the table of proofs between `<!-- FROZEN-PROOFS-BEGIN -->` and
+     `<!-- FROZEN-PROOFS-END -->`,
+
+         | id | file | theorem |
+
+     which names a library file imported by `QuantitativeStochasticHomogenization.lean` that
+     declares the fully qualified theorem exactly once, with no binder and with the declaration of
+     the row as its type; every row of that table names a `proved` statement, at most once;
   7. every row of the vocabulary table between `<!-- FROZEN-VOCABULARY-BEGIN -->` and
      `<!-- FROZEN-VOCABULARY-END -->`,
 
@@ -59,6 +67,9 @@ LIST_BEGIN = "<!-- FROZEN-LIST-BEGIN -->"
 LIST_END = "<!-- FROZEN-LIST-END -->"
 VOCAB_BEGIN = "<!-- FROZEN-VOCABULARY-BEGIN -->"
 VOCAB_END = "<!-- FROZEN-VOCABULARY-END -->"
+PROOFS_BEGIN = "<!-- FROZEN-PROOFS-BEGIN -->"
+PROOFS_END = "<!-- FROZEN-PROOFS-END -->"
+ROOT_MODULE = ROOT / "QuantitativeStochasticHomogenization.lean"
 STATES = {"draft", "proved"}
 
 WORD_L = r"(?<![A-Za-z0-9_'.])"
@@ -171,6 +182,48 @@ def read_table(begin: str, end: str, columns: list[str],
     return rows
 
 
+THEOREM = re.compile(
+    r"(?m)^[ \t]*(?:(?:private|protected)[ \t]+)*(?:theorem|lemma)[ \t]+(" + IDENT + r")" + WORD_R)
+SCOPE = re.compile(
+    r"(?m)^[ \t]*(?:(namespace)[ \t]+(" + IDENT + r")|(?:noncomputable[ \t]+)?(section)\b[ \t]*("
+    + IDENT + r")?|(end)\b[ \t]*(" + IDENT + r")?)")
+
+
+def theorem_types(text: str, full_name: str) -> list[list[str]]:
+    """One entry for each theorem or lemma of `text` whose fully qualified name, read through the
+    enclosing `namespace` blocks, is `full_name`: the names that its written type can denote,
+    resolved through the enclosing namespaces, or the empty list when the declaration has binders
+    before its colon or its type is not a single name."""
+    code = mask(text)
+    events = sorted([(m.start(), "scope", m) for m in SCOPE.finditer(code)] +
+                    [(m.start(), "thm", m) for m in THEOREM.finditer(code)], key=lambda e: e[0])
+    stack: list[list[str]] = []
+    found: list[str] = []
+    for _, kind, m in events:
+        if kind == "scope":
+            if m.group(1):
+                stack.append(m.group(2).split("."))
+            elif m.group(3):
+                stack.append([])
+            elif m.group(5) and stack:
+                stack.pop()
+            continue
+        parts = [p for entry in stack for p in entry]
+        name = m.group(1)
+        qualified = name[len("_root_."):] if name.startswith("_root_.") else ".".join(parts + [name])
+        if qualified != full_name:
+            continue
+        rest = code[m.end():]
+        head = rest[:rest.find(":=")] if ":=" in rest else rest
+        typed = re.fullmatch(r"\s*:\s*(" + IDENT + r")\s*", head)
+        if not typed:
+            found.append([])
+            continue
+        written = typed.group(1)
+        found.append([".".join(parts[:k] + [written]) for k in range(len(parts), -1, -1)])
+    return found
+
+
 def vocabulary_text(text: str, name: str) -> tuple[int, str | None]:
     """The number of declarations of `name` in `text` and, if there is one, its hashed text."""
     keyword = re.compile(
@@ -209,6 +262,12 @@ def main() -> int:
     seen_ids: set[str] = set()
     seen_files: set[str] = set()
     draft_files: set[str] = set()
+    proofs: dict[str, dict[str, str]] = {}
+    for prow in read_table(PROOFS_BEGIN, PROOFS_END, ["id", "file", "theorem"], errors):
+        if prow["id"] in proofs:
+            errors.append(f"table of proofs: {prow['id']} occurs twice")
+        proofs[prow["id"]] = prow
+    root_text = ROOT_MODULE.read_text(encoding="utf-8") if ROOT_MODULE.is_file() else ""
     for row in rows:
         rid, rel = row["id"], row["file"]
         if rid in seen_ids:
@@ -247,8 +306,32 @@ def main() -> int:
                           f"{row['declaration']}")
         if row["state"] == "draft":
             draft_files.add(rel)
+            if rid in proofs:
+                errors.append(f"{rid}: a draft statement has a row in the table of proofs")
+        elif rid in proofs:
+            prow = proofs[rid]
+            ppath = ROOT / prow["file"]
+            module = prow["file"][:-len(".lean")].replace("/", ".") if prow["file"].endswith(".lean") else ""
+            try:
+                ppath.resolve().relative_to(LIB.resolve())
+            except ValueError:
+                errors.append(f"{rid}: the proof file {prow['file']} is not under {LIB.relative_to(ROOT)}/")
+                continue
+            if not ppath.is_file():
+                errors.append(f"{rid}: the proof file {prow['file']} does not exist")
+                continue
+            if not re.search(r"(?m)^import[ \t]+" + re.escape(module) + r"[ \t]*$", root_text):
+                errors.append(f"{rid}: {module} is not imported by {ROOT_MODULE.name}")
+            types = theorem_types(ppath.read_text(encoding="utf-8"), prow["theorem"])
+            if len(types) != 1:
+                errors.append(f"{rid}: {prow['file']} declares {prow['theorem']} {len(types)} times, "
+                              f"expected once")
+            elif row["declaration"] not in types[0]:
+                errors.append(f"{rid}: {prow['theorem']} must be stated with no binder and with type "
+                              f"{row['declaration']}")
         elif not re.search(r"(?m)^[ \t]*(?:theorem|lemma)[ \t]", mask(text[text.index(END):])):
-            errors.append(f"{rid}: a proved statement needs a theorem after {END}")
+            errors.append(f"{rid}: a proved statement needs a theorem after {END} or a row in the "
+                          f"table of proofs")
 
     for row in read_table(VOCAB_BEGIN, VOCAB_END, ["file", "name", "sha256", "used by"], errors):
         rel, name = row["file"], row["name"]
@@ -273,6 +356,10 @@ def main() -> int:
         if not users or any(u not in seen_ids for u in users):
             errors.append(f"vocabulary {name}: used by {row['used by']!r}, which is not a list of "
                           f"frozen statement identifiers")
+
+    for pid in proofs:
+        if pid not in seen_ids:
+            errors.append(f"table of proofs: {pid} is not the id of a frozen statement")
 
     if FROZEN_DIR.is_dir():
         for path in sorted(FROZEN_DIR.rglob("*.lean")):

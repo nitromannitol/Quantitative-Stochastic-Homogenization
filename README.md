@@ -105,11 +105,11 @@ priority is the frozen statements E1–E7 needed by that repository, listed in
 `Ch05/Sec04/FrozenProved.lean`: `averagedCorrectorGradient_holds` (E1), `blockBoundary_holds` (E2),
 `blockChange_holds` (E3), `blockCLT_holds` (E4), `coarsenedCoefficientEstimates_holds` (E5),
 `localizedEnergy_holds` (E6) and `negativeSobolevCorrector_holds` (E7); each depends only on the
-axioms `propext`, `Classical.choice` and `Quot.sound`. Their rows in `FROZEN.md` stay in the state
-`draft`: the convention asks for the proof after the second marker of the frozen file, and each
-frozen file is imported by the modules of its proof, whose last steps have the frozen proposition
-as their type (for instance `Frozen/AveragedCorrectorGradient.lean` is imported by
-`Ch04/Opening/Theorem41.lean`), so a proof there would close an import cycle.
+axioms `propext`, `Classical.choice` and `Quot.sound`. Their rows in `FROZEN.md` are in the state
+`proved` and point to these theorems in its table of proofs: each frozen file is imported by the
+modules of its proof, whose last steps have the frozen proposition as their type (for instance
+`Frozen/AveragedCorrectorGradient.lean` is imported by `Ch04/Opening/Theorem41.lean`), so a proof
+after the second marker of the frozen file would close an import cycle.
 
 The proofs go through the estimate with compact tests `CompactTestFiniteBall d Λ k`, proved for
 every `d ≥ 2`, `Λ > 1` and `k > 0` (`compactTestFiniteBall`, `UniformCompactTestFiniteBall`): a
