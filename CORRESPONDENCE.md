@@ -883,3 +883,52 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
   formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 are not.
+
+## Appendix C: Theorem C.1, Lemmas C.2 and C.4–C.6, Corollary C.3 (`AppC/`)
+
+- **Norms and right-hand sides.** The normalized norms `‖·‖_{L̲^s(U)}` are `PDE.eLpMeanNormOn U s`
+  of the elliptic regularity library, and `‖∇u‖_{L̲²(B)}`, `‖u - (u)_B‖_{L̲²(B)}` are `vectorRms` and
+  `scalarRms`. A right-hand side `h ∈ H^{-1}(U)` is written `h = f + ∇·F` with `f ∈ L²(U)` and
+  `F ∈ L²(U; ℝ^d)` (every element of `H^{-1}(U)` has this form), the equation `-∇·(a∇u) = h` is
+  `HasWeakDivergence U (a∇u + F) (-f)`, and the normalized `W^{-1,p}(U)` norm of Definition B.4 and
+  (0.29) is `negativeSobolevOneNorm p U f F`, the supremum of `|⨍_U (fψ - F·∇ψ)|` over
+  `ψ ∈ C_c^∞(U)` with `‖ψ‖_{W̲^{1,p/(p-1)}(U)} ≤ 1`, the test norm being (B.1) normalized with `k = 1`
+  (`sobolevOneTestNorm`). The bound `|⨍_U h v| ≤ ‖h‖_{H̲^{-1}(U)} ‖v‖_{H̲¹(U)}` is extended from smooth
+  tests to `v ∈ H¹₀(U)` through the smooth approximants of `PDE.H10Function`
+  (`abs_integral_pairing_le_of_h10`).
+- **Lemma C.2** (`lemma_C_2`; `interiorCaccioppoli` on balls with any center). The book's proof, with
+  the test function `φ (φ (u - (u)_{B_r})) ∈ H¹₀(B_r)` built by the product lemmas of the elliptic
+  regularity library and a cutoff with `|∇φ| ≤ 64/r`.
+- **Corollary C.3** (`corollary_C_3`) is stated for `d ≥ 2`: the exponent `2_* = 2d/(d+2)` is at
+  least `1` only then, and the Sobolev–Poincaré inequality used, the convex-domain inequality
+  `PDE.exists_convexSobolevPoincare_constant` with `p = 2_*`, is for `p ∈ [1, d)`.
+- **Lemma C.4** (`lemma_C_4`). The book's proof, with these changes. The stopping radius of (C.8) is
+  taken among the dyadic radii `(t - s)R/(10 · 2^k)`, and `λ₀` is `(160/(t - s))^{d/2}` (instead of
+  `(20/(t - s))^{d/2}`) times `‖f‖_{L̲²(B_R)} + ‖g‖_{L̲²(B_R)}`; this gives
+  `∫_{B_{5 r_z}(z)} f² ≤ 8^d λ² |B_{r_z}|` in place of the bound with `5^d`, whose proof in the book
+  needs `10 r_z ≤ (t - s)R/10`. The truncated quantity of the absorption is `∫_{B_{sR}} f² (|f| ∧ m)^ε`
+  rather than `‖f_m‖^{2+ε}_{L^{2+ε}(B_{sR})}`: the first identity of the integration after (C.10)
+  is an inequality, and the integral of `λ^{1+ε-q} μ_f({|f| ≥ λ})` is bounded by the truncated
+  weighted quantity through `|f|^q ((8K|f|) ∧ m)^{2+ε-q} ≤ (8K)^{2+ε-q} f² (|f| ∧ m)^ε`
+  (`rpow_mul_min_rpow_le`), not by `‖f_m‖^{2+ε}`. The level sets are `{|f| > λ}`. The Lebesgue
+  points are those of the Lebesgue differentiation theorem on Euclidean balls, deduced from
+  Mathlib's theorem on cubes (`ae_tendsto_ballAverage_abs_sub`), and `f, g` are replaced by
+  measurable representatives. The exponent is `δ = (1/2) ∧ (2 - q)/(2 · 8^d (8K)^3)`, and Lemma C.6
+  is used with a constant uniform in `dε/2 ∈ [0, d/2]` (`lemma_C_6_uniform`), since `ε = δ ∧ (p - 2)`
+  depends on `p`.
+- **Lemma C.5** (`lemma_C_5`). The family is indexed by a type, the subfamily is a countable set of
+  indices on which the balls are pairwise disjoint; the proof is Mathlib's Vitali selection
+  `Vitali.exists_disjoint_subfamily_covering_enlargement` with factor `2`.
+- **Lemma C.6** (`lemma_C_6`) holds for every real `ξ`; the ratio is `θ = (2/3)^{1/max(ξ,1)}` in
+  place of the book's `(3/4)^{1/ξ}`, which also covers `ξ = 0`.
+- **Theorem C.1.** For `d ≥ 2`, `theorem_C_1_divergence` is the case `h = ∇·H`, `H ∈ L^p`, of the
+  book's proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right-hand side, from Corollary C.3 on every
+  ball `B_ρ(z) ⊆ B_r`, the bound `‖∇·H‖_{H̲^{-1}} ≤ ‖H‖_{L̲²}` and Lemma C.4. The book applies Lemma C.4
+  with `q = 2_*`, which is `1` for `d = 2`, outside the range `(1, 2)` of the lemma; the proof uses
+  `q = max(2_*, 3/2)`. `theorem_C_1` is the statement of the book under the hypothesis
+  `DivergenceRepresentation d C` (Remark B.6 and Proposition B.16 on centered balls for exponents
+  `s ∈ [2, 3]`: every `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C ‖h‖_{W̲^{-1,s}(B_r)}`), which
+  is not formalized. The elliptic regularity library proves a Meyers estimate on the unit ball for
+  divergence-form right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
+  Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
+  Lemma C.4, which holds for every `q ∈ (1, 2)`.
