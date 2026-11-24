@@ -30,7 +30,7 @@ nonempty complement. -/
 theorem measurable_dualEnergy_localSigma {U : Set (Vec d)} (hU : IsOpen U) (hUc : Uᶜ.Nonempty)
     (hU0 : volume U ≠ 0) (hUt : volume U ≠ ⊤) (hΛ : 0 ≤ Λ) (q : Vec d) :
     @Measurable (CoefficientField d Λ) ℝ (localSigma U) _ fun a => dualEnergy a U q := by
-  obtain ⟨T, hTc, hTne, key⟩ := exists_countable_dualEnergy_eq_iSup (Λ := Λ) hU0 hUt hΛ q
+  obtain ⟨T, hTc, hTne, -, key⟩ := exists_countable_dualEnergy_eq_iSup (Λ := Λ) hU0 hUt hΛ q
   have : Countable T := hTc.to_subtype
   have : Nonempty T := hTne.to_subtype
   rw [funext key]

@@ -158,7 +158,7 @@ nonempty set `T` of gradients of `H¹(U)`, independent of the coefficient field,
 `μ*(U, q) = sup_{F ∈ T} ⨍_U (-½ F·aF + q·F)`. -/
 theorem exists_countable_dualEnergy_eq_iSup {U : Set (Vec d)} (hU0 : volume U ≠ 0)
     (hU : volume U ≠ ⊤) (hΛ : 0 ≤ Λ) (q : Vec d) :
-    ∃ T : Set (Lp (Vec d) 2 (volume.restrict U)), T.Countable ∧ T.Nonempty ∧
+    ∃ T : Set (Lp (Vec d) 2 (volume.restrict U)), T.Countable ∧ T.Nonempty ∧ T ⊆ h1GradientSet U ∧
       ∀ a : CoefficientField d Λ, dualEnergy a U q = ⨆ F : T, lpDualTrialEnergy a U q F := by
   have : Fact ((2 : ℝ≥0∞) ≠ ∞) := ⟨ENNReal.ofNat_ne_top⟩
   obtain ⟨T, hTc, hTH, hHT⟩ := TopologicalSpace.exists_countable_dense_subset (h1GradientSet U)
@@ -172,7 +172,7 @@ theorem exists_countable_dualEnergy_eq_iSup {U : Set (Vec d)} (hU0 : volume U �
     exact this
   have : Countable T := hTc.to_subtype
   have : Nonempty T := hTne.to_subtype
-  refine ⟨T, hTc, hTne, fun a => ?_⟩
+  refine ⟨T, hTc, hTne, hTH, fun a => ?_⟩
   have hle : ∀ F ∈ h1GradientSet U, lpDualTrialEnergy a U q F ≤ (1 / 2 : ℝ) * euclideanSq q := by
     rintro _ ⟨u, g, h, rfl⟩
     rw [lpDualTrialEnergy_toLp a hU q h.2.1]
@@ -238,7 +238,7 @@ theorem exists_countable_dualEnergy_eq_iSup {U : Set (Vec d)} (hU0 : volume U �
 volume. -/
 theorem measurable_dualEnergy {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hU : volume U ≠ ⊤)
     (hΛ : 0 ≤ Λ) (q : Vec d) : Measurable (fun a : CoefficientField d Λ => dualEnergy a U q) := by
-  obtain ⟨T, hTc, hTne, key⟩ := exists_countable_dualEnergy_eq_iSup (Λ := Λ) hU0 hU hΛ q
+  obtain ⟨T, hTc, hTne, -, key⟩ := exists_countable_dualEnergy_eq_iSup (Λ := Λ) hU0 hU hΛ q
   have : Countable T := hTc.to_subtype
   rw [funext key]
   exact Measurable.iSup fun F => measurable_lpDualTrialEnergy U q F
