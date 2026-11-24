@@ -1217,3 +1217,35 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `p ≠ q`. The right inequality holds with `C = Λ`: `J₁(Ψ, p, q) ≤ Λ |p|² + |q|²` (`J1_le`).
 - Definition 4.5 is not formalized: `𝒴ₛ` is the maximum of the minimal scales of Theorem 3.8 (all
   `k`), Proposition 3.21 and Proposition 4.3, and Theorem 3.8 is proved only for `k = 1`.
+
+## Section 3.2: Lemmas 3.4 and 3.6 (`Ch03/Sec02/Lemma34.lean`)
+
+- Setting: the balls are Euclidean balls centered at the origin, `‖·‖_{L̲²(U)}` is `scalarRms volume U`,
+  `(u)_U` is `⨍ x in U, u x`, and "`w ∈ H¹(B_r)` is a weak solution of `-∇·(ā∇w) = 0` in `B_r`" is
+  `IsL2HarmonicOn A (ball 0 r) w`. The statements hold for every symmetric matrix `A` with
+  `1 ≤ A ≤ Λ` (`HomogenizedMatrixBounds A Λ`), in particular for `ā`, with constants depending only
+  on `α, K, d, Λ` (not on `A`).
+- (3.24) for `k = 1`: `QSH.exists_affine_scalarRms_ball_le`: for `h` `A`-harmonic in `B_ρ` there is an
+  affine `c + q·x` with `‖h - c - q·x‖_{L̲²(B_t)} ≤ C (t/ρ)² ‖h‖_{L̲²(B_ρ)}` for `t < ρ/√Λ` and
+  `|q| ≤ C ρ⁻¹ ‖h‖_{L̲²(B_ρ)}`, `C = C(d, Λ)`. The book derives (3.24) from (3.7) and leaves it as
+  Exercise 3.5; here it follows from the harmonic expansion on balls (`harmonicExpansionBall`, the
+  case `A = 1`) by the change of variables `x = M y` with `M Mᵀ = A`, which maps balls to
+  ellipsoids `M B_t` with `B_t ⊆ M B_t ⊆ B_{√Λ t}`; the constant is uniform in `A` because
+  `|det M| ≥ 1` and `Σ (M⁻¹)²_{ij} = tr A⁻¹ ≤ d`.
+- Lemma 3.6, `k = 1`: `QSH.lemma_3_6_one`, with `affineFlatness u r = inf_ℓ ‖u - ℓ‖_{L̲²(B_r)}` over the
+  affine functions (the `ā`-harmonic polynomials of degree at most one), for `α > 0` (the book has
+  `α ∈ [0, 1]`; for `α = 0` and `K ≥ 1` the inequality is immediate from
+  `inf_ℓ ‖u - ℓ‖_{L̲²(B_{θr})} ≤ θ^{-d/2} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, and the book's choice
+  `θ = (C_k 2^{2+d/2})^{-2/α}` needs `α > 0`). The proof is the book's, through the improvement step
+  for a given affine function (`QSH.exists_affine_improvement`), with `θ ≤ (16 (C + 1) 2^{d/2})^{-2/α}`
+  and `θ < 1/(2√Λ)`. The cases `k ≥ 2` are not formalized (they need (3.7) for `k ≥ 2`).
+- Lemma 3.4: `QSH.lemma_3_4`: `α > 0` (the bound `α ≤ 1` of the book is not used), `K ≥ 1`, `X ≥ 1`,
+  `R ≥ 2X`, `u ∈ L²(B_R)` with the approximation (3.21) for `r ∈ [X, R/2]`; then (3.22) for every
+  `r ∈ [X, R]`. The proof is the book's improvement-of-flatness iteration along the radii
+  `r_j = θ^j R/2`, with two changes: the maximal function `M = sup_{r ∈ [R₀, R]} r⁻¹ ‖u - (u)_{B_r}‖`
+  is replaced by the maximum over the radii `r_j ≥ R₀` (the other radii are compared with the
+  neighbouring `r_j` at the end), and the affine minimizers `p_j` of `E₁(r_j)` are replaced by the
+  affine functions produced by the improvement step, whose slopes are controlled by the same
+  step; the bookkeeping is the discrete lemma `QSH.discrete_flatness_iteration` and the geometric
+  bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
+  Theorem 2.18 (Section 2.3, not formalized).
