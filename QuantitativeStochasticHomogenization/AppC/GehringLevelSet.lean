@@ -88,7 +88,7 @@ theorem eLpMeanNormOn_ball_le {z : Vec d} {ρ R : ℝ} (hρ : 0 < ρ) (hR : 0 < 
     ENNReal.rpow_one, ENNReal.ofReal_rpow_of_nonneg (by positivity) (by norm_num),
     ← Real.rpow_natCast, ← Real.rpow_mul (by positivity)] at hroot
   convert hroot using 3
-  ring
+  ring_nf
 
 /-- The admissible dyadic radii: on the first four dyadic radii `ρ₁/2^j`, `j ≤ 3`, the quantity
 `E(z, ρ₁/2^j)` is at most `λ₀`. -/
@@ -166,7 +166,7 @@ theorem exists_stopping_radius {R σ τ : ℝ} (hR : 0 < R) (hσ : 0 < σ) (hσ�
   have hr : 0 < r := by positivity
   refine ⟨r, hr, div_le_self hρ₁0.le (one_le_pow₀ (by norm_num)), hspec, ?_⟩
   have hmin := Nat.find_min hk (show k₀ - 4 < k₀ by omega)
-  push_neg at hmin
+  push Not at hmin
   have h16 : ρ₁ / 2 ^ (k₀ - 4) / 2 = 8 * r := by
     have e : (2 : ℝ) ^ k₀ = 2 ^ (k₀ - 4) * 16 := by
       rw [show (16 : ℝ) = 2 ^ 4 by norm_num, ← pow_add, Nat.sub_add_cancel h4]
@@ -220,7 +220,7 @@ theorem volume_ball_le_levelSets {K q l : ℝ} (hK : 1 ≤ K) (hq : 1 ≤ q) (hl
   have htpos : 0 < t := by positivity
   have hcase : ENNReal.ofReal (4 * t) < A ∨ ENNReal.ofReal (2 * t) < Bg := by
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     have hsum : ENNReal.ofReal K * A + ENNReal.ofReal (2 * K) * Bg ≤ ENNReal.ofReal l := by
       calc ENNReal.ofReal K * A + ENNReal.ofReal (2 * K) * Bg ≤
           ENNReal.ofReal K * ENNReal.ofReal (4 * t) +
