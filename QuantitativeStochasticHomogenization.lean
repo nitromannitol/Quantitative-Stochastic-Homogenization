@@ -374,6 +374,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec01.UniformGaussianRate
 import QuantitativeStochasticHomogenization.Ch04.Sec01.Lemma44
 import QuantitativeStochasticHomogenization.Ch03.Sec02.Lemma34
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma52
+import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma510
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenFromSlope
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenFromCompactTests
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenProved

@@ -1264,3 +1264,20 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `charFun_map_eq_charFun_map_inner_one`, as in Mathlib's Cramér–Wold theorem
   `tendstoInDistribution_iff_tendstoInDistribution_inner` (one probability space there), and (2) is
   the uniqueness of characteristic functions (`Measure.ext_of_charFun`).
+
+## Section 5.1: Lemma 5.10 (`Ch05/Sec01/Lemma510.lean`)
+
+- Lemma 5.10: `QSH.lemma_5_10`: for `f : Vec d → ℝ` smooth (`ContDiff ℝ ⊤`) with compact support and
+  `∫ f = 0` there is a smooth compactly supported `F : Vec d → Vec d` with
+  `∑ᵢ ∂ᵢ Fᵢ = f` (`coordinateDerivative`).
+- Proof: the book's construction, with `h` the normalized smooth bump of `ContDiffBump` supported
+  in `(-R, R)`, where `R ≥ 1` bounds the support of `f` in the sup norm (in place of the reduction
+  to `supp f ⊆ B₁`), `g₀ = f`, `g_{k+1}(x) = h(x_k) ∫ g_k(x + s e_k) ds` (`bumpLineSeq`; this is the
+  book's `g_{k+1}` after the translation `y_k = x_k + s`) and
+  `F_k(x) = ∫_{-∞}^0 (g_k - g_{k+1})(x + s e_k) ds`. The smoothness of the `g_k` and the `F_k` is
+  `QSH.contDiff_setIntegral_add_smul` (differentiation under the integral, by induction on the
+  order); `∂_k F_k = g_k - g_{k+1}` is the fundamental theorem of calculus on `(-∞, 0]`
+  (`fderiv_setIntegral_Iic_apply`); `F_k` has compact support because
+  `∫ g_{k+1}(x + s e_k) ds = ∫ g_k(x + s e_k) ds` (`integral_bumpLineSeq_succ`). The book observes
+  `g_d = h(x₁)⋯h(x_d) ∫ f = 0`; here `g_d = c ∏ h(x_j)` (`bumpLineSeq_eq_prefix_mul`,
+  `eq_of_invariant`) and `c = ∫ g_d = ∫ f - ∫ ∇·F = 0`.
