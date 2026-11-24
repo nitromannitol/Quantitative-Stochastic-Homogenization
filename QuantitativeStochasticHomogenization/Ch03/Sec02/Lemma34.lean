@@ -314,7 +314,7 @@ theorem IsL2HarmonicOn.sub_affine {A : Mat d} {ρ : ℝ} {w : Vec d → ℝ}
       simp
 
 /-- The mean minimizes the `L̲²` distance to constants. -/
-theorem scalarRms_sub_setAverage_le {U : Set (Vec d)} (hU : volume U ≠ ⊤) {u : Vec d → ℝ}
+theorem scalarRms_sub_setAverage_le_sub_const {U : Set (Vec d)} (hU : volume U ≠ ⊤) {u : Vec d → ℝ}
     (hu : MemLp u 2 (volume.restrict U)) (m : ℝ) :
     scalarRms volume U (fun x => u x - ⨍ y in U, u y) ≤ scalarRms volume U (fun x => u x - m) := by
   by_cases h0 : volume U = 0
@@ -612,7 +612,7 @@ theorem scalarRms_sub_setAverage_ball_le {r t : ℝ} (hr : 0 < r) (hrt : r ≤ t
         scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y) := by
   have hur : MemLp u 2 (volume.restrict (ball (0 : Vec d) r)) :=
     hu.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero hrt) le_rfl)
-  refine (scalarRms_sub_setAverage_le (volume_ball_ne_top' 0 r) hur
+  refine (scalarRms_sub_setAverage_le_sub_const (volume_ball_ne_top' 0 r) hur
     (⨍ y in ball 0 t, u y)).trans ?_
   exact scalarRms_ball_le hr hrt (hu.sub (memLp_const _))
 
@@ -621,7 +621,7 @@ theorem scalarRms_sub_setAverage_le_affine {r : ℝ} (hr : 0 ≤ r) {u : Vec d �
     (hu : MemLp u 2 (volume.restrict (ball (0 : Vec d) r))) (c : ℝ) (q : Vec d) :
     scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
       scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) + euclideanNorm q * r := by
-  refine (scalarRms_sub_setAverage_le (volume_ball_ne_top' 0 r) hu c).trans ?_
+  refine (scalarRms_sub_setAverage_le_sub_const (volume_ball_ne_top' 0 r) hu c).trans ?_
   have e : (fun x => u x - c) = fun x => (u x - (c + dot q x)) + dot q x :=
     funext fun x => by ring
   rw [e]
