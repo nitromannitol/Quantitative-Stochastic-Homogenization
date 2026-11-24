@@ -1152,3 +1152,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`vecVariance_add_le`), in place of the triangle inequality for `σ_n`:
   `σ²_{n+1} ≤ (1 - 9^{-d}) σ²_n + 2(1 + 9^d) τ_n` (`vecVariance_meanGradient_succ_le`), and
   `3^{-κ} = 1 - 9^{-d}`.
+
+## Section 2.2: Lemmas 2.15 and 2.16, and (2.44) (`Ch02/Sec02/MaximizerMeasurability.lean`, `Ch02/Sec02/PartitionMeanGradient.lean`, `Ch02/Sec02/SubcubeDeviation.lean`, `Ch02/Sec02/Lemma215.lean`, `Ch02/Sec02/CubeCaccioppoli.lean`, `Ch02/Sec02/Lemma216.lean`)
+
+- (2.44): `QSH.euclideanSq_inv_averagedDualMatrix_sub_le`, `|ā_{m+r}⁻¹ q - ā_m⁻¹ q|² ≤ 2 Σ_{k=m}^{m+r-1} τ_k`
+  for `q ∈ B₁` (the book: `C Σ τ_k`), with `ā_U⁻¹ = E[a*⁻¹(U)]` (`inv_averagedDualMatrix`). The proof is
+  the book's, on the partition of `□_{m+r}` into `3^{dr}` translates of `□_m`.
+- Lemma 2.15: `QSH.lemma_2_15`: `∃ κ > 0` (depending only on `d`), `∀ Λ, ∃ C ≥ 0`, for every law, `n`,
+  `p, q ∈ B₁` and every choice of maximizers `v(·, □_{n+1}, p, q)`, with `ℓ(x) = (ā_n⁻¹ q - p)·x`,
+  the centered mean square `⨍_{□_{n+1}} |v - ℓ - (v - ℓ)_{□_{n+1}}|²` (`centeredMeanSq`) is integrable
+  and its expectation is at most `C 3^{2n} (3^{-κn} + Σ_{m=0}^n 3^{-κ(n-m)} τ_m)`. The maximizer is
+  defined up to a constant, which the book's (2.47) leaves implicit; the centered form is the
+  statement for the maximizer with `⨍ (v - ℓ) = 0`. The measurability of this quantity, which the book
+  does not discuss, is `measurable_centeredMeanSq_defectMaximizer`: the maximizer is approximated in
+  `H¹` by functions chosen measurably from countable families, through Lemma 2.1 (a maximizer of
+  `μ*` minus a minimizer of `μ`) and the quadratic responses of `μ*` and `μ`, as in Proposition 1.8.
+- Proof of Lemma 2.15: the book's three steps. Corollary 1.14 in Lean also has the scale `n + 1`;
+  its term is bounded through `var[M_{n+1}] ≤ 2 var[M_n] + 4 τ_n` (`vecVariance_meanGradient_succ_le_two`)
+  and (2.44). Step 2 uses the triangle inequality for squares with the factor `3` and is applied to
+  measurable majorants (`scaleMajorant`), so that only the left side of (2.47) needs a measurability
+  argument. Step 3 uses `κ = min(κ_{2.13}, ½)` and geometric sums.
+- Lemma 2.16: `QSH.lemma_2_16`: `∃ κ > 0` (depending only on `d`), `∀ Λ, ∃ C ≥ 0`, for every law, `n`
+  and `p ∈ B₁`, `J(□_n, p, ā_n p)` is integrable and `E[J(□_n, p, ā_n p)] ≤ C (3^{-κn} + Σ τ_m ...)`.
+  The proof is the book's, with three changes: since `|ā_n p| ≤ Λ` lies outside `B₁` in general,
+  Lemma 2.15 and the definition of `τ_n` are used at `(p/Λ, ā_n p/Λ)` and scaled (`J` and `v` are
+  homogeneous, `dualityDefect_smul_smul`, `IsDefectMaximizer.const_mul`); the Caccioppoli inequality is
+  proved on the triadic cubes `□_n ⊆ □_{n+1}` (`caccioppoli_triadicCube`, from the Caccioppoli
+  inequality of the elliptic regularity library for a quantitative cutoff, with the inner cube cutoff
+  of `□_{n+1}`); and (2.55) is proved pointwise with Young's inequality, in place of Hölder's
+  inequality in expectation, and with the centre term of Lemma 2.12 on the `3^d` subcubes of
+  `□_{n+1}` for `∇v - ∇w` (`dualityDefect_triadicCube_le_center`).
