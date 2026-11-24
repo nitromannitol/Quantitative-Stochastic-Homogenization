@@ -11,7 +11,7 @@ Appendix C, Lemma C.6: if `A, ξ ≥ 0` and `ρ : [1/2, 1) → [0, ∞)` satisfi
 
 The proof is the book's: with `M := sup_{t ∈ [1/2, 1)} (1 - t)^ξ ρ(t)` and `t := 1 - θ (1 - s)`,
 multiplying the hypothesis by `(1 - s)^ξ` gives `(1 - s)^ξ ρ(s) ≤ (3/4) M + (1 - θ)^{-ξ} A`, hence
-`M ≤ 4 (1 - θ)^{-ξ} A` and `ρ(1/2) ≤ 2^ξ M`. The book takes `θ = (3/4)^{1/ξ}` for `ξ > 0`; here
+`M ≤ 4 (1 - θ)^{-ξ} A` and `ρ(1/2) ≤ 2^ξ M`. The book takes `θ = (2/3)^{1/ξ}` for `ξ > 0`; here
 `θ = (2/3)^{1 / max ξ 1}`, which satisfies `θ^{-ξ} ≤ 3/2` also for `ξ = 0`.
 -/
 

@@ -964,20 +964,23 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `HasWeakDivergence U (a∇u + F) (-f)`, and the normalized `W^{-1,p}(U)` norm of Definition B.4 and
   (0.29) is `negativeSobolevOneNorm p U f F`, the supremum of `|⨍_U (fψ - F·∇ψ)|` over
   `ψ ∈ C_c^∞(U)` with `‖ψ‖_{W̲^{1,p/(p-1)}(U)} ≤ 1`, the test norm being (B.1) normalized with `k = 1`
-  (`sobolevOneTestNorm`). The bound `|⨍_U h v| ≤ ‖h‖_{H̲^{-1}(U)} ‖v‖_{H̲¹(U)}` is extended from smooth
+  (`sobolevOneTestNorm`). For `p = 2` and `F = 0` it has the same tests and the same pairing as
+  `negativeIntegerSobolevNorm 1 U f` of `Front/Notation.lean`, and on tests the two test norms agree
+  term by term (`PDE.eLpMeanNormOn U 2` in place of `scalarRms`); the equality of the two norms is
+  not stated in Lean. The bound `|⨍_U h v| ≤ ‖h‖_{H̲^{-1}(U)} ‖v‖_{H̲¹(U)}` is extended from smooth
   tests to `v ∈ H¹₀(U)` through the smooth approximants of `PDE.H10Function`
   (`abs_integral_pairing_le_of_h10`).
 - **Lemma C.2** (`lemma_C_2`; `interiorCaccioppoli` on balls with any center). The book's proof, with
   the test function `φ (φ (u - (u)_{B_r})) ∈ H¹₀(B_r)` built by the product lemmas of the elliptic
   regularity library and a cutoff with `|∇φ| ≤ 64/r`.
-- **Corollary C.3** (`corollary_C_3`) is stated for `d ≥ 2`: the exponent `2_* = 2d/(d+2)` is at
+- **Corollary C.3** (`corollary_C_3`) is stated for `d ≥ 2`, the book's standing assumption: the exponent `2_* = 2d/(d+2)` is at
   least `1` only then, and the Sobolev–Poincaré inequality used, the convex-domain inequality
   `PDE.exists_convexSobolevPoincare_constant` with `p = 2_*`, is for `p ∈ [1, d)`.
 - **Lemma C.4** (`lemma_C_4`). The book's proof, with these changes. The stopping radius of (C.8) is
   taken among the dyadic radii `(t - s)R/(10 · 2^k)`, and `λ₀` is `(160/(t - s))^{d/2}` (instead of
   `(20/(t - s))^{d/2}`) times `‖f‖_{L̲²(B_R)} + ‖g‖_{L̲²(B_R)}`; this gives
   `∫_{B_{5 r_z}(z)} f² ≤ 8^d λ² |B_{r_z}|` in place of the bound with `5^d`, whose proof in the book
-  needs `10 r_z ≤ (t - s)R/10`. The truncated quantity of the absorption is `∫_{B_{sR}} f² (|f| ∧ m)^ε`
+  needs `10 r_z ≤ (t - s)R/10` (in the other case it follows from the choice of `λ₀`). The truncated quantity of the absorption is `∫_{B_{sR}} f² (|f| ∧ m)^ε`
   rather than `‖f_m‖^{2+ε}_{L^{2+ε}(B_{sR})}`: the first identity of the integration after (C.10)
   is an inequality, and the integral of `λ^{1+ε-q} μ_f({|f| ≥ λ})` is bounded by the truncated
   weighted quantity through `|f|^q ((8K|f|) ∧ m)^{2+ε-q} ≤ (8K)^{2+ε-q} f² (|f| ∧ m)^ε`
@@ -991,7 +994,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   indices on which the balls are pairwise disjoint; the proof is Mathlib's Vitali selection
   `Vitali.exists_disjoint_subfamily_covering_enlargement` with factor `2`.
 - **Lemma C.6** (`lemma_C_6`) holds for every real `ξ`; the ratio is `θ = (2/3)^{1/max(ξ,1)}` in
-  place of the book's `(3/4)^{1/ξ}`, which also covers `ξ = 0`.
+  place of the book's `(2/3)^{1/ξ}`, which also covers `ξ = 0`.
 - **Theorem C.1.** For `d ≥ 2`, `theorem_C_1_divergence` is the case `h = ∇·H`, `H ∈ L^p`, of the
   book's proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right-hand side, from Corollary C.3 on every
   ball `B_ρ(z) ⊆ B_r`, the bound `‖∇·H‖_{H̲^{-1}} ≤ ‖H‖_{L̲²}` and Lemma C.4. The book applies Lemma C.4

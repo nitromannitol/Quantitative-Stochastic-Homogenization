@@ -13,6 +13,15 @@ ball `B_ρ(x)` lies in the cube of half-side `ρ` centered at `x`, whose volume 
 that of `B_ρ(x)`, so for almost every `x` the averages `⨍_{B_ρ(x)} |f - f(x)|` tend to `0` as
 `ρ → 0⁺`. This gives the Lebesgue points used in the proof of Gehring's lemma (Lemma C.4 of
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*).
+
+The first lines of the proof of `ae_tendsto_ballAverage_abs_sub` follow the proof of
+`PDE.CampanatoProof.ae_tendsto_integralAverage_euclideanBall` in EllipticRegularityLean
+(https://github.com/scottnarmstrong/EllipticRegularityLean), commit
+1e29da02bcc6e3c2359a5b8e0559e76d02ec4002, file
+`PDEFoundation/FunctionalInequalities/Campanato/Differentiation.lean`.
+Changes: the statement is the convergence to `0` of the averages of `|f - f(x)|` on `ball x ρ`
+(Lebesgue points) in place of the convergence of the averages of `f`, and the comparison of the
+ball with the cube uses `setAverage_le_mul_setAverage_of_subset`.
 -/
 
 open MeasureTheory Filter Topology

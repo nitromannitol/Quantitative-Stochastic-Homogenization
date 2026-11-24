@@ -546,7 +546,7 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 | Lemma C.2 | Interior Caccioppoli inequality | proved (`lemma_C_2`; see CORRESPONDENCE.md) |
 | Corollary C.3 |  | proved (`corollary_C_3`, for `d ≥ 2`; see CORRESPONDENCE.md) |
 | Lemma C.4 | Gehring's lemma | proved (`lemma_C_4`; see CORRESPONDENCE.md) |
-| Lemma C.5 | Vitali covering lemma | proved (`lemma_C_5`) |
+| Lemma C.5 | Vitali covering lemma | proved (`lemma_C_5`); see CORRESPONDENCE.md |
 | Lemma C.6 |  | proved (`lemma_C_6`; see CORRESPONDENCE.md) |
 | Theorem C.7 | Global Meyers estimate | not started (needs the Lipschitz domains of Appendix B, the constant κ_U of (C.13) and Proposition B.16) |
 | Lemma C.8 | Global Caccioppoli estimate | not started (needs the Lipschitz domains of Appendix B and κ_U) |
