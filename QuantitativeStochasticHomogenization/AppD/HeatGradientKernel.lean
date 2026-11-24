@@ -98,9 +98,10 @@ theorem lintegral_Ioi_comp_half (f : ℝ → ℝ≥0∞) :
     simp only [hg, indicator, mem_Ioi]
     by_cases ht : 0 < t
     · have h2 : 0 < 1 / 2 * t := by positivity
-      rw [if_pos ht, if_pos h2, div_eq_inv_mul, one_div]
+      simp only [ht, h2, ↓reduceIte]
+      rw [div_eq_inv_mul, one_div]
     · have h2 : ¬ 0 < 1 / 2 * t := fun h => ht (by linarith)
-      rw [if_neg ht, if_neg h2]
+      simp only [ht, h2, ↓reduceIte]
   let e : ℝ ≃ᵐ ℝ := (Homeomorph.mulLeft₀ (1 / 2 : ℝ) (by norm_num)).toMeasurableEquiv
   have he : ∀ t, e t = (1 / 2) * t := fun t => rfl
   have h2 : ∫⁻ t, g ((1 / 2) * t) = ∫⁻ s, g s ∂(Measure.map e volume) := by
