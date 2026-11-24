@@ -768,6 +768,23 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   the bound `C 3^{-m} + C ω(⌈m/2⌉)`, which implies (1.33); the intermediate term `C 3^{-dm/8}` of
   the book is not needed.
 
+## Section 1.4: Proposition 1.11 (`Ch01/Sec04/Proposition111.lean`)
+
+- Lean: `QSH.proposition_1_11`, `QSH.proposition_1_11_of_ne_four`,
+  `QSH.tendsto_integral_coarseDeviation`, with `coarseDeviation` (the random variable `E(m)` of
+  (1.39), for the Frobenius norm), `coarseDeviation_le` ((1.52), with the constant `3/2`) and
+  `tendsto_omegaModulus` ((1.28)). The constants depend only on `d` and `Λ`.
+- (1.41). The proof gives `E[E(m)] ≤ C Σ_{n=0}^m 3^{n-m}(3^{-dn/4} + ω(⌈n/2⌉))`
+  (`proposition_1_11`), and the book then bounds `Σ_{n=0}^m 3^{n-m} 3^{-dn/4}` by
+  `C 3^{-(d/4 ∧ 1)m}`. This holds for `d ≠ 4` (`proposition_1_11_of_ne_four`); for `d = 4` the sum
+  is `(m + 1) 3^{-m}`, which is not bounded by `C 3^{-m}`, so (1.41) is not proved for `d = 4` (the
+  bound holds there with `3^{-θm}` for every `θ < 1`, and the limit `E[E(m)] → 0` holds for every
+  `d`).
+- `E[E(m)] → 0`: the book uses the monotonicity of `ω`; here the weighted sums of the null
+  sequence `3^{-dn/4} + ω(⌈n/2⌉)` against the weights `3^{n-m}` tend to zero by dominated
+  convergence for series, and `ω(n) → 0` because `ω(n)` is at most half the sum of the absolute
+  values of the entries of the matrix of `p ↦ E μ(□_n, p) - μ̄(p)`.
+
 ## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
 
 - Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`),

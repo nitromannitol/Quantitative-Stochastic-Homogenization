@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 28 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24) and Section 5.4 (Lemma 5.29), and 9 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 29 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Proposition 1.11), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24) and Section 5.4 (Lemma 5.29), and 9 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -19,7 +19,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
-| 1 | Introduction and Qualitative Theory | 12 | 4 | 0 |
+| 1 | Introduction and Qualitative Theory | 12 | 5 | 0 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
 | 3 | Regularity on Large Scales | 23 | 2 | 5 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 10 | 2 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **28** | **9** |
+| | **Total** | **226** | **29** | **9** |
 
 ## Front matter
 
@@ -66,7 +66,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Proposition 1.10 |  | not started |
-| Proposition 1.11 |  | not started |
+| Proposition 1.11 |  | proved: `proposition_1_11` (the bound `C Σ_{n ≤ m} 3^{n-m}(3^{-dn/4} + ω(⌈n/2⌉))` of the proof), `proposition_1_11_of_ne_four` ((1.41) for `d ≠ 4`), `tendsto_integral_coarseDeviation` (`E[E(m)] → 0`), with `E(m)` of (1.39), `coarseDeviation`; for `d = 4` the book's simplification of the geometric sum fails, see CORRESPONDENCE.md |
 | Proposition 1.12 | Multiscale Poincaré inequality | not started |
 | Lemma 1.13 |  | not started |
 | Corollary 1.14 |  | not started |
