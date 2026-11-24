@@ -244,4 +244,223 @@ theorem dualityDefect_triadicCube_le_center [NeZero d] (a : CoefficientField d �
       (integral_nonneg fun _ => euclideanSq_nonneg _)
   nlinarith
 
+/-! ## Lemma 2.16 -/
+
+/-- **Lemma 2.16**, (2.54): there is `κ(d) > 0` such that for every `Λ` there is `C(d, Λ) < ∞` with,
+for every law satisfying (0.10)–(0.11), every `n ∈ ℕ` and every `p ∈ B₁`, `J(□_n, p, ā_n p)` is
+integrable and `E[J(□_n, p, ā_n p)] ≤ C (3^{-κn} + Σ_{m=0}^n 3^{-κ(n-m)} τ_m)`. -/
+theorem lemma_2_16 [NeZero d] :
+    ∃ κ : ℝ, 0 < κ ∧ ∀ Λ : ℝ, ∃ C : ℝ, 0 ≤ C ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ (n : ℕ), ∀ p ∈ originBall d 1,
+        Integrable (fun a => dualityDefect a (triadicCube d n) p
+          ((averagedDualMatrix P (triadicCube d n)).mulVec p)) P ∧
+        ∫ a, dualityDefect a (triadicCube d n) p ((averagedDualMatrix P (triadicCube d n)).mulVec p) ∂P ≤
+          C * ((3 : ℝ) ^ (-(κ * n)) + ∑ m ∈ Finset.range (n + 1),
+            (3 : ℝ) ^ (-(κ * ((n : ℝ) - m))) * additivityDefect P m) := by
+  obtain ⟨κ, hκ, h215⟩ := lemma_2_15 (d := d)
+  refine ⟨κ, hκ, fun Λ => ?_⟩
+  obtain ⟨C₁₅, hC₁₅, h15⟩ := h215 Λ
+  set L := |Λ| with hL
+  set A₁ := (L + 1 / 2) * (64 * L * cutoffGradConst d * 3 ^ d * L ^ 2 / 9) * C₁₅ with hA₁
+  set A₂ := 4 * 3 ^ d * L ^ 2 * L ^ 2 with hA₂
+  have hcG : 0 ≤ cutoffGradConst d := by unfold cutoffGradConst; positivity
+  have hA₁0 : 0 ≤ A₁ := by positivity
+  have hA₂0 : 0 ≤ A₂ := by positivity
+  refine ⟨A₁ + A₂, by positivity, fun P hP n p hp => ?_⟩
+  have : IsProbabilityMeasure P := hP.1
+  have hΛ1 : 1 ≤ Λ := by
+    rcases isEmpty_or_nonempty (CoefficientField d Λ) with h | h
+    · have h0 : P = 0 := Measure.eq_zero_of_isEmpty P
+      have h1 := measure_univ (μ := P)
+      rw [h0, Measure.coe_zero, Pi.zero_apply] at h1
+      exact absurd h1 zero_ne_one
+    · obtain ⟨a⟩ := h
+      exact one_le_of_coefficientField a
+  have hΛ0 : 0 < Λ := zero_lt_one.trans_le hΛ1
+  have hLΛ : L = Λ := abs_of_pos hΛ0
+  rw [hLΛ] at hA₁ hA₂
+  set Abar := averagedDualMatrix P (triadicCube d n) with hAbar
+  set q := Abar.mulVec p with hq
+  -- the rescaled loads
+  set p' := Λ⁻¹ • p with hp'
+  set q' := Λ⁻¹ • q with hq'
+  have hb := averagedDualMatrix_bounds P (isOpen_triadicCube' n) (isBounded_triadicCube n)
+    (convex_triadicCube n) (triadicCube_nonempty n) hΛ1
+  have hAq : euclideanSq q ≤ Λ ^ 2 * euclideanSq p :=
+    euclideanSq_mulVec_le_of_dot_le hb.1 (fun v => (euclideanSq_nonneg v).trans (hb.2 v).1)
+      (fun v => (hb.2 v).2) p
+  have hp1 := euclideanSq_lt_one_of_mem_originBall hp
+  have hp0 := euclideanSq_nonneg p
+  have hΛi : 0 < Λ⁻¹ := inv_pos.mpr hΛ0
+  have hΛi1 : Λ⁻¹ ≤ 1 := inv_le_one_of_one_le₀ hΛ1
+  have hpB : p' ∈ originBall d 1 := by
+    refine mem_originBall_of_euclideanSq_lt_one ?_
+    rw [hp', euclideanSq_smul]
+    have : Λ⁻¹ ^ 2 ≤ 1 := pow_le_one₀ hΛi.le hΛi1
+    nlinarith
+  have hqB : q' ∈ originBall d 1 := by
+    refine mem_originBall_of_euclideanSq_lt_one ?_
+    rw [hq', euclideanSq_smul]
+    have e : Λ⁻¹ ^ 2 * (Λ ^ 2 * euclideanSq p) = euclideanSq p := by field_simp
+    have := mul_le_mul_of_nonneg_left hAq (sq_nonneg Λ⁻¹)
+    linarith
+  have hpp : Λ • p' = p := by rw [hp', smul_smul, mul_inv_cancel₀ hΛ0.ne', one_smul]
+  have hqq : Λ • q' = q := by rw [hq', smul_smul, mul_inv_cancel₀ hΛ0.ne', one_smul]
+  -- the slope `ā_n⁻¹ q' - p' = 0`
+  have hdet := det_expectedDualInvMatrix_ne_zero (P := P) hΛ1 (isOpen_triadicCube' n)
+    (isBounded_triadicCube n) (convex_triadicCube n) (triadicCube_nonempty n)
+  have hslope : Abar⁻¹.mulVec q' - p' = 0 := by
+    have hinv : Abar⁻¹ * Abar = 1 := by
+      rw [hAbar, inv_averagedDualMatrix hΛ1 (isOpen_triadicCube' n) (isBounded_triadicCube n)
+        (convex_triadicCube n) (triadicCube_nonempty n), averagedDualMatrix]
+      exact Matrix.mul_nonsing_inv _ (isUnit_iff_ne_zero.mpr hdet)
+    rw [hq', hq, Matrix.mulVec_smul, Matrix.mulVec_mulVec, hinv, Matrix.one_mulVec, hp', sub_self]
+  -- the maximizers on `□_{n+1}`
+  choose w' h' hw' using fun a : CoefficientField d Λ => exists_isDefectMaximizer a
+    (isOpen_triadicCube' (n + 1)) (isBounded_triadicCube (n + 1)) (convex_triadicCube (n + 1))
+    (triadicCube_nonempty (n + 1)) p' q'
+  obtain ⟨hFi, hFE⟩ := h15 P hP n p' hpB q' hqB w' h' hw'
+  rw [hslope] at hFi hFE
+  have hdot0 : ∀ x : Vec d, dot (0 : Vec d) x = 0 := fun x => by simp [dot]
+  simp only [hdot0, sub_zero] at hFi hFE
+  set F : CoefficientField d Λ → ℝ := fun a => centeredMeanSq (triadicCube d (n + 1)) (w' a) with hF
+  -- the pointwise bound
+  set Kc := cutoffGradConst d / (1 / 4 : ℝ) ^ 2 / ((3 : ℝ) ^ (n + 1)) ^ 2 with hKcdef
+  set D : CoefficientField d Λ → ℝ := fun a => ∑ z : Fin d → Fin 3, (1 / 3 ^ d : ℝ) *
+    dualityDefect a (triadicSubcube n z) p q - dualityDefect a (triadicCube d (n + 1)) p q with hD
+  have hpt : ∀ a, dualityDefect a (triadicCube d n) p q ≤
+      (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * F a + 4 * 3 ^ d * Λ ^ 2 * D a := by
+    intro a
+    have hmax := (hw' a).const_mul (isOpen_triadicCube' (n + 1)) (isBounded_triadicCube (n + 1))
+      (convex_triadicCube (n + 1)) (triadicCube_nonempty (n + 1)) Λ
+    rw [hpp, hqq] at hmax
+    have hc := dualityDefect_triadicCube_le_center a hΛ1 n p q hmax
+    -- the Caccioppoli inequality
+    have hcac := caccioppoli_triadicCube hΛ1 a n hmax.1.1.1 (fun i => MemLp.eval hmax.1.1.2.1 i)
+      hmax.1.1.2.2 hmax.1.2 (⨍ y in triadicCube d (n + 1), Λ * w' a y)
+    have hV : volume.real (triadicCube d (n + 1)) = 3 ^ d * volume.real (triadicCube d n) := by
+      rw [volumeReal_triadicCube, volumeReal_triadicCube, pow_succ, mul_pow]
+      ring
+    have hVn : 0 < volume.real (triadicCube d n) := by rw [volumeReal_triadicCube]; positivity
+    have hcm : ∫ x in triadicCube d (n + 1), (Λ * w' a x - ⨍ y in triadicCube d (n + 1), Λ * w' a y) ^ 2 =
+        volume.real (triadicCube d (n + 1)) * (Λ ^ 2 * F a) := by
+      show _ = _ * (Λ ^ 2 * centeredMeanSq (triadicCube d (n + 1)) (w' a))
+      rw [← centeredMeanSq_const_mul]
+      unfold centeredMeanSq
+      rw [setAverage_eq (f := fun x => (Λ * w' a x - ⨍ y in triadicCube d (n + 1), Λ * w' a y) ^ 2),
+        smul_eq_mul, ← mul_assoc, mul_inv_cancel₀ (by rw [hV]; positivity), one_mul]
+    rw [hcm, hV] at hcac
+    have hAh : ⨍ x in triadicCube d n, euclideanSq ((Λ • h' a) x) ≤ 4 * Λ * Kc * 3 ^ d * Λ ^ 2 * F a := by
+      rw [setAverage_eq, smul_eq_mul, inv_mul_le_iff₀ hVn]
+      have : 4 * Λ * Kc * (3 ^ d * volume.real (triadicCube d n) * (Λ ^ 2 * F a)) =
+          volume.real (triadicCube d n) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2 * F a) := by ring
+      rw [← this]
+      exact hcac
+    have hAh' : ⨍ x in triadicCube d n, euclideanSq ((fun x => Λ • h' a x) x) ≤
+        4 * Λ * Kc * 3 ^ d * Λ ^ 2 * F a := hAh
+    have := mul_le_mul_of_nonneg_left hAh' (by positivity : (0 : ℝ) ≤ Λ + 1 / 2)
+    show _ ≤ _
+    linarith
+  -- integrability
+  have hJn : Integrable (fun a => dualityDefect a (triadicCube d n) p q) P := by
+    have e : (fun a : CoefficientField d Λ => dualityDefect a (triadicCube d n) p q) =
+        fun a => Λ ^ 2 * dualityDefect a (triadicCube d n) p' q' := by
+      funext a
+      rw [← hpp, ← hqq, dualityDefect_smul_smul a (isOpen_triadicCube' n) (isBounded_triadicCube n)
+        (convex_triadicCube n) (triadicCube_nonempty n)]
+    rw [e]
+    exact (integrable_dualityDefect hΛ0.le (isOpen_triadicCube' n) (isBounded_triadicCube n)
+      (convex_triadicCube n) (triadicCube_nonempty n) hpB hqB).const_mul _
+  have hscaleJ : ∀ (U : Set (Vec d)), IsOpen U → Bornology.IsBounded U → Convex ℝ U → U.Nonempty →
+      ∀ a : CoefficientField d Λ, dualityDefect a U p q = Λ ^ 2 * dualityDefect a U p' q' :=
+      fun U h1 h2 h3 h4 a => by
+    rw [← hpp, ← hqq, dualityDefect_smul_smul a h1 h2 h3 h4]
+  have hJsub : ∀ z, Integrable (fun a => dualityDefect a (triadicSubcube n z) p q) P := fun z => by
+    have e := funext (hscaleJ _ (isOpen_triadicSubcube n z) (isBounded_triadicSubcube n z)
+      (convex_triadicSubcube n z) (triadicSubcube_nonempty n z))
+    rw [e]
+    exact (integrable_dualityDefect hΛ0.le (isOpen_triadicSubcube n z) (isBounded_triadicSubcube n z)
+      (convex_triadicSubcube n z) (triadicSubcube_nonempty n z) hpB hqB).const_mul _
+  have hJn1 : Integrable (fun a => dualityDefect a (triadicCube d (n + 1)) p q) P := by
+    have e := funext (hscaleJ _ (isOpen_triadicCube' (n + 1)) (isBounded_triadicCube (n + 1))
+      (convex_triadicCube (n + 1)) (triadicCube_nonempty (n + 1)))
+    rw [e]
+    exact (integrable_dualityDefect hΛ0.le (isOpen_triadicCube' (n + 1))
+      (isBounded_triadicCube (n + 1)) (convex_triadicCube (n + 1)) (triadicCube_nonempty (n + 1))
+      hpB hqB).const_mul _
+  have hS : Integrable (fun a => ∑ z : Fin d → Fin 3, (1 / 3 ^ d : ℝ) *
+      dualityDefect a (triadicSubcube n z) p q) P := integrable_finsetSum _ fun z _ => (hJsub z).const_mul _
+  have hDi : Integrable D P := hS.sub hJn1
+  refine ⟨hJn, ?_⟩
+  -- the expectation of `D`
+  have hED : ∫ a, D a ∂P ≤ Λ ^ 2 * additivityDefect P n := by
+    have e1 : ∫ a, D a ∂P = ∫ a, dualityDefect a (triadicCube d n) p q ∂P -
+        ∫ a, dualityDefect a (triadicCube d (n + 1)) p q ∂P := by
+      rw [hD, integral_sub hS hJn1, integral_finsetSum _ fun z _ => (hJsub z).const_mul _]
+      simp only [integral_const_mul, integral_dualityDefect_triadicSubcube hP hΛ0.le n _ p q]
+      rw [Finset.sum_const, Finset.card_univ, Fintype.card_fun, Fintype.card_fin, Fintype.card_fin,
+        nsmul_eq_mul]
+      push_cast
+      rw [← mul_assoc, mul_one_div_cancel (by positivity), one_mul]
+    rw [e1, integral_congr_ae (Eventually.of_forall (hscaleJ _ (isOpen_triadicCube' n)
+      (isBounded_triadicCube n) (convex_triadicCube n) (triadicCube_nonempty n))),
+      integral_congr_ae (Eventually.of_forall (hscaleJ _ (isOpen_triadicCube' (n + 1))
+      (isBounded_triadicCube (n + 1)) (convex_triadicCube (n + 1)) (triadicCube_nonempty (n + 1)))),
+      integral_const_mul, integral_const_mul, ← mul_sub]
+    exact mul_le_mul_of_nonneg_left (sub_le_additivityDefect hΛ0.le n hpB hqB) (sq_nonneg Λ)
+  -- the conclusion
+  set T := ∑ m ∈ Finset.range (n + 1), (3 : ℝ) ^ (-(κ * ((n : ℝ) - m))) * additivityDefect P m
+    with hTdef
+  have hτT : additivityDefect P n ≤ T := by
+    have h := Finset.single_le_sum (f := fun m : ℕ => (3 : ℝ) ^ (-(κ * ((n : ℝ) - (m : ℝ)))) *
+      additivityDefect P m) (fun m _ => mul_nonneg (Real.rpow_nonneg (by norm_num) _)
+        (additivityDefect_nonneg hΛ0.le m)) (Finset.self_mem_range_succ n)
+    simpa using h
+  have hFi' : Integrable F P := hFi
+  have hR : Integrable (fun a => (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * F a +
+      4 * 3 ^ d * Λ ^ 2 * D a) P := (hFi'.const_mul _).add (hDi.const_mul _)
+  refine (integral_mono hJn hR hpt).trans ?_
+  rw [integral_add (hFi'.const_mul _) (hDi.const_mul _), integral_const_mul, integral_const_mul]
+  have hKc3 : Kc * (3 : ℝ) ^ (2 * n) = 16 * cutoffGradConst d / 9 := by
+    have e1 : ((3 : ℝ) ^ (n + 1)) ^ 2 = 9 * ((3 : ℝ) ^ n) ^ 2 := by ring
+    have e2 : (3 : ℝ) ^ (2 * n) = ((3 : ℝ) ^ n) ^ 2 := by ring
+    rw [hKcdef, e1, e2]
+    have : (0 : ℝ) < ((3 : ℝ) ^ n) ^ 2 := by positivity
+    field_simp
+    ring
+  have hFE' : ∫ a, F a ∂P ≤ C₁₅ * (3 : ℝ) ^ (2 * n) * ((3 : ℝ) ^ (-(κ * n)) + T) := hFE
+  have hKc0 : 0 ≤ Kc := by
+    rw [hKcdef]
+    exact div_nonneg (div_nonneg hcG (by positivity)) (by positivity)
+  have hc0 : 0 ≤ (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) := by positivity
+  have h1 := mul_le_mul_of_nonneg_left hFE' hc0
+  have h2 := mul_le_mul_of_nonneg_left hED (by positivity : (0 : ℝ) ≤ 4 * 3 ^ d * Λ ^ 2)
+  have e1 : (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * (C₁₅ * (3 : ℝ) ^ (2 * n) *
+      ((3 : ℝ) ^ (-(κ * n)) + T)) = A₁ * ((3 : ℝ) ^ (-(κ * n)) + T) := by
+    rw [hA₁]
+    have : (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * (C₁₅ * (3 : ℝ) ^ (2 * n)) =
+        (Λ + 1 / 2) * (64 * Λ * cutoffGradConst d * 3 ^ d * Λ ^ 2 / 9) * C₁₅ := by
+      calc (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * (C₁₅ * (3 : ℝ) ^ (2 * n))
+          = (Λ + 1 / 2) * (4 * Λ * (Kc * (3 : ℝ) ^ (2 * n)) * 3 ^ d * Λ ^ 2) * C₁₅ := by ring
+        _ = _ := by rw [hKc3]; ring
+    calc (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * (C₁₅ * (3 : ℝ) ^ (2 * n) *
+          ((3 : ℝ) ^ (-(κ * n)) + T))
+        = (Λ + 1 / 2) * (4 * Λ * Kc * 3 ^ d * Λ ^ 2) * (C₁₅ * (3 : ℝ) ^ (2 * n)) *
+          ((3 : ℝ) ^ (-(κ * n)) + T) := by ring
+      _ = _ := by rw [this]
+  rw [e1] at h1
+  have h3 : 4 * 3 ^ d * Λ ^ 2 * (Λ ^ 2 * additivityDefect P n) ≤ A₂ * T := by
+    rw [hA₂]
+    have := mul_le_mul_of_nonneg_left hτT (by positivity : (0 : ℝ) ≤ 4 * 3 ^ d * Λ ^ 2 * Λ ^ 2)
+    linarith
+  have hr0 : 0 ≤ (3 : ℝ) ^ (-(κ * n)) := Real.rpow_nonneg (by norm_num) _
+  have hT0 : 0 ≤ T := Finset.sum_nonneg fun m _ => mul_nonneg (Real.rpow_nonneg (by norm_num) _)
+    (additivityDefect_nonneg hΛ0.le m)
+  have h4 : A₂ * T ≤ A₂ * ((3 : ℝ) ^ (-(κ * n)) + T) :=
+    mul_le_mul_of_nonneg_left (by linarith) hA₂0
+  have e2 : (A₁ + A₂) * ((3 : ℝ) ^ (-(κ * n)) + T) =
+      A₁ * ((3 : ℝ) ^ (-(κ * n)) + T) + A₂ * ((3 : ℝ) ^ (-(κ * n)) + T) := by ring
+  rw [e2]
+  linarith
+
 end QSH
