@@ -17,25 +17,13 @@ multiplying the hypothesis by `(1 - s)^ξ` gives `(1 - s)^ξ ρ(s) ≤ (3/4) M +
 
 namespace QSH
 
-/-- **Lemma C.6.** For `ξ ≥ 0` there is `C(ξ) < ∞` such that, if `A ≥ 0` and
-`ρ : [1/2, 1) → [0, ∞)` has `sup_{t ∈ [1/2, 1)} (1 - t)^ξ ρ(t) < ∞` and
-`ρ(s) ≤ ρ(t)/2 + (t - s)^{-ξ} A` for all `1/2 ≤ s < t < 1`, then `ρ(1/2) ≤ C A`. The book
-assumes `ξ ≥ 0`; the proof below does not use it. -/
-theorem lemma_C_6 (ξ : ℝ) :
-    ∃ C : ℝ, ∀ (A : ℝ), 0 ≤ A → ∀ ρ : ℝ → ℝ, (∀ t ∈ Set.Ico (1 / 2 : ℝ) 1, 0 ≤ ρ t) →
-      BddAbove ((fun t => (1 - t) ^ ξ * ρ t) '' Set.Ico (1 / 2 : ℝ) 1) →
-      (∀ s t : ℝ, 1 / 2 ≤ s → s < t → t < 1 → ρ s ≤ 1 / 2 * ρ t + (t - s) ^ (-ξ) * A) →
-      ρ (1 / 2) ≤ C * A := by
-  set θ : ℝ := (2 / 3 : ℝ) ^ (1 / max ξ 1) with hθdef
-  have hmax : 0 < max ξ 1 := lt_of_lt_of_le one_pos (le_max_right _ _)
-  have hθ0 : 0 < θ := Real.rpow_pos_of_pos (by norm_num) _
-  have hθ1 : θ < 1 := Real.rpow_lt_one (by norm_num) (by norm_num) (one_div_pos.mpr hmax)
-  have hθξ : 2 / 3 ≤ θ ^ ξ := by
-    rw [hθdef, ← Real.rpow_mul (by norm_num), one_div_mul_eq_div]
-    calc (2 / 3 : ℝ) = (2 / 3) ^ (1 : ℝ) := (Real.rpow_one _).symm
-      _ ≤ (2 / 3) ^ (ξ / max ξ 1) :=
-        Real.rpow_le_rpow_of_exponent_ge (by norm_num) (by norm_num)
-          (div_le_one_of_le₀ (le_max_left _ _) hmax.le)
+/-- The iteration of Lemma C.6 for a given ratio `θ ∈ (0, 1)` with `θ^ξ ≥ 2/3`:
+`ρ(1/2) ≤ 2^ξ · 4 (1 - θ)^{-ξ} A`. -/
+theorem iteration_core {ξ θ : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1) (hθξ : 2 / 3 ≤ θ ^ ξ)
+    (A : ℝ) (ρ : ℝ → ℝ) (hρ : ∀ t ∈ Set.Ico (1 / 2 : ℝ) 1, 0 ≤ ρ t)
+    (hbdd : BddAbove ((fun t => (1 - t) ^ ξ * ρ t) '' Set.Ico (1 / 2 : ℝ) 1))
+    (h : ∀ s t : ℝ, 1 / 2 ≤ s → s < t → t < 1 → ρ s ≤ 1 / 2 * ρ t + (t - s) ^ (-ξ) * A) :
+    ρ (1 / 2) ≤ 2 ^ ξ * (4 * (1 - θ) ^ (-ξ)) * A := by
   have hθneg : θ ^ (-ξ) ≤ 3 / 2 := by
     rw [Real.rpow_neg hθ0.le]
     calc (θ ^ ξ)⁻¹ ≤ (2 / 3 : ℝ)⁻¹ := inv_anti₀ (by norm_num) hθξ
@@ -43,7 +31,6 @@ theorem lemma_C_6 (ξ : ℝ) :
   have hce : θ ^ ξ * θ ^ (-ξ) = 1 := by
     rw [← Real.rpow_add hθ0, add_neg_cancel, Real.rpow_zero]
   set K : ℝ := (1 - θ) ^ (-ξ) with hK
-  refine ⟨2 ^ ξ * (4 * K), fun A hA ρ hρ hbdd h => ?_⟩
   set S := (fun t => (1 - t) ^ ξ * ρ t) '' Set.Ico (1 / 2 : ℝ) 1 with hS
   set M := sSup S with hM
   have hhalf : (1 / 2 : ℝ) ∈ Set.Ico (1 / 2 : ℝ) 1 := ⟨le_rfl, by norm_num⟩
@@ -95,5 +82,54 @@ theorem lemma_C_6 (ξ : ℝ) :
     _ ≤ 2 ^ ξ * M := mul_le_mul_of_nonneg_left hρhalf h2pos
     _ ≤ 2 ^ ξ * (4 * K * A) := mul_le_mul_of_nonneg_left hM4 h2pos
     _ = 2 ^ ξ * (4 * K) * A := by ring
+
+
+/-- **Lemma C.6.** For `ξ ≥ 0` there is `C(ξ) < ∞` such that, if `A ≥ 0` and
+`ρ : [1/2, 1) → [0, ∞)` has `sup_{t ∈ [1/2, 1)} (1 - t)^ξ ρ(t) < ∞` and
+`ρ(s) ≤ ρ(t)/2 + (t - s)^{-ξ} A` for all `1/2 ≤ s < t < 1`, then `ρ(1/2) ≤ C A`. The book
+assumes `ξ ≥ 0`; the proof below does not use it. -/
+theorem lemma_C_6 (ξ : ℝ) :
+    ∃ C : ℝ, ∀ (A : ℝ), 0 ≤ A → ∀ ρ : ℝ → ℝ, (∀ t ∈ Set.Ico (1 / 2 : ℝ) 1, 0 ≤ ρ t) →
+      BddAbove ((fun t => (1 - t) ^ ξ * ρ t) '' Set.Ico (1 / 2 : ℝ) 1) →
+      (∀ s t : ℝ, 1 / 2 ≤ s → s < t → t < 1 → ρ s ≤ 1 / 2 * ρ t + (t - s) ^ (-ξ) * A) →
+      ρ (1 / 2) ≤ C * A := by
+  set θ : ℝ := (2 / 3 : ℝ) ^ (1 / max ξ 1) with hθdef
+  have hmax : 0 < max ξ 1 := lt_of_lt_of_le one_pos (le_max_right _ _)
+  have hθ0 : 0 < θ := Real.rpow_pos_of_pos (by norm_num) _
+  have hθ1 : θ < 1 := Real.rpow_lt_one (by norm_num) (by norm_num) (one_div_pos.mpr hmax)
+  have hθξ : 2 / 3 ≤ θ ^ ξ := by
+    rw [hθdef, ← Real.rpow_mul (by norm_num), one_div_mul_eq_div]
+    calc (2 / 3 : ℝ) = (2 / 3) ^ (1 : ℝ) := (Real.rpow_one _).symm
+      _ ≤ (2 / 3) ^ (ξ / max ξ 1) :=
+        Real.rpow_le_rpow_of_exponent_ge (by norm_num) (by norm_num)
+          (div_le_one_of_le₀ (le_max_left _ _) hmax.le)
+  exact ⟨_, fun A _ ρ hρ hbdd h => iteration_core hθ0 hθ1 hθξ A ρ hρ hbdd h⟩
+
+/-- **Lemma C.6 with a constant uniform in `ξ ∈ [0, ξ₀]`**, as used in the proof of Lemma C.4,
+where `ξ` depends on the integrability exponent. -/
+theorem lemma_C_6_uniform (ξ₀ : ℝ) :
+    ∃ C : ℝ, ∀ ξ : ℝ, 0 ≤ ξ → ξ ≤ ξ₀ → ∀ (A : ℝ), 0 ≤ A → ∀ ρ : ℝ → ℝ,
+      (∀ t ∈ Set.Ico (1 / 2 : ℝ) 1, 0 ≤ ρ t) →
+      BddAbove ((fun t => (1 - t) ^ ξ * ρ t) '' Set.Ico (1 / 2 : ℝ) 1) →
+      (∀ s t : ℝ, 1 / 2 ≤ s → s < t → t < 1 → ρ s ≤ 1 / 2 * ρ t + (t - s) ^ (-ξ) * A) →
+      ρ (1 / 2) ≤ C * A := by
+  set θ : ℝ := (2 / 3 : ℝ) ^ (1 / max ξ₀ 1) with hθdef
+  have hmax : 0 < max ξ₀ 1 := lt_of_lt_of_le one_pos (le_max_right _ _)
+  have hθ0 : 0 < θ := Real.rpow_pos_of_pos (by norm_num) _
+  have hθ1 : θ < 1 := Real.rpow_lt_one (by norm_num) (by norm_num) (one_div_pos.mpr hmax)
+  refine ⟨2 ^ ξ₀ * (4 * (1 - θ) ^ (-ξ₀)), fun ξ hξ hξξ₀ A hA ρ hρ hbdd h => ?_⟩
+  have hθξ : 2 / 3 ≤ θ ^ ξ := by
+    rw [hθdef, ← Real.rpow_mul (by norm_num), one_div_mul_eq_div]
+    calc (2 / 3 : ℝ) = (2 / 3) ^ (1 : ℝ) := (Real.rpow_one _).symm
+      _ ≤ (2 / 3) ^ (ξ / max ξ₀ 1) :=
+        Real.rpow_le_rpow_of_exponent_ge (by norm_num) (by norm_num)
+          (div_le_one_of_le₀ (hξξ₀.trans (le_max_left _ _)) hmax.le)
+  have hc := iteration_core hθ0 hθ1 hθξ A ρ hρ hbdd h
+  have h1θ : 0 < 1 - θ := by linarith
+  have h2 : (2 : ℝ) ^ ξ ≤ 2 ^ ξ₀ := Real.rpow_le_rpow_of_exponent_le (by norm_num) hξξ₀
+  have h3 : (1 - θ) ^ (-ξ) ≤ (1 - θ) ^ (-ξ₀) :=
+    Real.rpow_le_rpow_of_exponent_ge h1θ (by linarith) (by linarith)
+  refine hc.trans (mul_le_mul_of_nonneg_right ?_ hA)
+  exact mul_le_mul h2 (by linarith) (by positivity) (by positivity)
 
 end QSH
