@@ -269,4 +269,144 @@ theorem proposition_1_11_of_ne_four [NeZero d] (hd : d ≠ 4) :
   nlinarith [mul_nonneg hC h3, mul_nonneg (mul_nonneg hC hK) h3, mul_nonneg hC hS,
     mul_nonneg (mul_nonneg hC hK) hS]
 
+/-- **(1.28)**: `ω(n) → 0`. -/
+theorem tendsto_omegaModulus {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P)
+    (hΛ : 0 ≤ Λ) : Tendsto (omegaModulus P) atTop (𝓝 0) := by
+  set M : ℕ → Mat d := fun n =>
+    polarizationMatrix (expectedDirichletEnergy P n) - homogenizedMatrix P
+  have hEq : ∀ n e, expectedDirichletEnergy P n e =
+      (1 / 2 : ℝ) * dot e ((polarizationMatrix (expectedDirichletEnergy P n)).mulVec e) := by
+    intro n e
+    exact eq_half_dot_polarizationMatrix (expectedDirichletEnergy_parallelogram hP hΛ n)
+      (by positivity : (0 : ℝ) ≤ 1 / 2 * Λ) (fun x => by
+        rw [abs_of_nonneg (expectedDirichletEnergy_nonneg P n x)]
+        exact expectedDirichletEnergy_le hP hΛ n x) e
+  have hbound : ∀ n, omegaModulus P n ≤ (1 / 2 : ℝ) * ∑ i, ∑ j, |M n i j| := by
+    intro n
+    refine ciSup_le fun p => ?_
+    have hp : ∀ i, |(p : Vec d) i| ≤ 1 := fun i =>
+      (abs_coord_le_euclideanNorm (p : Vec d) i).trans (le_of_lt p.2)
+    rw [hEq n p, limitDirichletEnergy_eq_homogenizedMatrix hP hΛ, ← mul_sub]
+    have hsub : dot (p : Vec d) ((polarizationMatrix (expectedDirichletEnergy P n)).mulVec p) -
+        dot (p : Vec d) ((homogenizedMatrix P).mulVec p) = ∑ i, ∑ j, (p : Vec d) i * M n i j *
+          (p : Vec d) j := by
+      simp only [M, dot, Matrix.mulVec, dotProduct, Matrix.sub_apply, ← Finset.sum_sub_distrib,
+        Finset.mul_sum]
+      exact Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => by ring
+    rw [hsub]
+    refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun i _ => Finset.sum_le_sum fun j _ => ?_)
+      (by norm_num)
+    calc (p : Vec d) i * M n i j * (p : Vec d) j ≤ |(p : Vec d) i * M n i j * (p : Vec d) j| :=
+          le_abs_self _
+      _ = |(p : Vec d) i| * |M n i j| * |(p : Vec d) j| := by rw [abs_mul, abs_mul]
+      _ ≤ 1 * |M n i j| * 1 := by
+          gcongr
+          · exact hp i
+          · exact hp j
+      _ = |M n i j| := by ring
+  have hM : ∀ i j, Tendsto (fun n => M n i j) atTop (𝓝 0) := by
+    intro i j
+    simp only [M, Matrix.sub_apply, homogenizedMatrix, polarizationMatrix, Matrix.of_apply,
+      polarization]
+    have h1 := tendsto_expectedDirichletEnergy hP hΛ (unitVector i + unitVector j)
+    have h2 := tendsto_expectedDirichletEnergy hP hΛ (unitVector i - unitVector j)
+    have := (((h1.sub h2).div_const 4).const_mul 2).sub_const
+      (2 * ((limitDirichletEnergy P (unitVector i + unitVector j) -
+        limitDirichletEnergy P (unitVector i - unitVector j)) / 4))
+    rw [sub_self] at this
+    exact this
+  have hb : Tendsto (fun n => (1 / 2 : ℝ) * ∑ i, ∑ j, |M n i j|) atTop (𝓝 0) := by
+    have := (tendsto_finsetSum (Finset.univ : Finset (Fin d)) fun i _ =>
+      tendsto_finsetSum (Finset.univ : Finset (Fin d)) fun j _ => (hM i j).abs).const_mul
+        (1 / 2 : ℝ)
+    simpa using this
+  exact squeeze_zero (fun n => omegaModulus_nonneg hP hΛ n) hbound hb
+
+theorem tendsto_weighted_sum {s : ℕ → ℝ} (hs : Tendsto s atTop (𝓝 0)) {S : ℝ}
+    (hS : ∀ n, |s n| ≤ S) :
+    Tendsto (fun m => ∑ n ∈ Finset.range (m + 1), ((3 : ℝ) ^ (m - n))⁻¹ * s n) atTop (𝓝 0) := by
+  set f : ℕ → ℕ → ℝ := fun m j => if j ≤ m then (1 / 3 : ℝ) ^ j * s (m - j) else 0
+  have hfin : ∀ m, ∑ n ∈ Finset.range (m + 1), ((3 : ℝ) ^ (m - n))⁻¹ * s n = ∑' j, f m j := by
+    intro m
+    rw [tsum_eq_sum (s := Finset.range (m + 1)) fun j hj => by
+      simp only [f, Finset.mem_range, not_lt] at hj ⊢
+      split_ifs with h
+      · exact absurd h (by omega)
+      · rfl]
+    rw [← Finset.sum_range_reflect]
+    refine Finset.sum_congr rfl fun j hj => ?_
+    have hj' : j ≤ m := Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)
+    simp only [f, hj', ↓reduceIte]
+    rw [show m - (m + 1 - 1 - j) = j by omega, show m + 1 - 1 - j = m - j by omega, one_div,
+      inv_pow]
+  simp_rw [hfin]
+  suffices key : Tendsto (fun m => ∑' j, f m j) atTop (𝓝 (∑' _j : ℕ, (0 : ℝ))) by
+    rwa [tsum_zero] at key
+  refine tendsto_tsum_of_dominated_convergence (bound := fun j => S * (1 / 3 : ℝ) ^ j)
+    ((summable_geometric_of_lt_one (by norm_num) (by norm_num)).mul_left S) (fun j => ?_)
+    (Eventually.of_forall fun m j => ?_)
+  · have hev : ∀ᶠ m in atTop, (1 / 3 : ℝ) ^ j * s (m - j) = f m j := by
+      filter_upwards [eventually_ge_atTop j] with m hm
+      simp only [f, hm, ↓reduceIte]
+    refine Tendsto.congr' hev ?_
+    have := (hs.comp (tendsto_sub_atTop_nat j)).const_mul ((1 / 3 : ℝ) ^ j)
+    rw [mul_zero] at this
+    exact this
+  · simp only [f]
+    split_ifs
+    · rw [norm_mul, norm_pow, Real.norm_eq_abs, Real.norm_eq_abs,
+        abs_of_pos (by norm_num : (0 : ℝ) < 1 / 3), mul_comm]
+      exact mul_le_mul_of_nonneg_right (hS _) (by positivity)
+    · rw [norm_zero]
+      exact mul_nonneg ((abs_nonneg (s 0)).trans (hS 0)) (by positivity)
+
+/-- **Proposition 1.11, the limit**: `E[E(m)] → 0`. -/
+theorem tendsto_integral_coarseDeviation [NeZero d] {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) : Tendsto (fun m => ∫ a, coarseDeviation P m a ∂P) atTop (𝓝 0) := by
+  have := hP.1
+  have hΛ : 0 ≤ Λ := by
+    rcases isEmpty_or_nonempty (CoefficientField d Λ) with h | h
+    · have h0 : P = 0 := Measure.eq_zero_of_isEmpty P
+      have h1 := measure_univ (μ := P)
+      rw [h0, Measure.coe_zero, Pi.zero_apply] at h1
+      exact absurd h1 zero_ne_one
+    · obtain ⟨a⟩ := h
+      exact zero_le_one.trans (one_le_of_coefficientField a)
+  obtain ⟨C, hC, h111⟩ := proposition_1_11 (d := d) (Λ := Λ)
+  set s : ℕ → ℝ := fun n => (3 : ℝ) ^ (-((d : ℝ) * n) / 4) + omegaModulus P ((n + 1) / 2)
+  have hd : (0 : ℝ) < d := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne d)
+  have hs : Tendsto s atTop (𝓝 0) := by
+    have h1 : Tendsto (fun n : ℕ => (3 : ℝ) ^ (-((d : ℝ) * n) / 4)) atTop (𝓝 0) := by
+      have hfun : (fun n : ℕ => (3 : ℝ) ^ (-((d : ℝ) * n) / 4)) =
+          fun n : ℕ => ((3 : ℝ) ^ (-(d : ℝ) / 4)) ^ n := funext fun n => by
+        rw [← Real.rpow_mul_natCast (by norm_num)]
+        congr 1
+        ring
+      rw [hfun]
+      exact tendsto_pow_atTop_nhds_zero_of_lt_one (by positivity)
+        (Real.rpow_lt_one_of_one_lt_of_neg (by norm_num) (by linarith))
+    have h2 : Tendsto (fun n : ℕ => omegaModulus P ((n + 1) / 2)) atTop (𝓝 0) :=
+      (tendsto_omegaModulus hP hΛ).comp (Filter.tendsto_atTop_atTop.mpr fun b =>
+        ⟨2 * b, fun n hn => by omega⟩)
+    simpa using h1.add h2
+  have hS : ∀ n, |s n| ≤ 1 + (1 / 2 : ℝ) * Λ := by
+    intro n
+    have h1 : (3 : ℝ) ^ (-((d : ℝ) * n) / 4) ≤ 1 :=
+      Real.rpow_le_one_of_one_le_of_nonpos (by norm_num) (by
+        have : (0 : ℝ) ≤ (d : ℝ) * n := by positivity
+        linarith)
+    have h2 : omegaModulus P ((n + 1) / 2) ≤ (1 / 2 : ℝ) * Λ :=
+      ciSup_le fun p => by
+        have := expectedDirichletEnergy_le hP hΛ ((n + 1) / 2) p
+        have := limitDirichletEnergy_nonneg P p
+        have := euclideanSq_le_one_of_mem_originBall p.2
+        nlinarith
+    have h0 : 0 ≤ s n := add_nonneg (by positivity) (omegaModulus_nonneg hP hΛ _)
+    rw [abs_of_nonneg h0]
+    simp only [s]
+    linarith
+  have hlim := (tendsto_weighted_sum hs hS).const_mul C
+  rw [mul_zero] at hlim
+  refine squeeze_zero (fun m => integral_nonneg fun a => sq_nonneg _) (fun m => (h111 P hP m).2) hlim
+
 end QSH
