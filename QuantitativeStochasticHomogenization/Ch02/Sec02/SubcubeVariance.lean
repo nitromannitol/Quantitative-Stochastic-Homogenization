@@ -132,7 +132,7 @@ theorem vecCovariance_le {Z Z' : Ω → Vec d} (hZ : ∀ i, MemLp (fun ω => Z �
 
 theorem vecCovariance_eq_zero_of_indepFun {Z Z' : Ω → Vec d}
     (hZm : ∀ i, Measurable fun ω => Z ω i) (hZ'm : ∀ i, Measurable fun ω => Z' ω i)
-    (hZ : ∀ i, MemLp (fun ω => Z ω i) 2 P) (hZ' : ∀ i, MemLp (fun ω => Z' ω i) 2 P)
+    (hZ : ∀ i, MemLp (fun ω => Z ω i) 2 P)
     (hind : ∀ i, IndepFun (fun ω => Z ω i) (fun ω => Z' ω i) P) :
     vecCovariance P Z Z' = 0 := by
   unfold vecCovariance
@@ -214,9 +214,9 @@ theorem vecVariance_smul_sum_le_of_indepFun {ι : Type*} [Fintype ι] [Decidable
     simp only [hcdef]
     linarith
   have h01 : c (k₀, k₁) = 0 :=
-    vecCovariance_eq_zero_of_indepFun (hZm k₀) (hZm k₁) (hZ k₀) (hZ k₁) hind
+    vecCovariance_eq_zero_of_indepFun (hZm k₀) (hZm k₁) (hZ k₀) hind
   have h10 : c (k₁, k₀) = 0 :=
-    vecCovariance_eq_zero_of_indepFun (hZm k₁) (hZm k₀) (hZ k₁) (hZ k₀) fun i => (hind i).symm
+    vecCovariance_eq_zero_of_indepFun (hZm k₁) (hZm k₀) (hZ k₁) fun i => (hind i).symm
   set S : Finset (ι × ι) := {(k₀, k₁), (k₁, k₀)} with hS
   have hne : (k₀, k₁) ≠ (k₁, k₀) := fun h => hk (Prod.ext_iff.mp h).1
   have hSsum : ∑ kl ∈ S, (c kl - σ2) = -(2 * σ2) := by
