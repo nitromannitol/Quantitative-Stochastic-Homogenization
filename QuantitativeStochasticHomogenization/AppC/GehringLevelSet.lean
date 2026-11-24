@@ -252,4 +252,146 @@ theorem volume_ball_le_levelSets {K q l : ℝ} (hK : 1 ≤ K) (hq : 1 ≤ q) (hl
     rw [hinv] at hv
     exact hv.trans le_add_self
 
+/-- **The level set estimate (C.10).** For `λ > λ₀`,
+`∫_{B_{σR} ∩ {|f| > λ}} f² ≤ 8^d λ² ((8K/λ)^q ∫_{B_{τR} ∩ {|f| > λ/(8K)}} |f|^q
+  + (8K/λ)² ∫_{B_{τR} ∩ {|g| > λ/(8K)}} g²)`. -/
+theorem levelSet_estimate {R σ τ K q l : ℝ} (hR : 0 < R) (hσ : 0 < σ) (hστ : σ < τ)
+    (hτ : τ ≤ 1) (hK : 1 ≤ K) (hq : 1 ≤ q) (hl : 0 < l) {f g : Vec d → ℝ} (hfm : Measurable f)
+    (hgm : Measurable g) (hfint : IntegrableOn f (ball 0 R))
+    (hRH : ∀ (z : Vec d) (r : ℝ), 0 < r → ball z r ⊆ ball 0 R →
+      PDE.eLpMeanNormOn (ball z (r / 2)) 2 f ≤ ENNReal.ofReal K *
+        (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal q) f + PDE.eLpMeanNormOn (ball z r) 2 g))
+    (hl₀ : ENNReal.ofReal ((160 / (τ - σ)) ^ ((d : ℝ) / 2)) *
+        (PDE.eLpMeanNormOn (ball 0 R) 2 f + PDE.eLpMeanNormOn (ball 0 R) 2 g) < ENNReal.ofReal l) :
+    ∫⁻ x in ball 0 (σ * R) ∩ {x | l < |f x|}, ‖f x‖ₑ ^ (2 : ℝ) ≤
+      ENNReal.ofReal (8 ^ d * l ^ 2) *
+        (ENNReal.ofReal ((8 * K / l) ^ q) *
+            (∫⁻ x in ball 0 (τ * R) ∩ {x | l / (8 * K) < |f x|}, ‖f x‖ₑ ^ q) +
+          ENNReal.ofReal ((8 * K / l) ^ (2 : ℝ)) *
+            ∫⁻ x in ball 0 (τ * R) ∩ {x | l / (8 * K) < |g x|}, ‖g x‖ₑ ^ (2 : ℝ)) := by
+  classical
+  have hts : 0 < τ - σ := by linarith
+  set ρ₁ := (τ - σ) * R / 10 with hρ₁
+  have hρ₁0 : 0 < ρ₁ := by positivity
+  set Z : Set (Vec d) := {z | z ∈ ball 0 (σ * R) ∧ l < |f z| ∧ ∃ k : ℕ, ENNReal.ofReal l <
+      PDE.eLpMeanNormOn (ball z (ρ₁ / 2 ^ k / 2)) 2 f +
+        PDE.eLpMeanNormOn (ball z (ρ₁ / 2 ^ k)) 2 g} with hZ
+  have hsubR : ∀ z ∈ ball (0 : Vec d) (σ * R), ∀ ρ, ρ ≤ ρ₁ → ball z ρ ⊆ ball 0 R := by
+    intro z hz ρ hρ
+    have hzn : euclideanNorm (z - 0) < σ * R := hz
+    exact ball_subset_ball_of_norm (by nlinarith)
+  have hsubτ : ∀ z ∈ ball (0 : Vec d) (σ * R), ∀ ρ, ρ ≤ ρ₁ → ball z ρ ⊆ ball 0 (τ * R) := by
+    intro z hz ρ hρ
+    have hzn : euclideanNorm (z - 0) < σ * R := hz
+    exact ball_subset_ball_of_norm (by nlinarith)
+  -- almost every point of the level set is in `Z`
+  have hnull : volume ((ball 0 (σ * R) ∩ {x | l < |f x|}) \ Z) = 0 := by
+    set F := (ball (0 : Vec d) R).indicator f with hF
+    have hFli : LocallyIntegrable F volume :=
+      (hfint.integrable_indicator (measurableSet_ball 0 R)).locallyIntegrable
+    have hae := ae_eventually_lt_ballAverage_abs hFli
+    refine measure_mono_null ?_ (ae_iff.mp hae)
+    rintro x ⟨⟨hxσ, hxl⟩, hxZ⟩ hP
+    apply hxZ
+    have hxR : x ∈ ball (0 : Vec d) R := hsubR x hxσ ρ₁ le_rfl (mem_ball_self x hρ₁0)
+    have hFx : F x = f x := Set.indicator_of_mem hxR f
+    have hev := hP l (by rw [hFx]; exact hxl)
+    have htend : Tendsto (fun k : ℕ => ρ₁ / 2 ^ k / 2) atTop (𝓝[>] 0) := by
+      refine tendsto_nhdsWithin_iff.mpr ⟨?_, Eventually.of_forall fun k =>
+        Set.mem_Ioi.mpr (by positivity)⟩
+      have h1 : Tendsto (fun k : ℕ => (ρ₁ / 2) * (1 / 2 : ℝ) ^ k) atTop (𝓝 ((ρ₁ / 2) * 0)) :=
+        (tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num) (by norm_num)).const_mul _
+      rw [mul_zero] at h1
+      refine h1.congr fun k => ?_
+      rw [one_div, inv_pow]
+      field_simp
+    obtain ⟨k, hk⟩ := (htend.eventually hev).exists
+    refine ⟨hxσ, hxl, k, ?_⟩
+    have hρk : 0 < ρ₁ / 2 ^ k / 2 := by positivity
+    have hρkle : ρ₁ / 2 ^ k / 2 ≤ ρ₁ := by
+      calc ρ₁ / 2 ^ k / 2 ≤ ρ₁ / 2 ^ k := div_le_self (by positivity) (by norm_num)
+        _ ≤ ρ₁ := div_le_self hρ₁0.le (one_le_pow₀ (by norm_num))
+    have hsub := hsubR x hxσ _ hρkle
+    have havg : ⨍ y in ball x (ρ₁ / 2 ^ k / 2), |F y| ∂volume =
+        ⨍ y in ball x (ρ₁ / 2 ^ k / 2), |f y| ∂volume := by
+      rw [setAverage_eq, setAverage_eq]
+      congr 1
+      refine setIntegral_congr_fun (measurableSet_ball x _) fun y hy => ?_
+      simp only [hF, Set.indicator_of_mem (hsub hy)]
+    rw [havg] at hk
+    have h1 : ENNReal.ofReal l < ENNReal.ofReal (⨍ y in ball x (ρ₁ / 2 ^ k / 2), |f y| ∂volume) :=
+      (ENNReal.ofReal_lt_ofReal_iff (hl.trans hk)).mpr hk
+    have h2 := ofReal_setAverage_abs_le_eLpMeanNormOn_two (volume_ball_ne_zero' x hρk)
+      (volume_ball_ne_top' x _) (hfint.mono_set hsub)
+    exact (h1.trans_le h2).trans_le le_self_add
+  -- the stopping radii
+  have hstop : ∀ z : Z, ∃ r : ℝ, 0 < r ∧ r ≤ ρ₁ ∧
+      ENNReal.ofReal l < PDE.eLpMeanNormOn (ball z.1 (r / 2)) 2 f +
+        PDE.eLpMeanNormOn (ball z.1 r) 2 g ∧
+      ∫⁻ x in ball z.1 (5 * r), ‖f x‖ₑ ^ (2 : ℝ) ≤
+        ENNReal.ofReal (8 ^ d * l ^ 2) * volume (ball z.1 r) := fun z =>
+    exists_stopping_radius hR hσ hστ hτ hfm hgm hl hl₀ z.2.1 z.2.2.2
+  choose r hr using hstop
+  obtain ⟨J, hJc, hJd, hJcov⟩ := lemma_C_5 (fun z : Z => z.1) r ρ₁ fun z => (hr z).2.1
+  have : Countable J := hJc.to_subtype
+  have hZcov : Z ⊆ ⋃ β : J, ball β.1.1 (5 * r β.1) := by
+    intro z hz
+    have h1 : z ∈ ⋃ α : Z, ball α.1 (r α) :=
+      Set.mem_iUnion.mpr ⟨⟨z, hz⟩, mem_ball_self z (hr ⟨z, hz⟩).1⟩
+    have h2 := hJcov h1
+    rw [Set.biUnion_eq_iUnion] at h2
+    exact h2
+  set Sf := {x | l / (8 * K) < |f x|} with hSf
+  set Sg := {x | l / (8 * K) < |g x|} with hSg
+  have hSfm : MeasurableSet Sf := measurableSet_lt measurable_const hfm.abs
+  have hSgm : MeasurableSet Sg := measurableSet_lt measurable_const hgm.abs
+  have hdisj : ∀ S : Set (Vec d), Pairwise (Function.onFun Disjoint
+      fun β : J => ball β.1.1 (r β.1) ∩ S) := by
+    intro S β γ hβγ
+    have h := hJd β.2 γ.2 (fun h => hβγ (Subtype.ext h))
+    exact h.mono Set.inter_subset_left Set.inter_subset_left
+  have hsum : ∀ (S : Set (Vec d)), MeasurableSet S → ∀ (s : ℝ) (h : Vec d → ℝ),
+      ∑' β : J, ∫⁻ x in ball β.1.1 (r β.1) ∩ S, ‖h x‖ₑ ^ s ≤
+        ∫⁻ x in ball 0 (τ * R) ∩ S, ‖h x‖ₑ ^ s := by
+    intro S hS s h
+    rw [← lintegral_iUnion (fun β => (measurableSet_ball _ _).inter hS) (hdisj S)]
+    refine lintegral_mono_set fun x hx => ?_
+    obtain ⟨β, hxβ, hxS⟩ := Set.mem_iUnion.mp hx
+    exact ⟨hsubτ β.1.1 β.1.2.1 (r β.1) (hr β.1).2.1 hxβ, hxS⟩
+  set A := ENNReal.ofReal ((8 * K / l) ^ q)
+  set B := ENNReal.ofReal ((8 * K / l) ^ (2 : ℝ))
+  calc ∫⁻ x in ball 0 (σ * R) ∩ {x | l < |f x|}, ‖f x‖ₑ ^ (2 : ℝ)
+      ≤ ∫⁻ x in Z ∪ ((ball 0 (σ * R) ∩ {x | l < |f x|}) \ Z), ‖f x‖ₑ ^ (2 : ℝ) :=
+        lintegral_mono_set fun x hx => by
+          by_cases hxZ : x ∈ Z
+          · exact Or.inl hxZ
+          · exact Or.inr ⟨hx, hxZ⟩
+    _ ≤ (∫⁻ x in Z, ‖f x‖ₑ ^ (2 : ℝ)) +
+          ∫⁻ x in (ball 0 (σ * R) ∩ {x | l < |f x|}) \ Z, ‖f x‖ₑ ^ (2 : ℝ) :=
+        lintegral_union_le _ _ _
+    _ = ∫⁻ x in Z, ‖f x‖ₑ ^ (2 : ℝ) := by
+        rw [setLIntegral_measure_zero _ _ hnull, add_zero]
+    _ ≤ ∫⁻ x in ⋃ β : J, ball β.1.1 (5 * r β.1), ‖f x‖ₑ ^ (2 : ℝ) := lintegral_mono_set hZcov
+    _ ≤ ∑' β : J, ∫⁻ x in ball β.1.1 (5 * r β.1), ‖f x‖ₑ ^ (2 : ℝ) := lintegral_iUnion_le _ _
+    _ ≤ ∑' β : J, ENNReal.ofReal (8 ^ d * l ^ 2) * volume (ball β.1.1 (r β.1)) :=
+        ENNReal.tsum_le_tsum fun β => (hr β.1).2.2.2
+    _ ≤ ∑' β : J, ENNReal.ofReal (8 ^ d * l ^ 2) *
+          (A * (∫⁻ x in ball β.1.1 (r β.1) ∩ Sf, ‖f x‖ₑ ^ q) +
+            B * ∫⁻ x in ball β.1.1 (r β.1) ∩ Sg, ‖g x‖ₑ ^ (2 : ℝ)) := by
+        refine ENNReal.tsum_le_tsum fun β => ?_
+        gcongr
+        exact volume_ball_le_levelSets hK hq hl hfm hgm
+          (hRH β.1.1 (r β.1) (hr β.1).1 (hsubR β.1.1 β.1.2.1 _ (hr β.1).2.1)) (hr β.1).2.2.1
+    _ = ENNReal.ofReal (8 ^ d * l ^ 2) *
+          (A * (∑' β : J, ∫⁻ x in ball β.1.1 (r β.1) ∩ Sf, ‖f x‖ₑ ^ q) +
+            B * ∑' β : J, ∫⁻ x in ball β.1.1 (r β.1) ∩ Sg, ‖g x‖ₑ ^ (2 : ℝ)) := by
+        rw [ENNReal.tsum_mul_left, ENNReal.tsum_add, ENNReal.tsum_mul_left,
+          ENNReal.tsum_mul_left]
+    _ ≤ ENNReal.ofReal (8 ^ d * l ^ 2) *
+          (A * (∫⁻ x in ball 0 (τ * R) ∩ Sf, ‖f x‖ₑ ^ q) +
+            B * ∫⁻ x in ball 0 (τ * R) ∩ Sg, ‖g x‖ₑ ^ (2 : ℝ)) := by
+        gcongr
+        · exact hsum Sf hSfm q f
+        · exact hsum Sg hSgm 2 g
+
 end QSH
