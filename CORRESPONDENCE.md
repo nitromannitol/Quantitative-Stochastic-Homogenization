@@ -922,3 +922,36 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   Proposition 4.11 at the exponents of the bootstrap, Theorem 4.6 (i) and (iii) and (5.58) with
   constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
   the markers of the frozen files, since each frozen file is imported by the modules of its proof.
+
+## Appendix D: Propositions D.1 and D.2, Lemmas D.3 and D.4 (`AppD/`)
+
+- **Lemma D.4** (`lemmaD4`). The maximal function `maximalFunction f` is the centered maximal
+  function over the open Euclidean balls, with values in `[0, ∞]`; it is lower semicontinuous
+  (`lowerSemicontinuous_maximalFunction`), so its `L^p` norm is that of a measurable function. For
+  `p < ∞` the bound is deduced from the strong estimate of the elliptic regularity library for the
+  uncentered maximal function, `PDE.eLpNorm_uncenteredBallMaximal_le`, with the constant
+  `2 (3^d p/(p - 1))^{1/p}` (a covering argument with the factor `3` in place of the factor `5` of
+  the Vitali covering Lemma C.5), which is at most the constant `2 (5^d p/(p - 1))^{1/p}` of (D.16).
+  For `p = ∞` the constant of (D.16) is read as its limit `2` (`maximalConstant`).
+- **Lemma D.3** (`lemmaD3`). `u ∈ H^α(ℝ^d)` is given with its weak derivatives `g l = ∂_{l₁} ⋯ ∂_{l_m} u`
+  for the lists of coordinates `l` of length `m ≤ α`, each in `L²(ℝ^d)`, `g (i :: l)` being the weak
+  `i`-th derivative of `g l` (`IsSobolevFamily`); `[u]²_{H^α} = ∫ ∑_{|l| = α} |g l|²` is the square of
+  the `L²` norm of the tensor `∇^α u`, and `|∇^k Φ(t, ·) ∗ u|²` (`heatGradSq`) is the sum of the squares
+  of the convolutions of `u` with the `k`-th derivatives `∂_{w₁} ⋯ ∂_{w_k} Φ(t, ·)` of the heat kernel.
+  The integrals are lower Lebesgue integrals, and the time integral is over `(0, ∞)`. The proof is
+  the book's: (D.6) is proved for smooth compactly supported functions from the energy identity
+  `∫ w(a)² - ∫ w(b)² = 2 ∫_a^b ‖∇w‖²` (`integral_heatSmooth_sq_sub_eq`), integrated in time at every
+  point and exchanged with the space integral by Fubini's theorem; the reduction to `k = 1` uses the
+  semigroup property and Young's inequality (`lintegral_heatGradSq_le_of_smooth`); the case `α = 0`
+  for `u ∈ L²` follows by density and Fatou's lemma (`lintegral_heatGradSq_le`); for `α ≥ 1` the
+  `α` derivatives are moved from the heat kernel onto the weak derivatives of `u`
+  (`kconv_heatKernelDeriv_append_eq`), the weak derivative identity being extended from compactly
+  supported tests to the derivatives of the heat kernel by the dilated cutoffs of the elliptic
+  regularity library (`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative`). The book
+  reduces to `α = 0` by considering `∇^α u` in place of `u`, which is this step.
+- **Proposition D.2** (`propositionD2_two`) is proved in the case `q = 2`, `α ∈ ℕ` of (D.3), in which,
+  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The cases `q ≠ 2`
+  of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
+  and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
+- **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
+  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 are not.

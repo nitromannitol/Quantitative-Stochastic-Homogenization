@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 29 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Proposition 1.11), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24) and Section 5.4 (Lemma 5.29), and 9 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 31 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Proposition 1.11), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29) and Appendix D (Lemmas D.3 and D.4), and 10 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -33,9 +33,9 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
-| Appendix D | Sobolev Norms and Heat Flow | 5 | 0 | 0 |
+| Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **29** | **9** |
+| | **Total** | **226** | **31** | **10** |
 
 ## Front matter
 
@@ -554,14 +554,14 @@ Module `AppC/MeyersEstimate.lean`.
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
-Module `AppD/SobolevNormsAndHeatFlow.lean`.
+Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean` and `AppD/PropositionD2.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Proposition D.1 |  | not started |
-| Proposition D.2 |  | not started |
-| Lemma D.3 |  | not started |
-| Lemma D.4 |  | not started |
+| Proposition D.1 |  | not started (a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
+| Proposition D.2 |  | in progress (the case `q = 2`, `α ∈ ℕ` of (D.3), `propositionD2_two`, which is Lemma D.3; see CORRESPONDENCE.md) |
+| Lemma D.3 |  | proved (`lemmaD3`; see CORRESPONDENCE.md) |
+| Lemma D.4 |  | proved (`lemmaD4`; see CORRESPONDENCE.md) |
 | Proposition D.5 |  | not started |
 
 ## Appendix E: Parabolic Green Functions
