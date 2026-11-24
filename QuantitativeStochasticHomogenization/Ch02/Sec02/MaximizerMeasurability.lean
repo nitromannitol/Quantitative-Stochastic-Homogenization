@@ -203,4 +203,152 @@ theorem exists_measurable_defectApprox [NeZero d] {U : Set (Vec d)} (hUo : IsOpe
         linarith
     _ = 8 * volume.real U / ((k : ℝ) + 1) := by ring
 
+/-- The centered mean square `⨍_U |f - (f)_U|²`. -/
+def centeredMeanSq (U : Set (Vec d)) (f : Vec d → ℝ) : ℝ :=
+  ⨍ x in U, (f x - ⨍ y in U, f y) ^ 2
+
+theorem centeredMeanSq_eq_sq_scalarRms (U : Set (Vec d)) (f : Vec d → ℝ) :
+    centeredMeanSq U f = scalarRms volume U (fun x => f x - ⨍ y in U, f y) ^ 2 := by
+  unfold centeredMeanSq scalarRms
+  rw [Real.sq_sqrt]
+  rw [setAverage_eq, smul_eq_mul]
+  exact mul_nonneg (inv_nonneg.mpr measureReal_nonneg) (integral_nonneg fun _ => sq_nonneg _)
+
+/-- **The Poincaré inequality on `□_m`** in normalized form:
+`⨍_{□_m} |u - (u)|² ≤ C 9^m ⨍_{□_m} |∇u|²`. -/
+theorem centeredMeanSq_triadicCube_le (m : ℕ) {u : Vec d → ℝ} {g : Vec d → Vec d}
+    (hu : H1 (triadicCube d m) u g) :
+    centeredMeanSq (triadicCube d m) u ≤
+      cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 * ⨍ x in triadicCube d m, euclideanSq (g x) := by
+  have h := setIntegral_sq_sub_setAverage_le (0 : Vec d) (by positivity : (0 : ℝ) < (3 : ℝ) ^ m)
+    (u := u) (g := g) (by rw [← triadicCube_eq_cube]; exact hu)
+  rw [← triadicCube_eq_cube] at h
+  unfold centeredMeanSq
+  rw [setAverage_eq (f := fun x => (u x - ⨍ y in triadicCube d m, u y) ^ 2),
+    setAverage_eq (f := fun x => euclideanSq (g x)), smul_eq_mul, smul_eq_mul]
+  have hV : 0 ≤ (volume.real (triadicCube d m))⁻¹ := inv_nonneg.mpr measureReal_nonneg
+  calc (volume.real (triadicCube d m))⁻¹ * ∫ x in triadicCube d m,
+        (u x - ⨍ y in triadicCube d m, u y) ^ 2
+      ≤ (volume.real (triadicCube d m))⁻¹ * (cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 *
+          ∫ x in triadicCube d m, euclideanSq (g x)) := mul_le_mul_of_nonneg_left h hV
+    _ = _ := by ring
+
+/-- **Measurability of the flatness of the maximizer**: for every choice of maximizers
+`v(·, □_m, p, q)` of (2.9) and every `c`, the centered mean square `⨍_{□_m} |v - ℓ_c - (v - ℓ_c)|²`
+is a measurable function of the coefficient field. -/
+theorem measurable_centeredMeanSq_defectMaximizer [NeZero d] (hΛ : 0 ≤ Λ) (m : ℕ)
+    (p q c : Vec d) {v : CoefficientField d Λ → Vec d → ℝ}
+    {g : CoefficientField d Λ → Vec d → Vec d}
+    (hmax : ∀ a, IsDefectMaximizer a (triadicCube d m) p q (v a) (g a)) :
+    Measurable fun a => centeredMeanSq (triadicCube d m) fun x => v a x - dot c x := by
+  set U := triadicCube d m with hUdef
+  have hUo := isOpen_triadicCube' (d := d) m
+  have hUb := isBounded_triadicCube (d := d) m
+  have hUc := convex_triadicCube (d := d) m
+  have hne := triadicCube_nonempty (d := d) m
+  have hU : volume U ≠ ⊤ := volume_triadicCube_ne_top d m
+  have hU0 : volume U ≠ 0 := volume_triadicCube_ne_zero d m
+  have := isFiniteMeasure_restrict.mpr hU
+  have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hU
+  obtain ⟨W, H, hWH, N, M, hNm, hMm, happ⟩ :=
+    exists_measurable_defectApprox (Λ := Λ) hUo hUb hUc hne hΛ p q
+  have hlin := H1.linear hUb c
+  have hmeasΦ : ∀ k, Measurable fun a : CoefficientField d Λ =>
+      centeredMeanSq U fun x => W (N k a) (M k a) x - dot c x := fun k =>
+    (measurable_of_countable (fun ij : ℕ × ℕ => centeredMeanSq U fun x =>
+      W ij.1 ij.2 x - dot c x)).comp ((hNm k).prodMk (hMm k))
+  refine measurable_of_tendsto_metrizable hmeasΦ (tendsto_pi_nhds.mpr fun a => ?_)
+  -- the approximation at a fixed coefficient field
+  set f : Vec d → ℝ := fun x => v a x - dot c x with hf
+  have hfL : MemLp f 2 (volume.restrict U) := (hmax a).1.1.1.sub hlin.1
+  set fk : ℕ → Vec d → ℝ := fun k x => W (N k a) (M k a) x - dot c x with hfk
+  have hfkL : ∀ k, MemLp (fk k) 2 (volume.restrict U) := fun k => (hWH _ _).1.sub hlin.1
+  have hcen : ∀ (h : Vec d → ℝ), MemLp h 2 (volume.restrict U) →
+      MemLp (fun x => h x - ⨍ y in U, h y) 2 (volume.restrict U) := fun h hh =>
+    hh.sub (memLp_const _)
+  -- the distance of the centered functions
+  have hdiff : ∀ k, scalarRms volume U (fun x => (fk k x - ⨍ y in U, fk k y) -
+      (f x - ⨍ y in U, f y)) ^ 2 ≤ cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 *
+        (8 / ((k : ℝ) + 1)) := fun k => by
+    have hH1 : H1 U (fun x => W (N k a) (M k a) x - v a x)
+        (fun x => H (N k a) (M k a) x - g a x) := (hWH _ _).sub (hmax a).1.1
+    have hP := centeredMeanSq_triadicCube_le m hH1
+    have hmean : (⨍ y in U, fk k y) - ⨍ y in U, f y =
+        ⨍ y in U, (W (N k a) (M k a) y - v a y) := by
+      rw [setAverage_eq, setAverage_eq, setAverage_eq, smul_eq_mul, smul_eq_mul, smul_eq_mul,
+        ← mul_sub, ← integral_sub ((hfkL k).integrable one_le_two) (hfL.integrable one_le_two)]
+      congr 2
+      funext y
+      simp only [hfk, hf]
+      ring
+    have e : (fun x => (fk k x - ⨍ y in U, fk k y) - (f x - ⨍ y in U, f y)) =
+        fun x => (W (N k a) (M k a) x - v a x) - ⨍ y in U, (W (N k a) (M k a) y - v a y) := by
+      funext x
+      rw [← hmean]
+      simp only [hfk, hf]
+      ring
+    rw [e, ← centeredMeanSq_eq_sq_scalarRms]
+    refine hP.trans (mul_le_mul_of_nonneg_left ?_ (by
+      have := cubePoincareConstant_nonneg d
+      positivity))
+    have h8 := happ a k (v a) (g a) (hmax a)
+    rw [setAverage_eq, smul_eq_mul]
+    rw [div_eq_mul_inv] at h8 ⊢
+    calc (volume.real U)⁻¹ * ∫ x in U, euclideanSq (H (N k a) (M k a) x - g a x)
+        ≤ (volume.real U)⁻¹ * (8 * volume.real U * ((k : ℝ) + 1)⁻¹) :=
+          mul_le_mul_of_nonneg_left h8 (inv_nonneg.mpr hV.le)
+      _ = 8 * ((k : ℝ) + 1)⁻¹ := by field_simp
+  -- the scalar norms converge
+  have hconv : Tendsto (fun k => scalarRms volume U (fun x => fk k x - ⨍ y in U, fk k y))
+      atTop (𝓝 (scalarRms volume U (fun x => f x - ⨍ y in U, f y))) := by
+    have hd : Tendsto (fun k => scalarRms volume U (fun x => (fk k x - ⨍ y in U, fk k y) -
+        (f x - ⨍ y in U, f y))) atTop (𝓝 0) := by
+      have hlim : Tendsto (fun k : ℕ => Real.sqrt (cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 *
+          (8 / ((k : ℝ) + 1)))) atTop (𝓝 0) := by
+        have h2 : Tendsto (fun k : ℕ => cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 *
+            (8 / ((k : ℝ) + 1))) atTop (𝓝 0) := by
+          have := tendsto_one_div_add_atTop_nhds_zero_nat.const_mul
+            (cubePoincareConstant d * ((3 : ℝ) ^ m) ^ 2 * 8)
+          rw [mul_zero] at this
+          refine this.congr fun k => ?_
+          ring
+        have := h2.sqrt
+        rwa [Real.sqrt_zero] at this
+      refine squeeze_zero (fun k => scalarRms_nonneg U _) (fun k => ?_) hlim
+      rw [← Real.sqrt_sq (scalarRms_nonneg U _)]
+      exact Real.sqrt_le_sqrt (hdiff k)
+    rw [tendsto_iff_norm_sub_tendsto_zero]
+    refine squeeze_zero (fun k => norm_nonneg _) (fun k => ?_) hd
+    rw [Real.norm_eq_abs, abs_le]
+    have hA := hcen _ (hfkL k)
+    have hB := hcen _ hfL
+    have hAB : MemLp (fun x => (fk k x - ⨍ y in U, fk k y) - (f x - ⨍ y in U, f y)) 2
+        (volume.restrict U) := hA.sub hB
+    have hBA : MemLp (fun x => (f x - ⨍ y in U, f y) - (fk k x - ⨍ y in U, fk k y)) 2
+        (volume.restrict U) := hB.sub hA
+    have h1 := scalarRms_add_le hB hAB
+    have h2 := scalarRms_add_le hA hBA
+    have e1 : (fun x => (f x - ⨍ y in U, f y) + ((fk k x - ⨍ y in U, fk k y) -
+        (f x - ⨍ y in U, f y))) = fun x => fk k x - ⨍ y in U, fk k y := by
+      funext x; ring
+    have e2 : (fun x => (fk k x - ⨍ y in U, fk k y) + ((f x - ⨍ y in U, f y) -
+        (fk k x - ⨍ y in U, fk k y))) = fun x => f x - ⨍ y in U, f y := by
+      funext x; ring
+    have e3 : scalarRms volume U (fun x => (f x - ⨍ y in U, f y) -
+        (fk k x - ⨍ y in U, fk k y)) = scalarRms volume U (fun x =>
+          (fk k x - ⨍ y in U, fk k y) - (f x - ⨍ y in U, f y)) := by
+      have := scalarRms_const_mul U (fun x => (fk k x - ⨍ y in U, fk k y) -
+        (f x - ⨍ y in U, f y)) (-1)
+      rw [abs_neg, abs_one, one_mul] at this
+      rw [← this]
+      congr 1
+      funext x
+      ring
+    rw [e1] at h1
+    rw [e2, e3] at h2
+    constructor <;> linarith
+  have h2 := (hconv.pow 2).congr fun k => (centeredMeanSq_eq_sq_scalarRms U (fk k)).symm
+  rw [← centeredMeanSq_eq_sq_scalarRms U f] at h2
+  exact h2
+
 end QSH
