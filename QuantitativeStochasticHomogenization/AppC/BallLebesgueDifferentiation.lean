@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.Ch04.Sec05.CubeDecomposition
 import QuantitativeStochasticHomogenization.Ch04.Sec04.CoordinateMinimizerCoercivity
+import QuantitativeStochasticHomogenization.Ch04.Sec04.SmoothedObservationBound
 import Mathlib.MeasureTheory.Covering.DensityTheorem
 import PDEFoundation.Measure.BallVolume
 
@@ -22,24 +23,13 @@ namespace QSH
 
 variable {d : ℕ}
 
-theorem ball_subset_metric_closedBall (x : Vec d) (ρ : ℝ) :
-    ball x ρ ⊆ Metric.closedBall x ρ := by
-  intro y hy
-  have hy' : euclideanNorm (y - x) < ρ := hy
-  rw [Metric.mem_closedBall, dist_pi_le_iff (le_of_lt ((euclideanNorm_nonneg' _).trans_lt hy'))]
-  intro i
-  rw [Real.dist_eq]
-  have := abs_apply_le_euclideanNorm' (y - x) i
-  simp only [Pi.sub_apply] at this
-  linarith
-
 theorem volume_real_metric_closedBall (x : Vec d) {ρ : ℝ} (hρ : 0 ≤ ρ) :
     volume.real (Metric.closedBall x ρ) = (2 * ρ) ^ d := by
   rw [measureReal_def, volume_pi_closedBall x hρ]
   simp only [Real.volume_closedBall, Finset.prod_const, Finset.card_univ, Fintype.card_fin]
   rw [ENNReal.toReal_pow, ENNReal.toReal_ofReal (by linarith)]
 
-theorem volume_real_ball (x : Vec d) {ρ : ℝ} (hρ : 0 < ρ) :
+theorem volume_real_ball_eq_unit (x : Vec d) {ρ : ℝ} (hρ : 0 < ρ) :
     volume.real (ball x ρ) = ρ ^ d * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal := by
   rw [measureReal_def, ball_eq_euclideanBall x hρ]
   exact PDE.volume_euclideanBall_toReal_eq_unit_mul_of_pos x hρ
@@ -87,7 +77,7 @@ theorem ae_tendsto_ballAverage_abs_sub {f : Vec d → ℝ} (hf : LocallyIntegrab
       hint
     have hratio : volume.real (Metric.closedBall x ρ) / volume.real (ball x ρ) =
         (2 : ℝ) ^ d / ω := by
-      rw [volume_real_metric_closedBall x hρ.le, volume_real_ball x hρ, mul_pow, ← hω]
+      rw [volume_real_metric_closedBall x hρ.le, volume_real_ball_eq_unit x hρ, mul_pow, ← hω]
       field_simp
     rw [hratio] at h
     simpa only [id, Real.norm_eq_abs] using h
