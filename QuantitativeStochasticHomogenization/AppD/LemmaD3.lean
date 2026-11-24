@@ -250,20 +250,12 @@ theorem exists_measurable_heatGradSq (k : ℕ) {g : Vec d → ℝ} (hg : AEStron
 
 /-! ## Lemma D.3 -/
 
-/-- The finite sums over the words of length `a + b`, split into words of lengths `a` and `b`. -/
-def finAppendEquiv (a b : ℕ) (β : Type*) : (Fin a → β) × (Fin b → β) ≃ (Fin (a + b) → β) where
-  toFun p := Fin.append p.1 p.2
-  invFun w := (fun i => w (Fin.castAdd b i), fun i => w (Fin.natAdd a i))
-  left_inv _ := Prod.ext (funext fun i => Fin.append_left _ _ i)
-    (funext fun i => Fin.append_right _ _ i)
-  right_inv _ := Fin.append_castAdd_natAdd
-
 /-- `|∇^{α + k'} Φ(t, ·) ∗ u|² = ∑_{|l| = α} |∇^{k'} Φ(t, ·) ∗ ∂^l u|²` for `u ∈ H^α`. -/
 theorem heatGradSq_add_eq {α : ℕ} {u : Vec d → ℝ} {g : List (Fin d) → Vec d → ℝ}
     (hS : IsSobolevFamily α u g) {t : ℝ} (ht : 0 < t) (k' : ℕ) (x : Vec d) :
     heatGradSq (α + k') t u x = ∑ v : Fin α → Fin d, heatGradSq k' t (g (List.ofFn v)) x := by
   unfold heatGradSq
-  rw [← (finAppendEquiv α k' (Fin d)).sum_comp, Fintype.sum_prod_type]
+  rw [← (Fin.appendEquiv (α := Fin d) α k').sum_comp, Fintype.sum_prod_type]
   refine Finset.sum_congr rfl fun v _ => Finset.sum_congr rfl fun w _ => ?_
   have hperm : heatKernelDeriv t (List.ofFn (Fin.append v w)) =
       heatKernelDeriv t ((List.ofFn v).reverse ++ List.ofFn w) := by

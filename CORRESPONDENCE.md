@@ -851,7 +851,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
   the markers of the frozen files, since each frozen file is imported by the modules of its proof.
 
-## Appendix D: Lemmas D.3, D.4 and Proposition D.2 (`AppD/`)
+## Appendix D: Propositions D.1 and D.2, Lemmas D.3 and D.4 (`AppD/`)
 
 - **Lemma D.4** (`lemmaD4`). The maximal function `maximalFunction f` is the centered maximal
   function over the open Euclidean balls, with values in `[0, ∞]`; it is lower semicontinuous
@@ -876,7 +876,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`kconv_heatKernelDeriv_append_eq`), the weak derivative identity being extended from compactly
   supported tests to the derivatives of the heat kernel by the dilated cutoffs of the elliptic
   regularity library (`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative`). The book
-  reduces to `α = 0` by "considering `∇^α u` in place of `u`", which is this step.
+  reduces to `α = 0` by considering `∇^α u` in place of `u`, which is this step.
 - **Proposition D.2** (`propositionD2_two`) is proved in the case `q = 2`, `α ∈ ℕ` of (D.3), in which,
   as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The cases `q ≠ 2`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
