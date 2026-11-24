@@ -140,4 +140,102 @@ theorem contDiff_setIntegral_add_smul [CompleteSpace E] {ψ : Vec d → E}
 
 end LineIntegral
 
+section Construction
+
+/-- The `k`-th coordinate direction `e_k` (zero for `k ≥ d`). -/
+def coordDir (d k : ℕ) : Vec d := if h : k < d then unitVector ⟨k, h⟩ else 0
+
+theorem coordDir_of_lt {k : ℕ} (hk : k < d) : coordDir d k = unitVector ⟨k, hk⟩ := dif_pos hk
+
+theorem unitVector_ne_zero (i : Fin d) : (unitVector i : Vec d) ≠ 0 := by
+  intro h
+  have := congrFun h i
+  simp [unitVector] at this
+
+theorem add_smul_unitVector_apply_ne (x : Vec d) (s : ℝ) {i j : Fin d} (hij : j ≠ i) :
+    (x + s • unitVector i) j = x j := by
+  simp [unitVector, Pi.single_apply, hij]
+
+theorem add_smul_unitVector_apply_self (x : Vec d) (s : ℝ) (i : Fin d) :
+    (x + s • unitVector i) i = x i + s := by
+  simp [unitVector]
+
+/-- The functions `g_k` of the proof of Lemma 5.10: `g₀ = f` and
+`g_{k+1}(x) = h(x_k) ∫ g_k(x + s e_k) ds`. -/
+def bumpLineSeq (h : ℝ → ℝ) (f : Vec d → ℝ) : ℕ → Vec d → ℝ
+  | 0 => f
+  | k + 1 => fun x => (if hk : k < d then h (x ⟨k, hk⟩) else 0) *
+      ∫ s : ℝ, bumpLineSeq h f k (x + s • coordDir d k)
+
+theorem bumpLineSeq_succ_of_lt (h : ℝ → ℝ) (f : Vec d → ℝ) {k : ℕ} (hk : k < d) (x : Vec d) :
+    bumpLineSeq h f (k + 1) x =
+      h (x ⟨k, hk⟩) * ∫ s : ℝ, bumpLineSeq h f k (x + s • unitVector ⟨k, hk⟩) := by
+  simp only [bumpLineSeq, dif_pos hk, coordDir_of_lt hk]
+
+theorem exists_lt_abs_of_lt_norm {R : ℝ} (hR : 0 ≤ R) {x : Vec d} (hx : R < ‖x‖) :
+    ∃ j, R < |x j| := by
+  by_contra hcon
+  push Not at hcon
+  have : ‖x‖ ≤ R := (pi_norm_le_iff_of_nonneg hR).2 fun j => by
+    rw [Real.norm_eq_abs]; exact hcon j
+  linarith
+
+theorem hasCompactSupport_of_vanish {E : Type*} [NormedAddCommGroup E] {φ : Vec d → E} {R : ℝ}
+    (hφ : ∀ x, R < ‖x‖ → φ x = 0) : HasCompactSupport φ :=
+  HasCompactSupport.intro (isCompact_closedBall (0 : Vec d) R) fun x hx => hφ x (by
+    simpa [Metric.mem_closedBall, dist_zero_right] using hx)
+
+/-- The functions `g_k` are smooth and vanish outside the box `‖x‖ ≤ R`. -/
+theorem bumpLineSeq_spec {h : ℝ → ℝ} {f : Vec d → ℝ} {R : ℝ} (hR : 0 ≤ R)
+    (hh : ContDiff ℝ (⊤ : ℕ∞) h) (hhR : ∀ t, R < |t| → h t = 0)
+    (hf : ContDiff ℝ (⊤ : ℕ∞) f) (hfR : ∀ x, R < ‖x‖ → f x = 0) :
+    ∀ k ≤ d, ContDiff ℝ (⊤ : ℕ∞) (bumpLineSeq h f k) ∧
+      ∀ x, R < ‖x‖ → bumpLineSeq h f k x = 0 := by
+  intro k
+  induction k with
+  | zero => intro _; exact ⟨hf, hfR⟩
+  | succ k ih =>
+    intro hk
+    have hk' : k < d := hk
+    obtain ⟨hg, hgR⟩ := ih (by omega)
+    have hfun : bumpLineSeq h f (k + 1) = fun x =>
+        h (x ⟨k, hk'⟩) * ∫ s : ℝ in univ, bumpLineSeq h f k (x + s • unitVector ⟨k, hk'⟩) := by
+      funext x
+      rw [bumpLineSeq_succ_of_lt h f hk', Measure.restrict_univ]
+    refine ⟨?_, fun x hx => ?_⟩
+    · rw [hfun]
+      exact (hh.comp (contDiff_apply ℝ ℝ (⟨k, hk'⟩ : Fin d))).mul
+        (contDiff_setIntegral_add_smul hg (hasCompactSupport_of_vanish hgR)
+          (unitVector_ne_zero _) univ)
+    · rw [bumpLineSeq_succ_of_lt h f hk']
+      obtain ⟨j, hj⟩ := exists_lt_abs_of_lt_norm hR hx
+      by_cases hjk : j = ⟨k, hk'⟩
+      · rw [← hjk, hhR _ hj, zero_mul]
+      · have hz : ∀ s : ℝ, bumpLineSeq h f k (x + s • unitVector ⟨k, hk'⟩) = 0 := by
+          intro s
+          refine hgR _ ?_
+          have h1 := norm_le_pi_norm (x + s • unitVector ⟨k, hk'⟩) j
+          rw [add_smul_unitVector_apply_ne x s hjk, Real.norm_eq_abs] at h1
+          linarith
+        simp only [hz, integral_zero, mul_zero]
+
+/-- **The line integrals of `g_{k+1}` and `g_k` along `e_k` agree** (`∫ h = 1`). -/
+theorem integral_bumpLineSeq_succ {h : ℝ → ℝ} (hh1 : ∫ t : ℝ, h t = 1) (f : Vec d → ℝ) {k : ℕ}
+    (hk : k < d) (x : Vec d) :
+    ∫ s : ℝ, bumpLineSeq h f (k + 1) (x + s • unitVector ⟨k, hk⟩) =
+      ∫ s : ℝ, bumpLineSeq h f k (x + s • unitVector ⟨k, hk⟩) := by
+  have e1 : ∀ s : ℝ, bumpLineSeq h f (k + 1) (x + s • unitVector ⟨k, hk⟩) =
+      h (x ⟨k, hk⟩ + s) * ∫ t : ℝ, bumpLineSeq h f k (x + t • unitVector ⟨k, hk⟩) := by
+    intro s
+    rw [bumpLineSeq_succ_of_lt h f hk, add_smul_unitVector_apply_self]
+    congr 1
+    have e2 : ∀ t : ℝ, x + s • unitVector ⟨k, hk⟩ + t • unitVector ⟨k, hk⟩ =
+        x + (t + s) • unitVector ⟨k, hk⟩ := fun t => by rw [add_smul]; abel
+    simp only [e2]
+    exact integral_add_right_eq_self (fun t => bumpLineSeq h f k (x + t • unitVector ⟨k, hk⟩)) s
+  simp only [e1]
+  rw [integral_mul_const, integral_add_left_eq_self (fun t => h t) (x ⟨k, hk⟩), hh1, one_mul]
+
+end Construction
+
 end QSH
