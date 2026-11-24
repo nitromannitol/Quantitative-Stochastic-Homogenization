@@ -1125,3 +1125,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   reverse): by the completed square (2.12), `0 ≤ J(□_n, p, ā p) ≤ ½(1 + C)X` for `p ∈ B₁`
   (`dualityDefect_homogenizedMatrix_le`), and `X ≤ A + O₁(θ)` gives `E[X] ≤ A + 2θ`
   (`OsBound.integral_le_add_two_mul`).
+
+## Section 2.2: Lemma 2.13 (`Ch02/Sec02/AdditivityDefect.lean`, `Ch02/Sec02/MaximizerAverage.lean`, `Ch02/Sec02/DualEnergyLocal.lean`, `Ch02/Sec02/DualEnergyTranslation.lean`, `Ch02/Sec02/SubcubeMeanGradient.lean`, `Ch02/Sec02/SubcubeVariance.lean`, `Ch02/Sec02/Lemma213.lean`)
+
+- Lean: `QSH.lemma_2_13`: `∃ κ > 0, C ≥ 0` (depending only on `d`; the book: `C(d, Λ)`), for every
+  `Λ`, every law satisfying (0.10)–(0.11), `p, q ∈ B₁`, `m ∈ ℕ` and every choice of maximizers
+  `v(·, □_m, p, q)` of (2.9), the averages `⨍_{□_m} ∇v` are integrable and
+  `var[⨍_{□_m} ∇v(·, □_m, p, q)] ≤ C 3^{-mκ} + C Σ_{n=0}^m 3^{-κ(m-n)} τ_n`, with
+  `var[X] = E|X - E[X]|²` (`vecVariance`, the expectation taken componentwise) and
+  `τ_n = sup_{p, q ∈ B₁} (E[J(□_n, p, q)] - E[J(□_{n+1}, p, q)])` (`additivityDefect`, the supremum
+  of a set bounded above; `τ_n ≥ 0`).
+- Ingredients: (2.43) for every maximizer, `⨍_U ∇v(·, U, p, q) = a*⁻¹(U) q - p`
+  (`IsDefectMaximizer.setAverage_grad_eq`); the `F(U)`-measurability of `μ*(U, q)` and `a*⁻¹(U)`
+  (`measurable_dualEnergy_localSigma`), the analogue of (1.29); the translation covariance of
+  `μ*`, `J` and `a*⁻¹(U)` (`dualEnergy_preimage_sub`), which gives the stationarity used in Steps 1
+  and 2.
+- Proof: the book's three steps, at one scale (`m = n + 1` in (2.36), which is what Step 3 uses).
+  Step 1: `E|M_{n+1} - 3^{-d} Σ_z M(z + □_n)|² ≤ 2 τ_n` by Jensen's inequality and Lemma 2.12
+  (`integral_euclideanSq_meanGradient_succ_sub_le`). Step 2: the covariances of the subcube averages
+  are expanded as in the book; each is at most `var[M_n]`, and the two opposite corner subcubes
+  give independent averages (`indepFun_meanGradient_corner`). Two departures: (i) `LawHypotheses`
+  asks for a separation larger than `1` (the frozen form of (0.11)), and the corner subcubes of `□_1`
+  are at distance exactly `1`, so the contraction is used for `n ≥ 1`, with `var[M_1] ≤ 4` as the
+  starting point; (ii) the recursion is written for `σ²_n` with
+  `var[X + Y] ≤ (1 + t) var[Y] + (1 + t⁻¹) var[X]`, `t = 9^{-d}`
+  (`vecVariance_add_le`), in place of the triangle inequality for `σ_n`:
+  `σ²_{n+1} ≤ (1 - 9^{-d}) σ²_n + 2(1 + 9^d) τ_n` (`vecVariance_meanGradient_succ_le`), and
+  `3^{-κ} = 1 - 9^{-d}`.
