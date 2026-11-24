@@ -56,9 +56,9 @@ theorem measurable_inv_apply_of_apply {Ω : Type*} [MeasurableSpace Ω] {M : Ω 
     refine measurable_det_of_apply fun k l => ?_
     simp only [Matrix.updateRow_apply]
     by_cases h : k = j
-    · simp only [h, if_true]
+    · simp only [if_pos h]
       exact measurable_const
-    · simp only [h, if_false]
+    · simp only [if_neg h]
       exact hM k l
   simp only [Matrix.inv_def, Matrix.smul_apply, smul_eq_mul, Ring.inverse_eq_inv']
   exact hdet.inv.mul hadj
@@ -144,7 +144,8 @@ theorem frobeniusNorm_sub_add_le_of_family (hd : 1 ≤ d) (a : CoefficientField 
   refine h.trans ?_
   have hρ2 : 0 ≤ (((3 : ℝ) ^ n) ^ (-(μ / 3))) ^ 2 := sq_nonneg _
   calc cubeCorrectorConst d Λ C₁ B * euclideanSq p * (((3 : ℝ) ^ n) ^ (-(μ / 3))) ^ 2
-      ≤ cubeCorrectorConst d Λ C₁ B * 1 * (((3 : ℝ) ^ n) ^ (-(μ / 3))) ^ 2 := by gcongr
+      ≤ cubeCorrectorConst d Λ C₁ B * 1 * (((3 : ℝ) ^ n) ^ (-(μ / 3))) ^ 2 :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hp1 hK0) hρ2
     _ = _ := by ring
 
 /-! ## The structural bound -/
@@ -216,7 +217,8 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
     Set.indicator {a | (3 : ℝ) ^ n ≤ R a} (fun _ => (1 : ℝ)) with hind
   have hindOs : ∀ n : ℕ, OsBound P (ind n) 1 ((θ / (3 : ℝ) ^ n) ^ s) := fun n => by
     have h := hR.indicator_le_of hR0 (by positivity : (0 : ℝ) < (3 : ℝ) ^ n) hs
-    rwa [hs1] at h
+    rw [hs1] at h
+    exact h
   have hind0 : ∀ n a, 0 ≤ ind n a := fun n a =>
     Set.indicator_nonneg (fun _ _ => zero_le_one) a
   have hindE : ∀ n, Integrable (ind n) P ∧ ∫ a, ind n a ∂P ≤ 2 * (θ / (3 : ℝ) ^ n) ^ s :=
@@ -226,7 +228,9 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
       tendsto_const_nhds.div_atTop (tendsto_pow_atTop_atTop_of_one_lt (by norm_num))
     have h2 := h1.rpow_const (Or.inr hs.le)
     rw [Real.zero_rpow hs.ne'] at h2
-    simpa using h2.const_mul 2
+    have h3 := h2.const_mul 2
+    rw [mul_zero] at h3
+    exact h3
   -- the expectation of `|a(□_n) - ā|`
   set Z : ℕ → CoefficientField d Λ → ℝ := fun n a =>
     frobeniusNorm (coarseMatrix a (triadicCube d n) - A) with hZ
@@ -247,9 +251,13 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
     have h2 : Tendsto (fun n : ℕ => omegaModulus P ((n + 1) / 2)) atTop (𝓝 0) :=
       (tendsto_omegaModulus hP hΛ).comp
         (tendsto_atTop_atTop.mpr fun b => ⟨2 * b, fun n hn => by omega⟩)
-    simpa using (h1.const_mul C7).add (h2.const_mul C7)
+    have h3 := (h1.const_mul C7).add (h2.const_mul C7)
+    rw [mul_zero, add_zero] at h3
+    exact h3
   have hρ : Tendsto (fun n : ℕ => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3))) atTop (𝓝 0) := by
-    simpa using (tendsto_three_pow_rpow_neg (by positivity : (0 : ℝ) < μ / 3)).const_mul Kf
+    have h := (tendsto_three_pow_rpow_neg (by positivity : (0 : ℝ) < μ / 3)).const_mul Kf
+    rw [mul_zero] at h
+    exact h
   -- every entry
   ext i j
   set c := |D i j - A i j| with hc
@@ -280,16 +288,21 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
           rw [hc]
           simp only [Matrix.sub_apply]
           calc |D i j - A i j| = |(coarseMatrix a (triadicCube d n) i j - A i j) -
-                (coarseMatrix a (triadicCube d n) i j - D i j)| := by ring_nf
+                (coarseMatrix a (triadicCube d n) i j - D i j)| := by congr 1; ring
             _ ≤ |coarseMatrix a (triadicCube d n) i j - A i j| +
                 |coarseMatrix a (triadicCube d n) i j - D i j| := abs_sub _ _
             _ = _ := add_comm _ _
-        have hfam' : frobeniusNorm (coarseMatrix a (triadicCube d n) - D) ≤
+        have e : 3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ) *
+            (Real.sqrt (cubeCorrectorConst d Λ C₁ B) * ((3 : ℝ) ^ n) ^ (-(μ / 3))) =
             Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) := by
-          have : frobeniusNorm (coarseDualMatrix a (triadicCube d n) - D) ≥ 0 := hdual
           rw [hKf]
-          nlinarith
-        nlinarith
+          ring
+        rw [e] at hfam
+        have hdual' : 0 ≤ frobeniusNorm (coarseDualMatrix a (triadicCube d n) - D) := hdual
+        have hci := mul_nonneg hc0 hind
+        have hZa : Z n a = frobeniusNorm (coarseMatrix a (triadicCube d n) - A) := rfl
+        rw [hZa]
+        linarith
     have hint : Integrable (fun a => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) + Z n a + c * ind n a) P :=
       ((integrable_const _).add (hZE n).1).add ((hindE n).1.const_mul c)
     have h := integral_mono_ae (integrable_const c) hint hae
@@ -302,7 +315,9 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
   have hlim : Tendsto (fun n : ℕ => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) +
       (C7 * (3 : ℝ) ^ (-((d : ℝ) * n) / 4) + C7 * omegaModulus P ((n + 1) / 2)) +
       c * (2 * (θ / (3 : ℝ) ^ n) ^ s)) atTop (𝓝 0) := by
-    simpa using (hρ.add htZ).add (htθ.const_mul c)
+    have h := (hρ.add htZ).add (htθ.const_mul c)
+    rw [mul_zero, add_zero, add_zero] at h
+    exact h
   have hc' : c ≤ 0 := ge_of_tendsto' hlim hle
   have : c = 0 := le_antisymm hc' hc0
   rw [hc, abs_eq_zero, sub_eq_zero] at this
@@ -376,7 +391,8 @@ theorem theorem_2_4 (hd : 2 ≤ d) (hΛ : 1 < Λ) :
     by_cases h : (3 : ℝ) ^ n ≤ R a
     · have h1 : ind a = 1 := Set.indicator_of_mem (show a ∈ {a | (3 : ℝ) ^ n ≤ R a} from h) _
       rw [h1, mul_one]
-      nlinarith
+      have := mul_nonneg (by linarith : (0 : ℝ) ≤ C) h3α
+      linarith
     · have h0 : ind a = 0 :=
         Set.indicator_of_notMem (show a ∉ {a | (3 : ℝ) ^ n ≤ R a} from h) _
       rw [h0, mul_zero]
