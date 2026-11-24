@@ -84,17 +84,18 @@ theorem exists_dense_tests (U : Set (Vec d)) :
     _ ≤ d * (ε / (d + 1)) := mul_le_mul_of_nonneg_left hn2.le (Nat.cast_nonneg d)
     _ < ε := hd
 
-/-- **Measurability of the mean square of the minimizer**: for a family of minimizers
-`a ↦ (u a, g a)` of `μ(U, p)`, `a ↦ ∫_U (u a)²` is measurable. -/
-theorem measurable_setIntegral_sq_minimizer [NeZero d] {U : Set (Vec d)}
-    (hU : Bornology.IsBounded U) (hU0 : volume U ≠ 0) (hΛ : 0 ≤ Λ) (e : Vec d)
-    {u : CoefficientField d Λ → Vec d → ℝ} {g : CoefficientField d Λ → Vec d → Vec d}
-    (hmin : ∀ a, IsDirichletMinimizer a U e (u a) (g a)) :
-    Measurable fun a => ∫ x in U, u a x ^ 2 := by
+/-- **A measurable choice of almost minimizing tests**: a countable family of tests `t j` of a
+bounded `U` and measurable indices `N k a` with `⨍_U ½ (e + ∇t)·a(e + ∇t) < μ(U, e) + 1/(k + 1)` at
+`t = t (N k a)`. -/
+theorem exists_measurable_almostMinimizingTests [NeZero d] {U : Set (Vec d)}
+    (hU : Bornology.IsBounded U) (hU0 : volume U ≠ 0) (hΛ : 0 ≤ Λ) (e : Vec d) :
+    ∃ t : ℕ → Vec d → ℝ, (∀ j, IsSpatialTest U (t j)) ∧
+      ∃ N : ℕ → CoefficientField d Λ → ℕ, (∀ k, Measurable (N k)) ∧
+        ∀ (a : CoefficientField d Λ) (k : ℕ),
+          trialEnergy a U e (gradient (t (N k a))) < dirichletEnergy a U e + 1 / ((k : ℝ) + 1) := by
   have hUt : volume U ≠ ⊤ := hU.measure_lt_top.ne
   have := isFiniteMeasure_restrict.mpr hUt
   have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hUt
-  obtain ⟨R, hR, hUR⟩ := exists_subset_cube_of_isBounded hU
   obtain ⟨t, ht, hdense⟩ := exists_dense_tests U
   -- every coefficient field has an almost minimizing element of the family
   have hex : ∀ (a : CoefficientField d Λ) (k : ℕ), ∃ j,
@@ -164,13 +165,27 @@ theorem measurable_setIntegral_sq_minimizer [NeZero d] {U : Set (Vec d)}
       rw [Nat.find_eq_iff]
     rw [hset]
     exact (hPm k j).inter (Finset.measurableSet_biInter _ fun i _ => (hPm k i).compl)
+  exact ⟨t, ht, N, hNm, fun a k => Nat.find_spec (hex a k)⟩
+
+/-- **Measurability of the mean square of the minimizer**: for a family of minimizers
+`a ↦ (u a, g a)` of `μ(U, p)`, `a ↦ ∫_U (u a)²` is measurable. -/
+theorem measurable_setIntegral_sq_minimizer [NeZero d] {U : Set (Vec d)}
+    (hU : Bornology.IsBounded U) (hU0 : volume U ≠ 0) (hΛ : 0 ≤ Λ) (e : Vec d)
+    {u : CoefficientField d Λ → Vec d → ℝ} {g : CoefficientField d Λ → Vec d → Vec d}
+    (hmin : ∀ a, IsDirichletMinimizer a U e (u a) (g a)) :
+    Measurable fun a => ∫ x in U, u a x ^ 2 := by
+  have hUt : volume U ≠ ⊤ := hU.measure_lt_top.ne
+  have := isFiniteMeasure_restrict.mpr hUt
+  have hV : 0 < volume.real U := ENNReal.toReal_pos hU0 hUt
+  obtain ⟨R, hR, hUR⟩ := exists_subset_cube_of_isBounded hU
+  obtain ⟨t, ht, N, hNm, hspec'⟩ := exists_measurable_almostMinimizingTests hU hU0 hΛ e
   set Φ : ℕ → CoefficientField d Λ → ℝ := fun k a => ∫ x in U, t (N k a) x ^ 2
   have hΦm : ∀ k, Measurable (Φ k) := fun k =>
     (measurable_from_nat (f := fun j => ∫ x in U, t j x ^ 2)).comp (hNm k)
   refine measurable_of_tendsto_metrizable hΦm (tendsto_pi_nhds.mpr fun a => ?_)
   -- convergence at a fixed coefficient field
   have hspec : ∀ k, trialEnergy a U e (gradient (t (N k a))) <
-      dirichletEnergy a U e + 1 / ((k : ℝ) + 1) := fun k => Nat.find_spec (hex a k)
+      dirichletEnergy a U e + 1 / ((k : ℝ) + 1) := fun k => hspec' a k
   have hgrad : ∀ k, ∫ x in U, euclideanSq (gradient (t (N k a)) x - g a x) ≤
       2 * volume.real U * (1 / ((k : ℝ) + 1)) := by
     intro k
