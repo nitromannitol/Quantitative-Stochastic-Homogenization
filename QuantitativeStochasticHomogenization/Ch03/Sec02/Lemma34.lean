@@ -279,4 +279,213 @@ theorem exists_affine_scalarRms_ball_le (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) :
 
 end Expansion
 
+section Improvement
+
+theorem ball_zero_subset_ball_zero {r t : ℝ} (hrt : r ≤ t) : ball (0 : Vec d) r ⊆ ball 0 t :=
+  fun _ hx => lt_of_lt_of_le hx hrt
+
+theorem memLp_affine_ball (c : ℝ) (q : Vec d) (ρ : ℝ) :
+    MemLp (fun x => c + dot q x) 2 (volume.restrict (ball (0 : Vec d) ρ)) :=
+  (memLp_const c).add (memLp_dot_ball q ρ)
+
+/-- An `A`-harmonic function minus an affine function is `A`-harmonic. -/
+theorem IsL2HarmonicOn.sub_affine {A : Mat d} {ρ : ℝ} {w : Vec d → ℝ}
+    (hw : IsL2HarmonicOn A (ball 0 ρ) w) (c : ℝ) (q : Vec d) :
+    IsL2HarmonicOn A (ball 0 ρ) (fun x => w x - (c + dot q x)) := by
+  obtain ⟨hL2, g, hg, hgrad, hdiv⟩ := hw
+  refine ⟨hL2.sub (memLp_affine_ball c q ρ), fun x => g x - q, fun i => (hg i).sub (memLp_const _),
+    ?_, ?_⟩
+  · have h1 : HasWeakGradient (ball 0 ρ) (fun x => -c + dot (-q) x) (fun _ => 0 + -q) :=
+      hasWeakGradient_mono (subset_univ _)
+        (hasWeakGradient_add (hasWeakGradient_const (-c)) (hasWeakGradient_dot (-q)))
+    have h2 := hasWeakGradient_add hgrad h1
+    convert h2 using 1
+    · funext x
+      simp only [dot_eq_dotProduct, neg_dotProduct]
+      ring
+    · funext x
+      simp only [zero_add, sub_eq_add_neg]
+  · have h3 := hasWeakDivergence_add hdiv
+      ((hasWeakDivergence_const_field (-(A.mulVec q))).mono' (subset_univ (ball (0 : Vec d) ρ)))
+    convert h3 using 1
+    · funext x
+      rw [Matrix.mulVec_sub, sub_eq_add_neg]
+    · funext x
+      simp
+
+/-- The mean minimizes the `L̲²` distance to constants. -/
+theorem scalarRms_sub_setAverage_le {U : Set (Vec d)} (hU : volume U ≠ ⊤) {u : Vec d → ℝ}
+    (hu : MemLp u 2 (volume.restrict U)) (m : ℝ) :
+    scalarRms volume U (fun x => u x - ⨍ y in U, u y) ≤ scalarRms volume U (fun x => u x - m) := by
+  by_cases h0 : volume U = 0
+  · have hz : volume.restrict U = 0 := Measure.restrict_eq_zero.mpr h0
+    unfold scalarRms
+    simp only [hz, average_zero_measure, le_refl]
+  have hfin : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.2 hU
+  have hconv : ∀ f : Vec d → ℝ, PDE.integralAverage U f = ⨍ x in U, f x := fun f => by
+    unfold PDE.integralAverage
+    rw [setAverage_eq, smul_eq_mul, measureReal_def]
+  have key := integralAverage_sq_sub_le hU (u := fun x => u x - m) (hu.sub (memLp_const m))
+  have hV : (volume U).toReal ≠ 0 := ENNReal.toReal_ne_zero.mpr ⟨h0, hU⟩
+  have hu1 : Integrable u (volume.restrict U) := hu.integrable one_le_two
+  have hmean : PDE.integralAverage U (fun x => u x - m) = (⨍ y in U, u y) - m := by
+    rw [hconv, setAverage_eq, setAverage_eq, smul_eq_mul, smul_eq_mul,
+      integral_sub hu1 (integrable_const m), setIntegral_const, smul_eq_mul, measureReal_def]
+    field_simp
+  rw [hmean, hconv, hconv] at key
+  have e : (fun x => (u x - m - ((⨍ y in U, u y) - m)) ^ 2) =
+      fun x => (u x - ⨍ y in U, u y) ^ 2 := funext fun x => by ring
+  rw [e] at key
+  unfold scalarRms
+  exact Real.sqrt_le_sqrt key
+
+/-- Comparison of `L̲²` norms on nested balls. -/
+theorem scalarRms_ball_le {r t : ℝ} (hr : 0 < r) (hrt : r ≤ t) {f : Vec d → ℝ}
+    (hf : MemLp f 2 (volume.restrict (ball (0 : Vec d) t))) :
+    scalarRms volume (ball 0 r) f ≤ Real.sqrt ((t / r) ^ d) * scalarRms volume (ball 0 t) f := by
+  have htr : t = t / r * r := by field_simp
+  have hvol : volume.real (ball (0 : Vec d) t) ≤
+      (t / r) ^ d * volume.real (ball (0 : Vec d) r) := by
+    conv_lhs => rw [htr]
+    rw [volume_real_ball_mul (div_pos (lt_of_lt_of_le hr hrt) hr)]
+  exact scalarRms_le_sqrt_mul_of_subset (ball_zero_subset_ball_zero hrt)
+    (volume_ball_ne_zero' 0 hr) (volume_ball_ne_top' 0 t) hvol
+    (pow_nonneg (div_nonneg (hr.le.trans hrt) hr.le) d) hf.integrable_sq
+
+/-- `‖q·x‖_{L̲²(B_r)} ≤ |q| r`. -/
+theorem scalarRms_dot_ball_le (q : Vec d) {r : ℝ} (hr : 0 ≤ r) :
+    scalarRms volume (ball (0 : Vec d) r) (fun x => dot q x) ≤ euclideanNorm q * r := by
+  have hB : 0 ≤ euclideanNorm q * r := mul_nonneg (Real.sqrt_nonneg _) hr
+  unfold scalarRms
+  rw [← Real.sqrt_sq hB]
+  apply Real.sqrt_le_sqrt
+  by_cases h0 : volume (ball (0 : Vec d) r) = 0
+  · have hz : volume.restrict (ball (0 : Vec d) r) = 0 := Measure.restrict_eq_zero.mpr h0
+    simp only [hz, average_zero_measure]
+    positivity
+  have hfin : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) r)) :=
+    isFiniteMeasure_restrict.2 (volume_ball_ne_top' 0 r)
+  have hpt : ∀ x ∈ ball (0 : Vec d) r, (dot q x) ^ 2 ≤ (euclideanNorm q * r) ^ 2 := by
+    intro x hx
+    have hx' : euclideanNorm x < r := by simpa [ball] using hx
+    have h1 := BaseExponent.abs_dot_le q x
+    have h2 : |dot q x| ≤ euclideanNorm q * r :=
+      h1.trans (mul_le_mul_of_nonneg_left hx'.le (Real.sqrt_nonneg _))
+    rw [← sq_abs]
+    exact pow_le_pow_left₀ (abs_nonneg _) h2 2
+  rw [setAverage_eq, smul_eq_mul]
+  have hint : ∫ x in ball (0 : Vec d) r, (dot q x) ^ 2 ≤
+      ∫ _x in ball (0 : Vec d) r, (euclideanNorm q * r) ^ 2 := by
+    refine integral_mono_of_nonneg (Eventually.of_forall fun x => sq_nonneg _)
+      (integrable_const _) ?_
+    exact (ae_restrict_iff' (measurableSet_ball 0 r)).2 (Eventually.of_forall hpt)
+  rw [setIntegral_const, smul_eq_mul] at hint
+  have hV : 0 < volume.real (ball (0 : Vec d) r) := by
+    rw [measureReal_def]
+    exact ENNReal.toReal_pos h0 (volume_ball_ne_top' 0 r)
+  calc (volume.real (ball (0 : Vec d) r))⁻¹ * ∫ x in ball (0 : Vec d) r, (dot q x) ^ 2
+      ≤ (volume.real (ball (0 : Vec d) r))⁻¹ *
+          (volume.real (ball (0 : Vec d) r) * (euclideanNorm q * r) ^ 2) :=
+        mul_le_mul_of_nonneg_left hint (inv_nonneg.2 hV.le)
+    _ = (euclideanNorm q * r) ^ 2 := by field_simp
+
+/-- **The improvement of flatness** ((3.29) for `k = 1`, for a given affine function): if `w` is
+`A`-harmonic in `B_{r/2}`, then for every affine `ℓ = c + q·x` there is an affine `ℓ'` with
+`‖u - ℓ'‖_{L̲²(B_{θr})} ≤ 4 C θ² 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)} + ((2θ)^{-d/2} + 4 C θ²) ‖u - w‖_{L̲²(B_{r/2})}`
+and `|∇ℓ' - ∇ℓ| ≤ 2 C r⁻¹ (‖u - w‖_{L̲²(B_{r/2})} + 2^{d/2} ‖u - ℓ‖_{L̲²(B_r)})`. -/
+theorem exists_affine_improvement (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) :
+    ∃ C₁ : ℝ, 0 ≤ C₁ ∧ ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ θ : ℝ, 0 < θ → θ < 1 / (2 * Real.sqrt Λ) →
+      ∀ r : ℝ, 0 < r → ∀ u w : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 r)) →
+      IsL2HarmonicOn A (ball 0 (r / 2)) w → ∀ (c : ℝ) (q : Vec d),
+      ∃ (c' : ℝ) (q' : Vec d),
+        scalarRms volume (ball 0 (θ * r)) (fun x => u x - (c' + dot q' x)) ≤
+          4 * C₁ * θ ^ 2 * Real.sqrt (2 ^ d) *
+              scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) +
+            (Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2) *
+              scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ∧
+        euclideanNorm (q' - q) ≤ 2 * C₁ / r *
+          (scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) +
+            Real.sqrt (2 ^ d) * scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x))) := by
+  obtain ⟨C₁, hC₁, hexp⟩ := exists_affine_scalarRms_ball_le hd hΛ
+  refine ⟨C₁, hC₁, ?_⟩
+  intro A hsym hA θ hθ hθΛ r hr u w hu hw c q
+  have hΛ0 : 0 < Λ := by linarith
+  have hsΛ1 : 1 ≤ Real.sqrt Λ := by
+    rw [show (1 : ℝ) = Real.sqrt 1 from Real.sqrt_one.symm]
+    exact Real.sqrt_le_sqrt hΛ
+  have hr2 : 0 < r / 2 := by positivity
+  obtain ⟨c₁, q₁, hdec, hq₁⟩ := hexp A hsym hA (r / 2) hr2 _ (hw.sub_affine c q)
+  set η := scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) with hη
+  set F := scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) with hF
+  have hθ2 : θ * (2 * Real.sqrt Λ) < 1 := (lt_div_iff₀ (by positivity)).mp hθΛ
+  have htρ : θ * r < r / 2 / Real.sqrt Λ := by
+    rw [lt_div_iff₀ (by positivity)]
+    nlinarith
+  have ht : 0 < θ * r := mul_pos hθ hr
+  have hth : θ * r ≤ r / 2 := by
+    have : r / 2 / Real.sqrt Λ ≤ r / 2 := div_le_self hr2.le hsΛ1
+    linarith
+  have hsub2 : ball (0 : Vec d) (r / 2) ⊆ ball 0 r := ball_zero_subset_ball_zero (by linarith)
+  have hu2 : MemLp u 2 (volume.restrict (ball (0 : Vec d) (r / 2))) :=
+    hu.mono_measure (Measure.restrict_mono hsub2 le_rfl)
+  have hw2 : MemLp w 2 (volume.restrict (ball (0 : Vec d) (r / 2))) := hw.1
+  have huw : MemLp (fun x => u x - w x) 2 (volume.restrict (ball (0 : Vec d) (r / 2))) :=
+    hu2.sub hw2
+  have hul : MemLp (fun x => u x - (c + dot q x)) 2 (volume.restrict (ball (0 : Vec d) (r / 2))) :=
+    hu2.sub (memLp_affine_ball c q _)
+  have hh2 : MemLp (fun x => (w x - (c + dot q x)) - (c₁ + dot q₁ x)) 2
+      (volume.restrict (ball (0 : Vec d) (r / 2))) :=
+    (hw2.sub (memLp_affine_ball c q _)).sub (memLp_affine_ball c₁ q₁ _)
+  have hsubt : ball (0 : Vec d) (θ * r) ⊆ ball 0 (r / 2) := ball_zero_subset_ball_zero hth
+  have hwl : scalarRms volume (ball 0 (r / 2)) (fun x => w x - (c + dot q x)) ≤
+      η + Real.sqrt (2 ^ d) * F := by
+    have e : (fun x => w x - (c + dot q x)) =
+        fun x => (u x - (c + dot q x)) - (u x - w x) := funext fun x => by ring
+    rw [e]
+    refine (scalarRms_sub_le hul huw).trans ?_
+    have hmr : MemLp (fun x => u x - (c + dot q x)) 2 (volume.restrict (ball (0 : Vec d) r)) :=
+      hu.sub (memLp_affine_ball c q r)
+    have h1 := scalarRms_ball_le hr2 (by linarith : r / 2 ≤ r) hmr
+    have e2 : r / (r / 2) = 2 := by field_simp
+    rw [e2, ← hF] at h1
+    rw [← hη]
+    linarith
+  have hwl0 : 0 ≤ scalarRms volume (ball 0 (r / 2)) (fun x => w x - (c + dot q x)) :=
+    scalarRms_nonneg _ _
+  refine ⟨c + c₁, q + q₁, ?_, ?_⟩
+  · have e : (fun x => u x - ((c + c₁) + dot (q + q₁) x)) =
+        fun x => (u x - w x) + ((w x - (c + dot q x)) - (c₁ + dot q₁ x)) := by
+      funext x
+      simp only [dot_eq_dotProduct, add_dotProduct]
+      ring
+    rw [e]
+    have hA1 := scalarRms_add_le (huw.mono_measure (Measure.restrict_mono hsubt le_rfl))
+      (hh2.mono_measure (Measure.restrict_mono hsubt le_rfl))
+    have hA2 := scalarRms_ball_le ht hth huw
+    have e3 : r / 2 / (θ * r) = 1 / (2 * θ) := by field_simp
+    rw [e3, ← hη] at hA2
+    have hA3 := hdec (θ * r) ht htρ
+    have e4 : (θ * r / (r / 2)) ^ 2 = 4 * θ ^ 2 := by field_simp; ring
+    rw [e4] at hA3
+    have hs0 : 0 ≤ Real.sqrt ((1 / (2 * θ)) ^ d) := Real.sqrt_nonneg _
+    have hη0 : 0 ≤ η := scalarRms_nonneg _ _
+    calc scalarRms volume (ball 0 (θ * r))
+          (fun x => (u x - w x) + ((w x - (c + dot q x)) - (c₁ + dot q₁ x)))
+        ≤ Real.sqrt ((1 / (2 * θ)) ^ d) * η +
+            C₁ * (4 * θ ^ 2) * scalarRms volume (ball 0 (r / 2))
+              (fun x => w x - (c + dot q x)) := by linarith
+      _ ≤ Real.sqrt ((1 / (2 * θ)) ^ d) * η +
+            C₁ * (4 * θ ^ 2) * (η + Real.sqrt (2 ^ d) * F) := by
+          gcongr
+      _ = 4 * C₁ * θ ^ 2 * Real.sqrt (2 ^ d) * F +
+            (Real.sqrt ((1 / (2 * θ)) ^ d) + 4 * C₁ * θ ^ 2) * η := by ring
+  · rw [add_sub_cancel_left]
+    calc euclideanNorm q₁ ≤ C₁ / (r / 2) *
+          scalarRms volume (ball 0 (r / 2)) (fun x => w x - (c + dot q x)) := hq₁
+      _ ≤ C₁ / (r / 2) * (η + Real.sqrt (2 ^ d) * F) := by gcongr
+      _ = 2 * C₁ / r * (η + Real.sqrt (2 ^ d) * F) := by field_simp
+
+end Improvement
+
 end QSH
