@@ -156,7 +156,7 @@ theorem setAverage_sub_const_of_integrableOn {U : Set (Vec d)} (hU0 : volume U �
   simp only [one_mul, ← sub_eq_add_neg] at h
   exact h
 
-theorem euclideanSq_sub_le (x y : Vec d) :
+theorem euclideanSq_sub_le_two_mul_add (x y : Vec d) :
     euclideanSq (x - y) ≤ 2 * euclideanSq x + 2 * euclideanSq y := by
   simp only [euclideanSq, dot, Pi.sub_apply, Finset.mul_sum, ← Finset.sum_add_distrib]
   exact Finset.sum_le_sum fun i _ => by nlinarith [sq_nonneg (x i + y i)]
@@ -402,7 +402,7 @@ theorem proposition_1_10 [NeZero d] :
     refine Real.sqrt_le_sqrt ?_
     have hpt : ∀ x, g x i ^ 2 ≤ 2 * euclideanSq (e + g x) + 2 * euclideanSq e := fun x => by
       have h1 := sq_apply_le_euclideanSq (g x) i
-      have h2 := euclideanSq_sub_le (e + g x) e
+      have h2 := euclideanSq_sub_le_two_mul_add (e + g x) e
       rw [add_sub_cancel_left] at h2
       linarith
     have hint2 : IntegrableOn (fun x => 2 * euclideanSq (e + g x) + 2 * euclideanSq e)
@@ -419,8 +419,8 @@ theorem proposition_1_10 [NeZero d] :
         (2 * Λ ^ 2) * euclideanSq (e + g x) + 2 * Λ ^ 2 * euclideanSq e := fun x => by
       have h1 := sq_apply_le_euclideanSq
         ((a x).mulVec (e + g x) - (homogenizedMatrix P).mulVec e) i
-      have h2 := euclideanSq_sub_le ((a x).mulVec (e + g x)) ((homogenizedMatrix P).mulVec e)
-      have h3 := euclideanSq_coefficient_mulVec_le a x (e + g x)
+      have h2 := euclideanSq_sub_le_two_mul_add ((a x).mulVec (e + g x)) ((homogenizedMatrix P).mulVec e)
+      have h3 := euclideanSq_coefficient_mulVec_le_sq a x (e + g x)
       have h4 := euclideanSq_mulVec_le_of_dot_le (homogenizedMatrix_transpose hP hΛ) hAbar0
         hAbar1 e
       linarith

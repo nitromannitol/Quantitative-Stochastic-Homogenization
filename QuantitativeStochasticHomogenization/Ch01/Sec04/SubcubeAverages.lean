@@ -35,7 +35,7 @@ open BaseExponent
 /-- The vector `(F)_U = ⨍_U F` of the averages of the components of a vector field. -/
 def vectorAverage (U : Set (Vec d)) (F : Vec d → Vec d) : Vec d := fun i => ⨍ x in U, F x i
 
-theorem dot_unitVector_left (i : Fin d) (v : Vec d) : dot (unitVector i) v = v i := by
+theorem dot_unitVector_left_eq_apply (i : Fin d) (v : Vec d) : dot (unitVector i) v = v i := by
   simp [dot, unitVector, Pi.single_apply]
 
 theorem setAverage_add_of_integrableOn {U : Set (Vec d)} {f h : Vec d → ℝ}
@@ -76,7 +76,7 @@ theorem euclideanSq_vectorAverage_flux_le (a : CoefficientField d Λ) {U : Set (
       ≤ (volume.real U)⁻¹ * ∫ x in U, Λ ^ 2 * euclideanSq (H x) :=
         mul_le_mul_of_nonneg_left (integral_mono (integrable_euclideanSq_of_memLp hF)
           ((integrable_euclideanSq_of_memLp hH).const_mul _)
-          fun x => euclideanSq_coefficient_mulVec_le a x (H x)) hV
+          fun x => euclideanSq_coefficient_mulVec_le_sq a x (H x)) hV
     _ = Λ ^ 2 * ((volume.real U)⁻¹ * ∫ x in U, euclideanSq (H x)) := by
         rw [integral_const_mul]
         ring
@@ -295,7 +295,7 @@ theorem subcube_averages_le_add [NeZero d] (a : CoefficientField d Λ) (n r : �
         simp_rw [hpt]
         rw [setAverage_add_of_integrableOn h12 h3, setAverage_add_of_integrableOn h1 h2]
       have h149 := (hmk k).setAverage_flux_eq (hQ0 k) (hQt k) (unitVector i)
-      simp only [dot_unitVector_left] at h149
+      simp only [dot_unitVector_left_eq_apply] at h149
       simp only [vectorAverage, Pi.sub_apply, Pi.add_apply, Matrix.sub_mulVec]
       rw [hsplit, h149]
       ring

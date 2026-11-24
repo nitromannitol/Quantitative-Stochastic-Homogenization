@@ -12,7 +12,7 @@ minimizer for `p` is a trial gradient for `p + tq`, so
 `μ(U, p + tq) ≤ μ(U, p) + t ⨍_U q·a(p + g) + t² ⨍_U ½ q·aq` for every `t ∈ ℝ`; comparing with
 `μ(U, p + tq) = ½ (p + tq)·a(U)(p + tq)` and letting `t → 0` gives the claim.
 
-Also: `|a(x)ξ| ≤ Λ|ξ|` (`euclideanSq_coefficient_mulVec_le`), from the Cauchy–Schwarz inequality for
+Also: `|a(x)ξ| ≤ Λ|ξ|` (`euclideanSq_coefficient_mulVec_le_sq`), from the Cauchy–Schwarz inequality for
 the form `ξ·a(x)η`, and the flux of an `L²` field is in `L²` (`memLp_coefficient_mulVec_apply`).
 -/
 
@@ -47,7 +47,7 @@ theorem sq_dot_mulVec_le {A : Mat d} (hA : A.transpose = A)
   nlinarith
 
 /-- **`|a(x)ξ| ≤ Λ|ξ|`.** -/
-theorem euclideanSq_coefficient_mulVec_le (a : CoefficientField d Λ) (x v : Vec d) :
+theorem euclideanSq_coefficient_mulVec_le_sq (a : CoefficientField d Λ) (x v : Vec d) :
     euclideanSq ((a x).mulVec v) ≤ Λ ^ 2 * euclideanSq v := by
   have hpos : ∀ u : Vec d, 0 ≤ dot u ((a x).mulVec u) := fun u =>
     (euclideanSq_nonneg u).trans (a.elliptic x u).1
@@ -68,7 +68,7 @@ theorem euclideanSq_coefficient_mulVec_le (a : CoefficientField d Λ) (x v : Vec
         (Λ ^ 2 * euclideanSq v) * euclideanSq ((a x).mulVec v) := by nlinarith
     exact le_of_mul_le_mul_right h6 hlt
 
-theorem euclideanNorm_le_sum_abs (v : Vec d) : euclideanNorm v ≤ ∑ j, |v j| := by
+theorem euclideanNorm_le_sum_abs_apply (v : Vec d) : euclideanNorm v ≤ ∑ j, |v j| := by
   rw [euclideanNorm, Real.sqrt_le_iff]
   refine ⟨Finset.sum_nonneg fun j _ => abs_nonneg _, ?_⟩
   have h := sum_sq_le_sq_sum_of_nonneg Finset.univ (fun j => |v j|) fun j _ => abs_nonneg _
@@ -95,8 +95,8 @@ theorem memLp_coefficient_mulVec_apply (a : CoefficientField d Λ) {U : Set (Vec
   have e1 := abs_coord_le_euclideanNorm ((a x).mulVec (h x)) i
   have e2 : euclideanNorm ((a x).mulVec (h x)) ≤ |Λ| * euclideanNorm (h x) := by
     rw [euclideanNorm, euclideanNorm, ← Real.sqrt_sq_eq_abs, ← Real.sqrt_mul (sq_nonneg _)]
-    exact Real.sqrt_le_sqrt (euclideanSq_coefficient_mulVec_le a x (h x))
-  have e3 := euclideanNorm_le_sum_abs (h x)
+    exact Real.sqrt_le_sqrt (euclideanSq_coefficient_mulVec_le_sq a x (h x))
+  have e3 := euclideanNorm_le_sum_abs_apply (h x)
   simp only [Real.norm_eq_abs]
   calc |(a x).mulVec (h x) i| ≤ euclideanNorm ((a x).mulVec (h x)) := e1
     _ ≤ |Λ| * euclideanNorm (h x) := e2
