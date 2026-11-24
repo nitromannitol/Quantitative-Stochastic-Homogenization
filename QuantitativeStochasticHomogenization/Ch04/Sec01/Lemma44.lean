@@ -3,6 +3,7 @@ import QuantitativeStochasticHomogenization.Ch04.Sec01.J1HeatSharpBound
 import QuantitativeStochasticHomogenization.Ch04.Sec01.EnergyQuantityBounds
 import QuantitativeStochasticHomogenization.Ch04.Sec01.Proposition43
 import QuantitativeStochasticHomogenization.Ch03.Sec03.HarmonicApproximationProof
+import QuantitativeStochasticHomogenization.Ch03.Sec03.DimensionA1
 import QuantitativeStochasticHomogenization.Ch01.Sec04.FluxAverage
 import QuantitativeStochasticHomogenization.Ch01.Sec03.DirichletEnergyCorrectorBounds
 import QuantitativeStochasticHomogenization.Ch04.Sec01.HomogenizedBoundsFromMeasurability
@@ -178,13 +179,6 @@ theorem correctedAffineGrad_add (S : HomogenizationData P) (a : CoefficientField
     correctedAffineGrad S a (c + c') x =
       correctedAffineGrad S a c x + correctedAffineGrad S a c' x := by
   simp only [correctedAffineGrad, Pi.add_apply, add_smul, Finset.sum_add_distrib]
-  abel
-
-theorem correctedAffineGrad_sub (S : HomogenizationData P) (a : CoefficientField d Λ)
-    (c c' x : Vec d) :
-    correctedAffineGrad S a (c - c') x =
-      correctedAffineGrad S a c x - correctedAffineGrad S a c' x := by
-  simp only [correctedAffineGrad, Pi.sub_apply, sub_smul, Finset.sum_sub_distrib]
   abel
 
 theorem measurable_correctedAffineGrad (S : HomogenizationData P) (a : CoefficientField d Λ)
