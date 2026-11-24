@@ -1182,3 +1182,38 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of `□_{n+1}`); and (2.55) is proved pointwise with Young's inequality, in place of Hölder's
   inequality in expectation, and with the centre term of Lemma 2.12 on the `3^d` subcubes of
   `□_{n+1}` for `∇v - ∇w` (`dualityDefect_triadicCube_le_center`).
+
+## Section 4.1: Definition 4.2 and Lemma 4.4 (`Ch04/Sec01/Lemma44.lean`)
+
+- Definition 4.2: `QSH.J1Nondegenerate S a Ψ`: `J₁(Ψ, p, 0) ≥ ¼ p·āp` and `J₁(Ψ, 0, q) ≥ ¼ q·ā⁻¹q`
+  for all `p, q`, with `ā = S.homogenized`, the homogenized matrix of the homogenization data used in
+  Chapter 4.
+- Masks: `QSH.J1Mask S a Ψ`: `Ψ ≥ 0`, `Ψ ∈ L¹`, `∫ Ψ = 1`, the corrector columns `Wᵢ = eᵢ + ∇φ_{eᵢ}`
+  belong to `L²(Ψ)` and their Gram matrix `M_{ij} = ∫ Ψ Wᵢ·a Wⱼ` is invertible. Given the first-order
+  Liouville theorem, this says that `∇A₁` is a `d`-dimensional subspace of `L²(Ψ)`, which is the
+  property the book uses for the existence of the maximizer (after (4.9)) and leaves implicit for a
+  general mask. It holds almost surely for every heat kernel mask `Φ_{z,r}`
+  (`QSH.ae_j1Mask_heatKernel`, from `ae_integrable_heatKernel_mul_euclideanSq_correctorColumn` and
+  `ae_J1Heat_eq_half_dot_inv`).
+- Lemma 4.4: `QSH.lemma_4_4`: almost surely, for every mask: existence of a maximizer
+  (`IsJ1Maximizer`, the objective of (4.8) at `∇v` equals `J₁`), the first variation (4.13) as a
+  characterization, uniqueness of `∇v` up to a null set, (4.14), (4.15), (4.16), (4.19), (4.20) and
+  (4.21) at every maximizer, linearity of `(p, q) ↦ ∇v` (`IsJ1Maximizer.grad_add`, `grad_smul`),
+  `J₁(Ψ, tp, tq) = t² J₁(Ψ, p, q)`, and, when `J₁` is nondegenerate at `Ψ`, (4.17) and (4.18) with
+  `C = 16` and `C = 16 Λ`. Every integral in the statement comes with the integrability of its
+  integrand. The derivatives are Fréchet derivatives (`HasFDerivAt`) represented by the vectors
+  `-∫ Ψ a∇v` and `∫ Ψ ∇v`, taken componentwise.
+- Proof: almost surely `A₁` consists of the corrected affine functions (`QSH.ae_j1Structure`, from
+  `firstOrderLiouville` and `ae_exists_harmonicA1_correctedAffine`), and the objective at slope `c`
+  is `b·c - ½ c·Mc` with the load `bᵢ = ∫ Ψ (-p·a Wᵢ + q·Wᵢ)`. The maximizers are the elements of
+  slope `M⁻¹ b` (`J1Structure.isJ1Maximizer_iff`), `J₁ = ½ b·M⁻¹b`, and each item of the lemma is an
+  identity for this quadratic, with `b` linear in `(p, q)` (`J1Mask.J1Load_add_smul`). The book's
+  proof of (4.13) by the variation `v + tu` is replaced by this computation; (4.17)–(4.18) follow from
+  the midpoint identity `½ J₁(p₁, q₁) + ½ J₁(p₂, q₂) - J₁(½(p₁ + p₂), ½(q₁ + q₂)) = ¼ J₁(p₁ - p₂, q₁ - q₂)`
+  (`J1Structure.J1_midpoint`), (4.9), `ā ≥ 1` and `|q|² ≤ Λ q·ā⁻¹q`.
+- Misprint in (4.15): the book's left inequality `‖∇v‖²_{L²(Ψ)} ≤ J₁(Ψ, p, q)` holds with the factor
+  `½`: `½ ‖∇v‖²_{L²(Ψ)} ≤ J₁(Ψ, p, q)`, from (4.14) and `a ≥ 1`. For `a = 1` the elements of `A₁` are
+  the affine functions, `J₁(Ψ, p, q) = ½ |q - p|²` and `∇v = q - p`, so the book's form fails for
+  `p ≠ q`. The right inequality holds with `C = Λ`: `J₁(Ψ, p, q) ≤ Λ |p|² + |q|²` (`J1_le`).
+- Definition 4.5 is not formalized: `𝒴ₛ` is the maximum of the minimal scales of Theorem 3.8 (all
+  `k`), Proposition 3.21 and Proposition 4.3, and Theorem 3.8 is proved only for `k = 1`.
