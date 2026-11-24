@@ -602,4 +602,145 @@ theorem lemma_3_6_one (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α : ℝ} (hα : 0 < α) 
 
 end Lemma36
 
+section Iteration
+
+/-- `‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ (t/r)^{d/2} ‖u - (u)_{B_t}‖_{L̲²(B_t)}` for `r ≤ t`. -/
+theorem scalarRms_sub_setAverage_ball_le {r t : ℝ} (hr : 0 < r) (hrt : r ≤ t) {u : Vec d → ℝ}
+    (hu : MemLp u 2 (volume.restrict (ball (0 : Vec d) t))) :
+    scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
+      Real.sqrt ((t / r) ^ d) *
+        scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y) := by
+  have hur : MemLp u 2 (volume.restrict (ball (0 : Vec d) r)) :=
+    hu.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero hrt) le_rfl)
+  refine (scalarRms_sub_setAverage_le (volume_ball_ne_top' 0 r) hur
+    (⨍ y in ball 0 t, u y)).trans ?_
+  exact scalarRms_ball_le hr hrt (hu.sub (memLp_const _))
+
+/-- `‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ ‖u - c - q·x‖_{L̲²(B_r)} + |q| r`. -/
+theorem scalarRms_sub_setAverage_le_affine {r : ℝ} (hr : 0 ≤ r) {u : Vec d → ℝ}
+    (hu : MemLp u 2 (volume.restrict (ball (0 : Vec d) r))) (c : ℝ) (q : Vec d) :
+    scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
+      scalarRms volume (ball 0 r) (fun x => u x - (c + dot q x)) + euclideanNorm q * r := by
+  refine (scalarRms_sub_setAverage_le (volume_ball_ne_top' 0 r) hu c).trans ?_
+  have e : (fun x => u x - c) = fun x => (u x - (c + dot q x)) + dot q x :=
+    funext fun x => by ring
+  rw [e]
+  have hm : MemLp (fun x => u x - (c + dot q x)) 2 (volume.restrict (ball (0 : Vec d) r)) :=
+    hu.sub (memLp_affine_ball c q r)
+  refine (scalarRms_add_le hm (memLp_dot_ball q r)).trans ?_
+  have := scalarRms_dot_ball_le q hr
+  linarith
+
+/-- **The discrete iteration of the proof of Lemma 3.4**: normalized flatnesses `G_j` contracting
+by `½` up to the errors `β ε_j D_j`, slopes `Q_j` growing by `γ (ε_j D_j + G_j)`, and normalized
+oscillations `D_j ≤ G_j + Q_j`; if the errors are summable with a small sum, then the oscillations
+are bounded by the initial flatness. -/
+theorem discrete_flatness_iteration {G D Q ε : ℕ → ℝ} {J : ℕ} {β γ E : ℝ} (hβ : 0 ≤ β)
+    (hγ : 0 ≤ γ) (hG : ∀ j, 0 ≤ G j) (hD : ∀ j, 0 ≤ D j) (hε : ∀ j, 0 ≤ ε j)
+    (hrecG : ∀ j < J, G (j + 1) ≤ G j / 2 + β * ε j * D j)
+    (hrecQ : ∀ j < J, Q (j + 1) ≤ Q j + γ * (ε j * D j + G j))
+    (hDQ : ∀ j ≤ J, D j ≤ G j + Q j) (hQ0 : Q 0 = 0)
+    (hE : ∑ j ∈ Finset.range J, ε j ≤ E) (hsmall : (2 * β + γ + 2 * γ * β) * E ≤ 1 / 2) :
+    ∀ j ≤ J, D j ≤ 2 * (2 + 2 * γ) * G 0 := by
+  have hne : (Finset.range (J + 1)).Nonempty := ⟨0, Finset.mem_range.2 (Nat.succ_pos J)⟩
+  set Mx := (Finset.range (J + 1)).sup' hne D with hMx
+  have hDM : ∀ j ≤ J, D j ≤ Mx := fun j hj =>
+    Finset.le_sup' D (Finset.mem_range.2 (Nat.lt_succ_of_le hj))
+  have hM0 : 0 ≤ Mx := (hD 0).trans (hDM 0 (Nat.zero_le _))
+  have hεsum : ∀ n ≤ J, ∑ j ∈ Finset.range n, ε j ≤ E := fun n hn =>
+    (Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono hn) fun j _ _ => hε j).trans hE
+  have hsumG : ∀ n ≤ J, ∑ j ∈ Finset.range (n + 1), G j ≤
+      2 * G 0 + 2 * β * Mx * ∑ j ∈ Finset.range n, ε j := by
+    intro n hn
+    have hrec : ∀ j ∈ Finset.range n, G (j + 1) ≤ G j / 2 + β * Mx * ε j := fun j hj => by
+      have hj' : j < J := lt_of_lt_of_le (Finset.mem_range.1 hj) hn
+      have h1 := hrecG j hj'
+      have h2 : β * ε j * D j ≤ β * ε j * Mx :=
+        mul_le_mul_of_nonneg_left (hDM j hj'.le) (mul_nonneg hβ (hε j))
+      linarith
+    have h1 := Finset.sum_le_sum hrec
+    have h3 : ∑ j ∈ Finset.range n, (G j / 2 + β * Mx * ε j) =
+        (∑ j ∈ Finset.range n, G j) / 2 + β * Mx * ∑ j ∈ Finset.range n, ε j := by
+      rw [Finset.sum_add_distrib, Finset.sum_div, Finset.mul_sum]
+    have hS : ∑ j ∈ Finset.range (n + 1), G j = ∑ j ∈ Finset.range n, G (j + 1) + G 0 :=
+      Finset.sum_range_succ' _ _
+    have h2 : ∑ j ∈ Finset.range n, G j ≤ ∑ j ∈ Finset.range (n + 1), G j :=
+      Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono (Nat.le_succ n))
+        fun j _ _ => hG j
+    linarith
+  have hQ : ∀ n ≤ J, Q n ≤ γ * (Mx * ∑ j ∈ Finset.range n, ε j + ∑ j ∈ Finset.range n, G j) := by
+    intro n
+    induction n with
+    | zero => intro _; simp [hQ0]
+    | succ n ih =>
+      intro hn
+      have h1 := hrecQ n (by omega)
+      have h2 := ih (by omega)
+      have h3 : ε n * D n ≤ ε n * Mx := mul_le_mul_of_nonneg_left (hDM n (by omega)) (hε n)
+      rw [Finset.sum_range_succ, Finset.sum_range_succ]
+      nlinarith
+  intro j hj
+  have hGj : G j ≤ ∑ i ∈ Finset.range (j + 1), G i :=
+    Finset.single_le_sum (fun i _ => hG i) (Finset.mem_range.2 (Nat.lt_succ_self j))
+  have hGj' : ∑ i ∈ Finset.range j, G i ≤ ∑ i ∈ Finset.range (j + 1), G i :=
+    Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono (Nat.le_succ j)) fun i _ _ => hG i
+  have hS := hsumG j hj
+  have hEj := hεsum j hj
+  have hεj0 : 0 ≤ ∑ i ∈ Finset.range j, ε i := Finset.sum_nonneg fun i _ => hε i
+  have hbound : ∀ k ≤ J, D k ≤ (2 + 2 * γ) * G 0 + 1 / 2 * Mx := by
+    intro k hk
+    have hGk : G k ≤ ∑ i ∈ Finset.range (k + 1), G i :=
+      Finset.single_le_sum (fun i _ => hG i) (Finset.mem_range.2 (Nat.lt_succ_self k))
+    have hGk' : ∑ i ∈ Finset.range k, G i ≤ ∑ i ∈ Finset.range (k + 1), G i :=
+      Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono (Nat.le_succ k))
+        fun i _ _ => hG i
+    have hSk := hsumG k hk
+    have hEk := hεsum k hk
+    have hεk0 : 0 ≤ ∑ i ∈ Finset.range k, ε i := Finset.sum_nonneg fun i _ => hε i
+    have hQk := hQ k hk
+    have hDk := hDQ k hk
+    set e := ∑ i ∈ Finset.range k, ε i
+    set S := ∑ i ∈ Finset.range (k + 1), G i
+    have hS' : S ≤ 2 * G 0 + 2 * β * Mx * E := by
+      have : 2 * β * Mx * e ≤ 2 * β * Mx * E :=
+        mul_le_mul_of_nonneg_left hEk (by positivity)
+      linarith
+    have hQ' : Q k ≤ γ * (Mx * E + (2 * G 0 + 2 * β * Mx * E)) := by
+      have h1 : Mx * e ≤ Mx * E := mul_le_mul_of_nonneg_left hEk hM0
+      have h2 : γ * (Mx * e + ∑ i ∈ Finset.range k, G i) ≤
+          γ * (Mx * E + (2 * G 0 + 2 * β * Mx * E)) :=
+        mul_le_mul_of_nonneg_left (by linarith) hγ
+      linarith
+    have hsm : (2 * β + γ + 2 * γ * β) * E * Mx ≤ 1 / 2 * Mx :=
+      mul_le_mul_of_nonneg_right hsmall hM0
+    nlinarith
+  obtain ⟨k, hk, hkM⟩ := Finset.exists_mem_eq_sup' hne D
+  have hkJ : k ≤ J := Nat.lt_succ_iff.1 (Finset.mem_range.1 hk)
+  have hMb : Mx ≤ (2 + 2 * γ) * G 0 + 1 / 2 * Mx := by
+    rw [hMx, hkM]
+    have := hbound k hkJ
+    rw [← hkM, ← hMx] at this ⊢
+    linarith
+  have := hDM j hj
+  linarith
+
+/-- `Σ_{j<J} (θ^j ρ)^{-α} ≤ R₀^{-α} / (θ^{-α} - 1)` when `θ^J ρ ≥ R₀ > 0`. -/
+theorem sum_rpow_neg_le {θ ρ R₀ α : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1) (hα : 0 < α) (hρ : 0 < ρ)
+    {J : ℕ} (hR₀ : 0 < R₀) (hJ : R₀ ≤ θ ^ J * ρ) :
+    ∑ j ∈ Finset.range J, (θ ^ j * ρ) ^ (-α) ≤ R₀ ^ (-α) / (θ ^ (-α) - 1) := by
+  have hμ1 : 1 < θ ^ (-α) := Real.one_lt_rpow_of_pos_of_lt_one_of_neg hθ0 hθ1 (by linarith)
+  have hterm : ∀ j : ℕ, (θ ^ j * ρ) ^ (-α) = ρ ^ (-α) * (θ ^ (-α)) ^ j := fun j => by
+    rw [Real.mul_rpow (by positivity) hρ.le, ← Real.rpow_natCast θ j, ← Real.rpow_mul hθ0.le,
+      mul_comm (j : ℝ) (-α), Real.rpow_mul hθ0.le, Real.rpow_natCast]
+    ring
+  rw [Finset.sum_congr rfl fun j _ => hterm j, ← Finset.mul_sum, geom_sum_eq hμ1.ne' J]
+  have hJ' : (θ ^ J * ρ) ^ (-α) ≤ R₀ ^ (-α) := Real.rpow_le_rpow_of_nonpos hR₀ hJ (by linarith)
+  rw [hterm J] at hJ'
+  have hμ0 : 0 < θ ^ (-α) - 1 := by linarith
+  rw [← mul_div_assoc, div_le_div_iff_of_pos_right hμ0]
+  have : 0 ≤ ρ ^ (-α) := by positivity
+  nlinarith
+
+end Iteration
+
 end QSH
