@@ -183,7 +183,7 @@ theorem gehring_gterm {B : Set (Vec d)} {K ε c : ℝ} (hK : 1 ≤ K) (hε : 0 <
           ← ENNReal.ofReal_mul hc]
 
 theorem ofReal_mul_add_mul_ofReal {a b b' c : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hb' : 0 ≤ b')
-    (hc : 0 ≤ c) (X Y : ℝ≥0∞) :
+    (X Y : ℝ≥0∞) :
     ENNReal.ofReal a * (ENNReal.ofReal b * X + ENNReal.ofReal b' * Y) * ENNReal.ofReal c =
       ENNReal.ofReal (a * b * c) * X + ENNReal.ofReal (a * b' * c) * Y := by
   rw [ENNReal.ofReal_mul (mul_nonneg ha hb), ENNReal.ofReal_mul ha,
@@ -285,8 +285,7 @@ theorem gehring_step {R σ τ K q ε m : ℝ} (hR : 0 < R) (hσ : 0 < σ) (hστ
             gcongr
         _ = ENNReal.ofReal (8 ^ d * t ^ 2 * (8 * K / t) ^ q * t ^ (ε - 1)) * X +
               ENNReal.ofReal (8 ^ d * t ^ 2 * (8 * K / t) ^ (2 : ℝ) * t ^ (ε - 1)) * Y :=
-            ofReal_mul_add_mul_ofReal (by positivity) (by positivity) (by positivity)
-              (by positivity) X Y
+            ofReal_mul_add_mul_ofReal (by positivity) (by positivity) (by positivity) X Y
         _ = ENNReal.ofReal c₂ * (X * ENNReal.ofReal (t ^ (2 + ε - q - 1))) +
               ENNReal.ofReal c₃ * (Y * ENNReal.ofReal (t ^ (ε - 1))) := by
             rw [e1, e2, ENNReal.ofReal_mul (show 0 ≤ c₂ by positivity),
