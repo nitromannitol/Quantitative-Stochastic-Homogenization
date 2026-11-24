@@ -14,7 +14,9 @@ The proof is the book's. By (2.12), `J(U, p, q) = ½ p·(a(U) - a*(U))p + ½ (q 
 `a*⁻¹(U) ≥ Λ⁻¹`, the second term bounds `|(ā - a*(U))p|²`; the first bounds the diagonal of the
 nonnegative matrix `a(U) - a*(U)`, whose entries are then bounded by the Cauchy–Schwarz
 inequality and the bound `a(U) - a*(U) ≤ Λ`. The book's minimization in `p` for `a(U)` is replaced by
-this bound of `a(U) - a*(U)`.
+this bound of `a(U) - a*(U)`. The bound uses no property of the matrix in `J(U, p, A p)`
+(`frobeniusNorm_sub_add_le_of_dualityDefect_le`); the bounds of `ā` only give the bound of `J`
+(`dualityDefect_le_of_bounds`).
 -/
 
 open MeasureTheory Filter Set
@@ -91,61 +93,39 @@ theorem euclideanSq_smul_eq (c : ℝ) (v : Vec d) : euclideanSq (c • v) = c ^ 
   simp only [euclideanSq, dot, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
   exact Finset.sum_congr rfl fun i _ => by ring
 
-/-- **Lemma 2.7.** There is `C(d, Λ) < ∞` such that, for every symmetric matrix `ā` with
-`Id ≤ ā ≤ Λ Id` and every bounded open convex nonempty `U ⊆ ℝ^d`,
-`|a(U) - ā| + |a*(U) - ā| ≤ C sup_{p ∈ B₁} J(U, p, ā p)^{1/2}` (2.25), the supremum of a set bounded
-above, for the Frobenius norm. -/
-theorem lemma_2_7 [NeZero d] :
-    ∃ C : ℝ, 0 ≤ C ∧ ∀ A : Mat d, A.transpose = A →
-      (∀ ξ : Vec d, euclideanSq ξ ≤ dot ξ (A.mulVec ξ) ∧ dot ξ (A.mulVec ξ) ≤ Λ * euclideanSq ξ) →
-      ∀ (a : CoefficientField d Λ) (U : Set (Vec d)), IsOpen U → Bornology.IsBounded U →
-        Convex ℝ U → U.Nonempty →
-        BddAbove ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) ∧
-        frobeniusNorm (coarseMatrix a U - A) + frobeniusNorm (coarseDualMatrix a U - A) ≤
-          C * sSup ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) := by
-  refine ⟨3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ), by positivity, fun A hAt hA a U hUo hUb hUc hne => ?_⟩
+/-- `J(U, p, A p) ≤ ½ Λ + ½ Λ²` for `p ∈ B₁` and a symmetric matrix `A` with `0 ≤ A ≤ Λ Id`. -/
+theorem dualityDefect_le_of_bounds [NeZero d] (a : CoefficientField d Λ) {U : Set (Vec d)}
+    (hUo : IsOpen U) (hUb : Bornology.IsBounded U) (hUc : Convex ℝ U) (hne : U.Nonempty)
+    {A : Mat d} (hAt : A.transpose = A) (hA0 : ∀ v : Vec d, 0 ≤ dot v (A.mulVec v))
+    (hA : ∀ v : Vec d, dot v (A.mulVec v) ≤ Λ * euclideanSq v) {p : Vec d}
+    (hp : p ∈ originBall d 1) :
+    dualityDefect a U p (A.mulVec p) ≤ (1 / 2 : ℝ) * Λ + (1 / 2 : ℝ) * Λ ^ 2 := by
   have hU : volume U ≠ ⊤ := hUb.measure_lt_top.ne
   have hU0 : volume U ≠ 0 := (hUo.measure_pos volume hne).ne'
-  have hΛ1 : 1 ≤ Λ := one_le_of_coefficientField a
-  have hΛ : 0 < Λ := zero_lt_one.trans_le hΛ1
-  have hA0 : ∀ v : Vec d, 0 ≤ dot v (A.mulVec v) := fun v =>
-    (euclideanSq_nonneg v).trans (hA v).1
-  have hJ0 : ∀ p : Vec d, 0 ≤ dualityDefect a U p (A.mulVec p) := fun p => by
-    have := dot_le_dirichletEnergy_add_dualEnergy a hUb hU0 p (A.mulVec p)
-    unfold dualityDefect
-    linarith
-  -- the bound of `J(U, p, ā p)` on the unit ball
-  have hbdd : BddAbove ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) := by
-    refine ⟨Real.sqrt ((1 / 2 : ℝ) * Λ + (1 / 2 : ℝ) * Λ ^ 2), ?_⟩
-    rintro _ ⟨p, hp, rfl⟩
-    refine Real.sqrt_le_sqrt ?_
-    have hp1 : euclideanSq p ≤ 1 := by
-      have hp' : Real.sqrt (euclideanSq p) < 1 := by simpa [originBall, euclideanNorm] using hp
-      rw [Real.sqrt_lt' one_pos] at hp'
-      linarith
-    have hJ := dualityDefect_eq_coarseMatrix a hUo hUb hUc hne p (A.mulVec p)
-    have h1 := (coarseMatrix_bounds a hU0 hU hΛ.le p).2
-    have h2 := dot_coarseDualInvMatrix_le a hUo hUb hUc hne (A.mulVec p)
-    have h3 := euclideanSq_mulVec_le_of_dot_le hAt hA0 (fun v => (hA v).2) p
-    have h4 := hA0 p
-    have h5 := mul_le_mul_of_nonneg_left hp1 hΛ.le
-    have h6 := mul_le_mul_of_nonneg_left hp1 (sq_nonneg Λ)
-    rw [hJ]
-    nlinarith
-  refine ⟨hbdd, ?_⟩
-  obtain ⟨δ, hδ⟩ : ∃ δ, δ = sSup ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) ''
-      originBall d 1) := ⟨_, rfl⟩
-  rw [← hδ]
-  have hδJ : ∀ p ∈ originBall d 1, dualityDefect a U p (A.mulVec p) ≤ δ ^ 2 := fun p hp => by
-    have h := le_csSup hbdd ⟨p, hp, rfl⟩
-    rw [← hδ] at h
-    rw [← Real.sq_sqrt (hJ0 p)]
-    exact pow_le_pow_left₀ (Real.sqrt_nonneg _) h 2
-  have hδ0 : 0 ≤ δ := by
-    have h0 : (0 : Vec d) ∈ originBall d 1 := by
-      simp [originBall, euclideanNorm, euclideanSq, dot]
-    rw [hδ]
-    exact (Real.sqrt_nonneg _).trans (le_csSup hbdd ⟨0, h0, rfl⟩)
+  have hΛ : 0 < Λ := zero_lt_one.trans_le (one_le_of_coefficientField a)
+  have hp1 : euclideanSq p ≤ 1 := euclideanSq_le_one_of_mem_originBall hp
+  have hJ := dualityDefect_eq_coarseMatrix a hUo hUb hUc hne p (A.mulVec p)
+  have h1 := (coarseMatrix_bounds a hU0 hU hΛ.le p).2
+  have h2 := dot_coarseDualInvMatrix_le a hUo hUb hUc hne (A.mulVec p)
+  have h3 := euclideanSq_mulVec_le_of_dot_le hAt hA0 hA p
+  have h4 := hA0 p
+  have h5 := mul_le_mul_of_nonneg_left hp1 hΛ.le
+  have h6 := mul_le_mul_of_nonneg_left hp1 (sq_nonneg Λ)
+  rw [hJ]
+  nlinarith
+
+/-- **The matrices `a(U)` and `a*(U)` from `J(U, p, A p)`**, for any matrix `A`: if
+`J(U, p, A p) ≤ δ²` for every `p ∈ B₁`, then `|a(U) - A| + |a*(U) - A| ≤ 3 d² √(32 Λ) δ`, for the
+Frobenius norm. This is the bound of the proof of Lemma 2.7, which uses no property of `A`. -/
+theorem frobeniusNorm_sub_add_le_of_dualityDefect_le [NeZero d] (a : CoefficientField d Λ)
+    {U : Set (Vec d)} (hUo : IsOpen U) (hUb : Bornology.IsBounded U) (hUc : Convex ℝ U)
+    (hne : U.Nonempty) (A : Mat d) {δ : ℝ} (hδ0 : 0 ≤ δ)
+    (hδJ : ∀ p ∈ originBall d 1, dualityDefect a U p (A.mulVec p) ≤ δ ^ 2) :
+    frobeniusNorm (coarseMatrix a U - A) + frobeniusNorm (coarseDualMatrix a U - A) ≤
+      3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ) * δ := by
+  have hU : volume U ≠ ⊤ := hUb.measure_lt_top.ne
+  have hU0 : volume U ≠ 0 := (hUo.measure_pos volume hne).ne'
+  have hΛ : 0 < Λ := zero_lt_one.trans_le (one_le_of_coefficientField a)
   -- the test vectors `¼ e_k`
   have hmem : ∀ k : Fin d, (1 / 4 : ℝ) • unitVector k ∈ originBall d 1 := fun k => by
     simpa using mem_originBall_quarter k k 0 (by simp)
@@ -238,5 +218,44 @@ theorem lemma_2_7 [NeZero d] :
   calc frobeniusNorm (coarseMatrix a U - A) + frobeniusNorm (coarseDualMatrix a U - A)
       ≤ (d : ℝ) ^ 2 * (2 * c) + (d : ℝ) ^ 2 * c := add_le_add hĀ hB
     _ = 3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ) * δ := by rw [hc]; ring
+
+/-- **Lemma 2.7.** There is `C(d, Λ) < ∞` such that, for every symmetric matrix `ā` with
+`Id ≤ ā ≤ Λ Id` and every bounded open convex nonempty `U ⊆ ℝ^d`,
+`|a(U) - ā| + |a*(U) - ā| ≤ C sup_{p ∈ B₁} J(U, p, ā p)^{1/2}` (2.25), the supremum of a set bounded
+above, for the Frobenius norm. -/
+theorem lemma_2_7 [NeZero d] :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ A : Mat d, A.transpose = A →
+      (∀ ξ : Vec d, euclideanSq ξ ≤ dot ξ (A.mulVec ξ) ∧ dot ξ (A.mulVec ξ) ≤ Λ * euclideanSq ξ) →
+      ∀ (a : CoefficientField d Λ) (U : Set (Vec d)), IsOpen U → Bornology.IsBounded U →
+        Convex ℝ U → U.Nonempty →
+        BddAbove ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) ∧
+        frobeniusNorm (coarseMatrix a U - A) + frobeniusNorm (coarseDualMatrix a U - A) ≤
+          C * sSup ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) := by
+  refine ⟨3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ), by positivity, fun A hAt hA a U hUo hUb hUc hne => ?_⟩
+  have hU0 : volume U ≠ 0 := (hUo.measure_pos volume hne).ne'
+  have hA0 : ∀ v : Vec d, 0 ≤ dot v (A.mulVec v) := fun v =>
+    (euclideanSq_nonneg v).trans (hA v).1
+  have hJ0 : ∀ p : Vec d, 0 ≤ dualityDefect a U p (A.mulVec p) := fun p => by
+    have := dot_le_dirichletEnergy_add_dualEnergy a hUb hU0 p (A.mulVec p)
+    unfold dualityDefect
+    linarith
+  have hbdd : BddAbove ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) '' originBall d 1) := by
+    refine ⟨Real.sqrt ((1 / 2 : ℝ) * Λ + (1 / 2 : ℝ) * Λ ^ 2), ?_⟩
+    rintro _ ⟨p, hp, rfl⟩
+    exact Real.sqrt_le_sqrt
+      (dualityDefect_le_of_bounds a hUo hUb hUc hne hAt hA0 (fun v => (hA v).2) hp)
+  refine ⟨hbdd, ?_⟩
+  obtain ⟨δ, hδ⟩ : ∃ δ, δ = sSup ((fun p => Real.sqrt (dualityDefect a U p (A.mulVec p))) ''
+      originBall d 1) := ⟨_, rfl⟩
+  rw [← hδ]
+  have hδJ : ∀ p ∈ originBall d 1, dualityDefect a U p (A.mulVec p) ≤ δ ^ 2 := fun p hp => by
+    have h := le_csSup hbdd ⟨p, hp, rfl⟩
+    rw [← hδ] at h
+    rw [← Real.sq_sqrt (hJ0 p)]
+    exact pow_le_pow_left₀ (Real.sqrt_nonneg _) h 2
+  have hδ0 : 0 ≤ δ := by
+    rw [hδ]
+    exact (Real.sqrt_nonneg _).trans (le_csSup hbdd ⟨0, zero_mem_originBall, rfl⟩)
+  exact frobeniusNorm_sub_add_le_of_dualityDefect_le a hUo hUb hUc hne A hδ0 hδJ
 
 end QSH
