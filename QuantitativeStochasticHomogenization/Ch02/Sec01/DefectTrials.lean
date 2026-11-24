@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch02.Sec01.Lemma22
+import QuantitativeStochasticHomogenization.Ch03.Sec03.WeakGradientH10
 
 /-!
 # A bound of `J(U, p, q)` by a primal and a dual trial field
@@ -14,6 +15,10 @@ By (2.9), `J(U, p, q)` is the supremum over `w ∈ A(U)` of `⨍_U (-½ ∇w·a�
 (`IsAHarmonic.setIntegral_dot_eq_zero`); then `-½ ∇w·a∇w + (F - aE)·∇w ≤ ½ |F - aE|²` pointwise,
 by `a ≥ Id`. This is the inequality `2J + ‖∇w‖² ≤ ‖aE - F‖²_{a⁻¹}` of the finite-cube argument for
 (2.21) from first-order correctors, with `a⁻¹ ≤ Id`.
+
+The dual trial `F = q + div Θ` (row divergence) of a skew family `Θ` of functions of `H¹₀(U)` is
+admissible (`dualityDefect_le_of_skew`), by the skew identity `Σⱼₖ ∫_U ∂ⱼw ∂ₖΘⱼₖ = 0`
+(`sum_integral_grad_mul_skew_h10`).
 -/
 
 open MeasureTheory Filter Set
@@ -123,5 +128,37 @@ theorem dualityDefect_le_of_trials [NeZero d] (a : CoefficientField d Λ) {U : S
   have h3 := mul_le_mul_of_nonneg_left hle (inv_nonneg.mpr hV.le)
   rw [integral_const_mul] at h3
   linarith
+
+
+/-- **The bound of `J` by a primal trial and the divergence of a skew family**: for
+`u ∈ H¹₀(U)` of weak gradient `h_E` and functions `Θⱼₖ ∈ H¹₀(U)` with `∇Θₖⱼ = -∇Θⱼₖ`,
+`J(U, p, q) ≤ ½ ⨍_U |a(p + h_E) - (q + div Θ)|²`, `(div Θ)ⱼ = Σₖ ∂ₖΘⱼₖ`. -/
+theorem dualityDefect_le_of_skew [NeZero d] (a : CoefficientField d Λ) {U : Set (Vec d)}
+    (hUo : IsOpen U) (hUb : Bornology.IsBounded U) (hUc : Convex ℝ U) (hne : U.Nonempty)
+    (p q : Vec d) {u : Vec d → ℝ} {hE : Vec d → Vec d} (hu : H01 U u hE)
+    (Θ : Fin d → Fin d → PDE.H10Function U)
+    (hskew : ∀ j k x, (Θ k j).toH1Function.grad x = -(Θ j k).toH1Function.grad x) :
+    dualityDefect a U p q ≤ (1 / 2 : ℝ) * ⨍ x in U, euclideanSq ((a x).mulVec (p + hE x) -
+      (q + fun j => ∑ k, (Θ j k).toH1Function.grad x k)) := by
+  have hU : volume U ≠ ⊤ := hUb.measure_lt_top.ne
+  have := isFiniteMeasure_restrict.mpr hU
+  have hΘ : ∀ j k, MemLp (fun x => (Θ j k).toH1Function.grad x k) 2 (volume.restrict U) :=
+    fun j k => (Θ j k).toH1Function.gradMemL2 k
+  have hF : MemLp (fun x => q + fun j => ∑ k, (Θ j k).toH1Function.grad x k) 2
+      (volume.restrict U) :=
+    (memLp_const q).add (memLp_pi_iff.mpr fun j => memLp_finsetSum _ fun k _ => hΘ j k)
+  refine dualityDefect_le_of_trials a hUo hUb hUc hne p q hu hF fun w h hw => ?_
+  have hh : ∀ i, MemLp (fun x => h x i) 2 (volume.restrict U) := fun i => hw.1.2.1.eval i
+  have hz := sum_integral_grad_mul_skew_h10 hh hw.1.2.2 Θ hskew
+  have hint : ∀ j k, Integrable (fun x => h x j * (Θ j k).toH1Function.grad x k)
+      (volume.restrict U) := fun j k => integrable_mul_of_memLp_two (hh j) (hΘ j k)
+  have e : (fun x => dot ((q + fun j => ∑ k, (Θ j k).toH1Function.grad x k) - q) (h x)) =
+      fun x => ∑ j, ∑ k, h x j * (Θ j k).toH1Function.grad x k := by
+    funext x
+    simp only [dot, add_sub_cancel_left, Finset.sum_mul]
+    exact Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun k _ => mul_comm _ _
+  rw [e, integral_finsetSum _ fun j _ => integrable_finsetSum _ fun k _ => hint j k]
+  rw [← hz]
+  exact Finset.sum_congr rfl fun j _ => integral_finsetSum _ fun k _ => hint j k
 
 end QSH
