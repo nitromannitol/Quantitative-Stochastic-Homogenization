@@ -179,6 +179,7 @@ theorem expectedDualInvMatrix_bounds (hΛ : 1 ≤ Λ) (p : Vec d) :
             dot_coarseDualInvMatrix_le a hUo hUb hUc hne p
       _ = euclideanSq p := by simp
 
+omit [IsProbabilityMeasure P] in
 theorem expectedDualInvMatrix_transpose :
     (expectedDualInvMatrix P U).transpose = expectedDualInvMatrix P U := by
   ext i j
