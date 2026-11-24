@@ -713,6 +713,77 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   heat averages of the flux converge by the scale pairing bounds of that theorem. The skew part
   `(S - Sᵀ)/2` satisfies the same identity (`FluxCorrector.ae_skew_divergence_of_package`).
 
+## Lemma 1.1: basic properties of μ (`Ch01/Sec02/Lemma11.lean`, `Ch01/Sec02/DirichletMinimizer.lean`, `Ch01/Sec02/TestPoincare.lean`)
+
+- Lean: `QSH.lemma_1_1`, with `coarseMatrix` (the matrix `a(U)` of (1.10)),
+  `exists_isDirichletMinimizer`, `IsDirichletMinimizer.ae_eq`,
+  `isDirichletMinimizer_iff_solvesDirichletProblem`, `IsDirichletMinimizer.integral_dot_eq_zero`
+  and `IsDirichletMinimizer.quadraticResponse`.
+- Domain. The book fixes a bounded Lipschitz domain; the Lean statement holds for every bounded set
+  `U` of positive measure in dimension `d ≥ 1`, and the subadditivity (1.11) for partitions of `U`,
+  up to a null set, by pairwise disjoint open sets.
+- The minimizer (1.8) is the pair `(u, g)` of a function of `H¹₀(U)` and its weak gradient, with
+  `v(·, U, p) = ℓ_p + u`; it is unique up to null sets of `U`. Existence: the book refers to the
+  weak lower semicontinuity of the energy. Here a minimizing sequence of smooth tests is Cauchy in
+  `L²(U)`: by the parallelogram identity and `ξ·aξ ≥ |ξ|²`,
+  `⨍_U |∇vₙ - ∇vₘ|² ≤ 8(½ E(vₙ) + ½ E(vₘ) - μ(U, p))`, and the tests themselves by the Poincaré
+  inequality for the tests of a cube containing `U` (from the zero-trace Poincaré inequality on axis
+  cubes of the coarse-graining library, `Homogenization.scaled_dirichlet_poincare`). The limit lies
+  in `H¹₀(U)` and has energy `μ(U, p)`.
+- (1.9)–(1.10): `a(U)_{ij} = 2B(e_i, e_j)` for the polarization `B` of `p ↦ μ(U, p)`, which is a
+  quadratic form by the parallelogram identity (see Section 1.3 below), in place of the linearity
+  (1.15) of the minimizer.
+- First variation: the minimizers are exactly the solutions of (1.12) in the weak sense, the test
+  functions ranging over `H¹₀(U)`; the proof expands `t ↦ E(g + t h)` and uses that a quadratic
+  polynomial `A t² + B t ≥ 0` has `B = 0`. Quadratic response: the exact identity
+  `⨍_U ½(p + h)·a(p + h) - μ(U, p) = ⨍_U ½(h - g)·a(h - g)` (`IsDirichletMinimizer.trialEnergy_sub_eq`).
+
+## Section 1.3: Propositions 1.7 and 1.8 (`Ch01/Sec03/Proposition17.lean`, `Ch01/Sec03/Proposition18.lean`, `Ch01/Sec03/MinimizerOscillation.lean`, `Ch01/Sec03/LocalMeasurability.lean`, `Ch01/Sec03/TriadicPartition.lean`)
+
+- Lean: `QSH.proposition_1_7`, `QSH.proposition_1_8`, with `homogenizedMatrix` (the matrix `ā` of
+  Definition 1.2, the polarization matrix of the limit (1.22)), `omegaModulus` (the modulus `ω` of
+  (1.27), a supremum over the open ball `B₁`, with its bound `bddAbove_omegaModulus`) and
+  `measurable_dirichletEnergy_localSigma` ((1.29) for open sets of finite measure with nonempty
+  complement: the coefficients have a representative on `U`, the upper limit of gated averages
+  against smooth bumps, jointly measurable for `Borel ⊗ F(U)`, as in
+  `Ch04/Sec04/LocalCoefficientRepresentative.lean` for balls).
+- Both constants depend only on `d` and `Λ` and are chosen before the law; `⌈m/2⌉` is written
+  `(m + 1)/2`.
+- Proposition 1.7. The matrix norm is the Frobenius norm (the book leaves it unspecified; all norms
+  are equivalent with constants depending on `d`), and the entries of `a(□_m) - ā` are recovered
+  from the deviations `μ(□_m, q) - μ̄(q)` at the points `q = ¼(eᵢ ± eⱼ)` of `B₁`. The assumption
+  (0.11) is stated with a strict separation (`t > 1`), so two subcubes `z + □_n` are counted as
+  independent when their indices differ by at least `3` in one coordinate (distance at least `2`),
+  and each subcube has at most `5^d` other ones (`card_near_le`). Step 2 uses
+  `E|μ(□_m, p) - μ̄(p)| ≤ 2 E[(μ(□_m, p) - E μ(□_n, p))₊] + 2ω(n)`, from the same facts as the
+  book's `… + ω(m) + 2ω(n)`.
+- Proposition 1.8. The minimizer is `v(·, □_m, p) = ℓ_p + u a` for any family of minimizers
+  `a ↦ (u a, g a)` (unique up to null sets by Lemma 1.1). The book does not discuss the
+  measurability of `a ↦ ⨍_{□_m} |v - ℓ_p|²`; it is proved (`measurable_setIntegral_sq_minimizer`):
+  along tests of a countable family dense in `H¹₀`, selected measurably with energies within
+  `1/(k+1)` of `μ(□_m, p)`, the mean squares converge to that of the minimizer by the quadratic
+  response and the Poincaré inequality. In (1.35) the minimizers of the subcubes are replaced by
+  tests with energies within `δ` of `μ(z + □_n, p)`, glued into a test of `□_m`, and `δ → 0`.
+  In Step 2, `E[3^{-dr} Σ_z μ(z + □_n, p) - μ(□_m, p)] = E μ(□_n, p) - E μ(□_m, p) ≤ ω(n)` gives
+  the bound `C 3^{-m} + C ω(⌈m/2⌉)`, which implies (1.33); the intermediate term `C 3^{-dm/8}` of
+  the book is not needed.
+
+## Section 1.4: Proposition 1.11 (`Ch01/Sec04/Proposition111.lean`)
+
+- Lean: `QSH.proposition_1_11`, `QSH.proposition_1_11_of_ne_four`,
+  `QSH.tendsto_integral_coarseDeviation`, with `coarseDeviation` (the random variable `E(m)` of
+  (1.39), for the Frobenius norm), `coarseDeviation_le` ((1.52), with the constant `3/2`) and
+  `tendsto_omegaModulus` (the limit in (1.28)). The constants depend only on `d` and `Λ`.
+- (1.41). The proof gives `E[E(m)] ≤ C Σ_{n=0}^m 3^{n-m}(3^{-dn/4} + ω(⌈n/2⌉))`
+  (`proposition_1_11`), and the book then bounds `Σ_{n=0}^m 3^{n-m} 3^{-dn/4}` by
+  `C 3^{-(d/4 ∧ 1)m}`. This holds for `d ≠ 4` (`proposition_1_11_of_ne_four`); for `d = 4` the sum
+  is `(m + 1) 3^{-m}`, which is not bounded by `C 3^{-m}`, so (1.41) is not proved here for `d = 4`;
+  the limit `E[E(m)] → 0` is proved for every `d`.
+- `E[E(m)] → 0`: the book uses the monotonicity of `ω`; here the weighted sums of the null
+  sequence `3^{-dn/4} + ω(⌈n/2⌉)` against the weights `3^{n-m}` tend to zero by dominated
+  convergence for series, and `ω(n) → 0` because `ω(n)` is at most half the sum of the absolute
+  values of the entries of the matrix of `p ↦ E μ(□_n, p) - μ̄(p)`.
+
 ## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
 
 - Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`),
