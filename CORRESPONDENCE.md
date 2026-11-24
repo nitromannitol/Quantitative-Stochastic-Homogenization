@@ -784,6 +784,43 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   convergence for series, and `ω(n) → 0` because `ω(n)` is at most half the sum of the absolute
   values of the entries of the matrix of `p ↦ E μ(□_n, p) - μ̄(p)`.
 
+## Section 1.4: Propositions 1.10 and 1.12, Lemma 1.13, Corollary 1.14 (`Ch01/Sec04/Proposition112.lean`, `Ch01/Sec04/Proposition110.lean`, `Ch01/Sec04/Lemma113.lean`, `Ch01/Sec04/Corollary114.lean` and their proof modules)
+
+- Lean: `QSH.proposition_1_12`, `QSH.proposition_1_10`, `QSH.lemma_1_13`, `QSH.corollary_1_14`,
+  with `H1`, `h1Norm`, `hatNegativeSobolevNorm` and `vectorHatNegativeSobolevNorm`
+  (`Ch01/Sec04/HatNegativeSobolev.lean`). The constants depend only on `d` (and on `Λ` for
+  Proposition 1.10, chosen before the law).
+- The norms. `‖f‖_{Ĥ̲⁻¹(U)}` of (0.31) is the supremum of `|⨍_U f v|` over `v ∈ H¹(U)` with weak
+  gradient `g` and `|U|^{-1/d} ‖v‖_{L̲²(U)} + ‖g‖_{L̲²(U)} ≤ 1` (the normalized norm of (0.26), with
+  the Euclidean norm of the gradient), valued in `[0, ∞]`. For a vector field the norm is the sum of
+  the norms of its components, as for (0.29) in `Front/Notation.lean`; the book does not specify
+  it, and the choices differ by factors depending on `d`. The text of the book available here does
+  not show the hats over `H⁻¹` in Proposition 1.10 and Lemma 1.13; the proofs pair with functions of
+  `H¹` that do not vanish on the boundary (the test `g` of Proposition 1.12, `∇w` in (1.44), the
+  fields `(e·x)e_i` in (1.45)), so both are read with `Ĥ⁻¹`.
+- Proposition 1.12. `Z_n = 3^n ℤ^d ∩ □_m` is indexed by `k ∈ {0, …, 3^{m-n} - 1}^d`
+  (`partitionCube n (m - n) k`) and `|Z_n| = 3^{d(m-n)}`. The book normalizes the tests by
+  `3^{-2m}|(g)_{□_m}|² + ‖∇g‖²_{L̲²} ≤ 1`, here by the norm (0.26); the two are equivalent by the
+  Poincaré inequality. The proof is the book's: the iteration over the scales with the Poincaré
+  inequality (1.43) on the subcubes, proved from the mean-zero Poincaré inequality on axis cubes of
+  the coarse-graining library (`Homogenization.scaled_meanZero_poincare`).
+- Proposition 1.10. The statement is for every minimizer `(u, g)` of `μ(□_m, p)` (the minimizer is
+  unique up to null sets), with the squared norms in `[0, ∞]`. (1.49) is proved by comparing
+  `μ(U, p + tq)` with the energy of the trial gradient `g` of the minimizer for `p`, instead of the
+  polarization of `⨍ ∇v(·, U, q)·a∇v(·, U, p)`. In Step 2 the glued minimizers `v_n` are replaced by
+  tests of the subcubes close in `L²` to the gradients of the minimizers of the subcubes, glued into
+  a test of `□_m`, and `δ → 0` (`subcube_averages_le`); the bound of the averages by
+  `|Z_n|⁻¹ Σ_z |a(z + □_n) - ā| + |a(□_m) - ā|` and the bound
+  `Σ_{n<m} 3^{n-m}(...)^{1/2} ≤ (5/2) E(m)^{1/2}` follow the book.
+- Lemma 1.13. The Neumann solution of (1.47) and the estimate (1.48) (Lemma B.19 in the book) are
+  those of the coarse-graining library on the cubes `originCube d m`, whose open realization is
+  `□_m` (`Homogenization.meanZeroNeumannPoissonSolutionOfCoerciveEstimate`,
+  `Homogenization.originCubeNeumannW22CalderonZygmund_regularity_qTwo_apply`). The average of
+  `∂_i w` is bounded by testing (1.47) with `x ↦ x_i`, as with `x ↦ p·x` in the book. For (1.45),
+  `(v)_{□_m} = -⨍ x_1 ∂_1 v` for `v ∈ H¹₀(□_m)` (the field `(e·x)e` of the book with `e = e_1`).
+- Corollary 1.14. The sum runs over `n = 0, …, m`, with the Euclidean norm of the vector averages
+  `(∇u)_{y+□_n}` (`vectorAverage`), as in (1.46).
+
 ## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
 
 - Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`),
