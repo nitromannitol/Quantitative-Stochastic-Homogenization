@@ -144,7 +144,7 @@ theorem lintegral_heatGradSq_le (m : ℕ) :
     intro t ht x
     refine ENNReal.Tendsto.const_mul (ENNReal.tendsto_ofReal ?_) (Or.inr ENNReal.ofReal_ne_top)
     unfold heatGradSq
-    exact tendsto_finset_sum _ fun w _ =>
+    exact tendsto_finsetSum _ fun w _ =>
       (tendsto_kconv_heatKernelDeriv ht _ hg (fun n => (hψs n).memLp) hψg x).pow 2
   have hFmeas : ∀ n, Measurable (Function.uncurry (F n)) := fun n => by
     have hw : ∀ w : Fin (m + 1) → Fin d, Measurable (fun p : ℝ × Vec d =>

@@ -225,7 +225,7 @@ theorem lintegral_heatGradSq_le_of_smooth (m : ℕ) :
       ((continuous_kconv_of_hasCompactSupport (continuous_heatKernelDeriv t _) hψ.continuous
         hcψ).measurable.enorm).pow_const 2
     simp_rw [ofReal_heatGradSq]
-    rw [lintegral_finset_sum _ fun w _ => hmeas w, sum_fun_succ]
+    rw [lintegral_finsetSum _ fun w _ => hmeas w, sum_fun_succ]
     simp only [List.ofFn_cons]
     have hI : ∀ j, MemLp (heatSmooth (t / 2) (coordinateDerivative j ψ)) 2 volume := fun j =>
       memLp_kconv (measurable_euclideanHeatKernel _)
