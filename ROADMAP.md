@@ -81,13 +81,13 @@ No numbered result.
 
 ## Chapter 2: Convergence of the Subadditive Quantities
 
-### 2.1 The Dual Subadditive Quantity μ*, module `Ch02/Sec01DualSubadditiveQuantity.lean` (proofs in `Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean` and `Ch02/Sec01/Lemma27.lean`)
+### 2.1 The Dual Subadditive Quantity μ*, module `Ch02/Sec01DualSubadditiveQuantity.lean` (proofs in `Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean` and `Ch02/Sec01/Lemma27.lean`; Theorem 2.4 in progress in `Ch02/Sec01/DualEnergyMeasurability.lean`, `Ch02/Sec01/DefectTrials.lean`, `Ch02/Sec01/SkewCutoff.lean` and `Ch02/Sec01/CorrectorTrials.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Lemma 2.1 |  | proved for bounded open convex sets (`lemma_2_1`: (2.9) with `dualityDefect`, the quantity `J` of (2.6), and `dualEnergy`, the quantity `μ*` of (2.1); the maximizer of (2.1) exists, `exists_isDualMaximizer`, and the maximizer of (2.9) is its difference with the minimizer of (1.7)); see CORRESPONDENCE.md |
 | Lemma 2.2 | Basic properties of J | proved for bounded open convex sets (`lemma_2_2`: the matrices `coarseDualMatrix` `a*(U)` and `coarseDualInvMatrix` `a*⁻¹(U)`, (2.11)–(2.17)); see CORRESPONDENCE.md |
-| Theorem 2.4 |  | in progress: the bound of `J(U, p, Dp)` by a corrector and a skew flux corrector cut off in `U` (`dualityDefect_le_of_trials`, `dualityDefect_le_of_skew`, `dualityDefect_le_of_correctors`, `setAverage_trialError_le`), the first step of the route from first-order correctors, and the measurability of `μ*(U, q)` (`measurable_dualEnergy`) |
+| Theorem 2.4 |  | in progress: the bound of `J(U, p, Dp)` by a corrector and a skew flux corrector cut off in `U` (`dualityDefect_le_of_trials`, `dualityDefect_le_of_skew`, `dualityDefect_le_of_correctors`, `setAverage_trialError_le`), the first step of a route from first-order correctors (the book proves Theorem 2.4 through Proposition 2.11), and the measurability of `μ*(U, q)` (`measurable_dualEnergy`) |
 | Lemma 2.7 |  | proved for bounded open convex sets (`lemma_2_7`, for the Frobenius norm); see CORRESPONDENCE.md |
 
 ### 2.2 Quantitative Convergence of the Subadditive Quantities, module `Ch02/Sec02QuantitativeConvergence.lean` (proofs in `Ch02/Sec02/Lemma212.lean` and `Ch02/Sec02/Definition214.lean`)
@@ -95,7 +95,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Proposition 2.11 |  | not started |
-| Lemma 2.12 |  | proved for bounded open sets and partitions by open sets, for given maximizers (`lemma_2_12`); see CORRESPONDENCE.md |
+| Lemma 2.12 |  | proved for bounded open sets and partitions by open sets, for given maximizers (they exist on bounded open convex sets, `exists_isDefectMaximizer`) (`lemma_2_12`); see CORRESPONDENCE.md |
 | Lemma 2.13 |  | not started |
 | Definition 2.14 |  | defined for bounded open convex sets (`averagedDualMatrix`, the inverse of the entrywise expectation `expectedDualInvMatrix` of `a*⁻¹(U)`; (2.42), `averagedDualMatrix_bounds`); see CORRESPONDENCE.md |
 | Lemma 2.15 |  | not started |

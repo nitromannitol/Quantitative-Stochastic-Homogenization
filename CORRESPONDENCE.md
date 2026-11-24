@@ -1090,7 +1090,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Definition 2.14: the expectation of the matrix `a*⁻¹(U)` is taken entrywise. Its entries are
   measurable (`measurable_coarseDualInvMatrix_apply`): `μ*(U, q)` is the supremum of the functional
   of (2.1) over a countable dense set of gradients of `H¹(U)` in `L²(U)`, independent of the
-  coefficient field (`exists_countable_dualEnergy_eq_iSup`), as for the Dirichlet energy in (1.29).
+  coefficient field (`exists_countable_dualEnergy_eq_iSup`), as for the Dirichlet energy (`measurable_dirichletEnergy`), for the
+  σ-algebra F of (0.8); the F(U)-measurability, the analogue of (1.29), is not proved here.
   (2.42) comes from `Λ⁻¹ Id ≤ a*⁻¹(U) ≤ Id` and the bounds of the inverse of a symmetric positive
   definite matrix (`inv_mulVec_bounds`).
 

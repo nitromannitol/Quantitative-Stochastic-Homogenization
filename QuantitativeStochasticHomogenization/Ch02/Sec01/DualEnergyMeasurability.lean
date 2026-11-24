@@ -5,7 +5,8 @@ import QuantitativeStochasticHomogenization.Ch02.Sec01.DualEnergy
 
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
 Section 2.1: the dual quantity `μ*(U, q)` of (2.1) is a measurable function of the coefficient
-field (`measurable_dualEnergy`), as the Dirichlet energy in (1.29). It is the supremum of the
+field (`measurable_dualEnergy`), as for the Dirichlet energy (`measurable_dirichletEnergy`), for the
+σ-algebra F of (0.8); the F(U)-measurability, the analogue of (1.29), is not proved here. It is the supremum of the
 functional of (2.1) over a countable set of fields of `L²(U)` that does not depend on the
 coefficient field (`exists_countable_dualEnergy_eq_iSup`): a countable dense subset of the
 gradients of `H¹(U)`, along which the functional is continuous, uniformly in the coefficient field.
