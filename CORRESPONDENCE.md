@@ -1044,3 +1044,37 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   divergence-form right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
+
+## Section 2.1: Lemmas 2.1, 2.2 and 2.7 (`Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean`, `Ch02/Sec01/Lemma27.lean`)
+
+- Lean: `QSH.lemma_2_1`, `QSH.lemma_2_2`, `QSH.lemma_2_7`, with `dualEnergy` (`μ*(U, q)` of (2.1)),
+  `dualityDefect` (`J(U, p, q)` of (2.6)), `defectTrialEnergy` (the functional of (2.9)),
+  `IsAHarmonic` (`A(U)` of (0.38) intersected with `H¹(U)`), `IsDualMaximizer`, `IsDefectMaximizer`
+  (the maximizer `v(·, U, p, q)`), `coarseDualInvMatrix` (`a*⁻¹(U)`) and `coarseDualMatrix`
+  (`a*(U)`), and the inequality (2.4) `dot_le_dirichletEnergy_add_dualEnergy`.
+- Domain. The book fixes a bounded Lipschitz domain; the Lean statements are for bounded open convex
+  nonempty sets, which include the cubes of Sections 2.2 and 2.3. The existence of the maximizer of
+  (2.1), which the book calls routine, uses the Poincaré inequality on `U`; here it is the Neumann
+  maximizer of the coarse-graining library on convex domains
+  (`Homogenization.Book.Ch02.responseSymmetricDirichletNeumannTheory`, field
+  `neumann_meanZero_maximizer_exists`), whose `H¹` functions and functional are those of (2.1)
+  (`dualTrialEnergy_eq_symmetricNeumannEnergyValue`). The inequality (2.4), the bound `≤` in (2.9)
+  and (2.13) hold for every bounded open set; the pieces `U₁, …, U_N` of the partition in (2.15) are
+  open sets, not necessarily convex.
+- `A(U)`. The suprema (2.3) and (2.9) are over `u ∈ H¹(U)` with `a∇u` weakly divergence-free in `U`
+  (tested against smooth compactly supported functions), where the integrals are defined; for such
+  `u`, `∫_U ∇w·a∇u = 0` for every `w ∈ H¹₀(U)` by density (`IsAHarmonic.setIntegral_dot_eq_zero`).
+- Lemma 2.1 and its maximizer: the maximizer is stated for every maximizer `(u_*, g_*)` of (2.1) and
+  every minimizer `ℓ_p + u` of (1.7), as the pair `(u_* - ℓ_p - u, g_* - (p + g))`; the gradient of
+  the maximizer of (2.9) is unique up to null sets (the book: unique up to additive constants).
+- Lemma 2.2. The quadratic form (2.20) of `μ*(U, ·) = J(U, 0, ·)` is obtained from its parallelogram
+  identity, which follows from the linearity (2.18) and the identity (2.19), and `a*⁻¹(U)` is its
+  polarization matrix, as for `a(U)` in Lemma 1.1. The first variation (2.16) and the quadratic
+  response (2.17) are stated with averages over `U`, the test functions ranging over
+  `A(U) ∩ H¹(U)`; (2.13) and (2.14) are stated for every maximizer, componentwise.
+- Lemma 2.7: for the Frobenius norm, with the supremum over the open ball `B₁` of
+  `J(U, p, āp)^{1/2}` (a set bounded above, which the statement includes) and `C = 3d²(32Λ)^{1/2}`.
+  The proof uses the completed square `J = ½ p·(a(U) - a*(U))p + ½ (q - a*(U)p)·a*⁻¹(U)(q - a*(U)p)`
+  at the points `¼eₖ` and, for `a(U)`, the bound of the entries of the nonnegative matrix
+  `a(U) - a*(U)` by the Cauchy–Schwarz inequality and `a(U) - a*(U) ≤ Λ`, in place of the book's
+  minimization in `p`.

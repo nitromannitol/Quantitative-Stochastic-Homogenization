@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 39 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 12 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 42 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 12 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -20,7 +20,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
 | 1 | Introduction and Qualitative Theory | 12 | 8 | 1 |
-| 2 | Convergence of the Subadditive Quantities | 12 | 0 | 0 |
+| 2 | Convergence of the Subadditive Quantities | 12 | 3 | 0 |
 | 3 | Regularity on Large Scales | 23 | 2 | 5 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 10 | 2 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 2 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **39** | **12** |
+| | **Total** | **226** | **42** | **12** |
 
 ## Front matter
 
@@ -81,14 +81,14 @@ No numbered result.
 
 ## Chapter 2: Convergence of the Subadditive Quantities
 
-### 2.1 The Dual Subadditive Quantity μ*, module `Ch02/Sec01DualSubadditiveQuantity.lean`
+### 2.1 The Dual Subadditive Quantity μ*, module `Ch02/Sec01DualSubadditiveQuantity.lean` (proofs in `Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean` and `Ch02/Sec01/Lemma27.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 2.1 |  | not started |
-| Lemma 2.2 | Basic properties of J | not started |
+| Lemma 2.1 |  | proved for bounded open convex sets (`lemma_2_1`: (2.9) with `dualityDefect`, the quantity `J` of (2.6), and `dualEnergy`, the quantity `μ*` of (2.1); the maximizer of (2.1) exists, `exists_isDualMaximizer`, and the maximizer of (2.9) is its difference with the minimizer of (1.7)); see CORRESPONDENCE.md |
+| Lemma 2.2 | Basic properties of J | proved for bounded open convex sets (`lemma_2_2`: the matrices `coarseDualMatrix` `a*(U)` and `coarseDualInvMatrix` `a*⁻¹(U)`, (2.11)–(2.17)); see CORRESPONDENCE.md |
 | Theorem 2.4 |  | not started |
-| Lemma 2.7 |  | not started |
+| Lemma 2.7 |  | proved for bounded open convex sets (`lemma_2_7`, for the Frobenius norm); see CORRESPONDENCE.md |
 
 ### 2.2 Quantitative Convergence of the Subadditive Quantities, module `Ch02/Sec02QuantitativeConvergence.lean`
 
