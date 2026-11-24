@@ -136,7 +136,7 @@ theorem integrable_heatSmooth_mul_coordLaplacian {a b : ℝ} (ha : 0 < a) (hab :
   have hHi : Integrable (heatSmooth b (fun y => |coordLaplacian ψ y|)) :=
     (integrable_euclideanHeatKernel hb).integrable_convolution _
       ((hΔ.continuous.abs).integrable_of_hasCompactSupport (hcΔ.comp_left (g := abs) abs_zero))
-  haveI : IsFiniteMeasure (volume.restrict (Ioc a b)) := by
+  have : IsFiniteMeasure (volume.restrict (Ioc a b)) := by
     rw [isFiniteMeasure_restrict, Real.volume_Ioc]
     exact ENNReal.ofReal_ne_top
   have hdom : Integrable (fun p : ℝ × Vec d =>
