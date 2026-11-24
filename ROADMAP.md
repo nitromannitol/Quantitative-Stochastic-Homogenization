@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 34 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29) and Appendix D (Lemmas D.3 and D.4), and 11 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 39 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Proposition 4.3), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 12 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -32,10 +32,10 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
-| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 0 | 0 |
+| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **34** | **11** |
+| | **Total** | **226** | **39** | **12** |
 
 ## Front matter
 
@@ -69,7 +69,7 @@ No numbered result.
 | Proposition 1.11 |  | in progress: proved for `d ≠ 4` (`proposition_1_11_of_ne_four`, (1.41)); in every dimension, the bound `C Σ_{n ≤ m} 3^{n-m}(3^{-dn/4} + ω(⌈n/2⌉))` of the proof (`proposition_1_11`) and the limit `E[E(m)] → 0` (`tendsto_integral_coarseDeviation`), with `E(m)` of (1.39), `coarseDeviation`; (1.41) for `d = 4` is not proved, since the book's bound of the geometric sum does not hold there, see CORRESPONDENCE.md |
 | Proposition 1.12 | Multiscale Poincaré inequality | proved (`proposition_1_12`, with the normalized `Ĥ⁻¹(□_m)` norm of (0.31), `hatNegativeSobolevNorm`, and the normalized `H¹` norm of (0.26), `h1Norm`; the Poincaré inequality (1.43) on cubes, `setIntegral_sq_sub_setAverage_le`); see CORRESPONDENCE.md |
 | Lemma 1.13 |  | proved (`lemma_1_13`, (1.44) for `H¹(□_m)` and (1.45) for `H¹₀(□_m)`, both with the `Ĥ⁻¹(□_m)` norm of the gradient); see CORRESPONDENCE.md |
-| Corollary 1.14 |  | proved (`corollary_1_14`) |
+| Corollary 1.14 |  | proved (`corollary_1_14`; in the conventions of the coarse-graining library, `exists_originCube_multiscalePoincare`) |
 | Proposition 1.15 |  | not started |
 | Lemma 1.16 | Div-curl lemma | not started |
 
@@ -538,19 +538,19 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean`.
 
 ## Appendix C: The Meyers L^{2+δ} Estimate
 
-Module `AppC/MeyersEstimate.lean`.
+Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/IterationLemma.lean`, `AppC/NegativeSobolevPairing.lean`, `AppC/InteriorCaccioppoli.lean`, `AppC/ReverseHolder.lean`, `AppC/BallLebesgueDifferentiation.lean`, `AppC/GehringBallEstimates.lean`, `AppC/GehringLevelSet.lean`, `AppC/GehringIntegration.lean`, `AppC/GehringLemma.lean` and `AppC/InteriorMeyers.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem C.1 | Interior Meyers estimate | not started |
-| Lemma C.2 | Interior Caccioppoli inequality | not started |
-| Corollary C.3 |  | not started |
-| Lemma C.4 | Gehring's lemma | not started |
-| Lemma C.5 | Vitali covering lemma | not started |
-| Lemma C.6 |  | not started |
-| Theorem C.7 | Global Meyers estimate | not started |
-| Lemma C.8 | Global Caccioppoli estimate | not started |
-| Corollary C.9 |  | not started |
+| Theorem C.1 | Interior Meyers estimate | in progress (for `d ≥ 2`: the case `h = ∇·H` of the proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right, `theorem_C_1_divergence`; the statement of the book given the representation of Remark B.6 and Proposition B.16, `theorem_C_1`; see CORRESPONDENCE.md) |
+| Lemma C.2 | Interior Caccioppoli inequality | proved (`lemma_C_2`; see CORRESPONDENCE.md) |
+| Corollary C.3 |  | proved (`corollary_C_3`, for `d ≥ 2`; see CORRESPONDENCE.md) |
+| Lemma C.4 | Gehring's lemma | proved (`lemma_C_4`; see CORRESPONDENCE.md) |
+| Lemma C.5 | Vitali covering lemma | proved (`lemma_C_5`); see CORRESPONDENCE.md |
+| Lemma C.6 |  | proved (`lemma_C_6`; see CORRESPONDENCE.md) |
+| Theorem C.7 | Global Meyers estimate | not started (needs the Lipschitz domains of Appendix B, the constant κ_U of (C.13) and Proposition B.16) |
+| Lemma C.8 | Global Caccioppoli estimate | not started (needs the Lipschitz domains of Appendix B and κ_U) |
+| Corollary C.9 |  | not started (needs Lemma C.8 and the Sobolev–Poincaré inequality for functions vanishing on a set of positive measure) |
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
