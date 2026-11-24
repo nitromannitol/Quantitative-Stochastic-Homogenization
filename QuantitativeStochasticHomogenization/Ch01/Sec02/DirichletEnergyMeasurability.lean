@@ -230,9 +230,13 @@ theorem measurable_lpTrialEnergy (U : Set (Vec d)) (e : Vec d)
   exact measurable_const.mul
     (hm.stronglyMeasurable.integral_prod_right' (ν := volume.restrict U)).measurable
 
-/-- **The Dirichlet energy is measurable** for a set `U` of finite volume. -/
-theorem measurable_dirichletEnergy {U : Set (Vec d)} (hU : volume U ≠ ⊤) (hΛ : 0 ≤ Λ)
-    (e : Vec d) : Measurable (fun a : CoefficientField d Λ => dirichletEnergy a U e) := by
+/-- **The Dirichlet energy is a countable infimum of energies of fixed fields**: there is a
+countable nonempty set `T` of gradients of `H¹₀(U)`, independent of the coefficient field, with
+`μ(U, e) = inf_{F ∈ T} ⨍_U ½ (e + F)·a(e + F)`. -/
+theorem exists_countable_dirichletEnergy_eq_iInf {U : Set (Vec d)} (hU : volume U ≠ ⊤)
+    (hΛ : 0 ≤ Λ) (e : Vec d) :
+    ∃ T : Set (Lp (Vec d) 2 (volume.restrict U)), T.Countable ∧ T.Nonempty ∧
+      ∀ a : CoefficientField d Λ, dirichletEnergy a U e = ⨅ F : T, lpTrialEnergy a U e F := by
   have : Fact ((2 : ℝ≥0∞) ≠ ∞) := ⟨ENNReal.ofNat_ne_top⟩
   obtain ⟨T, hTc, hTH, hHT⟩ := TopologicalSpace.exists_countable_dense_subset (h01GradientSet U)
   have h0 : (H01_zero U).2.1.toLp (fun _ => (0 : Vec d)) ∈ h01GradientSet U :=
@@ -294,6 +298,14 @@ theorem measurable_dirichletEnergy {U : Set (Vec d)} (hU : volume U ≠ ⊤) (h�
     rw [h4] at hle
     have h5 : K * ‖F' - F‖ ^ 2 ≤ K * δ := mul_le_mul_of_nonneg_left h1 hK
     linarith
+  exact ⟨T, hTc, hTne, key⟩
+
+/-- **The Dirichlet energy is measurable** for a set `U` of finite volume. -/
+theorem measurable_dirichletEnergy {U : Set (Vec d)} (hU : volume U ≠ ⊤) (hΛ : 0 ≤ Λ)
+    (e : Vec d) : Measurable (fun a : CoefficientField d Λ => dirichletEnergy a U e) := by
+  obtain ⟨T, hTc, hTne, key⟩ := exists_countable_dirichletEnergy_eq_iInf (Λ := Λ) hU hΛ e
+  have : Countable T := hTc.to_subtype
+  have : Nonempty T := hTne.to_subtype
   rw [funext key]
   exact Measurable.iInf fun F => measurable_lpTrialEnergy U e F
 
