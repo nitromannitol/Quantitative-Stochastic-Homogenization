@@ -713,6 +713,31 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   heat averages of the flux converge by the scale pairing bounds of that theorem. The skew part
   `(S - Sᵀ)/2` satisfies the same identity (`FluxCorrector.ae_skew_divergence_of_package`).
 
+## Lemma 1.1: basic properties of μ (`Ch01/Sec02/Lemma11.lean`, `Ch01/Sec02/DirichletMinimizer.lean`, `Ch01/Sec02/TestPoincare.lean`)
+
+- Lean: `QSH.lemma_1_1`, with `coarseMatrix` (the matrix `a(U)` of (1.10)),
+  `exists_isDirichletMinimizer`, `IsDirichletMinimizer.ae_eq`,
+  `isDirichletMinimizer_iff_solvesDirichletProblem`, `IsDirichletMinimizer.integral_dot_eq_zero`
+  and `IsDirichletMinimizer.quadraticResponse`.
+- Domain. The book fixes a bounded Lipschitz domain; the Lean statement holds for every bounded set
+  `U` of positive measure in dimension `d ≥ 1`, and the subadditivity (1.11) for partitions of `U`,
+  up to a null set, by pairwise disjoint open sets.
+- The minimizer (1.8) is the pair `(u, g)` of a function of `H¹₀(U)` and its weak gradient, with
+  `v(·, U, p) = ℓ_p + u`; it is unique up to null sets of `U`. Existence: the book refers to the
+  weak lower semicontinuity of the energy. Here a minimizing sequence of smooth tests is Cauchy in
+  `L²(U)`: by the parallelogram identity and `ξ·aξ ≥ |ξ|²`,
+  `⨍_U |∇vₙ - ∇vₘ|² ≤ 8(½ E(vₙ) + ½ E(vₘ) - μ(U, p))`, and the tests themselves by the Poincaré
+  inequality for the tests of a cube containing `U` (from the zero-trace Poincaré inequality on axis
+  cubes of the coarse-graining library, `Homogenization.scaled_dirichlet_poincare`). The limit lies
+  in `H¹₀(U)` and has energy `μ(U, p)`.
+- (1.9)–(1.10): `a(U)_{ij} = 2B(e_i, e_j)` for the polarization `B` of `p ↦ μ(U, p)`, which is a
+  quadratic form by the parallelogram identity (see Section 1.3 below), in place of the linearity
+  (1.15) of the minimizer.
+- First variation: the minimizers are exactly the solutions of (1.12) in the weak sense, the test
+  functions ranging over `H¹₀(U)`; the proof expands `t ↦ E(g + t h)` and uses that a quadratic
+  polynomial `A t² + B t ≥ 0` has `B = 0`. Quadratic response: the exact identity
+  `⨍_U ½(p + h)·a(p + h) - μ(U, p) = ⨍_U ½(h - g)·a(h - g)` (`IsDirichletMinimizer.trialEnergy_sub_eq`).
+
 ## Section 1.3 and Lemma 3.16: the homogenized matrix and the first-order correctors
 
 - Lean: `QSH.exists_homogenizedMatrix` (`Ch01/Sec03/SubadditiveLimit.lean`),
