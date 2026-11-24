@@ -45,8 +45,8 @@ theorem isOpen_preimage_sub (hU : IsOpen U) : IsOpen {x : Vec d | x - y ∈ U} :
 theorem locallyIntegrableOn_comp_sub_of_isOpen (hU : IsOpen U) {f : Vec d → ℝ}
     (hf : LocallyIntegrableOn f U volume) :
     LocallyIntegrableOn (fun x => f (x - y)) {x | x - y ∈ U} volume := by
-  rw [locallyIntegrableOn_iff (Or.inr (isOpen_preimage_sub y hU))]
-  rw [locallyIntegrableOn_iff (Or.inr hU)] at hf
+  rw [locallyIntegrableOn_iff (isOpen_preimage_sub y hU).isLocallyClosed]
+  rw [locallyIntegrableOn_iff hU.isLocallyClosed] at hf
   intro K hKU hK
   have hK' : IsCompact ((fun x : Vec d => x - y) '' K) := hK.image (continuous_sub_right y)
   have hsub : (fun x : Vec d => x - y) '' K ⊆ U := by

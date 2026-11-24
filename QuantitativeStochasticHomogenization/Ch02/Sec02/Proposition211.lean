@@ -39,8 +39,9 @@ theorem OsBound.integral_le_add_two_mul {Ω : Type*} [MeasurableSpace Ω] {P : M
   have hle : ∀ ω, X ω ≤ A + max (X ω - A) 0 := fun ω => by
     have := le_max_left (X ω - A) 0
     linarith
-  have h2 := integral_mono hX ((integrable_const A).add hYi) hle
-  rw [integral_add (integrable_const A) hYi, integral_const, measureReal_univ_eq_one,
+  have hAY : Integrable (fun ω => A + max (X ω - A) 0) P := (integrable_const A).add hYi
+  have h2 := integral_mono hX hAY hle
+  rw [integral_add (integrable_const A) hYi, integral_const, probReal_univ,
     one_smul] at h2
   linarith
 
@@ -124,7 +125,7 @@ theorem proposition_2_11 (hd : 2 ≤ d) (hΛ : 1 < Λ) :
         ⨆ p : originBall d 1,
             ∫ a, dualityDefect a (triadicCube d n) p ((homogenizedMatrix P).mulVec p) ∂P ≤
           C * (3 : ℝ) ^ (-((n : ℝ) * α)) := by
-  haveI : NeZero d := ⟨by omega⟩
+  have : NeZero d := ⟨by omega⟩
   have hΛ0 : 0 ≤ Λ := by linarith
   have hd2 : (2 : ℝ) ≤ d := by exact_mod_cast hd
   obtain ⟨α, hα, hα2, h24⟩ := theorem_2_4 hd hΛ
@@ -134,7 +135,7 @@ theorem proposition_2_11 (hd : 2 ≤ d) (hΛ : 1 < Λ) :
   set K := (1 / 2 : ℝ) * (1 + Cst) with hK
   have hK0 : 0 ≤ K := by rw [hK]; positivity
   refine ⟨α, K * (3 * C), hα, hα2, by positivity, fun P hP n => ?_⟩
-  haveI : IsProbabilityMeasure P := hP.1
+  have : IsProbabilityMeasure P := hP.1
   set A := homogenizedMatrix P with hA
   set U := triadicCube d n with hU
   have hUo := isOpen_triadicCube' (d := d) n

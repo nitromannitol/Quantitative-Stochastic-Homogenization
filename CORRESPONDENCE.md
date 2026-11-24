@@ -1095,3 +1095,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (2.42) comes from `Λ⁻¹ Id ≤ a*⁻¹(U) ≤ Id` and the bounds of the inverse of a symmetric positive
   definite matrix (`inv_mulVec_bounds`).
 
+## Section 2.1: Theorem 2.4, and Section 2.2: Proposition 2.11 (`Ch02/Sec01/CubeCorrectorDefect.lean`, `Ch02/Sec01/Theorem24.lean`, `Ch02/Sec02/Proposition211.lean`)
+
+- Lean: `QSH.theorem_2_4` and `QSH.proposition_2_11`, for `d ≥ 2` and `Λ > 1` (the book: `Λ ≥ 1`;
+  `Λ > 1` as in the frozen statements), with the Frobenius norm of matrices as in Lemma 2.7.
+- Theorem 2.4, (2.21): `∃ α ∈ (0, ½], ∀ s ∈ (0, d), ∃ C > 0`, for every law satisfying (0.10)–(0.11)
+  and every `n`, `OsBound P (X - C 3^{-nα(d-s)}) 1 (C 3^{-ns})` with
+  `X = |a(□_n) - ā| + |a*(□_n) - ā|`: the inequality `X ≤ A + O₁(θ)` of (0.42) is `X - A ≤ O₁(θ)`.
+  The constants are chosen before the law; `α` does not depend on `s`. `ā` is the matrix of
+  Definition 1.2 (`homogenizedMatrix`) and `a*(□_n)` the matrix of Lemma 2.2 (`coarseDualMatrix`),
+  whose entries are measurable (`measurable_coarseDualMatrix_apply`).
+- Proof of Theorem 2.4: not the book's, which goes through Proposition 2.11 (Section 2.2) and the
+  independence of the subcubes. Here: (i) the first-order correctors and the skew parts of the flux
+  correctors of Lemma 3.17, Lemma 6.1 and Proposition 6.2 form, almost surely, a family with a
+  matrix `D` whose oscillations on `B_r` are at most `C r^{1 - μ}` for `r ≥ R`, with `R ≤ O_s(C_s)`
+  and `μ = β(d - s)` (`exists_ae_sublinearCorrectorFamily`, at the exponent `s`); (ii) on
+  `{R ≤ √d 3ⁿ}` the trials `p + ∇(η(φ - m))` and `Dp + div(η(σ - c))`, with `η` the inner cutoff of
+  `□_n` of relative width `3^{-2μn/3}/4`, give `J(□_n, p, Dp) ≤ K |p|² 3^{-2μn/3}`
+  (`dualityDefect_triadicCube_le_of_family`), and the bound of the proof of Lemma 2.7, which holds
+  for any matrix (`frobeniusNorm_sub_add_le_of_dualityDefect_le`), gives
+  `|a(□_n) - D| + |a*(□_n) - D| ≤ C 3^{-μn/3}`; (iii) with Proposition 1.7 and `ω(n) → 0`, this
+  gives `D = ā` (`eq_homogenizedMatrix_of_ae_family`); (iv) on `{R ≥ 3ⁿ}`, `X` is bounded by a
+  constant `C(d, Λ)` (`frobeniusNorm_sub_homogenizedMatrix_add_le`) and
+  `1{R ≥ 3ⁿ} ≤ (R/3ⁿ)^s = O₁((C_s/3ⁿ)^s)` (`OsBound.indicator_le_of`). The exponent is
+  `α = min(β/3, ½)`.
+- Proposition 2.11, (2.29): `∃ α ∈ (0, ½], C ≥ 0`, for every law and every `n`, the expectations
+  `E[J(□_n, p, ā p)]`, `p ∈ B₁`, are of integrable variables, their set is bounded above and its
+  supremum is at most `C 3^{-nα}`. Proof: from Theorem 2.4 at `s = d/2` (the book's order is the
+  reverse): by the completed square (2.12), `0 ≤ J(□_n, p, ā p) ≤ ½(1 + C)X` for `p ∈ B₁`
+  (`dualityDefect_homogenizedMatrix_le`), and `X ≤ A + O₁(θ)` gives `E[X] ≤ A + 2θ`
+  (`OsBound.integral_le_add_two_mul`).

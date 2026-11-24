@@ -56,9 +56,9 @@ theorem measurable_inv_apply_of_apply {Ω : Type*} [MeasurableSpace Ω] {M : Ω 
     refine measurable_det_of_apply fun k l => ?_
     simp only [Matrix.updateRow_apply]
     by_cases h : k = j
-    · simp only [if_pos h]
+    · simp only [h, ↓reduceIte]
       exact measurable_const
-    · simp only [if_neg h]
+    · simp only [h, ↓reduceIte]
       exact hM k l
   simp only [Matrix.inv_def, Matrix.smul_apply, smul_eq_mul, Ring.inverse_eq_inv']
   exact hdet.inv.mul hadj
@@ -128,7 +128,7 @@ theorem frobeniusNorm_sub_add_le_of_family (hd : 1 ≤ d) (a : CoefficientField 
         frobeniusNorm (coarseDualMatrix a (triadicCube d n) - D) ≤
       3 * (d : ℝ) ^ 2 * Real.sqrt (32 * Λ) *
         (Real.sqrt (cubeCorrectorConst d Λ C₁ B) * ((3 : ℝ) ^ n) ^ (-(μ / 3))) := by
-  haveI : NeZero d := ⟨by omega⟩
+  have : NeZero d := ⟨by omega⟩
   have hK0 : 0 ≤ cubeCorrectorConst d Λ C₁ B := by
     have := cubeBallRatio_nonneg d
     have : 0 ≤ cutoffGradConst d := by unfold cutoffGradConst; positivity
@@ -195,8 +195,8 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
     {R : CoefficientField d Λ → ℝ} {s θ : ℝ} (hR : OsBound P R s θ) (hR0 : ∀ a, 0 ≤ R a)
     (hF : ∀ᵐ a ∂P, Nonempty (SublinearCorrectorFamily a D μ C₁ (R a))) :
     D = homogenizedMatrix P := by
-  haveI : NeZero d := ⟨by omega⟩
-  haveI : IsProbabilityMeasure P := hP.1
+  have : NeZero d := ⟨by omega⟩
+  have : IsProbabilityMeasure P := hP.1
   have hΛ1 : 1 ≤ Λ := by
     obtain ⟨a, -⟩ := hF.exists
     exact one_le_of_coefficientField a
@@ -303,13 +303,15 @@ theorem eq_homogenizedMatrix_of_ae_family (hd : 1 ≤ d) {P : Measure (Coefficie
         have hZa : Z n a = frobeniusNorm (coarseMatrix a (triadicCube d n) - A) := rfl
         rw [hZa]
         linarith
+    have hi1 : Integrable (fun a => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) + Z n a) P :=
+      (integrable_const _).add (hZE n).1
+    have hi2 : Integrable (fun a => c * ind n a) P := (hindE n).1.const_mul c
     have hint : Integrable (fun a => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) + Z n a + c * ind n a) P :=
-      ((integrable_const _).add (hZE n).1).add ((hindE n).1.const_mul c)
+      hi1.add hi2
     have h := integral_mono_ae (integrable_const c) hint hae
-    rw [integral_const, integral_add ((integrable_const _).add (hZE n).1)
-      ((hindE n).1.const_mul c), integral_add (integrable_const _) (hZE n).1, integral_const,
-      integral_const_mul] at h
-    simp only [measureReal_univ_eq_one, one_smul] at h
+    rw [integral_const, integral_add hi1 hi2, integral_add (integrable_const _) (hZE n).1,
+      integral_const, integral_const_mul] at h
+    simp only [probReal_univ, one_smul] at h
     have h2 := mul_le_mul_of_nonneg_left (hindE n).2 hc0
     linarith [(hZE n).2]
   have hlim : Tendsto (fun n : ℕ => Kf * ((3 : ℝ) ^ n) ^ (-(μ / 3)) +
@@ -335,7 +337,7 @@ theorem theorem_2_4 (hd : 2 ≤ d) (hΛ : 1 < Λ) :
           frobeniusNorm (coarseMatrix a (triadicCube d n) - homogenizedMatrix P) +
             frobeniusNorm (coarseDualMatrix a (triadicCube d n) - homogenizedMatrix P) -
             C * (3 : ℝ) ^ (-((n : ℝ) * α * ((d : ℝ) - s)))) 1 (C * (3 : ℝ) ^ (-((n : ℝ) * s))) := by
-  haveI : NeZero d := ⟨by omega⟩
+  have : NeZero d := ⟨by omega⟩
   have hd1 : 1 ≤ d := by omega
   have hΛ0 : 0 ≤ Λ := by linarith
   obtain ⟨β, C₀, hβ, hC₀, hfam⟩ := exists_ae_sublinearCorrectorFamily hd hΛ
@@ -358,7 +360,7 @@ theorem theorem_2_4 (hd : 2 ≤ d) (hΛ : 1 < Λ) :
   have hCKf : Kf ≤ C := (le_max_left _ _).trans (le_max_left _ _)
   have hCst' : (Cst + 1) * Cs ^ s ≤ C := (le_max_right _ _).trans (le_max_left _ _)
   refine ⟨C, by linarith, fun P hP n => ?_⟩
-  haveI : IsProbabilityMeasure P := hP.1
+  have : IsProbabilityMeasure P := hP.1
   obtain ⟨D, R, -, -, hRos, hR1, hF⟩ := hP' P hP
   have hR0 : ∀ a, 0 ≤ R a := fun a => zero_le_one.trans (hR1 a)
   have hDA : D = homogenizedMatrix P :=

@@ -116,14 +116,14 @@ theorem dualityDefect_triadicCube_le_of_family (hd : 1 ≤ d) (a : CoefficientFi
     {n : ℕ} (hn : R₀ ≤ cubeBallRadius d n) (p : Vec d) :
     dualityDefect a (triadicCube d n) p (D.mulVec p) ≤
       cubeCorrectorConst d Λ C₁ B * euclideanSq p * (((3 : ℝ) ^ n) ^ (-(μ / 3))) ^ 2 := by
-  haveI : NeZero d := ⟨by omega⟩
+  have : NeZero d := ⟨by omega⟩
   set R := cubeBallRadius d n with hRdef
   have hR := cubeBallRadius_pos hd n
   set U := triadicCube d n with hUdef
   have hU := isOpenBoundedConvexDomain_triadicCube (d := d) n
   have hUB : U ⊆ ball 0 R := triadicCube_subset_ball hd n
   have hUfin : volume U ≠ ⊤ := volume_triadicCube_ne_top d n
-  haveI : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.mpr hUfin
+  have : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.mpr hUfin
   have hne : U.Nonempty := ⟨0, mem_triadicCube_iff.mpr fun i => by simp⟩
   have hΛ : 0 < Λ := zero_lt_one.trans_le (one_le_of_coefficientField a)
   -- the exponent and the width of the cutoff
