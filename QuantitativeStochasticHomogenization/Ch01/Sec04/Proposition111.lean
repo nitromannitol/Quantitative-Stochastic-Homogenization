@@ -128,7 +128,7 @@ theorem integral_subcubeDeviation {P : Measure (CoefficientField d Λ)} (hP : La
   rw [hc]
   field_simp
 
-/-- **Proposition 1.11**: there is `C(d, Λ)` such that for every law satisfying (0.10)–(0.11) and
+/-- **The bound of the proof of Proposition 1.11**: there is `C(d, Λ)` such that for every law satisfying (0.10)–(0.11) and
 every `m`, `E[E(m)] ≤ C Σ_{n=0}^m 3^{n-m} (3^{-dn/4} + ω(⌈n/2⌉))`. -/
 theorem proposition_1_11 [NeZero d] :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P → ∀ m : ℕ,
@@ -269,7 +269,7 @@ theorem proposition_1_11_of_ne_four [NeZero d] (hd : d ≠ 4) :
   nlinarith [mul_nonneg hC h3, mul_nonneg (mul_nonneg hC hK) h3, mul_nonneg hC hS,
     mul_nonneg (mul_nonneg hC hK) hS]
 
-/-- **(1.28)**: `ω(n) → 0`. -/
+/-- **The limit in (1.28)**: `ω(n) → 0`. -/
 theorem tendsto_omegaModulus {P : Measure (CoefficientField d Λ)} (hP : LawHypotheses P)
     (hΛ : 0 ≤ Λ) : Tendsto (omegaModulus P) atTop (𝓝 0) := by
   set M : ℕ → Mat d := fun n =>
