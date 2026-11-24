@@ -325,7 +325,7 @@ theorem gehring_measurable {q K : ℝ} (hq1 : 1 < q) (hq2 : q < 2) (hK : 1 ≤ K
       ENNReal.ofReal (2 ^ d) * volume (ball (0 : Vec d) (R / 2)) := by
     rw [← volume_ball_mul 0 (by norm_num : (0 : ℝ) < 2) hR2]
     congr 1
-    ring
+    ring_nf
   have hpow : PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal (2 + ε)) f ^ (2 + ε) ≤
       ENNReal.ofReal (2 ^ d * C₆' * CA * S ^ (2 + ε)) := by
     rw [eLpMeanNormOn_rpow_eq (by linarith) hfm.aestronglyMeasurable]
@@ -368,5 +368,60 @@ theorem gehring_measurable {q K : ℝ} (hq1 : 1 < q) (hq2 : q < 2) (hK : 1 ≤ K
           PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal (2 + ε)) g) := by
         rw [hNf_eq, hNge_eq, ← ENNReal.ofReal_add hnf0 hnge0, ← ENNReal.ofReal_mul
           (le_max_of_le_left zero_le_one)]
+
+theorem eLpMeanNormOn_congr_of_subset {U V : Set (Vec d)} (hUV : U ⊆ V) {p : ℝ≥0∞}
+    {h h' : Vec d → ℝ} (hh : h =ᵐ[volume.restrict V] h') :
+    PDE.eLpMeanNormOn U p h = PDE.eLpMeanNormOn U p h' := by
+  refine eLpNorm_congr_ae ?_
+  exact Measure.ae_smul_measure (ae_restrict_of_ae_restrict_of_subset hUV hh) _
+
+/-- **Lemma C.4 (Gehring's lemma).** Fix `q ∈ (1, 2)` and `K ≥ 1`. There are `δ(q, K, d) ∈ (0, 1)`
+and `C(q, K, d) < ∞` such that, for every `p ∈ (2, ∞)`, `R > 0`, `f ∈ L²(B_R)` and
+`g ∈ L^p(B_R)` with `‖f‖_{L̲²(B_{r/2}(z))} ≤ K (‖f‖_{L̲^q(B_r(z))} + ‖g‖_{L̲²(B_r(z))})` whenever
+`B_r(z) ⊆ B_R`,
+`‖f‖_{L̲^{(2+δ)∧p}(B_{R/2})} ≤ C (‖f‖_{L̲²(B_R)} + ‖g‖_{L̲^{(2+δ)∧p}(B_R)})`. -/
+theorem lemma_C_4 {q K : ℝ} (hq1 : 1 < q) (hq2 : q < 2) (hK : 1 ≤ K) :
+    ∃ δ C : ℝ, 0 < δ ∧ δ < 1 ∧ 0 ≤ C ∧ ∀ (p R : ℝ), 2 < p → 0 < R → ∀ f g : Vec d → ℝ,
+      MemLp f 2 (volume.restrict (ball 0 R)) →
+      MemLp g (ENNReal.ofReal p) (volume.restrict (ball 0 R)) →
+      (∀ (z : Vec d) (r : ℝ), 0 < r → ball z r ⊆ ball 0 R →
+        PDE.eLpMeanNormOn (ball z (r / 2)) 2 f ≤ ENNReal.ofReal K *
+          (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal q) f +
+            PDE.eLpMeanNormOn (ball z r) 2 g)) →
+      PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal (min (2 + δ) p)) f ≤
+        ENNReal.ofReal C * (PDE.eLpMeanNormOn (ball 0 R) 2 f +
+          PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal (min (2 + δ) p)) g) := by
+  obtain ⟨δ, C, hδ0, hδ1, hC, h⟩ := gehring_measurable (d := d) hq1 hq2 hK
+  refine ⟨δ, C, hδ0, hδ1, hC, fun p R hp hR f g hf hg hRH => ?_⟩
+  set f' := hf.aestronglyMeasurable.mk f with hf'
+  set g' := hg.aestronglyMeasurable.mk g with hg'
+  have hff' : f =ᵐ[volume.restrict (ball 0 R)] f' := hf.aestronglyMeasurable.ae_eq_mk
+  have hgg' : g =ᵐ[volume.restrict (ball 0 R)] g' := hg.aestronglyMeasurable.ae_eq_mk
+  have hF : ∀ {U : Set (Vec d)}, U ⊆ ball 0 R → ∀ s : ℝ≥0∞,
+      PDE.eLpMeanNormOn U s f = PDE.eLpMeanNormOn U s f' :=
+    fun hU s => eLpMeanNormOn_congr_of_subset hU hff'
+  have hG : ∀ {U : Set (Vec d)}, U ⊆ ball 0 R → ∀ s : ℝ≥0∞,
+      PDE.eLpMeanNormOn U s g = PDE.eLpMeanNormOn U s g' :=
+    fun hU s => eLpMeanNormOn_congr_of_subset hU hgg'
+  have hhalf : ball (0 : Vec d) (R / 2) ⊆ ball 0 R := by
+    intro x hx
+    have hx' : euclideanNorm (x - 0) < R / 2 := hx
+    change euclideanNorm (x - 0) < R
+    linarith
+  have hRH' : ∀ (z : Vec d) (r : ℝ), 0 < r → ball z r ⊆ ball 0 R →
+      PDE.eLpMeanNormOn (ball z (r / 2)) 2 f' ≤ ENNReal.ofReal K *
+        (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal q) f' +
+          PDE.eLpMeanNormOn (ball z r) 2 g') := by
+    intro z r hr hsub
+    have hsub2 : ball z (r / 2) ⊆ ball 0 R := fun x hx => hsub (by
+      have hx' : euclideanNorm (x - z) < r / 2 := hx
+      change euclideanNorm (x - z) < r
+      linarith)
+    rw [← hF hsub2, ← hF hsub, ← hG hsub]
+    exact hRH z r hr hsub
+  have hmain := h p R hp hR f' g' hf.aestronglyMeasurable.stronglyMeasurable_mk.measurable
+    hg.aestronglyMeasurable.stronglyMeasurable_mk.measurable (hf.ae_eq hff') (hg.ae_eq hgg') hRH'
+  rw [hF hhalf, hF subset_rfl, hG subset_rfl]
+  exact hmain
 
 end QSH
