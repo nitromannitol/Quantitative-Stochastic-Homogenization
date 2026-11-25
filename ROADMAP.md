@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 65 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 23 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 65 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 24 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -31,11 +31,11 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 1 | 0 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
-| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 6 |
+| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 7 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 3 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **65** | **23** |
+| | **Total** | **226** | **65** | **24** |
 
 ## Front matter
 
@@ -521,8 +521,8 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls and o
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
 | Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2`, the rescaled norm `‖·‖_{W̲^{k,p}(U)}` and `W^{k,p}_loc(U)` not defined); see CORRESPONDENCE.md |
-| Definition B.3 | Sobolev space W^{α,p}(U) | not started |
-| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`, and on open subsets of a ball, `remark_B_6_of_subset_ball`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
+| Definition B.3 | Sobolev space W^{α,p}(U) | in progress (on `ℝ^d`, `α = m + β` with `β ∈ (0, 1)`, multi-indices written as lists of coordinates: the seminorm (B.2), `fractionalSeminorm`; `∑_{|w| = m} [∂_w u]_{W^{β,p}}` for `u ∈ W^{m,p}(ℝ^d)` given with its weak derivatives, `fractionalSobolevSeminorm` (module `AppD/PropositionD2Fractional.lean`); the norm (B.3), `fractionalSobolevNorm` for smooth functions (`AppD/PropositionD1Fractional.lean`) and `fractionalSobolevFamilyNorm` for `u ∈ W^{m,p}(ℝ^d)` (`AppD/PropositionD5Fractional.lean`); the space on `U ≠ ℝ^d`, `p = ∞`, the rescaled norm, `W^{α,p}_0(U)` and `W^{α,p}_loc(U)` not defined; see the Appendix D section of CORRESPONDENCE.md) |
+| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`, and on open subsets of a ball, `remark_B_6_of_subset_ball`; `α = m + β ∉ ℕ`, `p ∈ (1, ∞)`, on `ℝ^d`: the norm (B.4) of `u ∈ L^p(ℝ^d)`, `negativeFractionalSobolevNorm`, and of its derivatives `∂^l u`, `negativeFractionalSobolevNormDeriv` (`AppD/PropositionD1Fractional.lean`, `AppD/PropositionD5Fractional.lean`); the order `2` normalized as in (0.29), for `q ∈ [1, ∞]`: `negativeSobolevTwoNorm` (`AppB/NegativeSobolevTwo.lean`); the other orders, the fractional orders on `U ≠ ℝ^d` or for other distributions, and `p ∈ {1, ∞}` for `α = 1` and `α ∉ ℕ` not formalized; see CORRESPONDENCE.md) |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
 | Theorem B.8 | Global Sobolev inequality | in progress (the case `k = 1`, proved as `theorem_B_8_one`, module `AppB/TheoremB8.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
 | Theorem B.9 | Local Sobolev–Poincaré inequality | in progress (the case `k = 1`, both parts, on balls `B_r(z)`, proved as `theorem_B_9_one`, module `AppB/TheoremB9.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
@@ -558,7 +558,7 @@ Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Proposition D.1 |  | in progress (the first inequality of (D.2), `α ∉ ℕ`, every `p ∈ (1, ∞)`, for `u ∈ L^p(ℝ^d)`: `propositionD1_fractional`; the second inequality of (D.2), (D.1) for `α ∈ ℕ` and distributions `u ∈ W^{-α,p}(ℝ^d)` outside `L^p` not proved; a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
+| Proposition D.1 |  | in progress (the first inequality of (D.2), `α ∉ ℕ`, every `p ∈ (1, ∞)`, for `u ∈ L^p(ℝ^d)`: `propositionD1_fractional`; for the derivatives `∂^l u` of `u ∈ L^p(ℝ^d)`: `propositionD1_fractional_foldr`; the second inequality of (D.2), (D.1) for `α ∈ ℕ` and the other distributions of `W^{-α,p}(ℝ^d)` not proved; a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
 | Proposition D.2 |  | in progress ((D.4), `α ∉ ℕ`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`: `propositionD2_fractional`, with a constant depending also on `q`; (D.3) for `q = 2`, `α ∈ ℕ`: `propositionD2_two`, which is Lemma D.3; (D.3) for `q ≠ 2` not proved; see CORRESPONDENCE.md) |
 | Lemma D.3 |  | proved (`lemmaD3`; see CORRESPONDENCE.md) |
 | Lemma D.4 |  | proved (`lemmaD4`; see CORRESPONDENCE.md) |

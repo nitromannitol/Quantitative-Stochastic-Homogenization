@@ -1000,13 +1000,13 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`. The space
   `W^{α,q}(ℝ^d)` is given as `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives `g l` along lists of
   coordinates (`IsSobolevFamilyLp`), and `[u]_{W^{α,q}(ℝ^d)}` is `∑_{|w| = m} [∂_w u]_{W^{β,q}(ℝ^d)}`
-  with the seminorm (B.2), `(1 - β) ∫∫ |v(x) - v(y)|^q / |x - y|^{d+βq}` (`fractionalSeminorm`,
+  with the seminorm (B.2), `[v]^q_{W^{β,q}} = (1 - β) ∫∫ |v(x) - v(y)|^q / |x - y|^{d+βq}` (`fractionalSeminorm`,
   `fractionalSobolevSeminorm`); the sum over lists counts each multi-index of (B.3) with its
   multiplicity, which changes the constant only. The constant depends on `k`, `α`, `q` and `d`: the
   book states `C(k, α, d)`, but its proof of (D.7) bounds `‖·‖^q` by
   `C^q ∫_0^∞ s^{d+qα} exp(-s²/16) ds/s` times the seminorm, a Gamma integral that is not bounded by
   `C(d)^q` uniformly in `q`, so the proof gives a constant depending on `q`. The proof follows the
-  book's (D.7) with one change: instead of reducing to `k = 1` by the semigroup property and Young's
+  book's (D.7) with two changes: instead of reducing to `k = 1` by the semigroup property and Young's
   inequality, it uses for every `k ≥ 1` the Gaussian majorant `|∂^w Φ(t, z)| ≤ C (2t)^{-k/2} Φ(2t, z)`
   (`abs_multiIndexDerivative_euclideanHeatKernel_le`) and `∫ ∂^w Φ(t, ·) = 0`, then Jensen's
   inequality for the probability density `Φ(2t, x - ·)` in place of the annular decomposition, and
@@ -1014,8 +1014,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   from `α` to `α - m` moves the `m` derivatives onto `u` as in the book.
 - **Proposition D.1, the first inequality of (D.2)** (`propositionD1_fractional`,
   `AppD/PropositionD1Fractional.lean`) is proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every
-  `p ∈ (1, ∞)`, and `u ∈ L^p(ℝ^d)`; a distribution of `W^{-α,p}(ℝ^d)` that is not a function is not
-  covered. The norm (B.4) is the supremum of `|∫ u g|` over `g ∈ C_c^∞(ℝ^d)` with
+  `p ∈ (1, ∞)`, and `u ∈ L^p(ℝ^d)`; a distribution of `W^{-α,p}(ℝ^d)` that is not a function is covered
+  only when it is a derivative `∂^l u` of `u ∈ L^p(ℝ^d)` (`propositionD1_fractional_foldr`, below). The norm (B.4) is the supremum of `|∫ u g|` over `g ∈ C_c^∞(ℝ^d)` with
   `‖g‖_{W^{α,q}(ℝ^d)} ≤ 1`, `q = p/(p-1)` (`negativeFractionalSobolevNorm`), with the norm (B.3)
   `∑_{j ≤ m} ∑_{|w| = j} ‖∂_w g‖_{L^q} + ∑_{|w| = m} [∂_w g]_{W^{β,q}}` over lists of coordinates
   (`fractionalSobolevNorm`), which counts each multi-index with its multiplicity and changes the
@@ -1046,7 +1046,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - **Proposition D.5** (`propositionD5_fractional_of_lifting`) is proved for `α = m + β`, `m ∈ ℕ`,
   `β ∈ (0, 1)`, `k ∈ ℕ ∩ (α, ∞)` and `q ∈ (1, ∞)`, for `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives
   (`IsSobolevFamilyLp`) and the norm (B.3) (`fractionalSobolevFamilyNorm`), under the hypothesis
-  `‖u‖_{W^{α,q}} ≤ C₀ (‖u‖_{L^q} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}})`. This is the observation with
+  `‖u‖_{W^{α,q}} ≤ C₀ (‖u‖_{L^q} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}})` for every `u ∈ W^{m,q}(ℝ^d)` (for
+  `u ∉ W^{α,q}(ℝ^d)` it says that the right-hand side is infinite). This is the observation with
   which the book's proof begins ("We simply observe that"), which the book does not prove; the rest
   of the proof is the book's: the first inequality of (D.2) for `∂_w u` with the order `k - α`
   (`propositionD1_fractional_foldr`) and `|∂_w Φ(t, ·) ∗ u| ≤ |∇^k Φ(t, ·) ∗ u|`. The case `α ∈ ℕ`
@@ -1056,7 +1057,11 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 - **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
-  the spaces `W^{-α,p}(U)` for `α ≠ 1`, and `W^{-1,1}`, `W^{-1,∞}`, are not formalized (for
+  for `α ∉ ℕ` and `p ∈ (1, ∞)` the norm (B.4) on `ℝ^d` of `u ∈ L^p(ℝ^d)` and of its derivatives is
+  `negativeFractionalSobolevNorm` / `negativeFractionalSobolevNormDeriv` (Appendix D section,
+  Propositions D.1 and D.5), and the order `2` normalized as in (0.29) is `negativeSobolevTwoNorm`
+  (Section 1.4); the other orders, the fractional orders on `U ≠ ℝ^d`, and `W^{-1,1}`, `W^{-1,∞}`,
+  are not formalized (for
   `p = 1` the test exponent `p/(p-1)` is `0` in Lean).
 - **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
   `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
