@@ -520,7 +520,7 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean`.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
-| Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2` not defined); see CORRESPONDENCE.md |
+| Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2`, the rescaled norm `‖·‖_{W̲^{k,p}(U)}` and `W^{k,p}_loc(U)` not defined); see CORRESPONDENCE.md |
 | Definition B.3 | Sobolev space W^{α,p}(U) | not started |
 | Definition B.4 | Sobolev space W^{-α,p}(U) | not started |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |

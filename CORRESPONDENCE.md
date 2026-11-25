@@ -1287,7 +1287,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
   `U` in the sense of `HasWeakGradient`), the norm (B.1) `QSH.w1pNorm U p u g =
   ‖u‖_{L^p(U)} + ∑ᵢ ‖gᵢ‖_{L^p(U)}` with values in `[0, ∞]`, and `QSH.IsW01p U p u g`, the closure of
-  the test functions `IsSpatialTest U` for this norm. The spaces with `k ≥ 2` are not defined.
+  the test functions `IsSpatialTest U` for this norm. The spaces with `k ≥ 2`, the rescaled norm
+  `‖v‖_{W̲^{k,p}(U)}` for `|U| < ∞` and `W^{k,p}_loc(U)` are not defined.
 - Norms: the volume-normalized norm `‖f‖_{L̲^q(U)}` of the book is `PDE.eLpMeanNormOn U q f` of the
   elliptic regularity library (the `L^q` norm for the normalized restricted volume); `|∇v|` is the
   Euclidean norm. In (B.7) and (B.8) the norms of `v - w` and `∇v` are the normalized ones: this

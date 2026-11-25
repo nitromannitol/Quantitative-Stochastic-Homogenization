@@ -13,8 +13,8 @@ of `∇v` is the volume-normalized one, and the balls may have any center.
 The proofs (Gilbarg–Trudinger, Theorem 7.17; Evans, Section 5.6.2): (B.8) is Morrey's inequality
 on bounded convex domains, `QSH.ae_abs_sub_integralAverage_le_of_convex`, with `w = (v)_{B_r}`;
 for `W^{1,p}_0(B_r)` the `C¹` estimate on the ball `B_{2r}` bounds each test function by its
-oscillation, which passes to the limit; (B.9) combines (B.8) on the balls `B_d(z)`, `z ∈ ℤ^d`,
-which cover `ℝ^d`, with `|(v)_{B_d(z)}| ≤ ‖v‖_{L̲^p(B_d(z))}`. The exponent `p = ∞` reduces to
+oscillation, which passes to the limit; (B.9) combines (B.8) on the balls `B_{√d}(z)`, `z ∈ ℤ^d`,
+which cover `ℝ^d`, with `|(v)_{B_{√d}(z)}| ≤ ‖v‖_{L̲^p(B_{√d}(z))}`. The exponent `p = ∞` reduces to
 `p = d + 1`.
 -/
 
