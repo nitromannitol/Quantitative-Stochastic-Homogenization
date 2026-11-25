@@ -72,7 +72,7 @@ theorem eLpMeanNormOn_le_of_volume_le {A B : Set (Vec d)} (hAB : A ⊆ B) (hA0 :
 
 /-- `‖f‖_{L̲^s(B)} ≤ ‖f‖_{L̲^s(W)}` for `W ⊆ B` when `f = 0` on `B \ W`. -/
 theorem eLpMeanNormOn_le_of_eq_zero_off {W B : Set (Vec d)} (hWB : W ⊆ B) (hWm : MeasurableSet W)
-    (hBm : MeasurableSet B) (hW0 : volume W ≠ 0) (hBt : volume B ≠ ⊤) {f : Vec d → ℝ}
+    (hBm : MeasurableSet B) (hBt : volume B ≠ ⊤) {f : Vec d → ℝ}
     (hf0 : ∀ x ∈ B \ W, f x = 0) (s : ℝ≥0∞) :
     PDE.eLpMeanNormOn B s f ≤ PDE.eLpMeanNormOn W s f := by
   have hWt : volume W ≠ ⊤ := ne_top_of_le_ne_top hBt (measure_mono hWB)
@@ -286,7 +286,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
       gcongr
       rw [hr'half]
       refine (eLpMeanNormOn_le_of_eq_zero_off inter_subset_left hW'm
-        (isOpen_ball' z' (by linarith)).measurableSet hW0 (volume_ball_ne_top' z' _)
+        (isOpen_ball' z' (by linarith)).measurableSet (volume_ball_ne_top' z' _)
         (fun x hx => ?_) 2).trans ?_
       · exact euclideanNorm_indicator_of_notMem fun hxU => hx.2 ⟨hx.1, hxU⟩
       · rw [hF₁, eLpMeanNormOn_indicator_eq inter_subset_right hW'm g 2]
