@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 62 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 11 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 63 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 11 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -28,14 +28,14 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
 | 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
-| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 | 0 |
+| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 1 | 0 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **62** | **11** |
+| | **Total** | **226** | **63** | **11** |
 
 ## Front matter
 
@@ -425,7 +425,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 10.2 |  | not started |
+| Definition 10.2 |  | defined (`VariationallyRepresents`, module `Ch10/Sec01/VariationalRepresentation.lean`; the quadratic form (10.7) represents `p ↦ a p` for a matrix with positive definite symmetric part, (10.10)–(10.11), `variationallyRepresents_linearRepresentative`; see CORRESPONDENCE.md) |
 | Proposition 10.3 |  | not started |
 
 ### 10.2 The Double-Variable Subadditive Quantities, module `Ch10/Sec02DoubleVariableSubadditiveQuantities.lean`

@@ -1272,6 +1272,16 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `expectedAveragesEstimateAt_of_scales` is the case `h(r) = β log r`), and the cell means are
   identified by Proposition 3.21 as in the expectations (1) above.
 
+## Section 3.4: Definitions 3.14 and 3.15 (`Ch03/Sec04/StationaryFields.lean`)
+
+- Definition 3.14: `QSH.IsStationaryRandomField P F` for `F : CoefficientField d Λ → Vec d → S`
+  (the book's `F(x, a)` is `F a x`), with the joint measurability and, for every `z ∈ ℤ^d`,
+  `F(x + z, a) = F(x, T_z a)` for almost every `x`, `P`-almost surely; `T_z` is `translate`.
+- Definition 3.15: `QSH.IsStationaryPotentialField P F`; `F(·, a)` is the gradient of a function in
+  `H¹_loc(ℝ^d)` in the sense of the library: a weak gradient on `ℝ^d`, the function and the field
+  being square integrable on every ball. The corrector gradients belong to `L²_pot`
+  (`Corrector.isStationaryPotentialField_grad`).
+
 ## Section 5.1: Lemma 5.2 (`Ch05/Sec01/Lemma52.lean`)
 
 - Lemma 5.2 (1): `QSH.lemma_5_2_tendstoInDistribution`: for `Vec d`-valued random variables `Xₙ` on
@@ -1340,3 +1350,13 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
   `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
 
+## Section 10.1: Definition 10.2 (`Ch10/Sec01/VariationalRepresentation.lean`)
+
+- Definition 10.2: `QSH.VariationallyRepresents F φ`, with the convexity of `(p, q) ↦ F(p, q)` on
+  `ℝ^d × ℝ^d`.
+- The quadratic form (10.7) is `QSH.linearRepresentative a`, for a constant matrix `a` (the book's
+  `a(x)` at a fixed `x`), with `s` and `m` the symmetric and antisymmetric parts of `a`
+  (`symmetricPart`, `antisymmetricPart`). For `a` with `ξ·aξ > 0` for `ξ ≠ 0`, the identity
+  `A(p, q) - p·q = ½ (a p - q)·s⁻¹(a p - q)` (`linearRepresentative_sub_dot`, the computation
+  before (10.7)) gives (10.10) and (10.11), and with the convexity of nonnegative quadratic forms
+  (`convexOn_dotProduct_mulVec`), `variationallyRepresents_linearRepresentative`.
