@@ -71,7 +71,7 @@ theorem isSpatialTest_coordinateDerivative {U : Set (Vec d)} {φ : Vec d → ℝ
 theorem integrable_dot_of_memLp {U : Set (Vec d)} {F G : Vec d → Vec d}
     (hF : MemLp F 2 (volume.restrict U)) (hG : MemLp G 2 (volume.restrict U)) :
     Integrable (fun x => dot (F x) (G x)) (volume.restrict U) :=
-  integrable_finset_sum _ fun i _ => (hF.eval i).integrable_mul (hG.eval i)
+  integrable_finsetSum _ fun i _ => (hF.eval i).integrable_mul (hG.eval i)
 
 /-- **The identity of the div-curl lemma**: for `u ∈ H¹(U)` with gradient `G`, `g ∈ L²_sol(U)`
 and a test `φ` on a bounded open convex `U`, `∫_U φ G · g = -∫_U u ∇φ · g`. -/
@@ -100,7 +100,7 @@ theorem setIntegral_mul_dot_eq_neg {U : Set (Vec d)} (hU : PDE.IsOpenBoundedConv
   have hI2 : Integrable (fun x => u x * dot (gradient φ x) (g x)) (volume.restrict U) := by
     have hs : Integrable (fun x => ∑ i, coordinateDerivative i φ x * (u x * g x i))
         (volume.restrict U) := by
-      refine integrable_finset_sum _ fun i _ => ?_
+      refine integrable_finsetSum _ fun i _ => ?_
       obtain ⟨Ci, hCi⟩ := exists_bound_of_isSpatialTest (isSpatialTest_coordinateDerivative hφ i)
       exact (hu.1.integrable_mul (hg.1.eval i)).bdd_mul
         (isSpatialTest_coordinateDerivative hφ i).1.continuous.aestronglyMeasurable
