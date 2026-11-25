@@ -43,13 +43,6 @@ theorem coordinateDerivative_comp_neg {f : Vec d → ℝ} (hf : ContDiff ℝ ∞
   rw [h2.fderiv]
   simp
 
-theorem coordinateDerivative_const_mul {f : Vec d → ℝ} (hf : ContDiff ℝ ∞ f) (c : ℝ) (i : Fin d)
-    (z : Vec d) :
-    coordinateDerivative i (fun y => c * f y) z = c * coordinateDerivative i f z := by
-  unfold coordinateDerivative
-  rw [fderiv_const_mul (hf.differentiable (by simp) z) c]
-  simp
-
 /-- `∂^l Φ(t, -z) = (-1)^{|l|} ∂^l Φ(t, z)`. -/
 theorem heatKernelDeriv_neg (t : ℝ) (l : List (Fin d)) :
     (fun z => heatKernelDeriv t l (-z)) = fun z => (-1) ^ l.length * heatKernelDeriv t l z := by
@@ -60,8 +53,13 @@ theorem heatKernelDeriv_neg (t : ℝ) (l : List (Fin d)) :
   | cons i l ih =>
     funext z
     have hs := contDiff_heatKernelDeriv (d := d) t l
+    have hc : coordinateDerivative i (fun y => (-1) ^ l.length * heatKernelDeriv t l y) z =
+        (-1) ^ l.length * coordinateDerivative i (heatKernelDeriv t l) z := by
+      unfold coordinateDerivative
+      rw [fderiv_const_mul (hs.differentiable (by simp) z)]
+      simp
     have h1 := coordinateDerivative_comp_neg hs i z
-    rw [ih, coordinateDerivative_const_mul hs] at h1
+    rw [ih, hc] at h1
     show coordinateDerivative i (heatKernelDeriv t l) (-z) =
       (-1) ^ (l.length + 1) * coordinateDerivative i (heatKernelDeriv t l) z
     rw [pow_succ]
