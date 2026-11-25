@@ -1281,3 +1281,22 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `∫ g_{k+1}(x + s e_k) ds = ∫ g_k(x + s e_k) ds` (`integral_bumpLineSeq_succ`). The book observes
   `g_d = h(x₁)⋯h(x_d) ∫ f = 0`; here `g_d = c ∏ h(x_j)` (`bumpLineSeq_eq_prefix_mul`,
   `eq_of_invariant`) and `c = ∫ g_d = ∫ f - ∫ ∇·F = 0`.
+
+## Section 5.4: the notation (5.79) and Lemmas 5.27, 5.28 and 5.30 (`Ch05/Sec04/NearGaussian.lean`)
+
+- (5.79), `X = N(σ², λ₁, c)`: `QSH.IsNearGaussian P X v λ₁ c` with `v = σ²`; for every
+  `λ ∈ (-λ₁, λ₁)` the integrability of `exp(λ X)` is part of the definition.
+- Lemma 5.27: `QSH.lemma_5_27`, for a measurable `X` with `exp(2|X|)` integrable; the constant
+  is that of Lemma A.8 (`exists_abs_log_integral_exp_sub_le`), since `C|λ|³ ≤ C λ₁ λ²` for
+  `|λ| < λ₁`.
+- Lemma 5.28: `QSH.lemma_5_28`, for `X : Fin k → Ω → ℝ` measurable and independent in the sense
+  of `iIndepFun`; the conditions `σ, λ₁, c ≥ 0` are not needed. The proof is the book's, from the
+  additivity of the logarithm of the moment generating function (`iIndepFun.cgf_sum`).
+- Lemma 5.30: `QSH.lemma_5_30`, for `s ∈ (1, 2]` (the book fixes `s ∈ (1, 2)` in (5.82)) and every
+  real `λ₂`; the hypotheses are `σ ∈ ℝ`, `c ≥ 0`, `λ₁ ≤ λ₂`, `θ ∈ (0, 1/2]`, `X₁` measurable with
+  `X₁ = N(σ², λ₁, c)`, and `X₂` centered with `X₂ ≤ O_s(θ)` and `-X₂ ≤ O_s(θ)` (the notation
+  `X₂ = O_s(θ)` after (A.2)); `X₁` need not be centered. The constant is `C = 4 + K C_A²` with
+  `K = max(1, (C_A λ₂)^{s/(s-1) - 2})` and `C_A` the constant of Lemma A.9. The proof is the book's:
+  Hölder's inequality (5.100)–(5.101) with `ρ = (1 - θ^{1/2})⁻¹` and `ρ' = θ^{-1/2}`
+  (`log_integral_exp_add_le`), and Lemma A.9 for `X₂`, which gives
+  `log E[exp(ρ' λ X₂)] ≤ K C_A² θ λ²` for `|λ| ≤ λ₂` (`CenteredOsBound.log_integral_exp_le`).
