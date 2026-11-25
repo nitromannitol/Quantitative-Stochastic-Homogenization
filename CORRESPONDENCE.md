@@ -1501,6 +1501,42 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   before (10.7)) gives (10.10) and (10.11), and with the convexity of nonnegative quadratic forms
   (`convexOn_dotProduct_mulVec`), `variationallyRepresents_linearRepresentative`.
 
+## Section 8.1: Lemma 8.1 (`Ch08/Sec01/ParabolicSolutions.lean`, `Ch08/Sec01/FluxEnergy.lean`, `Ch08/Sec01/ParabolicCutoff.lean`, `Ch08/Sec01/CaccioppoliSlice.lean`, `Ch08/Sec01/CaccioppoliEnergy.lean`, `Ch08/Sec01/Lemma81.lean`)
+
+- Space-time points are written `(x, t)`, space first, as in the parabolic part of the elliptic
+  regularity library. `Q_r = I_r × B_r` is `parabolicCylinder d r = B_r ×ˢ (-r², 0]`.
+- `H¹_par(Q_{2r})` of (8.2) is `PDE.ParH1Function (B_{2r}) (I_{2r})` of the elliptic regularity
+  library: a function of `L²(I; H¹(U))` given by its representative which is weakly continuous in
+  time, every time slice being in `L²_loc(U)`. Every function of `H¹_par` has such a representative
+  (`H¹_par ⊆ C(Ī; L²(U))`); for a weak solution, `∂ₜu ∈ L²(I; H⁻¹(U))` follows from the equation.
+- The right-hand side `u* ∈ L²(I_{2r}; H⁻¹(B_{2r}))` is written `u* = ∇·F` with
+  `F ∈ L²(Q_{2r}; ℝ^d)`; every element of `L²(I; H⁻¹(U))` for a bounded `U` has this form (Riesz
+  representation in `H¹₀(U)`). The weak formulation (8.6) is `IsParabolicSolution a U I u F`:
+  `∫ (-u ∂ₜφ + (a∇u + F) · ∇φ) = 0` for every `C¹` test function `φ` with compact support in
+  `U × (I₋, I₊)`, which is the book's formulation tested against `L²(I; H¹₀(U))`. The norm
+  `‖u*‖_{L̲²(I; H̲⁻¹(U))}` is `timeNegativeSobolevNorm I U F`, the volume-normalized `L²` norm in time
+  (in `[0, ∞]`, a lower integral) of the normalized `H⁻¹(U)` norm `negativeSobolevOneNorm 2 U 0 F(·, t)`
+  of (0.29).
+- `QSH.lemma_8_1` (for `d ≥ 1`, `Λ ≥ 1`): (8.8) as printed; and for every `s ∈ I_r`,
+  `‖u(s, ·)‖_{L̲²(B_r)} ≤ C ‖u‖_{L̲²(Q_{2r})} + C r ‖u*‖_{L̲²(I_{2r}; H̲⁻¹(B_{2r}))}`, which is what the
+  book's proof of (8.9) gives. The printed (8.9),
+  `sup_{s ∈ I_r} ‖u(s, ·)‖_{L̲²(B_r)} ≤ C ‖∇u‖_{L̲²(Q_{2r})} + C ‖u*‖_{L̲²(I_{2r}; H̲⁻¹(B_{2r}))}`, fails
+  for `u = 1`, `u* = 0` (left side `1`, right side `0`), and is not invariant under the scaling
+  `u ↦ u(r²·, r·)`; its proof (the test function `η_r² u 1_{t < s}`) estimates the term
+  `∫ η_r |∂ₜη_r| u²` by `C r⁻² ∫_{Q_{2r}} u²`, which is the first term on the right here. The time
+  slice is that of the weakly continuous representative, for which the book's supremum over
+  `s ∈ I_r` is the bound at every `s`.
+- Proof: the book's. The energy identity for `η_r² u` (`fluxEnergyIdentity`, for any equation
+  `∂ₜu = ∇·G` with square-integrable flux) is obtained from the library's abstract energy identity
+  (`PDE.Parabolic.Energy.Data.energy_identity`), whose hypotheses follow from the weak slice identity
+  `fluxWeakSlice` (the library's Lemma 5.5, proved there for `G = a∇u`, with the same proof for any
+  `G`). The cutoff is `η_r(x, t) = θ(t) ζ(x)` with `θ` the smooth transition from `t = -3r²` to
+  `t = -r²` and `ζ` the library's ball cutoff of `B_r` in `B_{3r/2}` (`parabolicCutoff`). The pairing
+  with `u*` at each time is bounded by `|B_{2r}| ‖u*(t)‖_{H̲⁻¹} ‖η_r² u(t)‖_{H̲¹}`
+  (`abs_integral_pairing_le_of_h10`) and Young's inequality (`slicePairing_le`); the cross term
+  `2 η_r u ∇η_r · a∇u` by Young's inequality; then absorption (`parabolicCaccioppoli_energy`) and
+  normalization.
+
 ## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
 
 - Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
