@@ -39,7 +39,7 @@ theorem integrableOn_dot_spaceGradC1 {G : Vec d × ℝ → Vec d}
   have hKJ : volume (tsupport ζ ×ˢ J) < ⊤ := by
     rw [Measure.volume_eq_prod, Measure.prod_prod]
     exact ENNReal.mul_lt_top (hζc : IsCompact (tsupport ζ)).measure_lt_top hJ
-  haveI : IsFiniteMeasure (volume.restrict (tsupport ζ ×ˢ J)) :=
+  have : IsFiniteMeasure (volume.restrict (tsupport ζ ×ˢ J)) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact hKJ⟩
   have hsub : tsupport ζ ×ˢ J ⊆ U ×ˢ I := prod_mono hζU hJI
   have hK : IntegrableOn (fun z : Vec d × ℝ => ∑ i, G z i * PDE.spaceGradC1 ζ z.1 i)
