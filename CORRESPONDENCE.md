@@ -1518,6 +1518,28 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   sequence: the integrand is `½ (a∇u - g)·s⁻¹(a∇u - g) ≥ (2 max(Λ,1))⁻¹ |a∇u - g|²`, so the
   minimizing sequence converges to `a∇u` in `L²(U)`.
 
+## Section 10.2: Lemma 10.9 and Lemma 10.10 in part (`Ch10/Sec02/`)
+
+- The results of Section 10.2 are proved on bounded open convex domains (the domains
+  `Homogenization.Book.Ch02.Domain` of the coarse-graining library), which include the cubes used in
+  Section 10.3, from the double-variable framework of that library (Armstrong and Kuusi). A field
+  `a` of `Ω` is a coefficient field of the library with ellipticity constants `1` and `max(Λ², 1)`
+  (`GeneralCoefficientField.isEllipticMatrix`, `toCGCoeffOn`), and the block pairing of the library
+  is the bilinear form of (10.7) (`blockVecDot_blockMatrixField`).
+- The spaces (0.33)–(0.36) are those of the library (`IsL2PotOn`, `IsL2SolOn`, `IsL2Pot0On`,
+  `IsL2Sol0On`); `S(U)` (10.19) is `IsResponseField`, `μ(U, p, q)` (10.15) is `doubleMu`,
+  `μ*(U, q*, p*)` (10.16) is `doubleMuStar`, `J(U, X, X*)` (10.20) is `doubleJ` for `X = (p, q)` and
+  `X* = (q*, p*)` as in (10.21), and `S(·, U, X, X*)` is `IsResponseMaximizer` (`Ch10/Sec02/Quantities.lean`).
+  On a domain of the library they are the library's doubled response space, doubled `μ` and doubled
+  response functional (`isResponseField_iff`, `doubleMu_eq`, `doubleJ_eq`).
+- Lemma 10.9: `A(U)` and `A*(U)` are `IsSolutionOn (fun x => a x) U` and
+  `IsSolutionOn (fun x => (a x)ᵀ) U` (tested on `H¹₀(U)`), and (10.37) is stated with a.e. equalities,
+  the elements of `S(U)` being fields up to null sets.
+- Lemma 10.10: the matrices `A(U)`, `A*(U)` and `A*(U)⁻¹` are 2×2 block matrices of `d×d` matrices
+  (`coarseMatrix`, `coarseStar`, `coarseStarInv`). The identities (10.42) and (10.43) are printed for
+  every `X`, `X*`; they hold for `X* = 0` and `X = 0` respectively (as (2.13) and (2.14) in Lemma 2.2),
+  since in general the average of `S(·, U, X, X*)` is `A*(U)⁻¹X* - X`.
+
 ## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
 
 - Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
