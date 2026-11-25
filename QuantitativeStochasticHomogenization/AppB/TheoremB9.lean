@@ -31,7 +31,7 @@ theorem ball_eq_pdeEuclideanBall (z : Vec d) {r : ℝ} (hr : 0 < r) :
     ball z r = PDE.euclideanBall z r := by
   ext x
   simp only [ball, PDE.euclideanBall, PDE.euclideanSqDist, PDE.vecNormSq, PDE.vecDot,
-    euclideanNorm, euclideanSq, dot, Set.mem_setOf_eq]
+    euclideanNorm, euclideanSq, dot, Set.mem_ofPred_eq]
   exact Real.sqrt_lt' hr
 
 theorem isOpenBoundedConvexDomain_ball (z : Vec d) {r : ℝ} (hr : 0 < r) :
