@@ -221,11 +221,12 @@ theorem ae_tendsto_averages_of_rate {P : Measure (CoefficientField d Λ)} (S : H
 
 /-! ## The expectations (1) -/
 
-/-- **The expectations (1) of the Gaussian averages with an explicit constant**, from scales `X`
-of the energy bound below the scale, Proposition 3.21 at one exponent with a positive rate and a
-bound `C_β r^{-β}` of the periodization error: the constant is
-`(d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + E[X(0)^d]))` with `c = cellHeatLower d`. -/
-theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ)}
+/-- **The expectations of the Gaussian averages at a general rate**: if the periodization error at
+every scale `r ≥ 1` is at most `C_β exp(-h(r))`, the expectations of the Gaussian averages of the
+gradient, the flux and the energy of the corrected fields are within `K |ξ| exp(-h(r))`,
+`K |ξ| exp(-h(r))` and `K |ξ|² exp(-h(r))` of `ξ`, `āξ` and `ξ·āξ`, with
+`K = (d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + E[X(0)^d]))`. -/
+theorem expectedAveragesBounds_of_scales {P : Measure (CoefficientField d Λ)}
     (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
     (X : CoefficientField d Λ → Vec d → ℝ) (hX1 : ∀ a z, 1 ≤ X a z)
     (hXos : ∀ z, OsBound P (fun a => X a z) τ CN)
@@ -234,10 +235,26 @@ theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ
         dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
       (∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ≤
         CN * (1 + (X a z / r) ^ d) * euclideanSq ξ)
-    {τ' C μ : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ' C μ) {β Cβ : ℝ}
-    (hCβ : 0 < Cβ) (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * r ^ (-β)) :
-    ExpectedAveragesEstimateAt P S β (((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
-      (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P))) := by
+    {τ' C μ : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ' C μ) (h : ℝ → ℝ) {Cβ : ℝ}
+    (hCβ : 0 < Cβ)
+    (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * Real.exp (-h r)) :
+    ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun a => ∫ x, heatKernel z r x • correctedField S a ξ x) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) P ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • correctedField S a ξ x) ∂P) - ξ) ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)) * euclideanNorm ξ * Real.exp (-h r) ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) ∂P) -
+        S.homogenized.mulVec ξ) ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)) * euclideanNorm ξ * Real.exp (-h r) ∧
+      |(∫ a, (∫ x, heatKernel z r x *
+          dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P) -
+        dot ξ (S.homogenized.mulVec ξ)| ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)) * euclideanSq ξ * Real.exp (-h r) := by
   have : IsProbabilityMeasure P := hP.1
   have hinv := hP.2.1
   have hCN : 0 < CN := (hXos 0).scale_pos
@@ -277,7 +294,7 @@ theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ
       (euclideanSq_nonneg ξ)
   have hlim := ae_tendsto_averages_of_rate S hμ hrate ξ
   have hn := euclideanNorm_nonneg ξ
-  have hρ : 0 < r ^ (-β) := Real.rpow_pos_of_pos hr0 _
+  have hρ : 0 < Real.exp (-h r) := Real.exp_pos _
   have hε0 := periodizationError_nonneg (d := d) hr0
   have hε := hCβb r hr
   -- the gradient
@@ -339,7 +356,7 @@ theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ
   set M := 1 + CN * (1 + ∫ a, X a 0 ^ d ∂P) with hMdef
   set ε := (1 + thetaError (r ^ 2)) ^ d - 1 with hεdef
   set c0 := (cellHeatLower d)⁻¹ with hc0def
-  set ρ := r ^ (-β) with hρdef
+  set ρ := Real.exp (-h r) with hρdef
   have hd1 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
   have hεc : ε * c0 ≤ Cβ * ρ * c0 := mul_le_mul_of_nonneg_right hε hc0.le
   refine ⟨hIG, hIF, hIW, ?_, ?_, ?_⟩
@@ -377,6 +394,92 @@ theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ
           gcongr
           nlinarith
       _ = ((d : ℝ) + 1) * Cβ * c0 * (Λ + 1) * M * euclideanSq ξ * ρ := by ring
+
+/-- **The expectations (1) of the Gaussian averages with an explicit constant**, from scales `X`
+of the energy bound below the scale, Proposition 3.21 at one exponent with a positive rate and a
+bound `C_β r^{-β}` of the periodization error: the constant is
+`(d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + E[X(0)^d]))` with `c = cellHeatLower d`. -/
+theorem expectedAveragesEstimateAt_of_scales {P : Measure (CoefficientField d Λ)}
+    (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
+    (X : CoefficientField d Λ → Vec d → ℝ) (hX1 : ∀ a z, 1 ≤ X a z)
+    (hXos : ∀ z, OsBound P (fun a => X a z) τ CN)
+    (hXb : ∀ z : Vec d, ∀ᵐ a ∂P, ∀ r : ℝ, 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun x => heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∧
+      (∫ x, heatKernel z r x * dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ≤
+        CN * (1 + (X a z / r) ^ d) * euclideanSq ξ)
+    {τ' C μ : ℝ} (hμ : 0 < μ) (hrate : GaussianCorrectorRate P S τ' C μ) {β Cβ : ℝ}
+    (hCβ : 0 < Cβ) (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * r ^ (-β)) :
+    ExpectedAveragesEstimateAt P S β (((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+      (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P))) := by
+  have he : ∀ r : ℝ, 1 ≤ r → r ^ (-β) = Real.exp (-(β * Real.log r)) := fun r hr => by
+    rw [Real.rpow_def_of_pos (zero_lt_one.trans_le hr)]
+    congr 1
+    ring
+  intro z r hr ξ
+  have key := expectedAveragesBounds_of_scales hP S hΛ X hX1 hXos hXb hμ hrate
+    (fun r => β * Real.log r) hCβ (fun r hr => by simpa only [← he r hr] using hCβb r hr) z r hr ξ
+  simpa only [← he r hr] using key
+
+/-- **The expectations of the Gaussian averages at a general rate, with a constant chosen before
+the law**: for `d ≥ 1`, the energy bound below the scale at the exponent `τ` with constant `C_N`,
+Proposition 3.21 at one exponent with a positive rate and a bound `C_β exp(-h(r))` of the
+periodization error give the bounds of `expectedAveragesBounds_of_scales` with the constant
+`(d + 1) C_β c⁻¹ (Λ + 1) (1 + C_N (1 + K C_N^d))`, `K = momentConstant (τ/d)`. -/
+theorem expectedAveragesBounds_of_energy_and_rate {P : Measure (CoefficientField d Λ)}
+    (hd : 0 < d) (hP : LawHypotheses P) (S : HomogenizationData P) (hΛ : 0 ≤ Λ) {τ CN : ℝ}
+    (hN : GaussianEnergyBound P S τ CN) {τ' C μ : ℝ} (hμ : 0 < μ)
+    (hrate : GaussianCorrectorRate P S τ' C μ) (h : ℝ → ℝ) {Cβ : ℝ} (hCβ : 0 < Cβ)
+    (hCβb : ∀ r : ℝ, 1 ≤ r → (1 + thetaError (r ^ 2)) ^ d - 1 ≤ Cβ * Real.exp (-h r)) :
+    ∀ (z : Vec d) (r : ℝ), 1 ≤ r → ∀ ξ : Vec d,
+      Integrable (fun a => ∫ x, heatKernel z r x • correctedField S a ξ x) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) P ∧
+      Integrable (fun a => ∫ x, heatKernel z r x *
+        dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) P ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • correctedField S a ξ x) ∂P) - ξ) ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + momentConstant (τ / d) * CN ^ (d : ℝ))) * euclideanNorm ξ *
+            Real.exp (-h r) ∧
+      euclideanNorm ((∫ a, (∫ x, heatKernel z r x • (a x).mulVec (correctedField S a ξ x)) ∂P) -
+        S.homogenized.mulVec ξ) ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + momentConstant (τ / d) * CN ^ (d : ℝ))) * euclideanNorm ξ *
+            Real.exp (-h r) ∧
+      |(∫ a, (∫ x, heatKernel z r x *
+          dot (correctedField S a ξ x) ((a x).mulVec (correctedField S a ξ x))) ∂P) -
+        dot ξ (S.homogenized.mulVec ξ)| ≤
+        ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+          (1 + CN * (1 + momentConstant (τ / d) * CN ^ (d : ℝ))) * euclideanSq ξ *
+            Real.exp (-h r) := by
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨X, -, hX1, hXos, hXb⟩ := hN
+  have hCN : 0 < CN := (hXos 0).scale_pos
+  have hX0 : ∀ a, 0 ≤ X a 0 := fun a => zero_le_one.trans (hX1 a 0)
+  have hdr : (0 : ℝ) < d := Nat.cast_pos.mpr hd
+  obtain ⟨-, hm⟩ := ((hXos 0).rpow hX0 hdr).integral_le_factorial_mul fun a =>
+    Real.rpow_nonneg (hX0 a) _
+  have hEX : ∫ a, X a 0 ^ d ∂P ≤ momentConstant (τ / d) * CN ^ (d : ℝ) := by
+    simpa only [Real.rpow_natCast, momentConstant] using hm
+  have hc0 : 0 < (cellHeatLower d)⁻¹ := inv_pos.mpr (cellHeatLower_pos d)
+  have hK : 0 ≤ ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) := by positivity
+  have hKK : ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+        (1 + CN * (1 + ∫ a, X a 0 ^ d ∂P)) ≤
+      ((d : ℝ) + 1) * Cβ * (cellHeatLower d)⁻¹ * (Λ + 1) *
+        (1 + CN * (1 + momentConstant (τ / d) * CN ^ (d : ℝ))) := by
+    refine mul_le_mul_of_nonneg_left ?_ hK
+    have := mul_le_mul_of_nonneg_left (add_le_add_left hEX 1) hCN.le
+    linarith
+  intro z r hr ξ
+  obtain ⟨h1, h2, h3, h4, h5, h6⟩ :=
+    expectedAveragesBounds_of_scales hP S hΛ X hX1 hXos hXb hμ hrate h hCβ hCβb z r hr ξ
+  have he := (Real.exp_pos (-h r)).le
+  exact ⟨h1, h2, h3,
+    h4.trans (mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hKK (euclideanNorm_nonneg ξ)) he),
+    h5.trans (mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hKK (euclideanNorm_nonneg ξ)) he),
+    h6.trans (mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hKK (euclideanSq_nonneg ξ)) he)⟩
 
 /-- **The expectations (1) of the Gaussian averages** for every `β > 0`, from the energy bound
 below the scale and Proposition 3.21 at one exponent with a positive rate, for a law satisfying

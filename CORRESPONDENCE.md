@@ -374,6 +374,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 
+- **Definition 5.23** (`coarsenedCoefficient`, `Ch05/Sec03HeuristicScalingLimit.lean`). The matrix
+  is defined by its entries, `b_r(z)_{jk} = ½ (J₁(Φ_{z,r}, e_j + e_k, ā e_j) - J₁(Φ_{z,r}, e_j - e_k, ā e_j))`,
+  which is (5.62) at `p = e_j`, `p' = e_k`. The identity (5.62) for all `p, p'` uses that
+  `(p, q) ↦ J₁(Φ_{z,r}, p, q)` is a quadratic form; it is `dot_coarsenedCoefficient_mulVec` when the
+  gradients of `A₁` have the structure (4.12) (`LinearA1Gradients`), which holds almost surely.
+
 - **Lemma 5.24, (5.63)–(5.64), with `s = 1`** (`coarsenedCoefficientEstimates_of`,
   `coarsenedCoefficient_aeOsBound`). The proof departs from the book, which deduces (5.64) from
   (5.62) and Lemma 4.25. When the gradients of `A₁` are, up to null sets, the fields `G ξ` of a
@@ -1277,6 +1283,22 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   step; the bookkeeping is the discrete lemma `QSH.discrete_flatness_iteration` and the geometric
   bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
   Theorem 2.18 (Section 2.3, not formalized).
+
+## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
+
+- Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
+  law, for the homogenization data given by Proposition 3.21 (`uniformGaussianCorrectorRate`).
+  The gradient `∇φ_e` is `G e - e` for the corrected field `G e = ∑ᵢ eᵢ (eᵢ + ∇φ_{eᵢ})`
+  (`correctedField`). The statement includes the almost sure integrability in `x` of the three
+  densities against `Φ_{x,r}` and the integrability in the coefficient field of their averages.
+- Proof: not the book's Poincaré inequality on the torus ((3.109) and Exercise 3.24), but the bound
+  of the periodized heat kernel by Poisson summation (`abs_tsum_heatKernel_add_latticeShift_sub_one_le`),
+  whose error `(1 + ∑_{k ≠ 0} e^{-4π² r² k²})^d - 1` is at most `C exp(-4π² r²)` for `r ≥ 1`
+  (`periodizationError_le_exp`); the expectations of the Gaussian averages of the stationary
+  densities are within this error of their cell means (`expectedAveragesBounds_of_scales`, the
+  bound of the expectations (1) at a general rate `exp(-h(r))`, of which the rate `r^{-β}` of
+  `expectedAveragesEstimateAt_of_scales` is the case `h(r) = β log r`), and the cell means are
+  identified by Proposition 3.21 as in the expectations (1) above.
 
 ## Section 5.1: Lemma 5.2 (`Ch05/Sec01/Lemma52.lean`)
 

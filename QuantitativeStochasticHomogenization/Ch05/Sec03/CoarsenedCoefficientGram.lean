@@ -14,7 +14,8 @@ with `∫ Φ_{z,r} |G ξ|² < ∞` ((4.12)). On the Gram space `H` of this famil
 of the averages of the gradient and of the flux, `J₁(Φ_{z,r}, p, q) = ½ ‖U^* q - V^* p‖²`. Then:
 
 * the coarsened coefficient `b_r(z)` of (5.62) is the matrix of `b = V V^* - ā U V^*`
-  (`toEuclideanCLM_coarsenedCoefficient`);
+  (`toEuclideanCLM_coarsenedCoefficient`), and (5.62) holds for all `p, p'`
+  (`dot_coarsenedCoefficient_mulVec`);
 * the flux defect of (5.64) is at most `√Λ ‖V - (ā + b) U‖` (`coarseFluxDefect_le`).
 -/
 
@@ -113,6 +114,19 @@ theorem toEuclideanCLM_coarsenedCoefficient (hA : A.transpose = A) :
   simp only [OrthonormalBasis.coe_toBasis, ContinuousLinearMap.coe_coe]
   rw [← toLp_unitVector, ← toLp_unitVector, Matrix.toEuclideanCLM_toLp, inner_toLp_toLp_eq_dot,
     dot_unitVector_mulVec, coarsenedCoefficient_eq_inner a A z hr G hspan hreal hG2 hA]
+
+include hr hspan hreal hG2 in
+/-- **The identity (5.62) of Definition 5.23 for all `p, p'`**:
+`p · b_r(z) p' = ½ (J₁(Φ_{z,r}, p + p', ā p) - J₁(Φ_{z,r}, p - p', ā p))`. -/
+theorem dot_coarsenedCoefficient_mulVec (hA : A.transpose = A) (p p' : Vec d) :
+    dot p ((coarsenedCoefficient a A z r).mulVec p') =
+      (J1Heat a z r (p + p') (A.mulVec p) - J1Heat a z r (p - p') (A.mulVec p)) / 2 := by
+  rw [← inner_toLp_toLp_eq_dot, ← Matrix.toEuclideanCLM_toLp,
+    toEuclideanCLM_coarsenedCoefficient a A z hr G hspan hreal hG2 hA,
+    inner_coarsenedOperator_eq_gramEnergy _ _ (inner_toEuclideanCLM_symm hA),
+    Matrix.toEuclideanCLM_toLp, ← WithLp.toLp_add, ← WithLp.toLp_sub,
+    ← J1Heat_eq_gramEnergy a z hr G hspan hreal hG2,
+    ← J1Heat_eq_gramEnergy a z hr G hspan hreal hG2]
 
 include hspan in
 /-- The defect of a normalized element of `A₁` is the norm of the operator `V - (ā + b) U`
