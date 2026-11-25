@@ -75,7 +75,7 @@ theorem eLpNorm_top_sub_integralAverage_ball_le (hd : 0 < d) {p : ℝ} (hdp : (d
     have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
     linarith
   have hB := isOpenBoundedConvexDomain_ball z hr
-  haveI : IsFiniteMeasure (volume.restrict (ball z r)) :=
+  have : IsFiniteMeasure (volume.restrict (ball z r)) :=
     isFiniteMeasure_restrict.mpr (volume_ball_ne_top z hr)
   have hae := ae_abs_sub_integralAverage_le_of_convex hB.1 (isBounded_ball z hr) hB.2.2
     ⟨z, center_mem_ball z hr⟩ (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hd hdp
@@ -96,5 +96,96 @@ theorem eLpNorm_top_sub_integralAverage_ball_le (hd : 0 < d) {p : ℝ} (hdp : (d
         (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p) (fun y => euclideanNorm (g y))).toReal by
         field_simp,
       ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal hfin]
+
+theorem continuous_gradient {φ : Vec d → ℝ} (hφ : ContDiff ℝ 1 φ) :
+    Continuous fun x => gradient φ x :=
+  continuous_pi fun i => (hφ.continuous_fderiv one_ne_zero).clm_apply continuous_const
+
+/-- A test function in `B_r(z)` is bounded by `8 √d (1 - d/p)⁻¹ r ‖∇φ‖_{L̲^p(B_r(z))}`: the
+`C¹` Morrey inequality on `B_{2r}(z)` bounds `|φ(x) - φ(y)|` for a point `y` with `φ(y) = 0`. -/
+theorem abs_le_of_isSpatialTest_ball (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p) (z : Vec d) {r : ℝ}
+    (hr : 0 < r) {φ : Vec d → ℝ} (hφ : IsSpatialTest (ball z r) φ) (x : Vec d) :
+    |φ x| ≤ 8 * Real.sqrt d / (1 - d / p) * r *
+      (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p)
+        (fun y => euclideanNorm (gradient φ y))).toReal := by
+  have hd1 : (1 : ℝ) ≤ d := by exact_mod_cast hd
+  have hp1 : 1 < p := by linarith
+  have hp0 : 0 < p := by linarith
+  have hc : 0 < 1 - (d : ℝ) / p := by
+    have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
+    linarith
+  have hr2 : 0 < 2 * r := by positivity
+  have hφ1 : ContDiff ℝ 1 φ := hφ.1.of_le (by exact_mod_cast le_top)
+  have hBK : ball z r ⊆ ball z (2 * r) := fun y hy => by
+    have : euclideanNorm (y - z) < r := hy
+    show euclideanNorm (y - z) < 2 * r
+    linarith
+  have hRHS : 0 ≤ 8 * Real.sqrt d / (1 - d / p) * r *
+      (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p)
+        (fun y => euclideanNorm (gradient φ y))).toReal := by positivity
+  have h0 : ∀ y, y ∉ ball z r → φ y = 0 := fun y hy =>
+    image_eq_zero_of_notMem_tsupport fun h => hy (hφ.2.2 h)
+  by_cases hxK : x ∉ ball z (2 * r)
+  · rw [h0 x fun h => hxK (hBK h), abs_zero]
+    exact hRHS
+  push_neg at hxK
+  set i0 : Fin d := ⟨0, hd⟩
+  set y : Vec d := z + (3 * r / 2) • PDE.basisVec i0 with hy
+  have hyz : euclideanNorm (y - z) = 3 * r / 2 := by
+    rw [hy, add_sub_cancel_left, euclideanNorm_eq_vecEuclideanNorm, PDE.vecEuclideanNorm_smul,
+      PDE.vecEuclideanNorm_basisVec, mul_one, abs_of_pos (by positivity)]
+  have hyK : y ∈ ball z (2 * r) := by
+    show euclideanNorm (y - z) < 2 * r
+    rw [hyz]
+    linarith
+  have hyB : y ∉ ball z r := by
+    intro h
+    have : euclideanNorm (y - z) < r := h
+    rw [hyz] at this
+    linarith
+  have hK := isOpenBoundedConvexDomain_ball z hr2
+  have hK0 : volume (ball z (2 * r)) ≠ 0 := (volume_ball_pos z hr2).ne'
+  have hmor := ConvexMorrey.abs_sub_le_morrey volume hφ1 hK.1.measurableSet hK.2.2
+    (isBounded_ball z hr2) hK0 (δ := 2 * (2 * r))
+    (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hp1
+    (by simpa [Module.finrank_fin_fun] using hdp) hxK hyK
+  rw [Module.finrank_fin_fun, h0 y hyB, sub_zero] at hmor
+  have hB := isOpenBoundedConvexDomain_ball z hr
+  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos z hr).ne'
+  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top z hr
+  have hGm : MemLp (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient φ y))
+      (ENNReal.ofReal p) (volume.restrict (ball z r)) :=
+    PDE.GradMemLpOn.memLp_vecEuclideanNorm
+      (PDE.W1pFunction.ofContDiffOnIsOpenBoundedConvexDomain (p := ENNReal.ofReal p) hB hφ1).gradMemLp
+  have hM := rpow_average_norm_fderiv_le hB0 hBt hp0 hφ1 hGm
+  have hD0 : ∀ y, y ∉ ball z r → ‖fderiv ℝ φ y‖ ^ p = 0 := fun y hy => by
+    rw [fderiv_of_notMem_tsupport ℝ fun h => hy (hφ.2.2 h), norm_zero,
+      Real.zero_rpow hp0.ne']
+  have hIK : ∫ y in ball z (2 * r), ‖fderiv ℝ φ y‖ ^ p = ∫ y in ball z r, ‖fderiv ℝ φ y‖ ^ p := by
+    rw [setIntegral_eq_integral_of_forall_compl_eq_zero fun y hy => hD0 y fun h => hy (hBK h),
+      setIntegral_eq_integral_of_forall_compl_eq_zero fun y hy => hD0 y hy]
+  have hI0 : 0 ≤ ∫ y in ball z r, ‖fderiv ℝ φ y‖ ^ p :=
+    integral_nonneg fun y => Real.rpow_nonneg (norm_nonneg _) _
+  have hvol : (volume (ball z (2 * r))).toReal⁻¹ ≤ (volume (ball z r)).toReal⁻¹ :=
+    inv_anti₀ (ENNReal.toReal_pos hB0 hBt)
+      (ENNReal.toReal_mono (volume_ball_ne_top z hr2) (measure_mono hBK))
+  have hKB : ((volume (ball z (2 * r))).toReal⁻¹ * ∫ y in ball z (2 * r), ‖fderiv ℝ φ y‖ ^ p) ^
+      (1 / p) ≤ ((volume (ball z r)).toReal⁻¹ * ∫ y in ball z r, ‖fderiv ℝ φ y‖ ^ p) ^ (1 / p) := by
+    rw [hIK]
+    exact Real.rpow_le_rpow (mul_nonneg (inv_nonneg.2 ENNReal.toReal_nonneg) hI0)
+      (mul_le_mul_of_nonneg_right hvol hI0) (by positivity)
+  calc |φ x| ≤ 2 * (1 / (1 - (d : ℝ) / p)) * (2 * (2 * r)) *
+        ((volume (ball z (2 * r))).toReal⁻¹ * ∫ y in ball z (2 * r), ‖fderiv ℝ φ y‖ ^ p) ^
+          (1 / p) := hmor
+    _ ≤ 2 * (1 / (1 - (d : ℝ) / p)) * (2 * (2 * r)) *
+        (Real.sqrt d * (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p)
+          (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient φ y))).toReal) :=
+        mul_le_mul_of_nonneg_left (hKB.trans hM) (by positivity)
+    _ = _ := by
+        change _ = 8 * Real.sqrt d / (1 - d / p) * r *
+          (PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p)
+            (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient φ y))).toReal
+        field_simp
+        ring
 
 end QSH
