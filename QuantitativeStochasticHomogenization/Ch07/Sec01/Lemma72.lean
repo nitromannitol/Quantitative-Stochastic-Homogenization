@@ -23,8 +23,8 @@ quantity is `∫ f² (|f| ∧ m)^{p-2}`, which the display after (7.9) writes as
 
 The book states the hypotheses (7.6) and (7.7) for `x ∈ B_{1/2}` and `r ∈ (0, 1/4)`, while its
 proof applies them at the stopping balls `B_{5 r_x}(x)` with centers `x ∈ B_s`, `s` up to `1`. The
-statement proved here (`lemma_7_2_ball`) takes them on every ball `B_r(x)` with `B_{2r}(x) ⊆ B_R`,
-for every radius `R > 0`, with the conclusion on `B_{R/2}`; this is the form used in the proof
+statement proved here (`lemma_7_2_ball`) takes them on every ball `B_r(x)` with `r < R/2` and
+`B_{2r}(x) ⊆ B_R`, for every radius `R > 0`, with the conclusion on `B_{R/2}`; this is the form used in the proof
 of Proposition 7.3. With `R = 1/2` the hypotheses of the book's statement suffice, and give the
 conclusion on `B_{1/4}` (`lemma_7_2`).
 -/
@@ -116,7 +116,7 @@ theorem cz_step {R s t q A η M ε m : ℝ} (hR : 0 < R) (hs : 0 < s) (hst : s <
     (ht : t ≤ 1) (hq : 2 < q) (hA : 0 ≤ A) (hη : 0 ≤ η) (hM : 1 ≤ M) (hε : 0 < ε) (hm : 0 < m)
     {f G : Vec d → ℝ} (hfm : Measurable f) (hGm : Measurable G)
     (hfint : IntegrableOn f (ball 0 R))
-    (happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → ball z (2 * ρ) ⊆ ball 0 R →
+    (happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → 2 * ρ < R → ball z (2 * ρ) ⊆ ball 0 R →
       ∃ h : Vec d → ℝ, Measurable h ∧
         PDE.eLpMeanNormOn (ball z ρ) (ENNReal.ofReal q) h ≤ ENNReal.ofReal A *
           (PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 G + PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 f) ∧
@@ -264,8 +264,7 @@ theorem cz_step {R s t q A η M ε m : ℝ} (hR : 0 < R) (hs : 0 < s) (hst : s <
 /-- The choice of the constants in the proof of Lemma 7.2: with `M = 2 N₀`, `N₀ ≥ 1` and
 `N₀^{q-p} ≥ 8 κ A^q 8^{p-2}`, `κ = 16 · 8^d`, and `η ≤ 1/(24 κ (4M)^{p-2})`, `η ≤ 1`, the factor
 `κ (2 (M/2)^{2-q} A^q + 6 η²) (4M)^{p-2}` of `Ψ(t)` is at most `1/2`. -/
-theorem cz_constant_le_half {q A ε N₀ η : ℝ} (hq : 2 + ε < q) (hA : 0 < A) (hε : 0 < ε)
-    (hN₀ : 1 ≤ N₀)
+theorem cz_constant_le_half {q A ε N₀ η : ℝ} (hA : 0 < A) (hN₀ : 1 ≤ N₀)
     (hX : 8 * (16 * 8 ^ d) * A ^ q * 8 ^ ε ≤ N₀ ^ (q - (2 + ε))) (hη0 : 0 ≤ η) (hη1 : η ≤ 1)
     (hη : η ≤ 1 / (24 * (16 * 8 ^ d) * (4 * (2 * N₀)) ^ ε)) :
     16 * 8 ^ d * (2 * (2 * N₀ / 2) ^ (2 - q) * A ^ q + 6 * η ^ 2) * (4 * (2 * N₀)) ^ ε ≤
@@ -328,7 +327,7 @@ theorem lemma_7_2_measurable {p q A : ℝ} (hp : 2 < p) (hpq : p < q) (hA : 1 �
       ∀ f g : Vec d → ℝ, Measurable f → Measurable g →
       MemLp f 2 (volume.restrict (ball 0 R)) →
       MemLp g (ENNReal.ofReal p) (volume.restrict (ball 0 R)) →
-      (∀ (x : Vec d) (r : ℝ), 0 < r → ball x (2 * r) ⊆ ball 0 R →
+      (∀ (x : Vec d) (r : ℝ), 0 < r → 2 * r < R → ball x (2 * r) ⊆ ball 0 R →
         ∃ h : Vec d → ℝ, Measurable h ∧
           PDE.eLpMeanNormOn (ball x r) (ENNReal.ofReal q) h ≤ ENNReal.ofReal A *
             (PDE.eLpMeanNormOn (ball x (2 * r)) 2 g + PDE.eLpMeanNormOn (ball x (2 * r)) 2 f) ∧
@@ -377,7 +376,7 @@ theorem lemma_7_2_measurable {p q A : ℝ} (hp : 2 < p) (hpq : p < q) (hA : 1 �
   have hη0 : 0 ≤ η := by positivity
   have hηη₀ : η ≤ η₀ := by linarith
   have hθ : 16 * 8 ^ d * (2 * (M / 2) ^ (2 - q) * A ^ q + 6 * η ^ 2) * (4 * M) ^ ε ≤ 1 / 2 :=
-    cz_constant_le_half (by linarith) hA0 hε0 hN₀1 hX hη0 (hηη₀.trans hη₀1)
+    cz_constant_le_half hA0 hN₀1 hX hη0 (hηη₀.trans hη₀1)
       (hηη₀.trans (min_le_right _ _))
   -- the function `G = e⁻¹ g`
   set G : Vec d → ℝ := e⁻¹ • g with hG
@@ -387,14 +386,14 @@ theorem lemma_7_2_measurable {p q A : ℝ} (hp : 2 < p) (hpq : p < q) (hA : 1 �
       PDE.eLpMeanNormOn U r g = ENNReal.ofReal e * PDE.eLpMeanNormOn U r G := by
     intro U r
     rw [hgG, eLpMeanNormOn_const_smul U r he0.le]
-  have happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → ball z (2 * ρ) ⊆ ball 0 R →
+  have happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → 2 * ρ < R → ball z (2 * ρ) ⊆ ball 0 R →
       ∃ h : Vec d → ℝ, Measurable h ∧
         PDE.eLpMeanNormOn (ball z ρ) (ENNReal.ofReal q) h ≤ ENNReal.ofReal A *
           (PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 G + PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 f) ∧
         PDE.eLpMeanNormOn (ball z ρ) 2 (f - h) ≤ ENNReal.ofReal η *
           (PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 G + PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 f) := by
-    intro z ρ hρ hsub
-    obtain ⟨h, hhm, h1, h2⟩ := hhyp z ρ hρ hsub
+    intro z ρ hρ hρR hsub
+    obtain ⟨h, hhm, h1, h2⟩ := hhyp z ρ hρ hρR hsub
     refine ⟨h, hhm, h1.trans ?_, h2.trans ?_⟩
     · rw [hnormG]
       gcongr
@@ -679,5 +678,134 @@ theorem lemma_7_2_measurable {p q A : ℝ} (hp : 2 < p) (hpq : p < q) (hA : 1 �
     _ = ENNReal.ofReal (C₁ * e⁻¹) * (PDE.eLpMeanNormOn (ball 0 R) 2 f +
           PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal (2 + ε)) g) := by
         rw [← mul_add, ← mul_assoc, ENNReal.ofReal_mul (le_max_of_le_left zero_le_one)]
+
+theorem ball_subset_ball_two_mul (x : Vec d) {r : ℝ} (hr : 0 < r) :
+    ball x r ⊆ ball x (2 * r) :=
+  ball_subset_ball_of_norm (by
+    rw [sub_self, show euclideanNorm (0 : Vec d) = 0 by simp [euclideanNorm, euclideanSq, dot]]
+    linarith)
+
+/-- **Lemma 7.2** on the balls `B_r(x)` with `r < R/2` and `B_{2r}(x) ⊆ B_R`. For `p ∈ (2, ∞)`,
+`q ∈ (p, ∞]` and `A ≥ 1` there are `δ₀ > 0` and `C < ∞` such that, for every `δ ∈ (0, δ₀]` and `R > 0`, if
+`f ∈ L²(B_R)`, `g ∈ L^p(B_R)` and every such ball `B_r(x)` carries some
+`f_{x,r} ∈ L^q(B_r(x))` with (7.6) and (7.7), then `f ∈ L^p(B_{R/2})` and (7.8) holds:
+`‖f‖_{L̲^p(B_{R/2})} ≤ C (‖f‖_{L̲²(B_R)} + ‖g‖_{L̲^p(B_R)})`. -/
+theorem lemma_7_2_ball {p A : ℝ} {q : ℝ≥0∞} (hp : 2 < p) (hpq : ENNReal.ofReal p < q)
+    (hA : 1 ≤ A) :
+    ∃ δ₀ C : ℝ, 0 < δ₀ ∧ 0 ≤ C ∧ ∀ δ : ℝ, 0 < δ → δ ≤ δ₀ → ∀ R : ℝ, 0 < R →
+      ∀ f g : Vec d → ℝ, MemLp f 2 (volume.restrict (ball 0 R)) →
+      MemLp g (ENNReal.ofReal p) (volume.restrict (ball 0 R)) →
+      (∀ (x : Vec d) (r : ℝ), 0 < r → 2 * r < R → ball x (2 * r) ⊆ ball 0 R →
+        ∃ fxr : Vec d → ℝ, MemLp fxr q (volume.restrict (ball x r)) ∧
+          PDE.eLpMeanNormOn (ball x r) q fxr ≤
+            ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 g +
+              ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 f ∧
+          PDE.eLpMeanNormOn (ball x r) 2 (f - fxr) ≤
+            ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 g +
+              ENNReal.ofReal δ * PDE.eLpMeanNormOn (ball x (2 * r)) 2 f) →
+      MemLp f (ENNReal.ofReal p) (volume.restrict (ball 0 (R / 2))) ∧
+        PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal p) f ≤
+          ENNReal.ofReal C * (PDE.eLpMeanNormOn (ball 0 R) 2 f +
+            PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal p) g) := by
+  obtain ⟨q', hpq', hq'q⟩ : ∃ q' : ℝ, p < q' ∧ ENNReal.ofReal q' ≤ q := by
+    by_cases hq : q = ⊤
+    · exact ⟨p + 1, by linarith, by rw [hq]; exact le_top⟩
+    · refine ⟨q.toReal, ?_, by rw [ENNReal.ofReal_toReal hq]⟩
+      exact (ENNReal.ofReal_lt_iff_lt_toReal (by linarith) hq).mp hpq
+  obtain ⟨δ₀, C, hδ₀, hC, hmain⟩ := lemma_7_2_measurable (d := d) hp hpq' hA
+  refine ⟨δ₀, C, hδ₀, hC, fun δ hδ hδδ₀ R hR f g hf hg hhyp => ?_⟩
+  set f' := hf.aestronglyMeasurable.mk f with hf'
+  set g' := hg.aestronglyMeasurable.mk g with hg'
+  have hff' : f =ᵐ[volume.restrict (ball 0 R)] f' := hf.aestronglyMeasurable.ae_eq_mk
+  have hgg' : g =ᵐ[volume.restrict (ball 0 R)] g' := hg.aestronglyMeasurable.ae_eq_mk
+  have hF : ∀ {U : Set (Vec d)}, U ⊆ ball 0 R → ∀ s : ℝ≥0∞,
+      PDE.eLpMeanNormOn U s f = PDE.eLpMeanNormOn U s f' :=
+    fun hU s => eLpMeanNormOn_congr_of_subset hU hff'
+  have hGg : ∀ {U : Set (Vec d)}, U ⊆ ball 0 R → ∀ s : ℝ≥0∞,
+      PDE.eLpMeanNormOn U s g = PDE.eLpMeanNormOn U s g' :=
+    fun hU s => eLpMeanNormOn_congr_of_subset hU hgg'
+  have hR2 : 0 < R / 2 := half_pos hR
+  have hhalf : ball (0 : Vec d) (R / 2) ⊆ ball 0 R :=
+    (ball_subset_ball_two_mul 0 hR2).trans (by rw [show 2 * (R / 2) = R by ring])
+  have hhyp' : ∀ (x : Vec d) (r : ℝ), 0 < r → 2 * r < R → ball x (2 * r) ⊆ ball 0 R →
+      ∃ h : Vec d → ℝ, Measurable h ∧
+        PDE.eLpMeanNormOn (ball x r) (ENNReal.ofReal q') h ≤ ENNReal.ofReal A *
+          (PDE.eLpMeanNormOn (ball x (2 * r)) 2 g' + PDE.eLpMeanNormOn (ball x (2 * r)) 2 f') ∧
+        PDE.eLpMeanNormOn (ball x r) 2 (f' - h) ≤
+          ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 g' +
+            ENNReal.ofReal δ * PDE.eLpMeanNormOn (ball x (2 * r)) 2 f' := by
+    intro x r hr hrR hsub
+    have hsub1 : ball x r ⊆ ball 0 R := (ball_subset_ball_two_mul x hr).trans hsub
+    obtain ⟨fxr, hmem, h1, h2⟩ := hhyp x r hr hrR hsub
+    have hfxr : fxr =ᵐ[volume.restrict (ball x r)] hmem.aestronglyMeasurable.mk fxr :=
+      hmem.aestronglyMeasurable.ae_eq_mk
+    refine ⟨hmem.aestronglyMeasurable.mk fxr,
+      hmem.aestronglyMeasurable.stronglyMeasurable_mk.measurable, ?_, ?_⟩
+    · have : IsProbabilityMeasure (PDE.normalizedVolumeOn (ball x r)) :=
+        PDE.isProbabilityMeasure_normalizedVolumeOn_of_pos_of_lt_top (volume_ball_pos x hr)
+          (volume_ball_lt_top x r)
+      rw [← eLpMeanNormOn_congr_of_subset subset_rfl hfxr, ← hGg hsub, ← hF hsub, mul_add]
+      exact (eLpNorm_le_eLpNorm_of_exponent_le hq'q).trans h1
+    · have hae : f' - hmem.aestronglyMeasurable.mk fxr =ᵐ[volume.restrict (ball x r)]
+          f - fxr := by
+        filter_upwards [ae_restrict_of_ae_restrict_of_subset hsub1 hff', hfxr] with y hy1 hy2
+        simp only [Pi.sub_apply, hy1, hy2]
+      rw [eLpMeanNormOn_congr_of_subset subset_rfl hae, ← hGg hsub, ← hF hsub]
+      exact h2
+  have hmain' := hmain δ hδ hδδ₀ R hR f' g'
+    hf.aestronglyMeasurable.stronglyMeasurable_mk.measurable
+    hg.aestronglyMeasurable.stronglyMeasurable_mk.measurable (hf.ae_eq hff') (hg.ae_eq hgg')
+    hhyp'
+  have hbound : PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal p) f ≤
+      ENNReal.ofReal C * (PDE.eLpMeanNormOn (ball 0 R) 2 f +
+        PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal p) g) := by
+    rw [hF hhalf, hF subset_rfl, hGg subset_rfl]
+    exact hmain'
+  refine ⟨?_, hbound⟩
+  have hfin : PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal p) f ≠ ⊤ :=
+    ne_top_of_le_ne_top (ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.add_ne_top.mpr
+      ⟨eLpMeanNormOn_ne_top (volume_ball_ne_zero' 0 hR) hf,
+        eLpMeanNormOn_ne_top (volume_ball_ne_zero' 0 hR) hg⟩)) hbound
+  rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (volume_ball_lt_top 0 _)] at hfin
+  exact ENNReal.lt_top_of_mul_ne_top_right hfin
+    (ENNReal.rpow_pos (ENNReal.inv_pos.2 (volume_ball_ne_top' 0 _))
+      (ENNReal.inv_ne_top.2 (volume_ball_ne_zero' 0 hR2))).ne'
+
+/-- **Lemma 7.2** under the hypotheses of the book's statement: for `p ∈ (2, ∞)`, `q ∈ (p, ∞]`
+and `A ≥ 1` there are `δ₀ > 0` and `C < ∞` such that, for every `δ ∈ (0, δ₀]`, if `f ∈ L²(B_1)`,
+`g ∈ L^p(B_1)` and every `x ∈ B_{1/2}` and `r ∈ (0, 1/4)` carry some `f_{x,r} ∈ L^q(B_r(x))` with
+(7.6) and (7.7), then `f ∈ L^p(B_{1/4})` and
+`‖f‖_{L̲^p(B_{1/4})} ≤ C (‖f‖_{L̲²(B_{1/2})} + ‖g‖_{L̲^p(B_{1/2})})`. The book concludes on
+`B_{1/2}`; its proof uses the hypotheses at centers outside `B_{1/2}` (see the module docstring),
+and with the hypotheses at all centers the conclusion on `B_{1/2}` is `lemma_7_2_ball`. -/
+theorem lemma_7_2 {p A : ℝ} {q : ℝ≥0∞} (hp : 2 < p) (hpq : ENNReal.ofReal p < q)
+    (hA : 1 ≤ A) :
+    ∃ δ₀ C : ℝ, 0 < δ₀ ∧ 0 ≤ C ∧ ∀ δ : ℝ, 0 < δ → δ ≤ δ₀ →
+      ∀ f g : Vec d → ℝ, MemLp f 2 (volume.restrict (ball 0 1)) →
+      MemLp g (ENNReal.ofReal p) (volume.restrict (ball 0 1)) →
+      (∀ x ∈ ball (0 : Vec d) (1 / 2), ∀ r ∈ Ioo (0 : ℝ) (1 / 4),
+        ∃ fxr : Vec d → ℝ, MemLp fxr q (volume.restrict (ball x r)) ∧
+          PDE.eLpMeanNormOn (ball x r) q fxr ≤
+            ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 g +
+              ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 f ∧
+          PDE.eLpMeanNormOn (ball x r) 2 (f - fxr) ≤
+            ENNReal.ofReal A * PDE.eLpMeanNormOn (ball x (2 * r)) 2 g +
+              ENNReal.ofReal δ * PDE.eLpMeanNormOn (ball x (2 * r)) 2 f) →
+      MemLp f (ENNReal.ofReal p) (volume.restrict (ball 0 (1 / 4))) ∧
+        PDE.eLpMeanNormOn (ball 0 (1 / 4)) (ENNReal.ofReal p) f ≤
+          ENNReal.ofReal C * (PDE.eLpMeanNormOn (ball 0 (1 / 2)) 2 f +
+            PDE.eLpMeanNormOn (ball 0 (1 / 2)) (ENNReal.ofReal p) g) := by
+  obtain ⟨δ₀, C, hδ₀, hC, hmain⟩ := lemma_7_2_ball (d := d) hp hpq hA
+  refine ⟨δ₀, C, hδ₀, hC, fun δ hδ hδδ₀ f g hf hg hhyp => ?_⟩
+  have hsub : ball (0 : Vec d) (1 / 2) ⊆ ball 0 1 :=
+    (ball_subset_ball_two_mul 0 (by norm_num : (0 : ℝ) < 1 / 2)).trans
+      (by rw [show (2 : ℝ) * (1 / 2) = 1 by norm_num])
+  have h := hmain δ hδ hδδ₀ (1 / 2) (by norm_num) f g (hf.mono_measure
+    (Measure.restrict_mono hsub le_rfl)) (hg.mono_measure (Measure.restrict_mono hsub le_rfl))
+    (fun x r hr hrR hball => by
+      have hx : x ∈ ball (0 : Vec d) (1 / 2) := hball (mem_ball_self x (by linarith))
+      exact hhyp x hx r ⟨hr, by linarith⟩)
+  rw [show (1 : ℝ) / 2 / 2 = 1 / 4 by norm_num] at h
+  exact h
 
 end QSH

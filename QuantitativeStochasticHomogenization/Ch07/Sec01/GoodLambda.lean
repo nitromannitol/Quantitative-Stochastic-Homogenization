@@ -270,7 +270,7 @@ theorem cz_goodLambda {R s t q A η M l : ℝ} (hR : 0 < R) (hs : 0 < s) (hst : 
     (ht : t ≤ 1) (hq : 2 < q) (hA : 0 ≤ A) (hη : 0 ≤ η) (hM : 1 ≤ M) (hl : 0 < l)
     {f G : Vec d → ℝ} (hfm : Measurable f) (hGm : Measurable G)
     (hfint : IntegrableOn f (ball 0 R))
-    (happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → ball z (2 * ρ) ⊆ ball 0 R →
+    (happrox : ∀ (z : Vec d) (ρ : ℝ), 0 < ρ → 2 * ρ < R → ball z (2 * ρ) ⊆ ball 0 R →
       ∃ h : Vec d → ℝ, Measurable h ∧
         PDE.eLpMeanNormOn (ball z ρ) (ENNReal.ofReal q) h ≤ ENNReal.ofReal A *
           (PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 G + PDE.eLpMeanNormOn (ball z (2 * ρ)) 2 f) ∧
@@ -353,7 +353,8 @@ theorem cz_goodLambda {R s t q A η M l : ℝ} (hR : 0 < R) (hs : 0 < s) (hst : 
     have h8 : 0 < 8 * r := by positivity
     have hsub : ball z.1 (2 * (8 * r)) ⊆ ball 0 R :=
       hsubR z.1 z.2.1 _ (by linarith)
-    obtain ⟨h, hhm, hhq, hfh⟩ := happrox z.1 (8 * r) h8 hsub
+    have hρ₁R : ρ₁ < R := by rw [hρ₁]; nlinarith
+    obtain ⟨h, hhm, hhq, hfh⟩ := happrox z.1 (8 * r) h8 (by linarith) hsub
     have e16 : 2 * (8 * r) = 16 * r := by ring
     rw [e16] at hhq hfh
     have hup' : PDE.eLpMeanNormOn (ball z.1 (16 * r)) 2 G +

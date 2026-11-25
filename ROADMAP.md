@@ -25,7 +25,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
-| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
+| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 1 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
 | 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
 | 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 1 | 0 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **65** | **21** |
+| | **Total** | **226** | **65** | **22** |
 
 ## Front matter
 
@@ -313,12 +313,12 @@ No numbered result.
 
 ## Chapter 7: Calderón–Zygmund Gradient L^p Estimates
 
-### 7.1 Interior Calderón–Zygmund Estimates, module `Ch07/Sec01InteriorCalderonZygmund.lean`
+### 7.1 Interior Calderón–Zygmund Estimates, module `Ch07/Sec01InteriorCalderonZygmund.lean` (Lemma 7.2 in `Ch07/Sec01/GoodLambda.lean` and `Ch07/Sec01/Lemma72.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Theorem 7.1 | Gradient L^p-type estimates | not started |
-| Lemma 7.2 |  | not started |
+| Lemma 7.2 |  | in progress (`lemma_7_2_ball`: for every `R > 0`, with (7.6) and (7.7) on every ball `B_r(x)` with `r < R/2` and `B_{2r}(x) ⊆ B_R`, the conclusion (7.8) on `B_{R/2}`; `lemma_7_2`: under the printed hypotheses (centers in `B_{1/2}`, `r < 1/4`), the conclusion on `B_{1/4}`; the book's proof uses the hypotheses at centers outside `B_{1/2}`; see CORRESPONDENCE.md) |
 | Proposition 7.3 |  | not started |
 | Lemma 7.6 |  | not started |
 
