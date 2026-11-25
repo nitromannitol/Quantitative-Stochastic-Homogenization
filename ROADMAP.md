@@ -19,7 +19,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
-| 1 | Introduction and Qualitative Theory | 12 | 8 | 1 |
+| 1 | Introduction and Qualitative Theory | 12 | 8 | 3 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 10 | 0 |
 | 3 | Regularity on Large Scales | 23 | 3 | 6 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 2 |
@@ -70,8 +70,8 @@ No numbered result.
 | Proposition 1.12 | Multiscale Poincaré inequality | proved (`proposition_1_12`, with the normalized `Ĥ⁻¹(□_m)` norm of (0.31), `hatNegativeSobolevNorm`, and the normalized `H¹` norm of (0.26), `h1Norm`; the Poincaré inequality (1.43) on cubes, `setIntegral_sq_sub_setAverage_le`); see CORRESPONDENCE.md |
 | Lemma 1.13 |  | proved (`lemma_1_13`, (1.44) for `H¹(□_m)` and (1.45) for `H¹₀(□_m)`, both with the `Ĥ⁻¹(□_m)` norm of the gradient); see CORRESPONDENCE.md |
 | Corollary 1.14 |  | proved (`corollary_1_14`; in the conventions of the coarse-graining library, `exists_originCube_multiscalePoincare`) |
-| Proposition 1.15 |  | not started |
-| Lemma 1.16 | Div-curl lemma | not started |
+| Proposition 1.15 |  | in progress (for `d ≥ 2`, with the right side `C (3^{-2m} + E(m))^{1/2}` that its proof gives, `proposition_1_15`, module `Ch01/Sec04/Proposition115.lean`, and the normalized `W^{-2,q}` norm `negativeSobolevTwoNorm` of `AppB/NegativeSobolevTwo.lean`; the printed right side `C 3^{-2m} + C E(m)` of (1.53) is not proved); see CORRESPONDENCE.md |
+| Lemma 1.16 | Div-curl lemma | in progress (for `d ≥ 2` on bounded open convex domains, with the normalized norms of (0.29), `lemma_1_16`, and with the constant `C(q, d, κ) D` on domains of diameter at most `D` and volume at least `κ D^d`, `lemma_1_16_quantitative`; modules `Ch01/Sec04/DivCurlIdentity.lean`, `Ch01/Sec04/DivCurlBounds.lean` and `Ch01/Sec04/Lemma116.lean`; other domains not proved); see CORRESPONDENCE.md |
 
 ### 1.5 Homogenization of the Dirichlet Problem, module `Ch01/Sec05HomogenizationOfDirichletProblem.lean`
 
