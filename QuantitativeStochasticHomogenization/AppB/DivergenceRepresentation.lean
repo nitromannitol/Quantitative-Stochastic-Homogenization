@@ -347,4 +347,151 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
     rw [← ENNReal.ofReal_toReal hfin, hHnorm]
     exact ENNReal.ofReal_le_ofReal (by linarith [hLnorm, mul_comm N c])
 
+theorem aestronglyMeasurable_euclideanNorm_of_coord {μ : Measure (Vec d)} {H : Vec d → Vec d}
+    (hH : ∀ i, AEStronglyMeasurable (fun x => H x i) μ) :
+    AEStronglyMeasurable (fun x => euclideanNorm (H x)) μ := by
+  unfold euclideanNorm euclideanSq dot
+  exact Real.continuous_sqrt.comp_aestronglyMeasurable
+    (Finset.aestronglyMeasurable_fun_sum _ fun i _ => (hH i).mul (hH i))
+
+/-- **Remark B.6, the lower bound**: `‖∇·H‖_{W̲^{-1,s}(U)} ≤ ‖H‖_{L̲^s(U)}` for `s ∈ (1, ∞)`. -/
+theorem negativeSobolevOneNorm_zero_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) {s : ℝ}
+    (hs : 1 < s) {H : Vec d → Vec d}
+    (hH : ∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict U)) :
+    negativeSobolevOneNorm s U (fun _ => 0) H ≤
+      PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) := by
+  set μ := PDE.normalizedVolumeOn U with hμ
+  have hpos : 0 < volume U := pos_iff_ne_zero.mpr hU0
+  have hs0 : 0 < s := by linarith
+  have hq1 : 1 < s / (s - 1) := (one_lt_div (sub_pos.mpr hs)).mpr (by linarith)
+  have hpq : s.HolderConjugate (s / (s - 1)) := Real.HolderConjugate.conjExponent hs
+  have hHμ : AEStronglyMeasurable (fun x => euclideanNorm (H x)) μ :=
+    (aestronglyMeasurable_euclideanNorm_of_coord fun i =>
+      (hH i).aestronglyMeasurable).smul_measure _
+  have hmF : AEMeasurable (fun x => ‖euclideanNorm (H x)‖ₑ) μ := hHμ.enorm
+  refine iSup_le fun ψ => ?_
+  obtain ⟨ψ, htest, hT⟩ := ψ
+  have hgrad : ∀ i, Continuous fun x => coordinateDerivative i ψ x := fun i =>
+    (htest.1.continuous_fderiv (by simp)).clm_apply continuous_const
+  have hav : distributionPairing U (fun _ => 0) H ψ =
+      ∫ x, (0 * ψ x - dot (H x) (gradient ψ x)) ∂μ := by
+    rw [hμ, integral_normalizedVolumeOn_eq_mul, distributionPairing, setAverage_eq, smul_eq_mul]
+  rw [hav, ← Real.enorm_eq_ofReal_abs]
+  refine (enorm_integral_le_lintegral_enorm _).trans ?_
+  have hpt : ∀ x, ‖0 * ψ x - dot (H x) (gradient ψ x)‖ₑ ≤
+      ∑ i, ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ := by
+    intro x
+    have hn : 0 ≤ euclideanNorm (H x) := Real.sqrt_nonneg _
+    rw [zero_mul, zero_sub, enorm_neg, Real.enorm_eq_ofReal_abs]
+    calc ENNReal.ofReal |dot (H x) (gradient ψ x)| ≤
+        ENNReal.ofReal (∑ i, euclideanNorm (H x) * |coordinateDerivative i ψ x|) := by
+          refine ENNReal.ofReal_le_ofReal ?_
+          refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+          rw [abs_mul]
+          exact mul_le_mul_of_nonneg_right (PDE.abs_apply_le_vecEuclideanNorm (H x) i)
+            (abs_nonneg _)
+      _ = ∑ i, ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ := by
+          rw [ENNReal.ofReal_sum_of_nonneg (fun i _ => mul_nonneg hn (abs_nonneg _))]
+          refine Finset.sum_congr rfl fun i _ => ?_
+          rw [ENNReal.ofReal_mul hn, Real.enorm_eq_ofReal_abs, Real.enorm_eq_ofReal_abs,
+            abs_of_nonneg hn]
+  have hholder : ∀ i, ∫⁻ x, ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ ≤
+      PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) *
+        PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) (coordinateDerivative i ψ) := by
+    intro i
+    have h := ENNReal.lintegral_mul_le_Lp_mul_Lq μ hpq hmF (hgrad i).aestronglyMeasurable.enorm
+    have e1 : PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) =
+        (∫⁻ x, ‖euclideanNorm (H x)‖ₑ ^ s ∂μ) ^ (1 / s) := by
+      rw [PDE.eLpMeanNormOn, ← hμ, eLpNorm_eq_lintegral_rpow_enorm_toReal
+        (ENNReal.ofReal_pos.mpr hs0).ne' ENNReal.ofReal_ne_top hHμ, ENNReal.toReal_ofReal hs0.le]
+    have e2 : PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) (coordinateDerivative i ψ) =
+        (∫⁻ x, ‖coordinateDerivative i ψ x‖ₑ ^ (s / (s - 1)) ∂μ) ^ (1 / (s / (s - 1))) := by
+      rw [PDE.eLpMeanNormOn, ← hμ, eLpNorm_eq_lintegral_rpow_enorm_toReal
+        (ENNReal.ofReal_pos.mpr (by linarith)).ne' ENNReal.ofReal_ne_top
+        (hgrad i).aestronglyMeasurable, ENNReal.toReal_ofReal (by linarith)]
+    rw [e1, e2]
+    exact h
+  have hsumT : ∑ i, PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
+      (coordinateDerivative i ψ) ≤ 1 := by
+    have hfin : ∀ i, PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
+        (coordinateDerivative i ψ) ≠ ⊤ := fun i =>
+      PDE.memLp_normalizedVolumeOn_of_memLpOn ((hgrad i).memLp_of_hasCompactSupport
+        (htest.2.1.fderiv_apply (𝕜 := ℝ) (unitVector i))) hpos |>.eLpNorm_ne_top
+    have e : ∑ i, PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) (coordinateDerivative i ψ) =
+        ENNReal.ofReal (∑ i, (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
+          (coordinateDerivative i ψ)).toReal) := by
+      rw [ENNReal.ofReal_sum_of_nonneg (fun i _ => ENNReal.toReal_nonneg)]
+      exact Finset.sum_congr rfl fun i _ => (ENNReal.ofReal_toReal (hfin i)).symm
+    rw [e, ← ENNReal.ofReal_one]
+    refine ENNReal.ofReal_le_ofReal (le_trans ?_ hT)
+    unfold sobolevOneTestNorm
+    have h0 : 0 ≤ (volume U).toReal ^ (-(1 : ℝ) / d) *
+        (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) ψ).toReal :=
+      mul_nonneg (Real.rpow_nonneg ENNReal.toReal_nonneg _) ENNReal.toReal_nonneg
+    linarith
+  have hmeas : ∀ i ∈ Finset.univ, AEMeasurable
+      (fun x => ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ) μ :=
+    fun i _ => hmF.mul (hgrad i).aestronglyMeasurable.enorm
+  calc ∫⁻ x, ‖0 * ψ x - dot (H x) (gradient ψ x)‖ₑ ∂μ
+      ≤ ∫⁻ x, ∑ i, ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ :=
+        lintegral_mono hpt
+    _ = ∑ i, ∫⁻ x, ‖euclideanNorm (H x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ :=
+        lintegral_finsetSum' _ hmeas
+    _ ≤ ∑ i, PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) *
+          PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) (coordinateDerivative i ψ) :=
+        Finset.sum_le_sum fun i _ => hholder i
+    _ = PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) *
+          ∑ i, PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) (coordinateDerivative i ψ) := by
+        rw [Finset.mul_sum]
+    _ ≤ PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) * 1 := by
+        gcongr
+    _ = _ := mul_one _
+
+/-- Two right-hand sides with the same pairings against every test have the same normalized
+`W^{-1,s}` norm. -/
+theorem negativeSobolevOneNorm_eq_of_representation {U : Set (Vec d)} {s : ℝ} {f : Vec d → ℝ}
+    {F H : Vec d → Vec d}
+    (hrep : ∀ ψ, IsSpatialTest U ψ → ∫ x in U, (f x * ψ x - dot (F x) (gradient ψ x)) =
+      -∫ x in U, dot (H x) (gradient ψ x)) :
+    negativeSobolevOneNorm s U f F = negativeSobolevOneNorm s U (fun _ => 0) H := by
+  unfold negativeSobolevOneNorm
+  refine iSup_congr fun ψ => ?_
+  have h : ∫ x in U, (0 * ψ.1 x - dot (H x) (gradient ψ.1 x)) =
+      -∫ x in U, dot (H x) (gradient ψ.1 x) := by
+    simp only [zero_mul, zero_sub]
+    exact integral_neg _
+  rw [distributionPairing, distributionPairing, setAverage_eq, setAverage_eq, hrep ψ.1 ψ.2.1, h]
+
+/-- **Remark B.6 on balls.** For `d ≥ 1` there is `C(d) < ∞` such that, for `s ∈ (1, ∞)`, a ball
+`B_r(z)` and `h = f + ∇·F ∈ W^{-1,s}(B_r(z))` with `f, F ∈ L¹(B_r(z))`, there is a vector field
+`H ∈ L^s(B_r(z); ℝ^d)` with `∫_{B_r(z)} h ψ = -∫_{B_r(z)} H · ∇ψ` for every `ψ ∈ C_c^∞(B_r(z))` and
+`‖h‖_{W̲^{-1,s}(B_r(z))} ≤ ‖H‖_{L̲^s(B_r(z))} ≤ C ‖h‖_{W̲^{-1,s}(B_r(z))}`. -/
+theorem remark_B_6 (hd : 0 < d) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (s : ℝ), 1 < s → ∀ (z : Vec d) (r : ℝ), 0 < r →
+      ∀ (f : Vec d → ℝ) (F : Vec d → Vec d), IntegrableOn f (ball z r) →
+      (∀ i, IntegrableOn (fun x => F x i) (ball z r)) →
+      negativeSobolevOneNorm s (ball z r) f F ≠ ⊤ →
+      ∃ H : Vec d → Vec d,
+        (∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict (ball z r))) ∧
+        (∀ ψ, IsSpatialTest (ball z r) ψ →
+          ∫ x in ball z r, (f x * ψ x - dot (F x) (gradient ψ x)) =
+            -∫ x in ball z r, dot (H x) (gradient ψ x)) ∧
+        negativeSobolevOneNorm s (ball z r) f F ≤
+          PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ∧
+        PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
+          ENNReal.ofReal C * negativeSobolevOneNorm s (ball z r) f F := by
+  refine ⟨divergenceRepresentationConstant d, divergenceRepresentationConstant_nonneg d,
+    fun s hs z r hr f F hf hF hfin => ?_⟩
+  obtain ⟨H, hHmem, hrep, hnorm⟩ := exists_divergence_representation_ball hd hs z hr hf hF
+    ENNReal.toReal_nonneg (ENNReal.ofReal_toReal hfin).ge
+  have hU0 : volume (ball z r) ≠ 0 := by
+    rw [ball_eq_euclideanBall z hr]
+    exact (PDE.volume_euclideanBall_pos z hr).ne'
+  refine ⟨H, hHmem, hrep, ?_, ?_⟩
+  · rw [negativeSobolevOneNorm_eq_of_representation hrep]
+    exact negativeSobolevOneNorm_zero_le hU0 hs hHmem
+  · rw [ENNReal.ofReal_mul (divergenceRepresentationConstant_nonneg d),
+      ENNReal.ofReal_toReal hfin] at hnorm
+    exact hnorm
+
 end QSH

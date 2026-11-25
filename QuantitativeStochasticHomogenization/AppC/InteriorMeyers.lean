@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.AppC.ReverseHolder
 import QuantitativeStochasticHomogenization.AppC.GehringLemma
+import QuantitativeStochasticHomogenization.AppB.DivergenceRepresentation
 import QuantitativeStochasticHomogenization.Ch03.Sec04.SpatialWeakLocalization
 import QuantitativeStochasticHomogenization.Ch04.Sec04.CompactTestFluxBound
 import EllipticRegularity.Meyers.RHBoundaryData
@@ -20,7 +21,11 @@ for `d = 2` this is `q = 1`, outside the range `(1, 2)` of Lemma C.4, so the pro
 `q = max 2_* (3/2)`, for which the reverse Hölder inequality follows by Hölder's inequality.
 The general case is reduced in the book to this one by Proposition B.16, the solvability of the
 Dirichlet problem for the Laplacian in `W^{1,p}`, which gives `h = ∇·H` with
-`‖H‖_{L̲^s(B_r)} ≤ C ‖h‖_{W̲^{-1,s}(B_r)}`; `theorem_C_1` takes this representation as a hypothesis.
+`‖H‖_{L̲^s(B_r)} ≤ C ‖h‖_{W̲^{-1,s}(B_r)}`. Here the representation is that of Remark B.6 on balls
+(`remark_B_6`, Riesz representation and the Poincaré inequality):
+`theorem_C_1_of_divergenceRepresentation` is the reduction under the representation as a
+hypothesis, `exists_divergenceRepresentation` discharges it, and `theorem_C_1` is the statement
+of the book.
 -/
 
 open MeasureTheory Filter Topology Set
@@ -328,12 +333,12 @@ def DivergenceRepresentation (d : ℕ) (C : ℝ) : Prop :=
       PDE.eLpMeanNormOn (ball 0 r) (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
         ENNReal.ofReal C * negativeSobolevOneNorm s (ball 0 r) f F
 
-/-- **Theorem C.1 (interior Meyers estimate)**, given the representation of Remark B.6 and
-Proposition B.16 (`DivergenceRepresentation`). For `d ≥ 2` there are `δ(d, Λ) > 0` and
-`C < ∞` (depending on `d`, `Λ` and the representation constant) such that, for `p ∈ (2, ∞)`,
-`r > 0`, `h = f + ∇·F ∈ W^{-1,p}(B_r)` and `u ∈ H¹(B_r)` solving `-∇·(a∇u) = h` in `B_r`,
+/-- Theorem C.1 given the representation of Remark B.6 and Proposition B.16
+(`DivergenceRepresentation`). For `d ≥ 2` there are `δ(d, Λ) > 0` and `C < ∞` (depending on `d`,
+`Λ` and the representation constant) such that, for `p ∈ (2, ∞)`, `r > 0`,
+`h = f + ∇·F ∈ W^{-1,p}(B_r)` and `u ∈ H¹(B_r)` solving `-∇·(a∇u) = h` in `B_r`,
 `‖∇u‖_{L̲^{(2+δ)∧p}(B_{r/2})} ≤ C (‖∇u‖_{L̲²(B_r)} + ‖h‖_{W̲^{-1,(2+δ)∧p}(B_r)})`. -/
-theorem theorem_C_1 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {CB : ℝ}
+theorem theorem_C_1_of_divergenceRepresentation (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {CB : ℝ}
     (hB : DivergenceRepresentation d CB) :
     ∃ δ C : ℝ, 0 < δ ∧ 0 ≤ C ∧ ∀ (p r : ℝ), 2 < p → 0 < r → ∀ (a : CoefficientField d Λ)
       (u : Vec d → ℝ) (g : Vec d → Vec d) (f : Vec d → ℝ) (F : Vec d → Vec d),
@@ -396,5 +401,37 @@ theorem theorem_C_1 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {CB : ℝ}
           (PDE.eLpMeanNormOn (ball 0 r) 2 (fun x => euclideanNorm (g x)) +
             negativeSobolevOneNorm s (ball 0 r) f F) := by
         rw [← mul_add, ← mul_assoc, ← ENNReal.ofReal_mul hC₁]
+
+/-- The representation `DivergenceRepresentation` holds for `d ≥ 1`, by Remark B.6 on balls
+(`remark_B_6`). -/
+theorem exists_divergenceRepresentation (hd : 0 < d) : ∃ C : ℝ, DivergenceRepresentation d C := by
+  obtain ⟨C, -, hC⟩ := remark_B_6 hd
+  refine ⟨C, fun s r hs2 _ hr f F hf hF hfin => ?_⟩
+  have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) r)) :=
+    isFiniteMeasure_restrict.mpr (volume_ball_ne_top' 0 r)
+  obtain ⟨H, hH, hrep, -, hnorm⟩ := hC s (by linarith) 0 r hr f F (hf.integrable one_le_two)
+    (fun i => (hF i).integrable one_le_two) hfin
+  exact ⟨H, hH, hrep, hnorm⟩
+
+/-- **Theorem C.1 (interior Meyers estimate).** For `d ≥ 2` there are `δ(d, Λ) > 0` and
+`C(d, Λ) < ∞` such that, for `p ∈ (2, ∞)`, `r > 0`, `h = f + ∇·F ∈ W^{-1,p}(B_r)` with
+`f ∈ L²(B_r)`, `F ∈ L²(B_r; ℝ^d)`, and `u ∈ H¹(B_r)` solving `-∇·(a∇u) = h` in `B_r`,
+`‖∇u‖_{L̲^{(2+δ)∧p}(B_{r/2})} ≤ C (‖∇u‖_{L̲²(B_r)} + ‖h‖_{W̲^{-1,(2+δ)∧p}(B_r)})`. -/
+theorem theorem_C_1 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) :
+    ∃ δ C : ℝ, 0 < δ ∧ 0 ≤ C ∧ ∀ (p r : ℝ), 2 < p → 0 < r → ∀ (a : CoefficientField d Λ)
+      (u : Vec d → ℝ) (g : Vec d → Vec d) (f : Vec d → ℝ) (F : Vec d → Vec d),
+      MemLp u 2 (volume.restrict (ball 0 r)) →
+      (∀ i, MemLp (fun x => g x i) 2 (volume.restrict (ball 0 r))) →
+      HasWeakGradient (ball 0 r) u g →
+      MemLp f 2 (volume.restrict (ball 0 r)) →
+      (∀ i, MemLp (fun x => F x i) 2 (volume.restrict (ball 0 r))) →
+      negativeSobolevOneNorm p (ball 0 r) f F ≠ ⊤ →
+      HasWeakDivergence (ball 0 r) (fun x => (a x).mulVec (g x) + F x) (fun x => -f x) →
+      PDE.eLpMeanNormOn (ball 0 (r / 2)) (ENNReal.ofReal (min (2 + δ) p))
+          (fun x => euclideanNorm (g x)) ≤
+        ENNReal.ofReal C * (PDE.eLpMeanNormOn (ball 0 r) 2 (fun x => euclideanNorm (g x)) +
+          negativeSobolevOneNorm (min (2 + δ) p) (ball 0 r) f F) := by
+  obtain ⟨CB, hB⟩ := exists_divergenceRepresentation (d := d) (by omega)
+  exact theorem_C_1_of_divergenceRepresentation hd hΛ hB
 
 end QSH
