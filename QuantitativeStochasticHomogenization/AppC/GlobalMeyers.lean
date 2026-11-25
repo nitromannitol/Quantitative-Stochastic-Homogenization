@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.AppC.GlobalReverseHolder
+import QuantitativeStochasticHomogenization.AppB.SobolevSpaces
 
 /-!
 # The global Meyers estimate
@@ -18,6 +19,10 @@ with boundary density `c` up to the scale `2R`, which bounded Lipschitz domains 
   `B_{ρ/8}(y)` to `B_ρ(y)` (`reverseHolder_eighth_global`), hence, by the covering argument
   `reverseHolder_half_of_eighth`, the hypothesis of Lemma C.4 on `B_{2R}`;
 * Lemma C.4 on `B_{2R}`, (C.17) and the bound on `H` give the estimate on `U ⊆ B_R`.
+
+The general case (`theorem_C_7_of_boundaryDensity`) follows by the book's reduction: for a
+boundary datum `w ∈ W^{1,p}(U)`, `u - w ∈ H¹₀(U)` solves the equation with `h + ∇·(a∇w)`, whose
+norm is at most `‖h‖_{W̲^{-1,s}(U)} + Λ ‖∇w‖_{L̲^s(U)}` (`negativeSobolevOneNorm_add_le`).
 -/
 
 open MeasureTheory Filter Set
@@ -203,3 +208,185 @@ theorem theorem_C_7_zero_of_boundaryDensity (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 �
         rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_mul (by positivity),
           ENNReal.ofReal_add hC₀.le hCB]
         ring
+
+theorem norm_euclideanNorm (v : Vec d) : ‖euclideanNorm v‖ = euclideanNorm v :=
+  Real.norm_of_nonneg (Real.sqrt_nonneg _)
+
+/-- The flux `a G` of a field with coordinates in `L^s(U)` has coordinates in `L^s(U)`. -/
+theorem memLp_coefficient_mulVec_apply_of_coord {Λ : ℝ} (hΛ : 0 ≤ Λ) (a : CoefficientField d Λ)
+    {U : Set (Vec d)} {s : ℝ≥0∞} {G : Vec d → Vec d}
+    (hG : ∀ i, MemLp (fun x => G x i) s (volume.restrict U)) (i : Fin d) :
+    MemLp (fun x => (a x).mulVec (G x) i) s (volume.restrict U) := by
+  have hmeas : AEStronglyMeasurable (fun x => (a x).mulVec (G x) i) (volume.restrict U) := by
+    have e : (fun x => (a x).mulVec (G x) i) = fun x => ∑ j, a x i j * G x j := by
+      funext x
+      simp [Matrix.mulVec, dotProduct]
+    rw [e]
+    exact Finset.aestronglyMeasurable_fun_sum Finset.univ fun j _ =>
+      ((a.locally_integrable i j).aestronglyMeasurable.restrict).mul (hG j).aestronglyMeasurable
+  refine ((memLp_euclideanNorm_of_coord hG).const_mul Λ).of_le hmeas
+    (Eventually.of_forall fun x => ?_)
+  have hn : 0 ≤ Λ * euclideanNorm (G x) := mul_nonneg hΛ (Real.sqrt_nonneg _)
+  simp only [Real.norm_eq_abs, abs_of_nonneg hn]
+  exact (abs_coord_le_euclideanNorm _ i).trans (euclideanNorm_coefficient_mulVec_le a hΛ x (G x))
+
+/-- The triangle inequality `‖f + ∇·(F + G)‖ ≤ ‖f + ∇·F‖ + ‖∇·G‖` for the normalized
+`W^{-1,s}(U)` norm. -/
+theorem negativeSobolevOneNorm_add_le {U : Set (Vec d)} {s : ℝ} {f : Vec d → ℝ}
+    {F G : Vec d → Vec d} (hf : IntegrableOn f U) (hF : ∀ i, IntegrableOn (fun x => F x i) U)
+    (hG : ∀ i, IntegrableOn (fun x => G x i) U) :
+    negativeSobolevOneNorm s U f (fun x => F x + G x) ≤
+      negativeSobolevOneNorm s U f F + negativeSobolevOneNorm s U (fun _ => 0) G := by
+  refine iSup_le fun ψ => ?_
+  obtain ⟨ψ, htest, hT⟩ := ψ
+  let φ : PDE.WeakTestFunction U := ⟨ψ, htest.1, htest.2.1, htest.2.2⟩
+  have h1 := integrableOn_distributionPairing_integrand hf hF φ
+  have h2 := integrableOn_distributionPairing_integrand (f := fun _ => 0)
+    (integrableOn_zero) hG φ
+  have hsplit : distributionPairing U f (fun x => F x + G x) ψ =
+      distributionPairing U f F ψ + distributionPairing U (fun _ => 0) G ψ := by
+    simp only [distributionPairing, setAverage_eq, smul_eq_mul]
+    rw [← mul_add, ← integral_add h1 h2]
+    congr 1
+    refine integral_congr_ae (Eventually.of_forall fun x => ?_)
+    change f x * ψ x - dot (F x + G x) (gradient ψ x) =
+      (f x * ψ x - dot (F x) (gradient ψ x)) + (0 * ψ x - dot (G x) (gradient ψ x))
+    simp only [dot, Pi.add_apply, add_mul, Finset.sum_add_distrib]
+    ring
+  rw [hsplit]
+  calc ENNReal.ofReal |distributionPairing U f F ψ + distributionPairing U (fun _ => 0) G ψ|
+      ≤ ENNReal.ofReal |distributionPairing U f F ψ| +
+          ENNReal.ofReal |distributionPairing U (fun _ => 0) G ψ| := by
+        rw [← ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)]
+        exact ENNReal.ofReal_le_ofReal (abs_add_le _ _)
+    _ ≤ negativeSobolevOneNorm s U f F + negativeSobolevOneNorm s U (fun _ => 0) G :=
+        add_le_add
+          (le_iSup (fun ψ : {ψ : Vec d → ℝ // IsSpatialTest U ψ ∧
+            sobolevOneTestNorm (ENNReal.ofReal (s / (s - 1))) U ψ ≤ 1} =>
+              ENNReal.ofReal |distributionPairing U f F ψ.1|) ⟨ψ, htest, hT⟩)
+          (le_iSup (fun ψ : {ψ : Vec d → ℝ // IsSpatialTest U ψ ∧
+            sobolevOneTestNorm (ENNReal.ofReal (s / (s - 1))) U ψ ≤ 1} =>
+              ENNReal.ofReal |distributionPairing U (fun _ => 0) G ψ.1|) ⟨ψ, htest, hT⟩)
+
+/-- **Theorem C.7 (global Meyers estimate)** on a domain with boundary density. For `d ≥ 2`, an
+open set `U ⊆ B_R` of positive measure with boundary density `c ∈ (0, 1]` up to the scale `2R`,
+there are `δ > 0` and `C < ∞` (depending on `d`, `Λ`, `U`) such that, for `p ∈ (2, ∞)`,
+`h = f + ∇·F ∈ W^{-1,p}(U)` with `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)`, a boundary datum
+`w ∈ W^{1,p}(U)` with weak gradient `G`, and `u ∈ w + H¹₀(U)` with weak gradient `g` solving
+`-∇·(a∇u) = h` in `U`,
+`‖∇u‖_{L̲^{(2+δ)∧p}(U)} ≤ C (‖∇w‖_{L̲^{(2+δ)∧p}(U)} + ‖h‖_{W̲^{-1,(2+δ)∧p}(U)})` (C.15).
+As in the book, `u - w ∈ H¹₀(U)` solves the equation with `F + a∇w` in place of `F`. -/
+theorem theorem_C_7_of_boundaryDensity (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ)
+    {U : Set (Vec d)} (hUo : IsOpen U) (hU0 : volume U ≠ 0) {R c : ℝ} (hR : 0 < R)
+    (hUR : U ⊆ ball 0 R) (hc : 0 < c) (hc1 : c ≤ 1) (hden : HasBoundaryDensity U c (2 * R)) :
+    ∃ δ C : ℝ, 0 < δ ∧ 0 ≤ C ∧ ∀ p : ℝ, 2 < p → ∀ (a : CoefficientField d Λ)
+      (u w : Vec d → ℝ) (g G : Vec d → Vec d) (f : Vec d → ℝ) (F : Vec d → Vec d),
+      IsW1p U (ENNReal.ofReal p) w G →
+      H01 U (fun x => u x - w x) (fun x => g x - G x) →
+      MemLp f 2 (volume.restrict U) →
+      (∀ i, MemLp (fun x => F x i) 2 (volume.restrict U)) →
+      negativeSobolevOneNorm p U f F ≠ ⊤ →
+      HasWeakDivergence U (fun x => (a x).mulVec (g x) + F x) (fun x => -f x) →
+      PDE.eLpMeanNormOn U (ENNReal.ofReal (min (2 + δ) p)) (fun x => euclideanNorm (g x)) ≤
+        ENNReal.ofReal C * (PDE.eLpMeanNormOn U (ENNReal.ofReal (min (2 + δ) p))
+            (fun x => euclideanNorm (G x)) +
+          negativeSobolevOneNorm (min (2 + δ) p) U f F) := by
+  obtain ⟨δ, C, hδ, hC, h0⟩ := theorem_C_7_zero_of_boundaryDensity hd hΛ hUo hU0 hR hUR hc hc1
+    hden
+  have hΛ0 : 0 ≤ Λ := by linarith
+  refine ⟨δ, C * Λ + C + 1, hδ, by nlinarith, ?_⟩
+  intro p hp a u w g G f F hw hu hf hF hfin hdiv
+  have hG : ∀ i, MemLp (fun x => G x i) (ENNReal.ofReal p) (volume.restrict U) :=
+    fun i => hw.2.1.eval i
+  have hUb : Bornology.IsBounded U := (isBounded_ball 0 R).subset hUR
+  have hUt : volume U ≠ ⊤ := hUb.measure_lt_top.ne
+  have : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.mpr hUt
+  set s := min (2 + δ) p with hsdef
+  have hs2 : 2 < s := lt_min (by linarith) hp
+  have hsp : s ≤ p := min_le_right _ _
+  have hp2 : (2 : ℝ≥0∞) ≤ ENNReal.ofReal p := by
+    rw [show (2 : ℝ≥0∞) = ENNReal.ofReal 2 by simp]
+    exact ENNReal.ofReal_le_ofReal hp.le
+  have hsp' : ENNReal.ofReal s ≤ ENNReal.ofReal p := ENNReal.ofReal_le_ofReal hsp
+  have hs1 : (1 : ℝ≥0∞) ≤ ENNReal.ofReal s := by
+    rw [← ENNReal.ofReal_one]
+    exact ENNReal.ofReal_le_ofReal (by linarith)
+  -- the flux of the boundary datum
+  set AG : Vec d → Vec d := fun x => (a x).mulVec (G x) with hAGdef
+  have hAGp : ∀ i, MemLp (fun x => AG x i) (ENNReal.ofReal p) (volume.restrict U) :=
+    memLp_coefficient_mulVec_apply_of_coord hΛ0 a hG
+  have hAG2 : ∀ i, MemLp (fun x => AG x i) 2 (volume.restrict U) :=
+    fun i => (hAGp i).mono_exponent hp2
+  have hF' : ∀ i, MemLp (fun x => (F x + AG x) i) 2 (volume.restrict U) :=
+    fun i => (hF i).add (hAG2 i)
+  have hint : ∀ {X : Vec d → Vec d}, (∀ i, MemLp (fun x => X x i) 2 (volume.restrict U)) →
+      ∀ i, IntegrableOn (fun x => X x i) U := fun hX i => (hX i).integrable one_le_two
+  have hfin' : negativeSobolevOneNorm p U f (fun x => F x + AG x) ≠ ⊤ := by
+    refine ne_top_of_le_ne_top ?_ (negativeSobolevOneNorm_add_le (hf.integrable one_le_two)
+      (hint hF) (hint hAG2))
+    refine ENNReal.add_ne_top.mpr ⟨hfin, ?_⟩
+    refine ne_top_of_le_ne_top ?_ (negativeSobolevOneNorm_zero_le hU0 (by linarith) hAGp)
+    exact eLpMeanNormOn_ne_top hU0 (memLp_euclideanNorm_of_coord hAGp)
+  have hdiv' : HasWeakDivergence U
+      (fun x => (a x).mulVec ((fun x => g x - G x) x) + (F x + AG x)) (fun x => -f x) := by
+    have e : (fun x => (a x).mulVec ((fun x => g x - G x) x) + (F x + AG x)) =
+        fun x => (a x).mulVec (g x) + F x := by
+      funext x
+      simp only [hAGdef, Matrix.mulVec_sub]
+      abel
+    rw [e]
+    exact hdiv
+  have hmain := h0 p hp a (fun x => u x - w x) (fun x => g x - G x) f (fun x => F x + AG x) hu
+    hf hF' hfin' hdiv'
+  -- the norms
+  have hAGs : ∀ i, MemLp (fun x => AG x i) (ENNReal.ofReal s) (volume.restrict U) :=
+    fun i => (hAGp i).mono_exponent hsp'
+  have hgs : ∀ i, MemLp (fun x => g x i - G x i) 2 (volume.restrict U) :=
+    fun i => MemLp.eval hu.2.1 i
+  have hnAG : negativeSobolevOneNorm s U (fun _ => 0) AG ≤
+      ENNReal.ofReal Λ *
+        PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (G x)) := by
+    refine (negativeSobolevOneNorm_zero_le hU0 (by linarith) hAGs).trans ?_
+    refine eLpNorm_le_mul_eLpNorm_of_ae_le_mul ?_ (Eventually.of_forall fun x => ?_) _
+    · exact (memLp_euclideanNorm_of_coord hAGs).aestronglyMeasurable.smul_measure _
+    · rw [norm_euclideanNorm, norm_euclideanNorm]
+      exact euclideanNorm_coefficient_mulVec_le a hΛ0 x (G x)
+  have hns : negativeSobolevOneNorm s U f (fun x => F x + AG x) ≤
+      negativeSobolevOneNorm s U f F + ENNReal.ofReal Λ *
+        PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (G x)) :=
+    (negativeSobolevOneNorm_add_le (hf.integrable one_le_two) (hint hF) (hint hAG2)).trans
+      (add_le_add le_rfl hnAG)
+  have hgG : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict U) := fun i => by
+    have e : (fun x => g x i) = (fun x => g x i - G x i) + fun x => G x i := by
+      funext x
+      simp
+    rw [e]
+    exact (hgs i).add ((hG i).mono_exponent hp2)
+  have htri : PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (g x)) ≤
+      PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (g x - G x)) +
+        PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (G x)) := by
+    refine (eLpNorm_mono_real (g := (fun x => euclideanNorm (g x - G x)) +
+      fun x => euclideanNorm (G x)) ?_ fun x => ?_).trans (eLpNorm_add_le hs1)
+    · exact (memLp_euclideanNorm_of_coord hgG).aestronglyMeasurable.smul_measure _
+    · rw [norm_euclideanNorm]
+      have := euclideanNorm_sub_le_add (g x) (G x) 0
+      simp only [sub_zero] at this
+      exact this
+  set X := PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (G x)) with hX
+  set Y := negativeSobolevOneNorm s U f F with hY
+  calc PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (g x))
+      ≤ PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (g x - G x)) + X := htri
+    _ ≤ ENNReal.ofReal C * (Y + ENNReal.ofReal Λ * X) + X := by
+        gcongr
+        exact hmain.trans (mul_le_mul' le_rfl hns)
+    _ = ENNReal.ofReal C * Y + (ENNReal.ofReal (C * Λ) + 1) * X := by
+        rw [ENNReal.ofReal_mul hC]
+        ring
+    _ ≤ ENNReal.ofReal (C * Λ + C + 1) * Y + ENNReal.ofReal (C * Λ + C + 1) * X := by
+        refine add_le_add (mul_le_mul' ?_ le_rfl) (mul_le_mul' ?_ le_rfl)
+        · exact ENNReal.ofReal_le_ofReal (by nlinarith)
+        · rw [← ENNReal.ofReal_one, ← ENNReal.ofReal_add (mul_nonneg hC hΛ0) zero_le_one]
+          exact ENNReal.ofReal_le_ofReal (by linarith)
+    _ = ENNReal.ofReal (C * Λ + C + 1) * (X + Y) := by ring
+
+end QSH
