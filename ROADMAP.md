@@ -20,7 +20,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
 | 1 | Introduction and Qualitative Theory | 12 | 8 | 3 |
-| 2 | Convergence of the Subadditive Quantities | 12 | 10 | 0 |
+| 2 | Convergence of the Subadditive Quantities | 12 | 11 | 0 |
 | 3 | Regularity on Large Scales | 23 | 6 | 3 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
@@ -101,11 +101,11 @@ No numbered result.
 | Lemma 2.15 |  | proved (`lemma_2_15`, for every choice of the maximizers, centered by the mean of `v - ℓ`); see CORRESPONDENCE.md |
 | Lemma 2.16 |  | proved (`lemma_2_16`); see CORRESPONDENCE.md |
 
-### 2.3 Quantitative Homogenization of the Dirichlet Problem, module `Ch02/Sec03QuantitativeDirichletHomogenization.lean`
+### 2.3 Quantitative Homogenization of the Dirichlet Problem, module `Ch02/Sec03QuantitativeDirichletHomogenization.lean` (proofs in `Ch02/Sec03/HatNormAlgebra.lean`, `Ch02/Sec03/HomogenizedInverse.lean`, `Ch02/Sec03/MaximizerHatBound.lean`, `Ch02/Sec03/CoarseDeviationOs.lean` and `Ch02/Sec03/Theorem217.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 2.17 |  | not started |
+| Theorem 2.17 |  | proved for `Λ > 1` (`theorem_2_17`, with `U = □_m` and every maximizer of (2.9); `X ≤ A + O₁(θ)` is `X ≤ A + Y` with one random variable `Y ≤ O₁(θ)` for all `p, q ∈ B₁`); see CORRESPONDENCE.md |
 | Theorem 2.18 |  | not started |
 
 ## Chapter 3: Regularity on Large Scales

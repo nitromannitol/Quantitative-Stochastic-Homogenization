@@ -1450,3 +1450,29 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (1.45) bounds `‖v - ℓ_p‖_{L̲²(□_m)}` by the latter, and Lemma 1.16 on `□_m` has the constant `C 3^m`
   and is linear in these norms. Theorem 1.17 uses `E′(ε)^{1/2}`, in line with this form. The
   minimizer is `v = ℓ_p + u` with gradient `p + g`, as in Proposition 1.10.
+
+## Section 2.3: Theorem 2.17 (`Ch02/Sec03/HatNormAlgebra.lean`, `Ch02/Sec03/HomogenizedInverse.lean`, `Ch02/Sec03/MaximizerHatBound.lean`, `Ch02/Sec03/CoarseDeviationOs.lean`, `Ch02/Sec03/Theorem217.lean`)
+
+- Lean: `QSH.theorem_2_17`, for `d ≥ 2` and `Λ > 1`, the hypotheses of Theorem 2.4 on which the
+  proof rests. `∃ α ∈ (0, 1/d], ∀ s ∈ (0, d), ∃ C > 0`, for every law satisfying (0.10)–(0.11) and
+  every `m`, there is a random variable `Y` with `OsBound P Y 1 (C 3^{m - ms})` such that, for every
+  coefficient field, `p, q ∈ B₁` and every maximizer `v` of (2.9) on `□_m` (unique up to the
+  gradient, `IsDefectMaximizer.ae_eq`) of gradient `g`, the left side of (2.66) is at most
+  `C 3^{m - mα(d-s)} + Y`. This is (2.66) with the convention `X ≤ A + O₁(θ)` of (0.42), with one
+  `Y` for all `p, q` and all maximizers, so the measurability of the left side is not needed. The
+  norms are the normalized `Ĥ̲⁻¹(□_m)` norms of (0.31) (`vectorHatNegativeSobolevNorm`, the sum
+  over the components), with values in `[0, ∞]`; `ā⁻¹` is the matrix inverse, and `ā ā⁻¹ q = q`
+  by the lower bound `|e|² ≤ e · āe` of (1.25) (`homogenizedMatrix_mulVec_inv_mulVec`).
+- Proof: the book's. (2.67): by Lemma 2.1, `-v(·, □_m, e, 0)` is the minimizer of `μ(□_m, e)`, so
+  Proposition 1.10 bounds its gradient and flux; by (2.18) the maximizer is
+  `v(·, p, 0) + v(·, ā⁻¹q, q) - v(·, ā⁻¹q, 0)` up to its gradient; the last terms are bounded by
+  `‖f‖_{Ĥ̲⁻¹(□_m)} ≤ 3^m ‖f‖_{L̲²(□_m)}`, (2.19) and the completed square (2.12)
+  (`dualityDefect_homogenizedMatrix_le`). This gives `vectorHat_defectMaximizer_le`, a bound by
+  `K₁ (1 + 3^m E(m)^{1/2}) + K₂ 3^m (|a(□_m) - ā| + |a*(□_m) - ā|)^{1/2}` without squares.
+  (2.68): Theorem 2.4 with `(s + d)/2` in place of `s`, stationarity for the subcubes, Lemma A.3
+  and the triangle inequality for `O_{2d}`, and Young's inequality (2.23) with
+  `ρ = 3^{-mβ(d-s)}`, `β = 1/(2(2d-1))` (`sqrt_coarseDeviation_le_os`). The book passes to `O_d`
+  by Lemma A.3; `O_{2d}` is used here so that Lemma A.3, stated for `s < s'`, applies also for
+  `d = 2`, and the square in (2.69) is not needed since `E(m)^{1/2}` is the weighted sum itself. The term
+  `J(□_m, ā⁻¹q, q)^{1/2}` is bounded by (2.65), `X^{1/2} ≤ 2c^{1/2} + c^{-1/2}(X - c)₊`
+  (`sqrt_le_two_mul_sqrt_add_os`). The exponent is `α = min(α₀/4, β)`, `α₀` that of Theorem 2.4.
