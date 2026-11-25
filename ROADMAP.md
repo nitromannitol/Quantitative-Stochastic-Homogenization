@@ -515,7 +515,7 @@ Module `AppA/OsNotation.lean`.
 
 ## Appendix B: Function Spaces and Elliptic Equations on Lipschitz Domains
 
-Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls in `AppB/DivergenceRepresentation.lean`).
+Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls and on open subsets of a ball (`remark_B_6_of_subset_ball`) in `AppB/DivergenceRepresentation.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
@@ -548,9 +548,9 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 | Lemma C.4 | Gehring's lemma | proved (`lemma_C_4`; see CORRESPONDENCE.md) |
 | Lemma C.5 | Vitali covering lemma | proved (`lemma_C_5`); see CORRESPONDENCE.md |
 | Lemma C.6 |  | proved (`lemma_C_6`; see CORRESPONDENCE.md) |
-| Theorem C.7 | Global Meyers estimate | in progress (proved for `d ≥ 2` on open sets `U ⊆ B_R` of positive measure with interior and exterior boundary density up to the scale `2R` (`HasBoundaryDensity`), which bounded Lipschitz domains have, as `theorem_C_7_of_boundaryDensity`, with a boundary datum in `W^{1,p}(U)` (`IsW1p`) and `h = f + ∇·F`, `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)`; the zero datum is `theorem_C_7_zero_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined, and the membership `u ∈ W^{1,(2+δ)∧p}(U)` is stated only through (C.15)); see CORRESPONDENCE.md |
-| Lemma C.8 | Global Caccioppoli estimate | in progress ((C.17) on every bounded open set, `lemma_C_8_energy`; (C.17) and (C.18) on bounded open sets with boundary density, `lemma_C_8_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined; the constant κ_U of (C.13) is `kappaConstant`); see CORRESPONDENCE.md |
-| Corollary C.9 |  | in progress (for `d ≥ 2`, `h = ∇·H` with `H ∈ L²(U; ℝ^d)`, on open sets with boundary density, from `B_{ρ/8}(y)` to `B_ρ(y)` for every `y ∈ ℝ^d`: `reverseHolder_eighth_global`, the right side on the enlarged ball `B_ρ(y)` instead of `B_r(z) ∩ U`; the Sobolev–Poincaré inequality for functions vanishing on a set of positive measure is `sobolevPoincare_of_vanishing`; general `h ∈ H^{-1}(B_r(z) ∩ U)` not proved); see CORRESPONDENCE.md |
+| Theorem C.7 | Global Meyers estimate | in progress (proved for `d ≥ 2` on open sets `U ⊆ B_R` of positive measure with interior and exterior boundary density up to the scale `2R` (`HasBoundaryDensity`), which bounded Lipschitz domains have (not proved in Lean), as `theorem_C_7_of_boundaryDensity`, with a boundary datum in `W^{1,p}(U)` (`IsW1p`) and `h = f + ∇·F`, `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)`; the zero datum is `theorem_C_7_zero_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined, and of the membership `u ∈ W^{1,(2+δ)∧p}(U)` only `∇u ∈ L^{(2+δ)∧p}(U)` follows, from (C.15) with a finite right-hand side); see CORRESPONDENCE.md |
+| Lemma C.8 | Global Caccioppoli estimate | in progress ((C.17) on every bounded open set, `lemma_C_8_energy`; (C.17) and (C.18) on bounded open sets with boundary density up to a scale `R₀` such that `U ⊆ B_{R₀}(z)` for every `z ∈ ∂U`, `lemma_C_8_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined; the constant κ_U of (C.13) is `kappaConstant`); see CORRESPONDENCE.md |
+| Corollary C.9 |  | in progress (for `d ≥ 2`, `h = ∇·H` with `H ∈ L²(U; ℝ^d)`, on open sets with boundary density, from `B_{ρ/8}(y)` to `B_ρ(y)` for every `y ∈ ℝ^d` and `ρ ≤ R₀` (the scale of the boundary density): `reverseHolder_eighth_global`, the right side on `B_ρ(y)`, whose radius is four times that of the book's `B_r(z)`; the form from `B_{r/2}(z)` to `B_r(z)`, for balls in `B_{R₀}`, follows by the covering argument `reverseHolder_half_of_eighth`; the Sobolev–Poincaré inequality for functions vanishing on a set of positive measure is `sobolevPoincare_of_vanishing`; general `h ∈ H^{-1}(B_r(z) ∩ U)` not proved); see CORRESPONDENCE.md |
 
 ## Appendix D: Sobolev Norms and Heat Flow
 

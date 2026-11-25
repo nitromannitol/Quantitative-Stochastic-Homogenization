@@ -998,9 +998,10 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
   formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
-  (Remark B.6 on balls is `remark_B_6`, see the Appendix B section).
+  (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
+  see the Appendix B section).
 
-## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls (`AppB/DivergenceRepresentation.lean`)
+## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 
 - **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
@@ -1089,12 +1090,17 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   measure with interior and exterior density at its boundary up to a scale `R₀`:
   `c |B_r| ≤ |B_r(z) ∩ U|` and `c |B_r| ≤ |B_r(z) \ U|` for `z ∈ ∂U` and `0 < r ≤ R₀`
   (`HasBoundaryDensity U c R₀`). Bounded Lipschitz domains have this property for every `R₀`, with
-  some `c > 0`; this implication is not proved in Lean. The proofs use exactly these two bounds. The
-  book controls the volume factor `|B_r(z) ∩ U| / |B_{r/2}(z) ∩ U|` of (C.18) by the constant
-  `κ_U` of (C.13) (`kappaConstant`); with the normalized `H̲^{-1}(B_r(z) ∩ U)` norm the proof also
-  needs `|B_r(z) ∩ U| ≥ c r^d`, since the test norm carries the factor `|B_r(z) ∩ U|^{-1/d}`, and
-  this does not follow from `κ_U < ∞` alone (an outward cusp). The exterior density is the measure
-  bound of the Sobolev–Poincaré inequality in the proof of Corollary C.9.
+  some `c > 0`; this implication is not proved in Lean. Lemma C.8 uses only the interior bound;
+  Corollary C.9 and Theorem C.7 use both. The book controls the volume factor
+  `|B_r(z) ∩ U| / |B_{r/2}(z) ∩ U|` of (C.18) by the constant `κ_U` of (C.13) (`kappaConstant`),
+  whose second term is the exterior density. The Lean proof of (C.18) bounds the term
+  `|B_r(z) ∩ U|^{-1/d} ‖φ²u‖_{L̲²}` of the normalized test norm by
+  `r^{-1} (r |B_r(z) ∩ U|^{-1/d}) ‖u‖_{L̲²}` and so uses the interior density
+  `|B_r(z) ∩ U| ≥ c |B_r|`, which does not follow from `κ_U < ∞` (an outward cusp) but holds on
+  bounded Lipschitz domains; the book's argument does not need it, since the Poincaré inequality
+  `‖w‖_{L̲²(V)} ≤ C(d) |V|^{1/d} ‖∇w‖_{L̲²(V)}` in `H¹₀(V)` bounds the test norm by
+  `C ‖∇(φ²u)‖_{L̲²(V)}` as in the proof of Lemma C.2. The exterior density is the measure bound of
+  the Sobolev–Poincaré inequality in the proof of Corollary C.9.
 - **Lemma C.8.** (C.17) holds on every bounded open set of positive measure (`lemma_C_8_energy`), by
   testing the equation with `u` (`H01.toH10Function`). (C.18) is the computation of Lemma C.2 with
   the test `θ² u ∈ H¹₀(B_r(z) ∩ U)` (`h10MulCutoff`, `caccioppoli_of_cutoff`): on every ball with
@@ -1125,8 +1131,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `h = ∇·H` with `‖H‖_{L̲^s(U)} ≤ C ‖h‖_{W̲^{-1,s}(U)}`, `s = (2 + δ) ∧ p` (in place of Proposition
   B.16, which is not used); Corollary C.9 and the covering argument give the hypothesis of Lemma C.4
   on `B_{2R}` for the zero extensions; Lemma C.4 with `q = max(2_*, 3/2)` and (C.17) give the
-  estimate. The constants depend on `d`, `Λ` and `U` (through `c`, `R` and `|U|`). The conclusion
-  `u ∈ W^{1,(2+δ)∧p}(U)` is stated only through (C.15), whose right-hand side is finite.
+  estimate. The constants depend on `d`, `Λ` and `U` (through `c`, `R` and `|U|`). Of the
+  conclusion `u ∈ W^{1,(2+δ)∧p}(U)`, only `∇u ∈ L^{(2+δ)∧p}(U)` follows, from (C.15) with a finite
+  right-hand side; `u ∈ L^{(2+δ)∧p}(U)` is not stated.
 
 ## Section 2.1: Lemmas 2.1, 2.2 and 2.7 (`Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean`, `Ch02/Sec01/Lemma27.lean`)
 
