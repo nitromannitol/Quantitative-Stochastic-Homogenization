@@ -374,6 +374,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 
+- **Definition 5.23** (`coarsenedCoefficient`, `Ch05/Sec03HeuristicScalingLimit.lean`). The matrix
+  is defined by its entries, `b_r(z)_{jk} = ½ (J₁(Φ_{z,r}, e_j + e_k, ā e_j) - J₁(Φ_{z,r}, e_j - e_k, ā e_j))`,
+  which is (5.62) at `p = e_j`, `p' = e_k`. The identity (5.62) for all `p, p'` uses that
+  `(p, q) ↦ J₁(Φ_{z,r}, p, q)` is a quadratic form; it is `dot_coarsenedCoefficient_mulVec` when the
+  gradients of `A₁` have the structure (4.12) (`LinearA1Gradients`), which holds almost surely.
+
 - **Lemma 5.24, (5.63)–(5.64), with `s = 1`** (`coarsenedCoefficientEstimates_of`,
   `coarsenedCoefficient_aeOsBound`). The proof departs from the book, which deduces (5.64) from
   (5.62) and Lemma 4.25. When the gradients of `A₁` are, up to null sets, the fields `G ξ` of a
@@ -1278,6 +1284,32 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
   Theorem 2.18 (Section 2.3, not formalized).
 
+## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
+
+- Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
+  law, for the homogenization data given by Proposition 3.21 (`uniformGaussianCorrectorRate`).
+  The gradient `∇φ_e` is `G e - e` for the corrected field `G e = ∑ᵢ eᵢ (eᵢ + ∇φ_{eᵢ})`
+  (`correctedField`). The statement includes the almost sure integrability in `x` of the three
+  densities against `Φ_{x,r}` and the integrability in the coefficient field of their averages.
+- Proof: not the book's Poincaré inequality on the torus ((3.109) and Exercise 3.24), but the bound
+  of the periodized heat kernel by Poisson summation (`abs_tsum_heatKernel_add_latticeShift_sub_one_le`),
+  whose error `(1 + ∑_{k ≠ 0} e^{-4π² r² k²})^d - 1` is at most `C exp(-4π² r²)` for `r ≥ 1`
+  (`periodizationError_le_exp`); the expectations of the Gaussian averages of the stationary
+  densities are within this error of their cell means (`expectedAveragesBounds_of_scales`, the
+  bound of the expectations (1) at a general rate `exp(-h(r))`, of which the rate `r^{-β}` of
+  `expectedAveragesEstimateAt_of_scales` is the case `h(r) = β log r`), and the cell means are
+  identified by Proposition 3.21 as in the expectations (1) above.
+
+## Section 3.4: Definitions 3.14 and 3.15 (`Ch03/Sec04/StationaryFields.lean`)
+
+- Definition 3.14: `QSH.IsStationaryRandomField P F` for `F : CoefficientField d Λ → Vec d → S`
+  (the book's `F(x, a)` is `F a x`), with the joint measurability and, for every `z ∈ ℤ^d`,
+  `F(x + z, a) = F(x, T_z a)` for almost every `x`, `P`-almost surely; `T_z` is `translate`.
+- Definition 3.15: `QSH.IsStationaryPotentialField P F`; `F(·, a)` is the gradient of a function in
+  `H¹_loc(ℝ^d)` in the sense of the library: a weak gradient on `ℝ^d`, the function and the field
+  being square integrable on every ball. The corrector gradients belong to `L²_pot`
+  (`Corrector.isStationaryPotentialField_grad`).
+
 ## Section 5.1: Lemma 5.2 (`Ch05/Sec01/Lemma52.lean`)
 
 - Lemma 5.2 (1): `QSH.lemma_5_2_tendstoInDistribution`: for `Vec d`-valued random variables `Xₙ` on
@@ -1346,3 +1378,50 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
   `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
 
+## Section 10.1: Definition 10.2 (`Ch10/Sec01/VariationalRepresentation.lean`)
+
+- Definition 10.2: `QSH.VariationallyRepresents F φ`, with the convexity of `(p, q) ↦ F(p, q)` on
+  `ℝ^d × ℝ^d`.
+- The quadratic form (10.7) is `QSH.linearRepresentative a`, for a constant matrix `a` (the book's
+  `a(x)` at a fixed `x`), with `s` and `m` the symmetric and antisymmetric parts of `a`
+  (`symmetricPart`, `antisymmetricPart`). For `a` with `ξ·aξ > 0` for `ξ ≠ 0`, the identity
+  `A(p, q) - p·q = ½ (a p - q)·s⁻¹(a p - q)` (`linearRepresentative_sub_dot`, the computation
+  before (10.7)) gives (10.10) and (10.11), and with the convexity of nonnegative quadratic forms
+  (`convexOn_dotProduct_mulVec`), `variationallyRepresents_linearRepresentative`.
+
+## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
+
+- Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
+  `U` in the sense of `HasWeakGradient`), the norm (B.1) `QSH.w1pNorm U p u g =
+  ‖u‖_{L^p(U)} + ∑ᵢ ‖gᵢ‖_{L^p(U)}` with values in `[0, ∞]`, and `QSH.IsW01p U p u g`, the closure of
+  the test functions `IsSpatialTest U` for this norm. The spaces with `k ≥ 2`, the rescaled norm
+  `‖v‖_{W̲^{k,p}(U)}` for `|U| < ∞` and `W^{k,p}_loc(U)` are not defined.
+- Norms: the volume-normalized norm `‖f‖_{L̲^q(U)}` of the book is `PDE.eLpMeanNormOn U q f` of the
+  elliptic regularity library (the `L^q` norm for the normalized restricted volume); `|∇v|` is the
+  Euclidean norm. In (B.7) and (B.8) the norms of `v - w` and `∇v` are the normalized ones: this
+  is the reading in which both sides scale in the same way, as the factor `r^k` requires. The balls
+  `B_r(z)` of Theorems B.9 and B.10 have any center.
+- Theorem B.8: `QSH.theorem_B_8_one`, the case `k = 1`, with `C(p, d)`; the range `p ∈ [1, d)` is
+  empty unless `d ≥ 2`. Proof: the Gagliardo–Nirenberg–Sobolev inequality of the elliptic regularity
+  library, `PDE.exists_sobolev_constant`, and `|∇v| ≤ ∑ᵢ |∂ᵢ v|`.
+- Theorem B.9: `QSH.theorem_B_9_one`, the case `k = 1`: the infimum is over `w ∈ ℝ = P₀`; the
+  second conjunct is the statement for `W^{1,p}_0(B_r(z))` with `w = 0`. Proof: the Sobolev–Poincaré
+  inequality on bounded convex domains `PDE.exists_convexSobolevPoincare_constant` with
+  `w = (v)_{B_r(z)}`, and the zero-boundary inequality of `PDE.exists_sobolev_constant` rescaled
+  with `|B_r(z)| ≤ (2r)^d`.
+- Theorem B.10: `QSH.theorem_B_10_one`, the case `k = 1`, for `d ≥ 1` (the book's standing
+  assumption is `d ≥ 2`; for `d = 0` the zero-boundary statement fails, since every function on the
+  point `ℝ⁰` is a limit of test functions) and `p ∈ (d, ∞]` as an element of `[0, ∞]`. The three
+  conjuncts are (B.8), (B.8) with `w = 0` on `W^{1,p}_0(B_r(z))`, and (B.9). Proof: Morrey's
+  inequality for `C¹` functions on bounded convex sets (Gilbarg–Trudinger, Lemma 7.16), copied
+  with its Apache 2.0 header from `SuperdiffusionCLT/Section7/Prereq/Morrey.lean` of
+  scottnarmstrong/SuperdiffusionCLT (`QSH.ConvexMorrey`), passed to `W^{1,p}` on bounded convex
+  domains with the smooth approximants `PDE.W1pFunction.convexApproxSmoothW1p`
+  (`QSH.ae_abs_sub_integralAverage_le_of_convex`); for `W^{1,p}_0(B_r(z))`, each test function is
+  bounded by its oscillation on `B_{2r}(z)` and the bound passes to the limit; (B.9) covers `ℝ^d`
+  by the balls `B_{√d}(z)`, `z ∈ ℤ^d`. The exponent `p = ∞` is reduced to `p = d + 1`.
+- Proposition B.11: `QSH.proposition_B_11_convex`, the case `α = 1` for a bounded open convex `U`
+  (the book: a bounded Lipschitz domain, and for `α < 1` a cube), with unnormalized norms and
+  `C(p, U, d)`. Proof: `PDE.exists_convexSobolevPoincare_constant` and the passage between
+  normalized and unnormalized norms. Bounded Lipschitz domains (Definition B.1) and the fractional
+  case (Definition B.3) are not done.
