@@ -998,9 +998,10 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
   formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
-  (Remark B.6 on balls is `remark_B_6`, see the Appendix B section).
+  (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
+  see the Appendix B section).
 
-## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls (`AppB/DivergenceRepresentation.lean`)
+## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 
 - **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
@@ -1012,8 +1013,11 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   opposite sign convention `∫ w h = ∫ F · ∇w`, i.e. `F = -H`, and for `w ∈ W_0^{1,p'}(U)`; the
   pairing of a distribution with `W_0^{1,p'}` is its extension from `C_c^∞` by density) and
   `‖h‖_{W̲^{-1,p}(B_r(z))} ≤ ‖H‖_{L̲^p(B_r(z))} ≤ C(d) ‖h‖_{W̲^{-1,p}(B_r(z))}`, where
-  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). The endpoint `p = ∞`
-  and domains other than balls are not formalized. The proof is the book's: on the tests the
+  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). On an open set
+  `U ⊆ B_R(z)` of positive measure the same holds with `C = 2 (2^d + 1) R |U|^{-1/d} + d`
+  (`remark_B_6_of_subset_ball`, `boundedDivergenceRepresentationConstant`), by the Poincaré
+  inequality for the tests of `B_R(z)`. The endpoint `p = ∞` is not formalized. The proof is the
+  book's: on the tests the
   gradient map into `L^{p'}(B_r(z); ℝ^d)` is injective, the test norm `‖ψ‖_{W̲^{1,p'}}` is at most
   `C(d) ‖∇ψ‖_{L̲^{p'}}` by the Poincaré inequality for tests of the elliptic regularity library
   (`PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad`, constant `(2^d + 1)·2r`), and the
@@ -1078,6 +1082,58 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
+
+## Appendix C: Theorem C.7, Lemma C.8 and Corollary C.9 on domains with boundary density (`AppC/GlobalCaccioppoli.lean`, `AppC/GlobalCaccioppoliBoundary.lean`, `AppC/GlobalCaccioppoliLemma.lean`, `AppC/VanishingSobolevPoincare.lean`, `AppC/ReverseHolderRatio.lean`, `AppC/GlobalReverseHolder.lean`, `AppC/GlobalMeyers.lean`)
+
+- **Domains.** The book assumes that `U` is a bounded Lipschitz domain (Definition B.1, not yet
+  formalized). The Lean statements assume instead that `U` is a bounded open set of positive
+  measure with interior and exterior density at its boundary up to a scale `R₀`:
+  `c |B_r| ≤ |B_r(z) ∩ U|` and `c |B_r| ≤ |B_r(z) \ U|` for `z ∈ ∂U` and `0 < r ≤ R₀`
+  (`HasBoundaryDensity U c R₀`). Bounded Lipschitz domains have this property for every `R₀`, with
+  some `c > 0`; this implication is not proved in Lean. Lemma C.8 uses only the interior bound;
+  Corollary C.9 and Theorem C.7 use both. The book controls the volume factor
+  `|B_r(z) ∩ U| / |B_{r/2}(z) ∩ U|` of (C.18) by the constant `κ_U` of (C.13) (`kappaConstant`),
+  whose second term is the exterior density. The Lean proof of (C.18) bounds the term
+  `|B_r(z) ∩ U|^{-1/d} ‖φ²u‖_{L̲²}` of the normalized test norm by
+  `r^{-1} (r |B_r(z) ∩ U|^{-1/d}) ‖u‖_{L̲²}` and so uses the interior density
+  `|B_r(z) ∩ U| ≥ c |B_r|`, which does not follow from `κ_U < ∞` (an outward cusp) but holds on
+  bounded Lipschitz domains; the book's argument does not need it, since the Poincaré inequality
+  `‖w‖_{L̲²(V)} ≤ C(d) |V|^{1/d} ‖∇w‖_{L̲²(V)}` in `H¹₀(V)` bounds the test norm by
+  `C ‖∇(φ²u)‖_{L̲²(V)}` as in the proof of Lemma C.2. The exterior density is the measure bound of
+  the Sobolev–Poincaré inequality in the proof of Corollary C.9.
+- **Lemma C.8.** (C.17) holds on every bounded open set of positive measure (`lemma_C_8_energy`), by
+  testing the equation with `u` (`H01.toH10Function`). (C.18) is the computation of Lemma C.2 with
+  the test `θ² u ∈ H¹₀(B_r(z) ∩ U)` (`h10MulCutoff`, `caccioppoli_of_cutoff`): on every ball with
+  `|B_{r/2}(z) ∩ U| > 0`, with a constant explicit in the volume ratio and in `r |B_r(z) ∩ U|^{-1/d}`
+  (`boundaryCaccioppoli`), and with a constant `C(d, Λ, c)` for `r/2 ≤ R₀` on domains with boundary
+  density (`boundaryCaccioppoli_of_density`). `lemma_C_8_of_boundaryDensity` states (C.17) and (C.18)
+  for `U ⊆ B_{R₀}(z)` for every `z ∈ ∂U`; for `r/2 > R₀`, (C.18) follows from (C.17).
+- **Corollary C.9** (`reverseHolder_eighth_global`) is proved for `d ≥ 2` and `h = ∇·H` with
+  `H ∈ L²(U; ℝ^d)`, the form that Theorem C.7 uses after Remark B.6, for the zero extensions of `|∇u|`
+  and `|H|`, from `B_{ρ/8}(y)` to `B_ρ(y)` for every `y ∈ ℝ^d` and `ρ ≤ R₀`:
+  `‖∇u‖_{L̲²(B_{ρ/8}(y))} ≤ K (‖∇u‖_{L̲^{2_*}(B_ρ(y))} + ‖H‖_{L̲²(B_ρ(y))})`, `K(d, Λ, c)`. The book
+  states (C.19) from `B_{r/2}(z)` to `B_r(z) ∩ U`; its proof applies Lemma C.8 on `B_{4r}(z')` for a
+  point `z' ∈ ∂U ∩ B_r(z)`, which gives the right-hand side on `B_{4r}(z') ∩ U`, a larger ball. The
+  Lean proof applies Corollary C.3 when `B_{ρ/4}(y) ⊆ U`, and otherwise Lemma C.8 on `B_{3ρ/4}(z')`
+  for a point `z' ∈ ∂U ∩ B_{ρ/4}(y)`, with the Sobolev–Poincaré inequality for functions vanishing on
+  a set of measure at least `c |B|` ([79, Lemma 4.8]; `sobolevPoincare_of_vanishing`, from the
+  inequality for mean-zero functions). The form from `B_{r/2}(z)` to `B_r(z)` that Lemma C.4 needs
+  follows by the Vitali covering lemma (`reverseHolder_half_of_eighth`). The general right-hand side
+  `h ∈ H^{-1}(B_r(z) ∩ U)` is not proved.
+- **Theorem C.7** (`theorem_C_7_of_boundaryDensity`) is proved for `d ≥ 2`, an open set `U ⊆ B_R` of
+  positive measure with `HasBoundaryDensity U c (2R)`, `c ∈ (0, 1]`, `p ∈ (2, ∞)`, `h = f + ∇·F` with
+  `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)` and `‖h‖_{W̲^{-1,p}(U)} < ∞`, a boundary datum `w ∈ W^{1,p}(U)` with
+  weak gradient `G` (`IsW1p`; the book's `f`) and `u` with `u - w ∈ H¹₀(U)` of weak gradient `g - G`.
+  As in the book, the case `w = 0` (`theorem_C_7_zero_of_boundaryDensity`) gives the general case,
+  with `F + a G` in place of `F` and `‖h + ∇·(a G)‖_{W̲^{-1,s}(U)} ≤ ‖h‖_{W̲^{-1,s}(U)} + Λ ‖G‖_{L̲^s(U)}`
+  (`negativeSobolevOneNorm_add_le`, `negativeSobolevOneNorm_zero_le`). The case `w = 0` follows the
+  proof of Theorem C.1, as the book says: Remark B.6 on `U` (`remark_B_6_of_subset_ball`) writes
+  `h = ∇·H` with `‖H‖_{L̲^s(U)} ≤ C ‖h‖_{W̲^{-1,s}(U)}`, `s = (2 + δ) ∧ p` (in place of Proposition
+  B.16, which is not used); Corollary C.9 and the covering argument give the hypothesis of Lemma C.4
+  on `B_{2R}` for the zero extensions; Lemma C.4 with `q = max(2_*, 3/2)` and (C.17) give the
+  estimate. The constants depend on `d`, `Λ` and `U` (through `c`, `R` and `|U|`). Of the
+  conclusion `u ∈ W^{1,(2+δ)∧p}(U)`, only `∇u ∈ L^{(2+δ)∧p}(U)` follows, from (C.15) with a finite
+  right-hand side; `u ∈ L^{(2+δ)∧p}(U)` is not stated.
 
 ## Section 2.1: Lemmas 2.1, 2.2 and 2.7 (`Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean`, `Ch02/Sec01/Lemma27.lean`)
 
@@ -1425,3 +1481,55 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `C(p, U, d)`. Proof: `PDE.exists_convexSobolevPoincare_constant` and the passage between
   normalized and unnormalized norms. Bounded Lipschitz domains (Definition B.1) and the fractional
   case (Definition B.3) are not done.
+
+## Section 1.4: Lemma 1.16 and Proposition 1.15 (`Ch01/Sec04/`, `AppB/NegativeSobolevTwo.lean`)
+
+- Definition B.4 for the order `2`, normalized as in (0.29): `QSH.negativeSobolevTwoNorm q U f` is the
+  supremum of `|⨍_U f ψ|` over the test functions `ψ` of `U` with `sobolevTwoTestNorm q' U ψ ≤ 1`,
+  where `q' = q.conjExponent` is the Hölder conjugate in `[1, ∞]` (so `q = 1` has `q' = ∞`) and
+  `sobolevTwoTestNorm` is the normalized norm (B.1) of order `2`, the multi-indices `e_i + e_j` of
+  order two written as the pairs `i ≤ j`. The conventions are those of `negativeSobolevOneNorm`
+  (Appendix C); `vectorNegativeSobolevOneNorm` is the sum of the norms of the components, and
+  `IsL2Sol U g` is `g ∈ L²_sol(U)` of (0.34).
+- Lemma 1.16: `QSH.lemma_1_16`, for `d ≥ 2` (the book's standing assumption) and a bounded open
+  convex `U`, with the normalized norms and `C(U, q, d)`; for a fixed `U` they are comparable to the
+  unnormalized norms of the statement. The book does not specify `U`; its proof uses the
+  Sobolev–Poincaré inequality on `U` (Proposition B.11), proved here on convex domains.
+  `QSH.lemma_1_16_quantitative` gives `C = C(q, d, κ) D` on domains of diameter at most `D` with
+  `|U| ≥ κ D^d`, the form used on `□_m`. Proof: the book's, with Morrey's inequality for the test
+  functions (Theorem B.10), the Sobolev–Poincaré inequality (Proposition B.11), the extension of the
+  `H^{-1}` pairing to `H¹₀(U)` (Appendix C) and `φ u ∈ H¹₀(U)` (elliptic regularity library).
+- Proposition 1.15: `QSH.proposition_1_15`, for `d ≥ 2`, with the right side
+  `C (3^{-2m} + E(m))^{1/2}`. The book prints `C 3^{-2m} + C E(m)` in (1.53). The proof it indicates
+  (Proposition 1.10, Lemma 1.13 and Lemma 1.16) gives the square root of that quantity: (1.40)
+  bounds `‖a∇v - āp‖_{Ĥ̲^{-1}(□_m)}` and `‖∇v - p‖_{Ĥ̲^{-1}(□_m)}` by `3^m (C 3^{-2m} + C E(m))^{1/2}`,
+  (1.45) bounds `‖v - ℓ_p‖_{L̲²(□_m)}` by the latter, and Lemma 1.16 on `□_m` has the constant `C 3^m`
+  and is linear in these norms. Theorem 1.17 uses `E′(ε)^{1/2}`, in line with this form. The
+  minimizer is `v = ℓ_p + u` with gradient `p + g`, as in Proposition 1.10.
+
+## Section 2.3: Theorem 2.17 (`Ch02/Sec03/`)
+
+- Lean: `QSH.theorem_2_17`, for `d ≥ 2` (the book's standing assumption) and `Λ > 1` (the book:
+  `Λ ≥ 1`), the hypotheses of Theorem 2.4 on which the proof rests. `∃ α ∈ (0, 1/d], ∀ s ∈ (0, d),
+  ∃ C > 0`, for every law satisfying (0.10)–(0.11) and every `m`, there is a random variable `Y` with
+  `OsBound P Y 1 (C 3^{m - ms})` such that, for every coefficient field, `p, q ∈ B₁` and every
+  maximizer `v` of (2.9) on `□_m` (whose gradient is unique almost everywhere,
+  `IsDefectMaximizer.ae_eq`) of gradient `g`, the left side of (2.66) is at most
+  `C 3^{m - mα(d-s)} + Y`. This is (2.66) with the convention `X ≤ A + O₁(θ)` of (0.42), with one
+  `Y` for all `p, q` and all maximizers, so the measurability of the left side is not needed. The
+  norms are the normalized `Ĥ̲⁻¹(□_m)` norms of (0.31) (`vectorHatNegativeSobolevNorm`, the sum
+  over the components), with values in `[0, ∞]`; `ā⁻¹` is the matrix inverse, and `ā ā⁻¹ q = q`
+  by the lower bound `|e|² ≤ e · āe` of (1.25) (`homogenizedMatrix_mulVec_inv_mulVec`).
+- Proof: the book's. (2.67): by Lemma 2.1, `-v(·, □_m, e, 0)` is the minimizer of `μ(□_m, e)`, so
+  Proposition 1.10 bounds its gradient and flux; by (2.18) the maximizer is
+  `v(·, p, 0) + v(·, ā⁻¹q, q) - v(·, ā⁻¹q, 0)` up to its gradient; the last terms are bounded by
+  `‖f‖_{Ĥ̲⁻¹(□_m)} ≤ 3^m ‖f‖_{L̲²(□_m)}`, (2.19) and the completed square (2.12)
+  (`dualityDefect_homogenizedMatrix_le`). This gives `vectorHat_defectMaximizer_le`, a bound by
+  `K₁ (1 + 3^m E(m)^{1/2}) + K₂ 3^m (|a(□_m) - ā| + |a*(□_m) - ā|)^{1/2}` without squares.
+  (2.68): Theorem 2.4 with `(s + d)/2` in place of `s`, stationarity for the subcubes, Lemma A.3
+  and the triangle inequality for `O_{2d}`, and Young's inequality (2.23) with
+  `ρ = 3^{-mβ(d-s)}`, `β = 1/(2(2d-1))` (`sqrt_coarseDeviation_le_os`). The book passes to `O_d`
+  by Lemma A.3; `O_{2d}` is used here so that Lemma A.3, stated for `s < s'`, applies also for
+  `d = 2`, and the square in (2.69) is not needed since `E(m)^{1/2}` is the weighted sum itself. The term
+  `J(□_m, ā⁻¹q, q)^{1/2}` is bounded by (2.65), `X^{1/2} ≤ 2c^{1/2} + c^{-1/2}(X - c)₊`
+  (`sqrt_le_two_mul_sqrt_add_os`). The exponent is `α = min(α₀/4, β)`, `α₀` that of Theorem 2.4.

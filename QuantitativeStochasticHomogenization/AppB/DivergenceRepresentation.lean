@@ -126,35 +126,92 @@ theorem volume_ball_toReal_rpow_mul (hd : 0 < d) (z : Vec d) {r : ℝ} (hr : 0 <
   rw [hvol, Real.mul_rpow (pow_nonneg hr.le d) ENNReal.toReal_nonneg, hpow, mul_right_comm,
     inv_mul_cancel₀ hr.ne', one_mul]
 
-/-- **Remark B.6 on balls, the representation.** For `d ≥ 1`, `s ∈ (1, ∞)`, a ball `B_r(z)` and
-`h = f + ∇·F` with `f, F ∈ L¹(B_r(z))` and `‖h‖_{W̲^{-1,s}(B_r(z))} ≤ N`, there is
-`H ∈ L^s(B_r(z); ℝ^d)` with `∫ h ψ = -∫ H · ∇ψ` for every smooth compactly supported test `ψ` and
-`‖H‖_{L̲^s(B_r(z))} ≤ C(d) N`, `C(d) = divergenceRepresentationConstant d`. -/
-theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s) (z : Vec d)
-    {r : ℝ} (hr : 0 < r) {f : Vec d → ℝ} {F : Vec d → Vec d} (hf : IntegrableOn f (ball z r))
-    (hF : ∀ i, IntegrableOn (fun x => F x i) (ball z r)) {N : ℝ} (hN0 : 0 ≤ N)
-    (hN : negativeSobolevOneNorm s (ball z r) f F ≤ ENNReal.ofReal N) :
+/-- The constant `2 (2^d + 1) R |U|^{-1/d} + d` of Remark B.6 on an open set `U ⊆ B_R(z)`. -/
+def boundedDivergenceRepresentationConstant (d : ℕ) (U : Set (Vec d)) (R : ℝ) : ℝ :=
+  2 * (2 ^ d + 1) * (R * (volume U).toReal ^ (-(1 : ℝ) / d)) + d
+
+theorem boundedDivergenceRepresentationConstant_nonneg (d : ℕ) (U : Set (Vec d)) {R : ℝ}
+    (hR : 0 ≤ R) : 0 ≤ boundedDivergenceRepresentationConstant d U R :=
+  add_nonneg (mul_nonneg (by positivity)
+    (mul_nonneg hR (Real.rpow_nonneg ENNReal.toReal_nonneg _))) (Nat.cast_nonneg d)
+
+/-- The normalized Poincaré inequality for the tests of an open set `U ⊆ B_R(z)`:
+`‖ψ‖_{L̲^q(U)} ≤ 2 (2^d + 1) R ‖∇ψ‖_{L̲^q(U)}`, from the inequality for the tests of the ball. -/
+theorem eLpMeanNormOn_weakTestFunction_le (hd : 0 < d) {U : Set (Vec d)} (hUt : volume U ≠ ⊤)
+    (z : Vec d) {R : ℝ} (hR : 0 < R) (hUB : U ⊆ ball z R) {q : ℝ} (hq : 1 < q)
+    (φ : PDE.WeakTestFunction U) :
+    PDE.eLpMeanNormOn U (ENNReal.ofReal q) φ.toFun ≤
+      ENNReal.ofReal (((2 : ℝ) ^ d + 1) * (2 * R)) *
+        PDE.eLpMeanNormOn U (ENNReal.ofReal q)
+          (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x)) := by
+  set B := ball z R with hBdef
+  have hBe : B = PDE.euclideanBall z R := ball_eq_euclideanBall z hR
+  have hconv : PDE.IsOpenBoundedConvexDomain B := by
+    rw [hBe]
+    exact PDE.isOpenBoundedConvexDomain_euclideanBall z hR
+  have hdiam : PDE.HasEuclideanDiameterLE B (2 * R) := by
+    rw [hBe]
+    exact PDE.hasEuclideanDiameterLE_euclideanBall z hR
+  let φB : PDE.WeakTestFunction B :=
+    ⟨φ.toFun, φ.contDiff, φ.hasCompactSupport, φ.tsupport_subset.trans hUB⟩
+  have h := PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad hd hconv hdiam
+    (by linarith) hq φB
+  unfold PDE.euclideanFieldELpNormOn at h
+  have hsuppφ : Function.support φ.toFun ⊆ U := (subset_tsupport _).trans φ.tsupport_subset
+  have hsuppG : Function.support (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x)) ⊆ U := by
+    intro x hx
+    refine φ.tsupport_subset (support_fderiv_subset (𝕜 := ℝ) ?_)
+    intro h0
+    apply hx
+    have hg : gradient φ.toFun x = 0 := by
+      funext i
+      change fderiv ℝ φ.toFun x (unitVector i) = 0
+      simp [h0]
+    change PDE.vecEuclideanNorm (gradient φ.toFun x) = 0
+    rw [hg]
+    simp [PDE.vecEuclideanNorm, PDE.vecNormSq, PDE.vecDot]
+  have e1 : ∀ g : Vec d → ℝ, Continuous g → Function.support g ⊆ U →
+      PDE.eLpNormOn B (ENNReal.ofReal q) g = PDE.eLpNormOn U (ENNReal.ofReal q) g := by
+    intro g hgc hg
+    rw [PDE.eLpNormOn, PDE.eLpNormOn,
+      eLpNorm_restrict_eq_of_support_subset hgc.aestronglyMeasurable (hg.trans hUB),
+      eLpNorm_restrict_eq_of_support_subset hgc.aestronglyMeasurable hg]
+  have hgc : Continuous fun x => PDE.vecEuclideanNorm (gradient φ.toFun x) := by
+    have hci := continuous_coordinateDerivative_weakTestFunction φ
+    have e : (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x)) = fun x =>
+        Real.sqrt (∑ i, coordinateDerivative i φ.toFun x * coordinateDerivative i φ.toFun x) :=
+      rfl
+    rw [e]
+    exact Real.continuous_sqrt.comp (continuous_finsetSum Finset.univ fun i _ =>
+      (hci i).mul (hci i))
+  have hcg : PDE.classicalGradient φB.toFun = gradient φ.toFun := rfl
+  rw [hcg] at h
+  rw [e1 _ φ.contDiff.continuous hsuppφ, e1 _ hgc hsuppG] at h
+  rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn hUt.lt_top,
+    PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn hUt.lt_top, mul_left_comm]
+  exact mul_le_mul_right h _
+
+/-- **Remark B.6, the representation, on an open set `U ⊆ B_R(z)`.** For `d ≥ 1`, `s ∈ (1, ∞)`,
+an open set `U` of positive measure inside a ball `B_R(z)` and `h = f + ∇·F` with
+`f, F ∈ L¹(U)` and `‖h‖_{W̲^{-1,s}(U)} ≤ N`, there is `H ∈ L^s(U; ℝ^d)` with
+`∫ h ψ = -∫ H · ∇ψ` for every smooth compactly supported test `ψ` of `U` and
+`‖H‖_{L̲^s(U)} ≤ C N`, `C = 2 (2^d + 1) R |U|^{-1/d} + d`. -/
+theorem exists_divergence_representation (hd : 0 < d) {s : ℝ} (hs : 1 < s) {U : Set (Vec d)}
+    (hUo : IsOpen U) (hU0 : volume U ≠ 0) (z : Vec d) {R : ℝ} (hR : 0 < R)
+    (hUB : U ⊆ ball z R) {f : Vec d → ℝ} {F : Vec d → Vec d} (hf : IntegrableOn f U)
+    (hF : ∀ i, IntegrableOn (fun x => F x i) U) {N : ℝ} (hN0 : 0 ≤ N)
+    (hN : negativeSobolevOneNorm s U f F ≤ ENNReal.ofReal N) :
     ∃ H : Vec d → Vec d,
-      (∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict (ball z r))) ∧
-      (∀ ψ, IsSpatialTest (ball z r) ψ →
-        ∫ x in ball z r, (f x * ψ x - dot (F x) (gradient ψ x)) =
-          -∫ x in ball z r, dot (H x) (gradient ψ x)) ∧
-      PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
-        ENNReal.ofReal (divergenceRepresentationConstant d * N) := by
-  set U := ball z r with hUdef
-  have hUe : U = PDE.euclideanBall z r := ball_eq_euclideanBall z hr
-  have hconv : PDE.IsOpenBoundedConvexDomain U := by
-    rw [hUe]
-    exact PDE.isOpenBoundedConvexDomain_euclideanBall z hr
-  have hdiam : PDE.HasEuclideanDiameterLE U (2 * r) := by
-    rw [hUe]
-    exact PDE.hasEuclideanDiameterLE_euclideanBall z hr
-  have hU0 : volume U ≠ 0 := by
-    rw [hUe]
-    exact (PDE.volume_euclideanBall_pos z hr).ne'
+      (∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict U)) ∧
+      (∀ ψ, IsSpatialTest U ψ →
+        ∫ x in U, (f x * ψ x - dot (F x) (gradient ψ x)) =
+          -∫ x in U, dot (H x) (gradient ψ x)) ∧
+      PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
+        ENNReal.ofReal (boundedDivergenceRepresentationConstant d U R * N) := by
   have hUt : volume U ≠ ⊤ := by
-    rw [hUe]
-    exact PDE.volume_euclideanBall_ne_top z hr.le
+    refine ne_top_of_le_ne_top ?_ (measure_mono hUB)
+    rw [ball_eq_euclideanBall z hR]
+    exact PDE.volume_euclideanBall_ne_top z hR.le
   have hUpos : 0 < volume U := pos_iff_ne_zero.mpr hU0
   have hs1 : 0 < s - 1 := sub_pos.mpr hs
   have hq1 : 1 < s / (s - 1) := (one_lt_div hs1).mpr (by linarith)
@@ -167,8 +224,8 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
     PDE.isProbabilityMeasure_normalizedVolumeOn_of_pos_of_lt_top hUpos hUt.lt_top
   have hrestrict : volume.restrict U = volume U • ν := by
     rw [hν, PDE.normalizedVolumeOn, smul_smul, ENNReal.mul_inv_cancel hU0 hUt, one_smul]
-  set c := divergenceRepresentationConstant d with hc
-  have hc0 : 0 ≤ c := divergenceRepresentationConstant_nonneg d
+  set c := boundedDivergenceRepresentationConstant d U R with hc
+  have hc0 : 0 ≤ c := boundedDivergenceRepresentationConstant_nonneg d U hR.le
   have hgradc : ∀ φ : PDE.WeakTestFunction U, Continuous (gradient φ.toFun) := fun φ =>
     continuous_pi fun i => continuous_coordinateDerivative_weakTestFunction φ i
   have hGmem : ∀ φ : PDE.WeakTestFunction U,
@@ -212,16 +269,10 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
   -- the Poincaré inequality for tests, normalized
   have hP : ∀ φ : PDE.WeakTestFunction U,
       PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) φ.toFun ≤
-        ENNReal.ofReal (((2 : ℝ) ^ d + 1) * (2 * r)) *
+        ENNReal.ofReal (((2 : ℝ) ^ d + 1) * (2 * R)) *
           PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
-            (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x)) := by
-    intro φ
-    have h := PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad hd hconv hdiam
-      (by linarith) hq1 φ
-    unfold PDE.euclideanFieldELpNormOn at h
-    rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn hUt.lt_top,
-      PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn hUt.lt_top, mul_left_comm]
-    exact mul_le_mul_right h _
+            (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x)) :=
+    eLpMeanNormOn_weakTestFunction_le hd hUt z hR hUB hq1
   -- the test norm is controlled by the gradient
   have hT : ∀ φ : PDE.WeakTestFunction U,
       sobolevOneTestNorm (ENNReal.ofReal (s / (s - 1))) U φ.toFun ≤ c * ‖A φ‖ := by
@@ -229,7 +280,7 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
     set M := (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
       (fun x => PDE.vecEuclideanNorm (gradient φ.toFun x))).toReal with hM
     have h1 : (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) φ.toFun).toReal ≤
-        ((2 : ℝ) ^ d + 1) * (2 * r) * M := by
+        ((2 : ℝ) ^ d + 1) * (2 * R) * M := by
       have h := ENNReal.toReal_mono (ENNReal.mul_ne_top ENNReal.ofReal_ne_top (hfinA φ)) (hP φ)
       rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (mul_nonneg (by positivity) (by linarith))] at h
       exact h
@@ -242,21 +293,19 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
       exact PDE.abs_apply_le_vecEuclideanNorm (gradient φ.toFun x) i
     have hV : 0 ≤ (volume U).toReal ^ (-(1 : ℝ) / d) :=
       Real.rpow_nonneg ENNReal.toReal_nonneg _
-    have hscale := volume_ball_toReal_rpow_mul hd z hr
-    rw [← hUdef] at hscale
     rw [hnormA φ, ← hM]
     unfold sobolevOneTestNorm
     calc (volume U).toReal ^ (-(1 : ℝ) / d) *
           (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1))) φ.toFun).toReal +
           ∑ i : Fin d, (PDE.eLpMeanNormOn U (ENNReal.ofReal (s / (s - 1)))
             (coordinateDerivative i φ.toFun)).toReal
-        ≤ (volume U).toReal ^ (-(1 : ℝ) / d) * (((2 : ℝ) ^ d + 1) * (2 * r) * M) +
+        ≤ (volume U).toReal ^ (-(1 : ℝ) / d) * (((2 : ℝ) ^ d + 1) * (2 * R) * M) +
           ∑ _i : Fin d, M :=
           add_le_add (mul_le_mul_of_nonneg_left h1 hV) (Finset.sum_le_sum fun i _ => h2 i)
-      _ = (2 * (2 ^ d + 1) * ((volume U).toReal ^ (-(1 : ℝ) / d) * r) + d) * M := by
-          rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+      _ = c * M := by
+          rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, hc,
+            boundedDivergenceRepresentationConstant]
           ring
-      _ = c * M := by rw [hscale, hc, divergenceRepresentationConstant]
   -- the gradient map is injective
   have hA : Function.Injective A := by
     refine (injective_iff_map_eq_zero A).mpr fun φ hφ => ?_
@@ -273,7 +322,7 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
     have hae' : φ.toFun =ᵐ[volume.restrict U] 0 := by
       rw [hrestrict]
       exact Measure.ae_smul_measure hae _
-    have heq := Measure.eqOn_open_of_ae_eq hae' hconv.isOpen
+    have heq := Measure.eqOn_open_of_ae_eq hae' hUo
       φ.contDiff.continuous.continuousOn
       (continuousOn_const : ContinuousOn (fun _ : Vec d => (0 : ℝ)) U)
     ext x
@@ -346,6 +395,34 @@ theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s
     change eLpNorm (fun x => PDE.vecEuclideanNorm (H x)) (ENNReal.ofReal s) ν ≤ _
     rw [← ENNReal.ofReal_toReal hfin, hHnorm]
     exact ENNReal.ofReal_le_ofReal (by linarith [hLnorm, mul_comm N c])
+
+/-- **Remark B.6 on balls, the representation.** For `d ≥ 1`, `s ∈ (1, ∞)`, a ball `B_r(z)` and
+`h = f + ∇·F` with `f, F ∈ L¹(B_r(z))` and `‖h‖_{W̲^{-1,s}(B_r(z))} ≤ N`, there is
+`H ∈ L^s(B_r(z); ℝ^d)` with `∫ h ψ = -∫ H · ∇ψ` for every smooth compactly supported test `ψ` and
+`‖H‖_{L̲^s(B_r(z))} ≤ C(d) N`, `C(d) = divergenceRepresentationConstant d`. -/
+theorem exists_divergence_representation_ball (hd : 0 < d) {s : ℝ} (hs : 1 < s) (z : Vec d)
+    {r : ℝ} (hr : 0 < r) {f : Vec d → ℝ} {F : Vec d → Vec d} (hf : IntegrableOn f (ball z r))
+    (hF : ∀ i, IntegrableOn (fun x => F x i) (ball z r)) {N : ℝ} (hN0 : 0 ≤ N)
+    (hN : negativeSobolevOneNorm s (ball z r) f F ≤ ENNReal.ofReal N) :
+    ∃ H : Vec d → Vec d,
+      (∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict (ball z r))) ∧
+      (∀ ψ, IsSpatialTest (ball z r) ψ →
+        ∫ x in ball z r, (f x * ψ x - dot (F x) (gradient ψ x)) =
+          -∫ x in ball z r, dot (H x) (gradient ψ x)) ∧
+      PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
+        ENNReal.ofReal (divergenceRepresentationConstant d * N) := by
+  have hUo : IsOpen (ball z r) := by
+    rw [ball_eq_euclideanBall z hr]
+    exact PDE.isOpen_euclideanBall z r
+  have hU0 : volume (ball z r) ≠ 0 := by
+    rw [ball_eq_euclideanBall z hr]
+    exact (PDE.volume_euclideanBall_pos z hr).ne'
+  have hc : boundedDivergenceRepresentationConstant d (ball z r) r =
+      divergenceRepresentationConstant d := by
+    rw [boundedDivergenceRepresentationConstant, divergenceRepresentationConstant, mul_comm r,
+      volume_ball_toReal_rpow_mul hd z hr]
+  have h := exists_divergence_representation hd hs hUo hU0 z hr subset_rfl hf hF hN0 hN
+  rwa [hc] at h
 
 theorem aestronglyMeasurable_euclideanNorm_of_coord {μ : Measure (Vec d)} {H : Vec d → Vec d}
     (hH : ∀ i, AEStronglyMeasurable (fun x => H x i) μ) :
@@ -491,6 +568,33 @@ theorem remark_B_6 (hd : 0 < d) :
   · rw [negativeSobolevOneNorm_eq_of_representation hrep]
     exact negativeSobolevOneNorm_zero_le hU0 hs hHmem
   · rw [ENNReal.ofReal_mul (divergenceRepresentationConstant_nonneg d),
+      ENNReal.ofReal_toReal hfin] at hnorm
+    exact hnorm
+
+/-- **Remark B.6 on an open set `U ⊆ B_R(z)`.** For `d ≥ 1`, `s ∈ (1, ∞)`, an open set `U` of
+positive measure inside a ball `B_R(z)` and `h = f + ∇·F ∈ W^{-1,s}(U)` with `f, F ∈ L¹(U)`,
+there is `H ∈ L^s(U; ℝ^d)` with `∫_U h ψ = -∫_U H · ∇ψ` for every `ψ ∈ C_c^∞(U)` and
+`‖h‖_{W̲^{-1,s}(U)} ≤ ‖H‖_{L̲^s(U)} ≤ C ‖h‖_{W̲^{-1,s}(U)}`, `C = 2 (2^d + 1) R |U|^{-1/d} + d`. -/
+theorem remark_B_6_of_subset_ball (hd : 0 < d) {U : Set (Vec d)} (hUo : IsOpen U)
+    (hU0 : volume U ≠ 0) (z : Vec d) {R : ℝ} (hR : 0 < R) (hUB : U ⊆ ball z R) {s : ℝ}
+    (hs : 1 < s) {f : Vec d → ℝ} {F : Vec d → Vec d} (hf : IntegrableOn f U)
+    (hF : ∀ i, IntegrableOn (fun x => F x i) U) (hfin : negativeSobolevOneNorm s U f F ≠ ⊤) :
+    ∃ H : Vec d → Vec d,
+      (∀ i, MemLp (fun x => H x i) (ENNReal.ofReal s) (volume.restrict U)) ∧
+      (∀ ψ, IsSpatialTest U ψ →
+        ∫ x in U, (f x * ψ x - dot (F x) (gradient ψ x)) =
+          -∫ x in U, dot (H x) (gradient ψ x)) ∧
+      negativeSobolevOneNorm s U f F ≤
+        PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ∧
+      PDE.eLpMeanNormOn U (ENNReal.ofReal s) (fun x => euclideanNorm (H x)) ≤
+        ENNReal.ofReal (boundedDivergenceRepresentationConstant d U R) *
+          negativeSobolevOneNorm s U f F := by
+  obtain ⟨H, hHmem, hrep, hnorm⟩ := exists_divergence_representation hd hs hUo hU0 z hR hUB hf hF
+    ENNReal.toReal_nonneg (ENNReal.ofReal_toReal hfin).ge
+  refine ⟨H, hHmem, hrep, ?_, ?_⟩
+  · rw [negativeSobolevOneNorm_eq_of_representation hrep]
+    exact negativeSobolevOneNorm_zero_le hU0 hs hHmem
+  · rw [ENNReal.ofReal_mul (boundedDivergenceRepresentationConstant_nonneg d U hR.le),
       ENNReal.ofReal_toReal hfin] at hnorm
     exact hnorm
 
