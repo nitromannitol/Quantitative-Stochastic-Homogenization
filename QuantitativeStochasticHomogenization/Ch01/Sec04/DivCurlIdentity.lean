@@ -1,5 +1,6 @@
 import QuantitativeStochasticHomogenization.AppB.NegativeSobolevTwo
 import QuantitativeStochasticHomogenization.Ch01.Sec04.HatNegativeSobolev
+import QuantitativeStochasticHomogenization.Ch03.Sec04.SpatialWeakLocalization
 import PDEFoundation.Sobolev.H1.ZeroBoundaryCutoff
 
 /-!
@@ -62,13 +63,7 @@ theorem exists_bound_of_isSpatialTest {U : Set (Vec d)} {φ : Vec d → ℝ}
     (hφ : IsSpatialTest U φ) : ∃ C, ∀ x, ‖φ x‖ ≤ C :=
   hφ.2.1.exists_bound_of_continuous hφ.1.continuous
 
-theorem isSpatialTest_coordinateDerivative {U : Set (Vec d)} {φ : Vec d → ℝ}
-    (hφ : IsSpatialTest U φ) (i : Fin d) : IsSpatialTest U (coordinateDerivative i φ) := by
-  refine ⟨?_, hφ.2.1.fderiv_apply ℝ (unitVector i), ?_⟩
-  · exact ((contDiff_infty_iff_fderiv.mp hφ.1).2).clm_apply contDiff_const
-  · refine (tsupport_fderiv_apply_subset ℝ (unitVector i)).trans hφ.2.2
-
-theorem integrable_dot_of_memLp {U : Set (Vec d)} {F G : Vec d → Vec d}
+theorem integrable_dot_of_memLp_two {U : Set (Vec d)} {F G : Vec d → Vec d}
     (hF : MemLp F 2 (volume.restrict U)) (hG : MemLp G 2 (volume.restrict U)) :
     Integrable (fun x => dot (F x) (G x)) (volume.restrict U) :=
   integrable_finsetSum _ fun i _ => (hF.eval i).integrable_mul (hG.eval i)
@@ -95,7 +90,7 @@ theorem setIntegral_mul_dot_eq_neg {U : Set (Vec d)} (hU : PDE.IsOpenBoundedConv
   simp only [hpt] at h0
   obtain ⟨Cφ, hCφ⟩ := exists_bound_of_isSpatialTest hφ
   have hI1 : Integrable (fun x => φ x * dot (G x) (g x)) (volume.restrict U) :=
-    (integrable_dot_of_memLp hu.2.1 hg.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
+    (integrable_dot_of_memLp_two hu.2.1 hg.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
       (Eventually.of_forall hCφ)
   have hI2 : Integrable (fun x => u x * dot (gradient φ x) (g x)) (volume.restrict U) := by
     have hs : Integrable (fun x => ∑ i, coordinateDerivative i φ x * (u x * g x i))

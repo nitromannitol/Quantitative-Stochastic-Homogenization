@@ -1,0 +1,74 @@
+
+/-- The exponents of the proof of Lemma 1.16 for `q ∈ [1, d/(d-1))`: `p'` with `d < p' ≤ q'`, and
+`t = 2q/(2-q)` with `1/t + 1/q' = 1/2`, `t = s* = ds/(d-s)` for some `s ∈ [1, 2]`, `s < d`. -/
+theorem exists_divCurl_exponents (hd : 2 ≤ d) {q : ℝ} (hq : 1 ≤ q) (hqd : q < d / (d - 1)) :
+    ∃ p' t s : ℝ, (d : ℝ) < p' ∧ ENNReal.ofReal p' ≤ (ENNReal.ofReal q).conjExponent ∧
+      ENNReal.HolderTriple (ENNReal.ofReal t) (ENNReal.ofReal q).conjExponent 2 ∧ 2 ≤ t ∧
+      1 ≤ s ∧ s ≤ 2 ∧ s < d ∧ PDE.sobolevConjugate d s = t := by
+  have hd2 : (2 : ℝ) ≤ d := by exact_mod_cast hd
+  have hd1 : (0 : ℝ) < d - 1 := by linarith
+  have hq0 : 0 < q := by linarith
+  have hqd' : q * (d - 1) < d := by rwa [lt_div_iff₀ hd1] at hqd
+  set a : ℝ := 1 - 1 / q with ha
+  have ha0 : 0 ≤ a := by
+    rw [ha, sub_nonneg, div_le_one hq0]
+    exact hq
+  have had : a < 1 / d := by
+    rw [ha, sub_lt_iff_lt_add, div_add_div _ _ (by positivity) hq0.ne', lt_div_iff₀ (by positivity)]
+    nlinarith
+  have hd0 : (0 : ℝ) < d := by linarith
+  have ha2 : a < 1 / 2 := had.trans_le (by rw [div_le_div_iff₀ hd0 (by norm_num)]; linarith)
+  -- the conjugate exponent
+  set p := (ENNReal.ofReal q).conjExponent with hp
+  have hq1 : 1 ≤ ENNReal.ofReal q := by simpa using ENNReal.ofReal_le_ofReal hq
+  have hconj := (ENNReal.HolderConjugate.conjExponent hq1).inv_add_inv_eq_inv
+  rw [← hp, inv_one, ENNReal.ofReal_inv_of_pos hq0] at hconj
+  have hpinv : p⁻¹ = ENNReal.ofReal a := by
+    rw [ha, ENNReal.ofReal_sub _ (by positivity), ENNReal.ofReal_one, ← hconj,
+      ENNReal.add_sub_cancel_left ENNReal.ofReal_ne_top, one_div]
+  -- `p'`
+  set p' : ℝ := 2 / (1 / d + a) with hp'
+  have hden : 0 < 1 / (d : ℝ) + a := by positivity
+  have hdp' : (d : ℝ) < p' := by
+    rw [hp', lt_div_iff₀ hden]
+    have : (d : ℝ) * (1 / d) = 1 := by field_simp
+    nlinarith
+  have hp'0 : 0 < p' := hd0.trans hdp'
+  have hp'p : ENNReal.ofReal p' ≤ p := by
+    rw [← ENNReal.inv_le_inv, hpinv, ← ENNReal.ofReal_inv_of_pos hp'0]
+    refine ENNReal.ofReal_le_ofReal ?_
+    rw [hp', inv_div]
+    linarith
+  -- `t`
+  set t : ℝ := 1 / (1 / 2 - a) with ht
+  have hb : 0 < 1 / 2 - a := by linarith
+  have ht0 : 0 < t := by positivity
+  have ht2 : 2 ≤ t := by
+    rw [ht, le_div_iff₀ hb]
+    linarith
+  have hT : ENNReal.HolderTriple (ENNReal.ofReal t) p 2 := by
+    refine ⟨?_⟩
+    rw [hpinv, ← ENNReal.ofReal_inv_of_pos ht0, ht, one_div_one_div,
+      ← ENNReal.ofReal_add hb.le ha0, sub_add_cancel, show (2 : ℝ≥0∞)⁻¹ = ENNReal.ofReal (1 / 2) by
+        rw [one_div, ENNReal.ofReal_inv_of_pos (by norm_num)]; simp]
+  -- `s`
+  set s : ℝ := d * t / (d + t) with hs
+  have hdt : 0 < (d : ℝ) + t := by positivity
+  have hs1 : 1 ≤ s := by
+    rw [hs, le_div_iff₀ hdt]
+    nlinarith
+  have hs2 : s ≤ 2 := by
+    rw [hs, div_le_iff₀ hdt]
+    have : t * (1 / 2 - a) = 1 := by rw [ht]; field_simp
+    have h1 : (d : ℝ) * a ≤ 1 := by
+      have := mul_le_mul_of_nonneg_left had.le hd0.le
+      rwa [mul_one_div_cancel hd0.ne'] at this
+    nlinarith
+  have hsd : s < d := by
+    rw [hs, div_lt_iff₀ hdt]
+    nlinarith
+  have hst : PDE.sobolevConjugate d s = t := by
+    rw [PDE.sobolevConjugate, hs]
+    field_simp
+    ring
+  exact ⟨p', t, s, hdp', hp'p, hT, ht2, hs1, hs2, hsd, hst⟩

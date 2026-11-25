@@ -452,10 +452,10 @@ theorem lemma_1_16_quantitative (hd : 2 ≤ d) {q : ℝ} (hq : 1 ≤ q) (hqd : q
     ring
   obtain ⟨Cφ, hCφ⟩ := exists_bound_of_isSpatialTest hφ
   have hI1 : Integrable (fun x => φ x * dot (G₁ x) (g₁ x)) (volume.restrict U) :=
-    (integrable_dot_of_memLp hu₁.2.1 hg₁.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
+    (integrable_dot_of_memLp_two hu₁.2.1 hg₁.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
       (Eventually.of_forall hCφ)
   have hI2 : Integrable (fun x => φ x * dot (G₂ x) (g₂ x)) (volume.restrict U) :=
-    (integrable_dot_of_memLp hu₂.2.1 hg₂.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
+    (integrable_dot_of_memLp_two hu₂.2.1 hg₂.1).bdd_mul hφ.1.continuous.aestronglyMeasurable
       (Eventually.of_forall hCφ)
   have hmain : ∫ x in U, (dot (G₁ x) (g₁ x) - dot (G₂ x) (g₂ x)) * φ x =
       -(∑ i, a i + ∑ i, b i) := by
