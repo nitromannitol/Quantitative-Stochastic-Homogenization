@@ -9,9 +9,13 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 /-!
 # Morrey's inequality for `C¹` functions on bounded convex sets
 
-Copied, with the namespace changed, from the file `SuperdiffusionCLT/Section7/Prereq/Morrey.lean`
-of the repository `scottnarmstrong/SuperdiffusionCLT` (commit `86a3370`, Apache 2.0 license,
-author Scott Armstrong), which is not a dependency of this library.
+Copied from SuperdiffusionCLT (https://github.com/scottnarmstrong/SuperdiffusionCLT), commit
+86a3370af08834e804bbb307b6f10e9157036dbe, file `SuperdiffusionCLT/Section7/Prereq/Morrey.lean`
+(author Scott Armstrong, licensed under the Apache License 2.0), which is not a dependency of this library.
+Changes: the namespace is `QSH.ConvexMorrey` in place of `SuperdiffusionCLT.Section7`; the module-system
+lines (`module`, `public import`, `@[expose] public section`) are removed; in this docstring the title is
+changed, the references to Gilbarg–Trudinger and Evans are added and the paragraph on the `C¹` carrier is
+removed; the closing `example` (`u = id` on `[0, 1]`) is removed. The proofs are unchanged.
 
 For `u` of class `C¹` on a finite-dimensional real normed space with an additive Haar measure,
 `K` bounded, convex, measurable of positive measure, and `p > max 1 d`:
