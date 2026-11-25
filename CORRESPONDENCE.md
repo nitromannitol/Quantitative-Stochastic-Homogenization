@@ -966,7 +966,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
   the markers of the frozen files, since each frozen file is imported by the modules of its proof.
 
-## Appendix D: Propositions D.1 and D.2, Lemmas D.3 and D.4 (`AppD/`)
+## Appendix D: Propositions D.1, D.2 and D.5, Lemmas D.3 and D.4 (`AppD/`)
 
 - **Lemma D.4** (`lemmaD4`). The maximal function `maximalFunction f` is the centered maximal
   function over the open Euclidean balls, with values in `[0, ∞]`; it is lower semicontinuous
@@ -1033,6 +1033,24 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   is formalized separately (see Section 4.6 above); Remark B.6 on `ℝ^d` is not (Remark B.6 on balls
   is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`; see the Appendix B
   section).
+- **Proposition D.1, the first inequality of (D.2), for `∂^l u`** (`propositionD1_fractional_foldr`,
+  `AppD/PropositionD5Fractional.lean`): for `u ∈ L^p(ℝ^d)` and a list of coordinates `l`, the norm of
+  the distribution `∂^l u` in `W^{-α,p}(ℝ^d)` is the supremum of `|∫ u ∂^l g|` over the same tests
+  (`negativeFractionalSobolevNormDeriv`), and the right-hand side has `‖∂^l Φ(t, ·) ∗ u‖_{L^p}`. The
+  book applies Proposition D.1 to the distribution directly; the Lean proof applies
+  `propositionD1_fractional` to the function `∂^l Φ(ε, ·) ∗ u ∈ L^p`, whose pairing with `g` is
+  `± ∫ u (Φ(ε) ∗ ∂^l g)` (the derivatives of the heat kernel have the parity of their order,
+  `heatKernelDeriv_neg`) and whose heat flow `Φ(t) ∗ (∂^l Φ(ε, ·) ∗ u) = Φ(ε) ∗ (∂^l Φ(t, ·) ∗ u)` has
+  `L^p` norm at most `‖∂^l Φ(t, ·) ∗ u‖_{L^p}` (`heatSmooth_kconv_heatKernelDeriv`), and lets `ε → 0`
+  by dominated convergence (`tendsto_integral_mul_heatSmooth`).
+- **Proposition D.5** (`propositionD5_fractional_of_lifting`) is proved for `α = m + β`, `m ∈ ℕ`,
+  `β ∈ (0, 1)`, `k ∈ ℕ ∩ (α, ∞)` and `q ∈ (1, ∞)`, for `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives
+  (`IsSobolevFamilyLp`) and the norm (B.3) (`fractionalSobolevFamilyNorm`), under the hypothesis
+  `‖u‖_{W^{α,q}} ≤ C₀ (‖u‖_{L^q} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}})`. This is the observation with
+  which the book's proof begins ("We simply observe that"), which the book does not prove; the rest
+  of the proof is the book's: the first inequality of (D.2) for `∂_w u` with the order `k - α`
+  (`propositionD1_fractional_foldr`) and `|∂_w Φ(t, ·) ∗ u| ≤ |∇^k Φ(t, ·) ∗ u|`. The case `α ∈ ℕ`
+  is not formalized.
 
 ## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 
