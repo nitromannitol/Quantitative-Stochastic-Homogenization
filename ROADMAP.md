@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 65 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 18 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 65 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 21 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -32,10 +32,10 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 6 |
-| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 0 |
+| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **65** | **18** |
+| | **Total** | **226** | **65** | **21** |
 
 ## Front matter
 
@@ -515,14 +515,14 @@ Module `AppA/OsNotation.lean`.
 
 ## Appendix B: Function Spaces and Elliptic Equations on Lipschitz Domains
 
-Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls in `AppB/DivergenceRepresentation.lean`).
+Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls and on open subsets of a ball (`remark_B_6_of_subset_ball`) in `AppB/DivergenceRepresentation.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
 | Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2`, the rescaled norm `‖·‖_{W̲^{k,p}(U)}` and `W^{k,p}_loc(U)` not defined); see CORRESPONDENCE.md |
 | Definition B.3 | Sobolev space W^{α,p}(U) | not started |
-| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
+| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`, and on open subsets of a ball, `remark_B_6_of_subset_ball`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
 | Theorem B.8 | Global Sobolev inequality | in progress (the case `k = 1`, proved as `theorem_B_8_one`, module `AppB/TheoremB8.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
 | Theorem B.9 | Local Sobolev–Poincaré inequality | in progress (the case `k = 1`, both parts, on balls `B_r(z)`, proved as `theorem_B_9_one`, module `AppB/TheoremB9.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
@@ -538,7 +538,7 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls in `A
 
 ## Appendix C: The Meyers L^{2+δ} Estimate
 
-Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/IterationLemma.lean`, `AppC/NegativeSobolevPairing.lean`, `AppC/InteriorCaccioppoli.lean`, `AppC/ReverseHolder.lean`, `AppC/BallLebesgueDifferentiation.lean`, `AppC/GehringBallEstimates.lean`, `AppC/GehringLevelSet.lean`, `AppC/GehringIntegration.lean`, `AppC/GehringLemma.lean` and `AppC/InteriorMeyers.lean`; Remark B.6 in `AppB/DivergenceRepresentation.lean`).
+Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/IterationLemma.lean`, `AppC/NegativeSobolevPairing.lean`, `AppC/InteriorCaccioppoli.lean`, `AppC/ReverseHolder.lean`, `AppC/BallLebesgueDifferentiation.lean`, `AppC/GehringBallEstimates.lean`, `AppC/GehringLevelSet.lean`, `AppC/GehringIntegration.lean`, `AppC/GehringLemma.lean`, `AppC/InteriorMeyers.lean`, `AppC/GlobalCaccioppoli.lean`, `AppC/GlobalCaccioppoliBoundary.lean`, `AppC/GlobalCaccioppoliLemma.lean`, `AppC/VanishingSobolevPoincare.lean`, `AppC/ReverseHolderRatio.lean`, `AppC/GlobalReverseHolder.lean` and `AppC/GlobalMeyers.lean`; Remark B.6 in `AppB/DivergenceRepresentation.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
@@ -548,9 +548,9 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 | Lemma C.4 | Gehring's lemma | proved (`lemma_C_4`; see CORRESPONDENCE.md) |
 | Lemma C.5 | Vitali covering lemma | proved (`lemma_C_5`); see CORRESPONDENCE.md |
 | Lemma C.6 |  | proved (`lemma_C_6`; see CORRESPONDENCE.md) |
-| Theorem C.7 | Global Meyers estimate | not started (needs the Lipschitz domains of Appendix B, the constant κ_U of (C.13) and Proposition B.16) |
-| Lemma C.8 | Global Caccioppoli estimate | not started (needs the Lipschitz domains of Appendix B and κ_U) |
-| Corollary C.9 |  | not started (needs Lemma C.8 and the Sobolev–Poincaré inequality for functions vanishing on a set of positive measure) |
+| Theorem C.7 | Global Meyers estimate | in progress (proved for `d ≥ 2` on open sets `U ⊆ B_R` of positive measure with interior and exterior boundary density up to the scale `2R` (`HasBoundaryDensity`), which bounded Lipschitz domains have (not proved in Lean), as `theorem_C_7_of_boundaryDensity`, with a boundary datum in `W^{1,p}(U)` (`IsW1p`) and `h = f + ∇·F`, `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)`; the zero datum is `theorem_C_7_zero_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined, and of the membership `u ∈ W^{1,(2+δ)∧p}(U)` only `∇u ∈ L^{(2+δ)∧p}(U)` follows, from (C.15) with a finite right-hand side); see CORRESPONDENCE.md |
+| Lemma C.8 | Global Caccioppoli estimate | in progress ((C.17) on every bounded open set, `lemma_C_8_energy`; (C.17) and (C.18) on bounded open sets with boundary density up to a scale `R₀` such that `U ⊆ B_{R₀}(z)` for every `z ∈ ∂U`, `lemma_C_8_of_boundaryDensity`; the Lipschitz domains of Definition B.1 are not defined; the constant κ_U of (C.13) is `kappaConstant`); see CORRESPONDENCE.md |
+| Corollary C.9 |  | in progress (for `d ≥ 2`, `h = ∇·H` with `H ∈ L²(U; ℝ^d)`, on open sets with boundary density, from `B_{ρ/8}(y)` to `B_ρ(y)` for every `y ∈ ℝ^d` and `ρ ≤ R₀` (the scale of the boundary density): `reverseHolder_eighth_global`, the right side on `B_ρ(y)`, whose radius is four times that of the book's `B_r(z)`; the form from `B_{r/2}(z)` to `B_r(z)`, for balls in `B_{R₀}`, follows by the covering argument `reverseHolder_half_of_eighth`; the Sobolev–Poincaré inequality for functions vanishing on a set of positive measure is `sobolevPoincare_of_vanishing`; general `h ∈ H^{-1}(B_r(z) ∩ U)` not proved); see CORRESPONDENCE.md |
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
