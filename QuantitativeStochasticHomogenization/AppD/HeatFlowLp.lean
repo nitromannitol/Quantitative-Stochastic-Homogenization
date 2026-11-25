@@ -55,6 +55,7 @@ theorem lintegral_conv_rpow_le {q : ℝ} (hq : 1 < q) {K f : Vec d → ℝ≥0�
         conv_rhs => rw [show q = (q - 1) + 1 by ring]
         rw [ENNReal.rpow_add_of_nonneg _ _ (by linarith) zero_le_one, ENNReal.rpow_one]
 
+/-- `|K ∗ h (x)| ≤ ∫ |K(x - y)| |h(y)| dy`. -/
 theorem enorm_kconv_le (K h : Vec d → ℝ) (x : Vec d) :
     ‖kconv K h x‖ₑ ≤ ∫⁻ y, ‖K (x - y)‖ₑ * ‖h y‖ₑ := by
   rw [kconv_apply]
@@ -192,6 +193,7 @@ theorem heatSmooth_add_of_memLp {a b : ℝ} (ha : 0 < a) (hb : 0 < b) {p : ℝ} 
         rw [integral_const_mul, show heatSmooth b u y = kconv (euclideanHeatKernel b) u y from rfl,
           kconv_apply]
 
+/-- An `L^p` function times the heat kernel is integrable. -/
 theorem integrable_mul_euclideanHeatKernel_of_memLp {t : ℝ} (ht : 0 < t) {p : ℝ} (hp : 1 ≤ p)
     {u : Vec d → ℝ} (hu : MemLp u (ENNReal.ofReal p) volume) :
     Integrable (fun x => u x * euclideanHeatKernel t x) := by
@@ -240,6 +242,7 @@ theorem integral_mul_heatSmooth_split {t : ℝ} (ht : 0 < t) {p : ℝ} (hp : 1 <
 /-- The positive part `(‖x‖ - R)₊`. -/
 def distBall (R : ℝ) (x : Vec d) : ℝ := max (‖x‖ - R) 0
 
+/-- `(‖x‖ - R)₊² ≥ ‖x‖²/2 - R²`. -/
 theorem distBall_sq_ge {R : ℝ} (hR : 0 ≤ R) (x : Vec d) : ‖x‖ ^ 2 / 2 - R ^ 2 ≤ distBall R x ^ 2 := by
   unfold distBall
   rcases le_or_gt R ‖x‖ with h | h
@@ -248,6 +251,7 @@ theorem distBall_sq_ge {R : ℝ} (hR : 0 ≤ R) (x : Vec d) : ‖x‖ ^ 2 / 2 - 
   · rw [max_eq_right (by linarith)]
     nlinarith [norm_nonneg x]
 
+/-- `exp(-(‖x‖ - R)₊²/8) ≤ exp(R²/8) exp(-‖x‖²/16)`. -/
 theorem exp_distBall_le {R : ℝ} (hR : 0 ≤ R) (x : Vec d) :
     Real.exp (-(distBall R x ^ 2) / 8) ≤ Real.exp (R ^ 2 / 8) * Real.exp (-(‖x‖ ^ 2) / 16) := by
   rw [← Real.exp_add]
@@ -315,6 +319,8 @@ theorem abs_heatSmooth_le_exp_ball {R : ℝ} (hR : 0 ≤ R) {s : ℝ} (hs : 0 < 
         exact exp_distBall_le hR x
     _ = _ := by ring
 
+/-- `F (Φ(s) ∗ f)` is integrable for `s ∈ (0, 1]` and a bounded `f` vanishing outside `B_R`, when
+`F exp(-‖x‖²/16)` is integrable. -/
 theorem integrable_mul_heatSmooth_ball {R : ℝ} (hR : 0 ≤ R) {F : Vec d → ℝ} (hFm : AEStronglyMeasurable F volume)
     (hF : Integrable (fun x => F x * Real.exp (-(‖x‖ ^ 2) / 16))) {f : Vec d → ℝ}
     (hf : Measurable f) {M : ℝ} (hM : ∀ z, |f z| ≤ M) (hsupp : ∀ z, f z ≠ 0 → ‖z‖ ≤ R) {s : ℝ}

@@ -31,6 +31,7 @@ variable {d : ℕ}
 
 /-! ## The parity of the derivatives of the heat kernel -/
 
+/-- `∂_i (f ∘ (-·)) (z) = -∂_i f (-z)`. -/
 theorem coordinateDerivative_comp_neg {f : Vec d → ℝ} (hf : ContDiff ℝ ∞ f) (i : Fin d)
     (z : Vec d) :
     coordinateDerivative i (fun y => f (-y)) z = -coordinateDerivative i f (-z) := by
@@ -67,6 +68,7 @@ theorem heatKernelDeriv_neg (t : ℝ) (l : List (Fin d)) :
 
 /-! ## The heat flow of `∂^l Φ(b, ·) ∗ u` -/
 
+/-- `|∂^l Φ(b, z)| ≤ M Φ(2b, z)`. -/
 theorem abs_heatKernelDeriv_le_heatKernel {b : ℝ} (hb : 0 < b) (l : List (Fin d)) :
     ∃ M : ℝ, 0 ≤ M ∧ ∀ z, |heatKernelDeriv b l z| ≤ M * euclideanHeatKernel (2 * b) z := by
   obtain ⟨C, hC, h⟩ := abs_heatKernelDeriv_ofFn_le (d := d) l.get
@@ -74,6 +76,7 @@ theorem abs_heatKernelDeriv_le_heatKernel {b : ℝ} (hb : 0 < b) (l : List (Fin 
   have := h b hb z
   rwa [List.ofFn_get] at this
 
+/-- `(y, z) ↦ Φ(a, x - y) Φ(b, y - z) u(z)` is integrable for `u ∈ L^p`. -/
 theorem integrable_heatKernel_prod_of_memLp {a b : ℝ} (ha : 0 < a) (hb : 0 < b) {p : ℝ}
     (hp : 1 ≤ p) {u : Vec d → ℝ} (hu : MemLp u (ENNReal.ofReal p) volume) (x : Vec d) :
     Integrable (fun q : Vec d × Vec d =>
@@ -178,6 +181,7 @@ theorem heatSmooth_kconv_heatKernelDeriv {a b : ℝ} (ha : 0 < a) (hb : 0 < b) {
         simp only
         ring
 
+/-- `∂^l Φ(t, ·) ∗ u ∈ L^p` for `u ∈ L^p`. -/
 theorem memLp_kconv_heatKernelDeriv {t : ℝ} (ht : 0 < t) {p : ℝ} (hp : 1 < p) {u : Vec d → ℝ}
     (hu : MemLp u (ENNReal.ofReal p) volume) (l : List (Fin d)) :
     MemLp (kconv (heatKernelDeriv t l) u) (ENNReal.ofReal p) volume :=
@@ -331,7 +335,8 @@ def fractionalSobolevFamilyNorm (m : ℕ) (β q : ℝ) (G : List (Fin d) → Vec
 /-- **Proposition D.5 for `α ∉ ℕ`, from the observation of its proof**: for `q ∈ (1, ∞)`,
 `α = m + β` with `β ∈ (0, 1)` and `k ∈ ℕ` with `α < k`, if
 `‖u‖_{W^{α,q}(ℝ^d)} ≤ C₀ (‖u‖_{L^q(ℝ^d)} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}(ℝ^d)})` for every
-`u ∈ W^{α,q}(ℝ^d)` (the book's observation, not proved in the book), then
+`u ∈ W^{m,q}(ℝ^d)` given with its weak derivatives (the book's observation, with `C₀` on both terms,
+not proved in the book; for `u ∉ W^{α,q}(ℝ^d)` it says that the right-hand side is infinite), then
 `‖u‖_{W^{α,q}(ℝ^d)} ≤ C ‖u‖_{L^q(ℝ^d)} + C (∫_0^1 (t^{(k-α)/2} ‖∇^k Φ(t, ·) ∗ u‖_{L^q(ℝ^d)})^q dt/t)^{1/q}`. -/
 theorem propositionD5_fractional_of_lifting (m : ℕ) {β : ℝ} (hβ : 0 < β) (hβ1 : β < 1) {k : ℕ}
     (hk : m < k) {q : ℝ} (hq : 1 < q)

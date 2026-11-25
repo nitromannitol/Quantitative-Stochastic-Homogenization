@@ -44,6 +44,7 @@ def negativeFractionalSobolevNorm (m : ℕ) (β p : ℝ) (u : Vec d → ℝ) : �
       fractionalSobolevNorm m β (p / (p - 1)) g ≤ 1},
     ENNReal.ofReal |∫ x, u x * g.1 x|
 
+/-- The derivatives of a compactly supported function are compactly supported. -/
 theorem hasCompactSupport_foldr_coordinateDerivative {g : Vec d → ℝ} (hcg : HasCompactSupport g) :
     ∀ l : List (Fin d), HasCompactSupport (l.foldr coordinateDerivative g)
   | [] => hcg
@@ -66,6 +67,7 @@ theorem isSobolevFamilyLp_of_smooth (q : ℝ) (m : ℕ) {g : Vec d → ℝ} (hg 
       fun ψ hψ => ?_⟩
     exact IsSpatialTest.integral_mul_coordinateDerivative hv hψ i
 
+/-- One component of `∇^k Φ(t, ·) ∗ g` is at most its Euclidean norm. -/
 theorem sq_kconv_heatKernelDeriv_le_heatGradSq (t : ℝ) (g : Vec d → ℝ) (l : List (Fin d))
     (x : Vec d) : kconv (heatKernelDeriv t l) g x ^ 2 ≤ heatGradSq l.length t g x := by
   unfold heatGradSq
@@ -73,6 +75,7 @@ theorem sq_kconv_heatKernelDeriv_le_heatGradSq (t : ℝ) (g : Vec d → ℝ) (l 
   exact Finset.single_le_sum (f := fun w : Fin l.length → Fin d =>
     kconv (heatKernelDeriv t (List.ofFn w)) g x ^ 2) (fun w _ => sq_nonneg _) (Finset.mem_univ l.get)
 
+/-- The list `(w₁, w₁, …, w_k, w_k)` has length `2k`. -/
 theorem length_doubledList {k : ℕ} (w : Fin k → Fin d) : (doubledList w).length = 2 * k := by
   unfold doubledList
   induction k with
@@ -119,6 +122,7 @@ theorem abs_heatSmooth_iterLaplacian_le {g : Vec d → ℝ} (hg : ContDiff ℝ �
 
 /-! ## The first inequality of (D.2) -/
 
+/-- `|x|² ≤ (d + 1) ‖x‖²` for the sup norm `‖x‖`. -/
 theorem euclideanSq_le_succ_mul_norm_sq (x : Vec d) : euclideanSq x ≤ (d + 1) * ‖x‖ ^ 2 := by
   have h : euclideanSq x ≤ d * ‖x‖ ^ 2 := by
     unfold euclideanSq dot
@@ -381,6 +385,7 @@ theorem lintegral_Ioc_comp_half (f : ℝ → ℝ≥0∞) :
     inter_eq_left.mpr Ioc_subset_Ioi_self, inter_eq_left.mpr Ioc_subset_Ioi_self] at h
   exact h
 
+/-- `(2r)^c/(2r) = (2^c/2) (r^c/r)`. -/
 theorem ofReal_two_mul_rpow_div {r : ℝ} (hr : 0 < r) (c : ℝ) :
     ENNReal.ofReal ((2 * r) ^ c / (2 * r)) =
       ENNReal.ofReal (2 ^ c / 2) * ENNReal.ofReal (r ^ c / r) := by
@@ -388,6 +393,7 @@ theorem ofReal_two_mul_rpow_div {r : ℝ} (hr : 0 < r) (c : ℝ) :
   congr 1
   exact mul_div_mul_comm _ _ _ _
 
+/-- `2 (2^c/2) = 2^c`. -/
 theorem two_mul_ofReal_rpow_div (c : ℝ) :
     2 * ENNReal.ofReal (2 ^ c / 2) = ENNReal.ofReal (2 ^ c) := by
   rw [show (2 : ℝ≥0∞) = ENNReal.ofReal 2 by simp, ← ENNReal.ofReal_mul (by norm_num)]

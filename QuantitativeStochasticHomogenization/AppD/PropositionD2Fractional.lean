@@ -97,6 +97,7 @@ theorem lintegral_mul_rpow_le {α : Type*} [MeasurableSpace α] {μ : Measure α
         rw [hq']
         field_simp
 
+/-- `|a| ≤ 1 + |a|^q` for `q ≥ 1`. -/
 theorem abs_le_one_add_abs_rpow {q : ℝ} (hq : 1 ≤ q) (a : ℝ) : |a| ≤ 1 + |a| ^ q := by
   rcases le_or_gt |a| 1 with h | h
   · have := Real.rpow_nonneg (abs_nonneg a) q
@@ -249,6 +250,7 @@ theorem integral_multiIndexDerivative_euclideanHeatKernel_eq_zero {m : ℕ} {t :
     exact ((contDiff_heatKernel1 t).iterate_deriv c).differentiable (by simp)
   exact (hdiff y).hasDerivAt
 
+/-- A derivative of positive order of the heat kernel has integral zero. -/
 theorem integral_heatKernelDeriv_ofFn_eq_zero {k : ℕ} (hk : 0 < k) {t : ℝ} (ht : 0 < t)
     (w : Fin k → Fin d) :
     ∫ z, heatKernelDeriv t (List.ofFn w) z = 0 := by
@@ -281,6 +283,7 @@ theorem kconv_eq_integral_sub_of_integral_eq_zero {K v : Vec d → ℝ} (hK : In
   simp_rw [mul_sub]
   rw [integral_sub hv (hKx.mul_const _), integral_mul_const, hK0', zero_mul, sub_zero]
 
+/-- `(∑ a_i²)^{1/2} ≤ ∑ |a_i|`. -/
 theorem sqrt_sum_sq_le_sum_abs {ι : Type*} (s : Finset ι) (a : ι → ℝ) :
     Real.sqrt (∑ i ∈ s, a i ^ 2) ≤ ∑ i ∈ s, |a i| := by
   rw [Real.sqrt_le_left (Finset.sum_nonneg fun i _ => abs_nonneg _)]
@@ -288,7 +291,8 @@ theorem sqrt_sum_sq_le_sum_abs {ι : Type*} (s : Finset ι) (a : ι → ℝ) :
     _ ≤ (∑ i ∈ s, |a i|) ^ 2 := Finset.sum_sq_le_sq_sum_of_nonneg fun i _ => abs_nonneg _
 
 /-- **The pointwise bound for `k ≥ 1` derivatives**:
-`|∇^k Φ(t, ·) ∗ v|(x) ≤ C (2t)^{-k/2} ∫ Φ(2t, x - y) |v y - v x| dy`. -/
+`|∇^k Φ(t, ·) ∗ v|(x) ≤ C (2t)^{-k/2} ∫ Φ(2t, x - y) |v y - v x| dy`, when the products
+`∂_w Φ(t, x - ·) v` are integrable. -/
 theorem ofReal_sqrt_heatGradSq_le {k : ℕ} (hk : 0 < k) :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ t : ℝ, 0 < t → ∀ (v : Vec d → ℝ) (x : Vec d),
       (∀ w : Fin k → Fin d, Integrable (fun y => heatKernelDeriv t (List.ofFn w) (x - y) * v y)) →
@@ -328,10 +332,7 @@ theorem ofReal_sqrt_heatGradSq_le {k : ℕ} (hk : 0 < k) :
         rw [← Finset.sum_mul, ← ENNReal.ofReal_sum_of_nonneg fun w _ => mul_nonneg (hCw w) hs0,
           Finset.sum_mul]
 
-theorem euclideanSq_nonneg_of_vec (z : Vec d) : 0 ≤ euclideanSq z := by
-  unfold euclideanSq dot
-  exact Finset.sum_nonneg fun i _ => mul_self_nonneg _
-
+/-- The Euclidean norm of a nonzero vector is positive. -/
 theorem euclideanNorm_pos_of_ne_zero {z : Vec d} (hz : z ≠ 0) : 0 < euclideanNorm z := by
   obtain ⟨i, hi⟩ : ∃ i, z i ≠ 0 := by
     by_contra h
@@ -348,6 +349,7 @@ theorem euclideanNorm_pos_of_ne_zero {z : Vec d} (hz : z ≠ 0) : 0 < euclideanN
 def heatTimeConstant (d : ℕ) (a : ℝ) : ℝ :=
   (8 * Real.pi) ^ (-(d : ℝ) / 2) * Real.Gamma (a + d / 2) * 8 ^ (a + d / 2)
 
+/-- The constant of the time integral is nonnegative. -/
 theorem heatTimeConstant_nonneg (d : ℕ) {a : ℝ} (ha : 0 ≤ a) : 0 ≤ heatTimeConstant d a := by
   unfold heatTimeConstant
   have := Real.Gamma_nonneg_of_nonneg (by positivity : (0 : ℝ) ≤ a + d / 2)
@@ -366,7 +368,9 @@ theorem lintegral_heatKernel_two_mul_eq {a : ℝ} (ha : 0 < a) {z : Vec d} (hz :
   set b := r ^ 2 / 8 with hb
   have hbpos : 0 < b := by positivity
   have hsq : euclideanSq z = r ^ 2 := by
-    rw [hr, euclideanNorm, Real.sq_sqrt (euclideanSq_nonneg_of_vec z)]
+    rw [hr, euclideanNorm, Real.sq_sqrt (by
+      unfold euclideanSq dot
+      exact Finset.sum_nonneg fun i _ => mul_self_nonneg _)]
   set A := (8 * Real.pi) ^ (-(d : ℝ) / 2) with hA
   have hA0 : 0 ≤ A := by positivity
   have hpt : ∀ t ∈ Ioi (0 : ℝ), ENNReal.ofReal (t ^ (-a - 1)) *
@@ -406,7 +410,7 @@ theorem lintegral_euclideanHeatKernel_sub_left {t : ℝ} (ht : 0 < t) (x : Vec d
       (Eventually.of_forall fun z => euclideanHeatKernel_nonneg ht.le z),
     integral_euclideanHeatKernel ht, ENNReal.ofReal_one]
 
-/-- For `v ∈ L^q` measurable and `t > 0`:
+/-- For `v ∈ L^q` measurable and `t > 0`, given the pointwise bound `hC`:
 `∫ |∇^k Φ(t, ·) ∗ v|^q ≤ (C (2t)^{-k/2})^q ∫∫ Φ(2t, x - y) |v y - v x|^q`. -/
 theorem lintegral_heatGradSq_rpow_le {k : ℕ} {q : ℝ} (hq : 1 < q) {C : ℝ}
     (hC : ∀ t : ℝ, 0 < t → ∀ (v : Vec d → ℝ) (x : Vec d),
@@ -705,6 +709,7 @@ theorem heatGradSq_add_eq_of_memLp {q : ℝ} (hq : 1 ≤ q) {m : ℕ} {u : Vec d
   change kconv (heatKernelDeriv t (List.ofFn (Fin.append v w))) u x ^ 2 = _
   rw [hperm, h]
 
+/-- `(∑ h_i)^{1/2} ≤ ∑ h_i^{1/2}` for `h_i ≥ 0`. -/
 theorem sqrt_sum_le_sum_sqrt {ι : Type*} (s : Finset ι) {h : ι → ℝ} (hh : ∀ i ∈ s, 0 ≤ h i) :
     Real.sqrt (∑ i ∈ s, h i) ≤ ∑ i ∈ s, Real.sqrt (h i) := by
   have h1 := sqrt_sum_sq_le_sum_abs s (fun i => Real.sqrt (h i))
