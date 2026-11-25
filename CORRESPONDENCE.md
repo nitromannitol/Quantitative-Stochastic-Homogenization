@@ -1012,8 +1012,11 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   opposite sign convention `∫ w h = ∫ F · ∇w`, i.e. `F = -H`, and for `w ∈ W_0^{1,p'}(U)`; the
   pairing of a distribution with `W_0^{1,p'}` is its extension from `C_c^∞` by density) and
   `‖h‖_{W̲^{-1,p}(B_r(z))} ≤ ‖H‖_{L̲^p(B_r(z))} ≤ C(d) ‖h‖_{W̲^{-1,p}(B_r(z))}`, where
-  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). The endpoint `p = ∞`
-  and domains other than balls are not formalized. The proof is the book's: on the tests the
+  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). On an open set
+  `U ⊆ B_R(z)` of positive measure the same holds with `C = 2 (2^d + 1) R |U|^{-1/d} + d`
+  (`remark_B_6_of_subset_ball`, `boundedDivergenceRepresentationConstant`), by the Poincaré
+  inequality for the tests of `B_R(z)`. The endpoint `p = ∞` is not formalized. The proof is the
+  book's: on the tests the
   gradient map into `L^{p'}(B_r(z); ℝ^d)` is injective, the test norm `‖ψ‖_{W̲^{1,p'}}` is at most
   `C(d) ‖∇ψ‖_{L̲^{p'}}` by the Poincaré inequality for tests of the elliptic regularity library
   (`PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad`, constant `(2^d + 1)·2r`), and the
@@ -1078,6 +1081,52 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
+
+## Appendix C: Theorem C.7, Lemma C.8 and Corollary C.9 on domains with boundary density (`AppC/GlobalCaccioppoli.lean`, `AppC/GlobalCaccioppoliBoundary.lean`, `AppC/GlobalCaccioppoliLemma.lean`, `AppC/VanishingSobolevPoincare.lean`, `AppC/ReverseHolderRatio.lean`, `AppC/GlobalReverseHolder.lean`, `AppC/GlobalMeyers.lean`)
+
+- **Domains.** The book assumes that `U` is a bounded Lipschitz domain (Definition B.1, not yet
+  formalized). The Lean statements assume instead that `U` is a bounded open set of positive
+  measure with interior and exterior density at its boundary up to a scale `R₀`:
+  `c |B_r| ≤ |B_r(z) ∩ U|` and `c |B_r| ≤ |B_r(z) \ U|` for `z ∈ ∂U` and `0 < r ≤ R₀`
+  (`HasBoundaryDensity U c R₀`). Bounded Lipschitz domains have this property for every `R₀`, with
+  some `c > 0`; this implication is not proved in Lean. The proofs use exactly these two bounds. The
+  book controls the volume factor `|B_r(z) ∩ U| / |B_{r/2}(z) ∩ U|` of (C.18) by the constant
+  `κ_U` of (C.13) (`kappaConstant`); with the normalized `H̲^{-1}(B_r(z) ∩ U)` norm the proof also
+  needs `|B_r(z) ∩ U| ≥ c r^d`, since the test norm carries the factor `|B_r(z) ∩ U|^{-1/d}`, and
+  this does not follow from `κ_U < ∞` alone (an outward cusp). The exterior density is the measure
+  bound of the Sobolev–Poincaré inequality in the proof of Corollary C.9.
+- **Lemma C.8.** (C.17) holds on every bounded open set of positive measure (`lemma_C_8_energy`), by
+  testing the equation with `u` (`H01.toH10Function`). (C.18) is the computation of Lemma C.2 with
+  the test `θ² u ∈ H¹₀(B_r(z) ∩ U)` (`h10MulCutoff`, `caccioppoli_of_cutoff`): on every ball with
+  `|B_{r/2}(z) ∩ U| > 0`, with a constant explicit in the volume ratio and in `r |B_r(z) ∩ U|^{-1/d}`
+  (`boundaryCaccioppoli`), and with a constant `C(d, Λ, c)` for `r/2 ≤ R₀` on domains with boundary
+  density (`boundaryCaccioppoli_of_density`). `lemma_C_8_of_boundaryDensity` states (C.17) and (C.18)
+  for `U ⊆ B_{R₀}(z)` for every `z ∈ ∂U`; for `r/2 > R₀`, (C.18) follows from (C.17).
+- **Corollary C.9** (`reverseHolder_eighth_global`) is proved for `d ≥ 2` and `h = ∇·H` with
+  `H ∈ L²(U; ℝ^d)`, the form that Theorem C.7 uses after Remark B.6, for the zero extensions of `|∇u|`
+  and `|H|`, from `B_{ρ/8}(y)` to `B_ρ(y)` for every `y ∈ ℝ^d` and `ρ ≤ R₀`:
+  `‖∇u‖_{L̲²(B_{ρ/8}(y))} ≤ K (‖∇u‖_{L̲^{2_*}(B_ρ(y))} + ‖H‖_{L̲²(B_ρ(y))})`, `K(d, Λ, c)`. The book
+  states (C.19) from `B_{r/2}(z)` to `B_r(z) ∩ U`; its proof applies Lemma C.8 on `B_{4r}(z')` for a
+  point `z' ∈ ∂U ∩ B_r(z)`, which gives the right-hand side on `B_{4r}(z') ∩ U`, a larger ball. The
+  Lean proof applies Corollary C.3 when `B_{ρ/4}(y) ⊆ U`, and otherwise Lemma C.8 on `B_{3ρ/4}(z')`
+  for a point `z' ∈ ∂U ∩ B_{ρ/4}(y)`, with the Sobolev–Poincaré inequality for functions vanishing on
+  a set of measure at least `c |B|` ([79, Lemma 4.8]; `sobolevPoincare_of_vanishing`, from the
+  inequality for mean-zero functions). The form from `B_{r/2}(z)` to `B_r(z)` that Lemma C.4 needs
+  follows by the Vitali covering lemma (`reverseHolder_half_of_eighth`). The general right-hand side
+  `h ∈ H^{-1}(B_r(z) ∩ U)` is not proved.
+- **Theorem C.7** (`theorem_C_7_of_boundaryDensity`) is proved for `d ≥ 2`, an open set `U ⊆ B_R` of
+  positive measure with `HasBoundaryDensity U c (2R)`, `c ∈ (0, 1]`, `p ∈ (2, ∞)`, `h = f + ∇·F` with
+  `f ∈ L²(U)`, `F ∈ L²(U; ℝ^d)` and `‖h‖_{W̲^{-1,p}(U)} < ∞`, a boundary datum `w ∈ W^{1,p}(U)` with
+  weak gradient `G` (`IsW1p`; the book's `f`) and `u` with `u - w ∈ H¹₀(U)` of weak gradient `g - G`.
+  As in the book, the case `w = 0` (`theorem_C_7_zero_of_boundaryDensity`) gives the general case,
+  with `F + a G` in place of `F` and `‖h + ∇·(a G)‖_{W̲^{-1,s}(U)} ≤ ‖h‖_{W̲^{-1,s}(U)} + Λ ‖G‖_{L̲^s(U)}`
+  (`negativeSobolevOneNorm_add_le`, `negativeSobolevOneNorm_zero_le`). The case `w = 0` follows the
+  proof of Theorem C.1, as the book says: Remark B.6 on `U` (`remark_B_6_of_subset_ball`) writes
+  `h = ∇·H` with `‖H‖_{L̲^s(U)} ≤ C ‖h‖_{W̲^{-1,s}(U)}`, `s = (2 + δ) ∧ p` (in place of Proposition
+  B.16, which is not used); Corollary C.9 and the covering argument give the hypothesis of Lemma C.4
+  on `B_{2R}` for the zero extensions; Lemma C.4 with `q = max(2_*, 3/2)` and (C.17) give the
+  estimate. The constants depend on `d`, `Λ` and `U` (through `c`, `R` and `|U|`). The conclusion
+  `u ∈ W^{1,(2+δ)∧p}(U)` is stated only through (C.15), whose right-hand side is finite.
 
 ## Section 2.1: Lemmas 2.1, 2.2 and 2.7 (`Ch02/Sec01/DualEnergy.lean`, `Ch02/Sec01/DualMaximizer.lean`, `Ch02/Sec01/Lemma21.lean`, `Ch02/Sec01/DefectMaximizer.lean`, `Ch02/Sec01/Lemma22.lean`, `Ch02/Sec01/Lemma27.lean`)
 
