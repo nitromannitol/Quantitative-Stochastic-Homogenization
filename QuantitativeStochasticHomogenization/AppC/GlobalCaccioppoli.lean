@@ -32,6 +32,7 @@ def kappaConstant (U : Set (Vec d)) : ℝ≥0∞ :=
     ⨆ (z : Vec d) (_ : z ∈ frontier U) (r : ℝ) (_ : 0 < r),
       volume (ball z r) / volume (ball z r \ U)
 
+/-- `‖F_n‖_{L²} → 0` when `∫ F_n² → 0`. -/
 theorem tendsto_eLpNorm_two_of_tendsto_integral_sq {μ : Measure (Vec d)} {F : ℕ → Vec d → ℝ}
     (hF : ∀ n, MemLp (F n) 2 μ) (h : Tendsto (fun n => ∫ x, F n x ^ 2 ∂μ) atTop (𝓝 0)) :
     Tendsto (fun n => eLpNorm (F n) 2 μ) atTop (𝓝 0) := by

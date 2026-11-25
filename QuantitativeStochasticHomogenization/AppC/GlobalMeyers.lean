@@ -38,11 +38,12 @@ variable {d : ℕ}
 theorem radius_le_of_ball_subset (hd : 0 < d) {y z : Vec d} {ρ R : ℝ} (hρ : 0 < ρ) (hR : 0 < R)
     (hsub : ball y ρ ⊆ ball z R) : ρ ≤ R := by
   have h := measureReal_mono hsub (volume_ball_ne_top' z R)
-  rw [volume_real_ball_eq y hρ, volume_real_ball_eq z hR] at h
+  rw [volume_real_ball_eq_unit y hρ, volume_real_ball_eq_unit z hR] at h
   have hω := PDE.volume_euclideanBall_toReal_pos (0 : Vec d) one_pos
   have h' : ρ ^ d ≤ R ^ d := le_of_mul_le_mul_right h hω
   exact (pow_le_pow_iff_left₀ hρ.le hR.le (by omega)).mp h'
 
+/-- The Euclidean norm of a zero extension is the zero extension of the Euclidean norm. -/
 theorem euclideanNorm_indicator_eq {U : Set (Vec d)} (g : Vec d → Vec d) :
     (fun x => euclideanNorm (U.indicator g x)) = U.indicator (fun x => euclideanNorm (g x)) := by
   funext x
@@ -50,12 +51,32 @@ theorem euclideanNorm_indicator_eq {U : Set (Vec d)} (g : Vec d → Vec d) :
   · simp only [indicator_of_mem hx]
   · rw [euclideanNorm_indicator_of_notMem hx, indicator_of_notMem hx]
 
+/-- The Euclidean norm of the zero extension of a field with coordinates in `L^s(U)` is in
+`L^s(B)` for `U ⊆ B`. -/
 theorem memLp_euclideanNorm_indicator {U B : Set (Vec d)} (hUm : MeasurableSet U) (hUB : U ⊆ B)
     {s : ℝ≥0∞} {G : Vec d → Vec d} (hG : ∀ i, MemLp (fun x => G x i) s (volume.restrict U)) :
     MemLp (fun x => euclideanNorm (U.indicator G x)) s (volume.restrict B) := by
   rw [euclideanNorm_indicator_eq, memLp_indicator_iff_restrict hUm,
     Measure.restrict_restrict hUm, inter_eq_left.mpr hUB]
   exact memLp_euclideanNorm_of_coord hG
+
+/-- The flux `a G` of a field with coordinates in `L^s(U)` has coordinates in `L^s(U)`. -/
+theorem memLp_coefficient_mulVec_apply_of_coord {Λ : ℝ} (hΛ : 0 ≤ Λ) (a : CoefficientField d Λ)
+    {U : Set (Vec d)} {s : ℝ≥0∞} {G : Vec d → Vec d}
+    (hG : ∀ i, MemLp (fun x => G x i) s (volume.restrict U)) (i : Fin d) :
+    MemLp (fun x => (a x).mulVec (G x) i) s (volume.restrict U) := by
+  have hmeas : AEStronglyMeasurable (fun x => (a x).mulVec (G x) i) (volume.restrict U) := by
+    have e : (fun x => (a x).mulVec (G x) i) = fun x => ∑ j, a x i j * G x j := by
+      funext x
+      simp [Matrix.mulVec, dotProduct]
+    rw [e]
+    exact Finset.aestronglyMeasurable_fun_sum Finset.univ fun j _ =>
+      ((a.locally_integrable i j).aestronglyMeasurable.restrict).mul (hG j).aestronglyMeasurable
+  refine ((memLp_euclideanNorm_of_coord hG).const_mul Λ).of_le hmeas
+    (Eventually.of_forall fun x => ?_)
+  have hn : 0 ≤ Λ * euclideanNorm (G x) := mul_nonneg hΛ (Real.sqrt_nonneg _)
+  simp only [Real.norm_eq_abs, abs_of_nonneg hn]
+  exact (abs_coord_le_euclideanNorm _ i).trans (euclideanNorm_coefficient_mulVec_le a hΛ x (G x))
 
 /-- **Theorem C.7 (global Meyers estimate) for zero boundary data**, on a domain with boundary
 density. For `d ≥ 2`, an open set `U ⊆ B_R` of positive measure with boundary density
@@ -112,14 +133,8 @@ theorem theorem_C_7_zero_of_boundaryDensity (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 �
   obtain ⟨H, hHmem, hHpair, -, hHnorm⟩ := remark_B_6_of_subset_ball hd0 hUo hU0 0 hR hUR hs1
     (hf.integrable one_le_two) (fun i => (hF i).integrable one_le_two) hfin_s
   have hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict U) := fun i => MemLp.eval hu.2.1 i
-  have hA : ∀ i, MemLp (fun x => (a x).mulVec (g x) i) 2 (volume.restrict U) := by
-    have hEll := isEllipticFieldOn_ellipticFieldOf hΛ a hUm
-    have h := PDE.memVectorL2On_matVecMul_of_isEllipticFieldOn hEll (f := g) hg
-    intro i
-    refine (h i).ae_eq ?_
-    filter_upwards [ae_restrict_of_ae (ellipticFieldOf_ae_eq hΛ a)] with x hx
-    change ((ellipticFieldOf a x).mulVec (g x)) i = _
-    rw [hx]
+  have hA : ∀ i, MemLp (fun x => (a x).mulVec (g x) i) 2 (volume.restrict U) :=
+    memLp_coefficient_mulVec_apply_of_coord (by linarith) a hg
   have hs1' : (1 : ℝ≥0∞) ≤ ENNReal.ofReal s := by
     rw [← ENNReal.ofReal_one]
     exact ENNReal.ofReal_le_ofReal hs1.le
@@ -181,7 +196,7 @@ theorem theorem_C_7_zero_of_boundaryDensity (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 �
       ENNReal.ofReal M * PDE.eLpMeanNormOn (ball 0 R) (ENNReal.ofReal s) F₁ := by
     rw [← eLpMeanNormOn_indicator_eq subset_rfl hUm g]
     exact eLpMeanNormOn_le_of_volume_le hUR hU0 (volume_ball_ne_top' 0 R) hM1 hvolU hs1'' _
-  have hB2m : MeasurableSet (ball (0 : Vec d) (2 * R)) := (isOpen_ball' 0 hR2).measurableSet
+  have hB2m : MeasurableSet (ball (0 : Vec d) (2 * R)) := (isOpen_ball 0 _).measurableSet
   have hF₁U : PDE.eLpMeanNormOn (ball 0 (2 * R)) 2 F₁ ≤
       ENNReal.ofReal C₀ * negativeSobolevOneNorm s U f F := by
     refine (eLpMeanNormOn_le_of_eq_zero_off hUR2 hUm hB2m (volume_ball_ne_top' 0 (2 * R))
@@ -209,26 +224,9 @@ theorem theorem_C_7_zero_of_boundaryDensity (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 �
           ENNReal.ofReal_add hC₀.le hCB]
         ring
 
+/-- The Euclidean norm is nonnegative, so it is its own absolute value. -/
 theorem norm_euclideanNorm (v : Vec d) : ‖euclideanNorm v‖ = euclideanNorm v :=
   Real.norm_of_nonneg (Real.sqrt_nonneg _)
-
-/-- The flux `a G` of a field with coordinates in `L^s(U)` has coordinates in `L^s(U)`. -/
-theorem memLp_coefficient_mulVec_apply_of_coord {Λ : ℝ} (hΛ : 0 ≤ Λ) (a : CoefficientField d Λ)
-    {U : Set (Vec d)} {s : ℝ≥0∞} {G : Vec d → Vec d}
-    (hG : ∀ i, MemLp (fun x => G x i) s (volume.restrict U)) (i : Fin d) :
-    MemLp (fun x => (a x).mulVec (G x) i) s (volume.restrict U) := by
-  have hmeas : AEStronglyMeasurable (fun x => (a x).mulVec (G x) i) (volume.restrict U) := by
-    have e : (fun x => (a x).mulVec (G x) i) = fun x => ∑ j, a x i j * G x j := by
-      funext x
-      simp [Matrix.mulVec, dotProduct]
-    rw [e]
-    exact Finset.aestronglyMeasurable_fun_sum Finset.univ fun j _ =>
-      ((a.locally_integrable i j).aestronglyMeasurable.restrict).mul (hG j).aestronglyMeasurable
-  refine ((memLp_euclideanNorm_of_coord hG).const_mul Λ).of_le hmeas
-    (Eventually.of_forall fun x => ?_)
-  have hn : 0 ≤ Λ * euclideanNorm (G x) := mul_nonneg hΛ (Real.sqrt_nonneg _)
-  simp only [Real.norm_eq_abs, abs_of_nonneg hn]
-  exact (abs_coord_le_euclideanNorm _ i).trans (euclideanNorm_coefficient_mulVec_le a hΛ x (G x))
 
 /-- The triangle inequality `‖f + ∇·(F + G)‖ ≤ ‖f + ∇·F‖ + ‖∇·G‖` for the normalized
 `W^{-1,s}(U)` norm. -/

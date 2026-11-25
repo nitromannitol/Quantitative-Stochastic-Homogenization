@@ -131,12 +131,14 @@ def h10MulCutoff {U V : Set (Vec d)} (u : PDE.H10Function U) (hVo : IsOpen V) (h
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h3
       (fun n => zero_le) hbound
 
+/-- The product of `u ∈ H¹₀(U)` with a cutoff `θ` is the function `θ u`. -/
 theorem h10MulCutoff_apply {U V : Set (Vec d)} (u : PDE.H10Function U) (hVo : IsOpen V)
     (hVU : V ⊆ U) {θ : Vec d → ℝ} (hθ : ContDiff ℝ (⊤ : ℕ∞) θ) (hθc : HasCompactSupport θ)
     (hθV : tsupport θ ∩ U ⊆ V) (x : Vec d) :
     (h10MulCutoff u hVo hVU hθ hθc hθV).toH1Function x = θ x * u.toH1Function x := by
   exact (congrFun (PDE.H1Function.mulContDiffHasCompactSupport_toFun _ hθ hθc) x).trans rfl
 
+/-- The gradient of the product of `u ∈ H¹₀(U)` with a cutoff `θ`. -/
 theorem h10MulCutoff_grad {U V : Set (Vec d)} (u : PDE.H10Function U) (hVo : IsOpen V)
     (hVU : V ⊆ U) {θ : Vec d → ℝ} (hθ : ContDiff ℝ (⊤ : ℕ∞) θ) (hθc : HasCompactSupport θ)
     (hθV : tsupport θ ∩ U ⊆ V) (x : Vec d) :
@@ -446,10 +448,6 @@ theorem caccioppoli_of_cutoff {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : CoefficientField 
   rw [hHeq, ← hydef, ← hYdef, ← ENNReal.ofReal_add hY0 hH0, ← ENNReal.ofReal_mul hCpos.le]
   exact ENNReal.ofReal_le_ofReal hrms
 
-theorem isOpen_ball' (z : Vec d) {r : ℝ} (hr : 0 < r) : IsOpen (ball z r) := by
-  rw [ball_eq_euclideanBall z hr]
-  exact PDE.isOpen_euclideanBall z r
-
 theorem ball_half_subset (z : Vec d) {r : ℝ} : ball z (r / 2) ⊆ ball z r := by
   intro x hx
   have hx' : euclideanNorm (x - z) < r / 2 := hx
@@ -477,10 +475,10 @@ theorem boundaryCaccioppoli {Λ : ℝ} (hΛ : 1 ≤ Λ) {U : Set (Vec d)} (hUo :
   set V := ball z r ∩ U with hVdef
   set W := ball z (r / 2) ∩ U with hWdef
   have hr2 : 0 < r / 2 := by linarith
-  have hVo : IsOpen V := (isOpen_ball' z hr).inter hUo
+  have hVo : IsOpen V := (isOpen_ball z _).inter hUo
   have hVU : V ⊆ U := inter_subset_right
   have hWV : W ⊆ V := inter_subset_inter_left U (ball_half_subset z)
-  have hWm : MeasurableSet W := ((isOpen_ball' z hr2).inter hUo).measurableSet
+  have hWm : MeasurableSet W := ((isOpen_ball z _).inter hUo).measurableSet
   have hVt : volume V ≠ ⊤ := by
     refine ne_top_of_le_ne_top ?_ (measure_mono inter_subset_left)
     rw [ball_eq_euclideanBall z hr]
