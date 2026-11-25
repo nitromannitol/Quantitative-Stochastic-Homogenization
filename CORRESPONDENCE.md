@@ -1281,3 +1281,39 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `∫ g_{k+1}(x + s e_k) ds = ∫ g_k(x + s e_k) ds` (`integral_bumpLineSeq_succ`). The book observes
   `g_d = h(x₁)⋯h(x_d) ∫ f = 0`; here `g_d = c ∏ h(x_j)` (`bumpLineSeq_eq_prefix_mul`,
   `eq_of_invariant`) and `c = ∫ g_d = ∫ f - ∫ ∇·F = 0`.
+
+## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
+
+- Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
+  `U` in the sense of `HasWeakGradient`), the norm (B.1) `QSH.w1pNorm U p u g =
+  ‖u‖_{L^p(U)} + ∑ᵢ ‖gᵢ‖_{L^p(U)}` with values in `[0, ∞]`, and `QSH.IsW01p U p u g`, the closure of
+  the test functions `IsSpatialTest U` for this norm. The spaces with `k ≥ 2` are not defined.
+- Norms: the volume-normalized norm `‖f‖_{L̲^q(U)}` of the book is `PDE.eLpMeanNormOn U q f` of the
+  elliptic regularity library (the `L^q` norm for the normalized restricted volume); `|∇v|` is the
+  Euclidean norm. In (B.7) and (B.8) the norms of `v - w` and `∇v` are the normalized ones: this
+  is the reading in which both sides scale in the same way, as the factor `r^k` requires. The balls
+  `B_r(z)` of Theorems B.9 and B.10 have any center.
+- Theorem B.8: `QSH.theorem_B_8_one`, the case `k = 1`, with `C(p, d)`; the range `p ∈ [1, d)` is
+  empty unless `d ≥ 2`. Proof: the Gagliardo–Nirenberg–Sobolev inequality of the elliptic regularity
+  library, `PDE.exists_sobolev_constant`, and `|∇v| ≤ ∑ᵢ |∂ᵢ v|`.
+- Theorem B.9: `QSH.theorem_B_9_one`, the case `k = 1`: the infimum is over `w ∈ ℝ = P₀`; the
+  second conjunct is the statement for `W^{1,p}_0(B_r(z))` with `w = 0`. Proof: the Sobolev–Poincaré
+  inequality on bounded convex domains `PDE.exists_convexSobolevPoincare_constant` with
+  `w = (v)_{B_r(z)}`, and the zero-boundary inequality of `PDE.exists_sobolev_constant` rescaled
+  with `|B_r(z)| ≤ (2r)^d`.
+- Theorem B.10: `QSH.theorem_B_10_one`, the case `k = 1`, for `d ≥ 1` (the book's standing
+  assumption is `d ≥ 2`; for `d = 0` the zero-boundary statement fails, since every function on the
+  point `ℝ⁰` is a limit of test functions) and `p ∈ (d, ∞]` as an element of `[0, ∞]`. The three
+  conjuncts are (B.8), (B.8) with `w = 0` on `W^{1,p}_0(B_r(z))`, and (B.9). Proof: Morrey's
+  inequality for `C¹` functions on bounded convex sets (Gilbarg–Trudinger, Lemma 7.16), copied
+  with its Apache 2.0 header from `SuperdiffusionCLT/Section7/Prereq/Morrey.lean` of
+  scottnarmstrong/SuperdiffusionCLT (`QSH.ConvexMorrey`), passed to `W^{1,p}` on bounded convex
+  domains with the smooth approximants `PDE.W1pFunction.convexApproxSmoothW1p`
+  (`QSH.ae_abs_sub_integralAverage_le_of_convex`); for `W^{1,p}_0(B_r(z))`, each test function is
+  bounded by its oscillation on `B_{2r}(z)` and the bound passes to the limit; (B.9) covers `ℝ^d`
+  by the balls `B_{√d}(z)`, `z ∈ ℤ^d`. The exponent `p = ∞` is reduced to `p = d + 1`.
+- Proposition B.11: `QSH.proposition_B_11_convex`, the case `α = 1` for a bounded open convex `U`
+  (the book: a bounded Lipschitz domain, and for `α < 1` a cube), with unnormalized norms and
+  `C(p, U, d)`. Proof: `PDE.exists_convexSobolevPoincare_constant` and the passage between
+  normalized and unnormalized norms. Bounded Lipschitz domains (Definition B.1) and the fractional
+  case (Definition B.3) are not done.

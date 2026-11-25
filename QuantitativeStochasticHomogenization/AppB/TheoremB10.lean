@@ -34,8 +34,8 @@ theorem center_mem_ball (z : Vec d) {r : ℝ} (hr : 0 < r) : z ∈ ball z r := b
   rw [mem_ball_iff, sub_self]
   simpa [euclideanNorm, euclideanSq, dot] using hr
 
-theorem isBounded_ball (z : Vec d) {r : ℝ} (hr : 0 < r) : Bornology.IsBounded (ball z r) := by
-  rw [ball_eq_pdeEuclideanBall z hr]
+theorem isBounded_ball_of_pos (z : Vec d) {r : ℝ} (hr : 0 < r) : Bornology.IsBounded (ball z r) := by
+  rw [ball_eq_PDE_euclideanBall z hr]
   exact Metric.isBounded_ball.subset (PDE.euclideanBall_subset_supBall hr)
 
 theorem norm_sub_le_of_mem_ball {z a b : Vec d} {r : ℝ} (ha : a ∈ ball z r) (hb : b ∈ ball z r) :
@@ -51,7 +51,7 @@ theorem norm_sub_le_of_mem_ball {z a b : Vec d} {r : ℝ} (ha : a ∈ ball z r) 
   linarith
 
 /-- The normalized norm of an `L^p(U)` function is finite. -/
-theorem eLpMeanNormOn_ne_top {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hUt : volume U ≠ ⊤)
+theorem eLpMeanNormOn_ne_top_of_memLp {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hUt : volume U ≠ ⊤)
     {p : ℝ≥0∞} {E : Type*} [NormedAddCommGroup E] {f : Vec d → E}
     (hf : MemLp f p (volume.restrict U)) : PDE.eLpMeanNormOn U p f ≠ ⊤ := by
   rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt)]
@@ -74,13 +74,13 @@ theorem eLpNorm_top_sub_integralAverage_ball_le (hd : 0 < d) {p : ℝ} (hdp : (d
   have hc : 0 < 1 - (d : ℝ) / p := by
     have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
     linarith
-  have hB := isOpenBoundedConvexDomain_ball z hr
+  have hB := isOpenBoundedConvexDomain_ball_of_pos z hr
   have : IsFiniteMeasure (volume.restrict (ball z r)) :=
-    isFiniteMeasure_restrict.mpr (volume_ball_ne_top z hr)
-  have hae := ae_abs_sub_integralAverage_le_of_convex hB.1 (isBounded_ball z hr) hB.2.2
+    isFiniteMeasure_restrict.mpr (volume_ball_ne_top_of_pos z hr)
+  have hae := ae_abs_sub_integralAverage_le_of_convex hB.1 (isBounded_ball_of_pos z hr) hB.2.2
     ⟨z, center_mem_ball z hr⟩ (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hd hdp
     hv.toW1pFunction
-  have hfin := eLpMeanNormOn_ne_top (volume_ball_pos z hr).ne' (volume_ball_ne_top z hr)
+  have hfin := eLpMeanNormOn_ne_top_of_memLp (volume_ball_pos_of_pos z hr).ne' (volume_ball_ne_top_of_pos z hr)
     hv.memLp_euclideanNorm
   rw [eLpNorm_exponent_top (f := fun x => v x - PDE.integralAverage (ball z r) v)
     (hv.1.sub (memLp_const _)).aestronglyMeasurable]
@@ -97,7 +97,7 @@ theorem eLpNorm_top_sub_integralAverage_ball_le (hd : 0 < d) {p : ℝ} (hdp : (d
         field_simp,
       ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal hfin]
 
-theorem continuous_gradient {φ : Vec d → ℝ} (hφ : ContDiff ℝ 1 φ) :
+theorem continuous_gradient_of_contDiff {φ : Vec d → ℝ} (hφ : ContDiff ℝ 1 φ) :
     Continuous fun x => gradient φ x :=
   continuous_pi fun _ => (hφ.continuous_fderiv one_ne_zero).clm_apply continuous_const
 
@@ -143,16 +143,16 @@ theorem abs_le_of_isSpatialTest_ball (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p
     have : euclideanNorm (y - z) < r := h
     rw [hyz] at this
     linarith
-  have hK := isOpenBoundedConvexDomain_ball z hr2
-  have hK0 : volume (ball z (2 * r)) ≠ 0 := (volume_ball_pos z hr2).ne'
+  have hK := isOpenBoundedConvexDomain_ball_of_pos z hr2
+  have hK0 : volume (ball z (2 * r)) ≠ 0 := (volume_ball_pos_of_pos z hr2).ne'
   have hmor := ConvexMorrey.abs_sub_le_morrey volume hφ1 hK.1.measurableSet hK.2.2
-    (isBounded_ball z hr2) hK0 (δ := 2 * (2 * r))
+    (isBounded_ball_of_pos z hr2) hK0 (δ := 2 * (2 * r))
     (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hp1
     (by simpa [Module.finrank_fin_fun] using hdp) hxK hyK
   rw [Module.finrank_fin_fun, h0 y hyB, sub_zero] at hmor
-  have hB := isOpenBoundedConvexDomain_ball z hr
-  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos z hr).ne'
-  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top z hr
+  have hB := isOpenBoundedConvexDomain_ball_of_pos z hr
+  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos_of_pos z hr).ne'
+  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top_of_pos z hr
   have hGm : MemLp (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient φ y))
       (ENNReal.ofReal p) (volume.restrict (ball z r)) :=
     PDE.GradMemLpOn.memLp_vecEuclideanNorm
@@ -168,7 +168,7 @@ theorem abs_le_of_isSpatialTest_ball (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p
     integral_nonneg fun y => Real.rpow_nonneg (norm_nonneg _) _
   have hvol : (volume (ball z (2 * r))).toReal⁻¹ ≤ (volume (ball z r)).toReal⁻¹ :=
     inv_anti₀ (ENNReal.toReal_pos hB0 hBt)
-      (ENNReal.toReal_mono (volume_ball_ne_top z hr2) (measure_mono hBK))
+      (ENNReal.toReal_mono (volume_ball_ne_top_of_pos z hr2) (measure_mono hBK))
   have hKB : ((volume (ball z (2 * r))).toReal⁻¹ * ∫ y in ball z (2 * r), ‖fderiv ℝ φ y‖ ^ p) ^
       (1 / p) ≤ ((volume (ball z r)).toReal⁻¹ * ∫ y in ball z r, ‖fderiv ℝ φ y‖ ^ p) ^ (1 / p) := by
     rw [hIK]
@@ -203,8 +203,8 @@ theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < 
   have hc : 0 < 1 - (d : ℝ) / p := by
     have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
     linarith
-  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos z hr).ne'
-  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top z hr
+  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos_of_pos z hr).ne'
+  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top_of_pos z hr
   obtain ⟨φ, hφ, hlim⟩ := hv.2
   set B := ball z r with hBdef
   set μ := volume.restrict B with hμ
@@ -216,7 +216,7 @@ theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < 
   obtain ⟨ns, hns, hae⟩ :=
     (tendstoInMeasure_of_tendsto_eLpNorm (by simpa using hp0) hval).exists_seq_tendsto_ae
   set A := PDE.eLpMeanNormOn B (ENNReal.ofReal p) (fun x => euclideanNorm (g x)) with hA
-  have hAfin : A ≠ ⊤ := eLpMeanNormOn_ne_top hB0 hBt hv.1.memLp_euclideanNorm
+  have hAfin : A ≠ ⊤ := eLpMeanNormOn_ne_top_of_memLp hB0 hBt hv.1.memLp_euclideanNorm
   set E : ℕ → ℝ≥0∞ := fun n =>
     PDE.eLpMeanNormOn B (ENNReal.ofReal p) (fun x => euclideanNorm (gradient (φ n) x - g x))
     with hE
@@ -229,7 +229,7 @@ theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < 
     rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hBt)]
     refine mul_le_mul' le_rfl ?_
     have hm : AEStronglyMeasurable (fun x => gradient (φ n) x - g x) μ :=
-      (continuous_gradient ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
+      (continuous_gradient_of_contDiff ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
         hgm
     exact (eLpNorm_euclideanNorm_le_sum hp1 hm).trans le_add_self
   have hEt : Tendsto E atTop (𝓝 0) := by
@@ -247,7 +247,7 @@ theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < 
         eLpNorm _ _ (PDE.normalizedVolumeOn B) + eLpNorm _ _ (PDE.normalizedVolumeOn B)
       refine le_trans ?_ (eLpNorm_add_le hp1)
       refine eLpNorm_mono_real (PDE.continuous_vecEuclideanNorm.comp
-        (continuous_gradient hφ1)).aestronglyMeasurable fun y => ?_
+        (continuous_gradient_of_contDiff hφ1)).aestronglyMeasurable fun y => ?_
       rw [Real.norm_of_nonneg (show 0 ≤ euclideanNorm (gradient (φ n) y) from Real.sqrt_nonneg _),
         Pi.add_apply]
       have := PDE.vecEuclideanNorm_add_le (g y) (gradient (φ n) y - g y)
@@ -329,7 +329,7 @@ theorem abs_integralAverage_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hUt : v
   refine (norm_integral_le_lintegral_norm v).trans ?_
   simp only [ofReal_norm]
   rw [← eLpNorm_one_eq_lintegral_enorm]
-  · exact ENNReal.toReal_mono (eLpMeanNormOn_ne_top hU0 hUt hv)
+  · exact ENNReal.toReal_mono (eLpMeanNormOn_ne_top_of_memLp hU0 hUt hv)
       (eLpNorm_le_eLpNorm_of_exponent_le hp)
   · exact hv.aestronglyMeasurable.smul_measure (volume U)⁻¹
 
@@ -358,10 +358,10 @@ theorem eLpNorm_top_le_w1pNorm_univ (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p)
     set B := ball (latticeShift z) (Real.sqrt d) with hB
     have hB1 := one_le_volume_ball_sqrt hd (latticeShift z)
     have hB0 : volume B ≠ 0 := (lt_of_lt_of_le zero_lt_one hB1).ne'
-    have hBt : volume B ≠ ⊤ := volume_ball_ne_top _ hs
-    have hBc := isOpenBoundedConvexDomain_ball (latticeShift z) hs
+    have hBt : volume B ≠ ⊤ := volume_ball_ne_top_of_pos _ hs
+    have hBc := isOpenBoundedConvexDomain_ball_of_pos (latticeShift z) hs
     have hvB : IsW1p B (ENNReal.ofReal p) v g := hv.mono (Set.subset_univ _)
-    have hae := ae_abs_sub_integralAverage_le_of_convex hBc.1 (isBounded_ball _ hs) hBc.2.2
+    have hae := ae_abs_sub_integralAverage_le_of_convex hBc.1 (isBounded_ball_of_pos _ hs) hBc.2.2
       ⟨_, center_mem_ball _ hs⟩ (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hd hdp
       hvB.toW1pFunction
     have hG : (PDE.eLpMeanNormOn B (ENNReal.ofReal p)
@@ -384,7 +384,7 @@ theorem eLpNorm_top_le_w1pNorm_univ (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p)
       _ = (c + 1) * W.toReal := by ring
   have hall : ∀ᵐ x ∂volume, ∀ z : LatticeIndex d,
       x ∈ ball (latticeShift z) (Real.sqrt d) → |v x| ≤ (c + 1) * W.toReal :=
-    ae_all_iff.2 fun z => (ae_restrict_iff' (isOpenBoundedConvexDomain_ball _ hs).1.measurableSet).1
+    ae_all_iff.2 fun z => (ae_restrict_iff' (isOpenBoundedConvexDomain_ball_of_pos _ hs).1.measurableSet).1
       (hball z)
   have hvb : ∀ᵐ x ∂volume, ‖v x‖ ≤ (c + 1) * W.toReal := by
     filter_upwards [hall] with x hx
@@ -472,7 +472,7 @@ theorem IsW01p.of_top {U : Set (Vec d)} (hUt : volume U ≠ ⊤) {q : ℝ≥0∞
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h (fun _ => zero_le)
     fun n => w1pNorm_le_w1pNorm_top_mul q ?_ ?_
   · exact (hφ n).1.continuous.aestronglyMeasurable.sub hv.1.1.aestronglyMeasurable
-  · exact (continuous_gradient ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
+  · exact (continuous_gradient_of_contDiff ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
       hv.1.2.1.aestronglyMeasurable
 
 /-- **Theorem B.10** (Morrey's inequality), `k = 1`: for `d ≥ 1` and `p ∈ (d, ∞]` there is
@@ -497,14 +497,14 @@ theorem theorem_B_10_one (hd : 0 < d) (p : ℝ≥0∞) (hp : (d : ℝ≥0∞) < 
   · subst hpt
     obtain ⟨C, hC, hball, hglob⟩ := theorem_B_10_one_ofReal hd (by linarith : (d : ℝ) < d + 1)
     refine ⟨C + 1, by positivity, fun z r hr v g => ⟨fun hv => ?_, fun hv => ?_⟩, fun v g hv => ?_⟩
-    · have hBt := volume_ball_ne_top z hr
+    · have hBt := volume_ball_ne_top_of_pos z hr
       exact ((hball z r hr v g).1 (hv.of_top hBt)).trans (mul_le_mul'
         (ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_right (by linarith) hr.le))
-        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos z hr).ne' hBt _ _))
-    · have hBt := volume_ball_ne_top z hr
+        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos_of_pos z hr).ne' hBt _ _))
+    · have hBt := volume_ball_ne_top_of_pos z hr
       exact ((hball z r hr v g).2 (hv.of_top hBt)).trans (mul_le_mul'
         (ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_right (by linarith) hr.le))
-        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos z hr).ne' hBt _ _))
+        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos_of_pos z hr).ne' hBt _ _))
     · have h := eLpNorm_le_w1pNorm Set.univ ⊤ v g
       rw [Measure.restrict_univ] at h
       exact h.trans (le_mul_of_one_le_left zero_le (by rw [ENNReal.one_le_ofReal]; linarith))

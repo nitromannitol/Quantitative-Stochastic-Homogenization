@@ -27,30 +27,30 @@ namespace QSH
 
 variable {d : ℕ}
 
-theorem ball_eq_pdeEuclideanBall (z : Vec d) {r : ℝ} (hr : 0 < r) :
+theorem ball_eq_PDE_euclideanBall (z : Vec d) {r : ℝ} (hr : 0 < r) :
     ball z r = PDE.euclideanBall z r := by
   ext x
   simp only [ball, PDE.euclideanBall, PDE.euclideanSqDist, PDE.vecNormSq, PDE.vecDot,
     euclideanNorm, euclideanSq, dot, Set.mem_ofPred_eq]
   exact Real.sqrt_lt' hr
 
-theorem isOpenBoundedConvexDomain_ball (z : Vec d) {r : ℝ} (hr : 0 < r) :
+theorem isOpenBoundedConvexDomain_ball_of_pos (z : Vec d) {r : ℝ} (hr : 0 < r) :
     PDE.IsOpenBoundedConvexDomain (ball z r) := by
-  rw [ball_eq_pdeEuclideanBall z hr]
+  rw [ball_eq_PDE_euclideanBall z hr]
   exact PDE.isOpenBoundedConvexDomain_euclideanBall z hr
 
-theorem volume_ball_pos (z : Vec d) {r : ℝ} (hr : 0 < r) : 0 < volume (ball z r) := by
-  rw [ball_eq_pdeEuclideanBall z hr]
+theorem volume_ball_pos_of_pos (z : Vec d) {r : ℝ} (hr : 0 < r) : 0 < volume (ball z r) := by
+  rw [ball_eq_PDE_euclideanBall z hr]
   exact PDE.volume_euclideanBall_pos z hr
 
 theorem volume_ball_le (z : Vec d) {r : ℝ} (hr : 0 < r) :
     volume (ball z r) ≤ ENNReal.ofReal ((2 * r) ^ d) := by
-  rw [ball_eq_pdeEuclideanBall z hr]
+  rw [ball_eq_PDE_euclideanBall z hr]
   calc volume (PDE.euclideanBall z r) ≤ volume (Metric.ball z r) :=
         measure_mono (PDE.euclideanBall_subset_supBall hr)
     _ = ENNReal.ofReal ((2 * r) ^ d) := by rw [Real.volume_pi_ball z hr, Fintype.card_fin]
 
-theorem volume_ball_ne_top (z : Vec d) {r : ℝ} (hr : 0 < r) : volume (ball z r) ≠ ⊤ :=
+theorem volume_ball_ne_top_of_pos (z : Vec d) {r : ℝ} (hr : 0 < r) : volume (ball z r) ≠ ⊤ :=
   ne_top_of_le_ne_top ENNReal.ofReal_ne_top (volume_ball_le z hr)
 
 /-- `|B_r(z)|^{1/d} ≤ 2 r`. -/
@@ -150,19 +150,19 @@ theorem theorem_B_9_one (p : ℝ) (hp : 1 ≤ p) (hpd : p < d) :
     rw [hγdef]
     exact div_pos (mul_pos hp0 (by linarith)) (by linarith)
   refine ⟨2 * C1 * γ + 2 * C2 * γ, by positivity, fun z r hr v g => ⟨fun hv => ?_, fun hv => ?_⟩⟩
-  · have hs := hP p hp hpd (ball z r) (2 * r) (isOpenBoundedConvexDomain_ball z hr)
-      (by rw [ball_eq_pdeEuclideanBall z hr]; exact PDE.euclideanBall_nonempty z hr)
-      (by rw [ball_eq_pdeEuclideanBall z hr]; exact PDE.hasEuclideanDiameterLE_euclideanBall z hr)
+  · have hs := hP p hp hpd (ball z r) (2 * r) (isOpenBoundedConvexDomain_ball_of_pos z hr)
+      (by rw [ball_eq_PDE_euclideanBall z hr]; exact PDE.euclideanBall_nonempty z hr)
+      (by rw [ball_eq_PDE_euclideanBall z hr]; exact PDE.hasEuclideanDiameterLE_euclideanBall z hr)
       hv.toW1pFunction
     rw [← hγdef] at hs
     refine (iInf_le _ (PDE.integralAverage (ball z r) v)).trans (hs.trans ?_)
     refine mul_le_mul' (ENNReal.ofReal_le_ofReal ?_) le_rfl
     nlinarith [mul_pos hC2 hγ]
-  · have hz := (hS p hp hpd).2 (ball z r) (isOpenBoundedConvexDomain_ball z hr).1
+  · have hz := (hS p hp hpd).2 (ball z r) (isOpenBoundedConvexDomain_ball_of_pos z hr).1
       hv.1.toW1pFunction hv.hasSupportedSmoothApproximation
     rw [← hγdef] at hz
-    have h1 := eLpMeanNormOn_le_of_eLpNorm_le (U := ball z r) (volume_ball_pos z hr).ne'
-      (volume_ball_ne_top z hr) hp0 (PDE.sobolevConjugate_pos hp0 hpd)
+    have h1 := eLpMeanNormOn_le_of_eLpNorm_le (U := ball z r) (volume_ball_pos_of_pos z hr).ne'
+      (volume_ball_ne_top_of_pos z hr) hp0 (PDE.sobolevConjugate_pos hp0 hpd)
       (one_div_sobolevConjugate hp0 hpd) hz
     refine h1.trans (mul_le_mul' ?_ le_rfl)
     calc ENNReal.ofReal (C2 * γ) * volume (ball z r) ^ (1 / (d : ℝ))

@@ -31,7 +31,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 | 0 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
-| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
+| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 5 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
 | Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
@@ -520,14 +520,14 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean`.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
-| Definition B.2 | Sobolev space W^{k,p}(U) | not started |
+| Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2` not defined); see CORRESPONDENCE.md |
 | Definition B.3 | Sobolev space W^{α,p}(U) | not started |
 | Definition B.4 | Sobolev space W^{-α,p}(U) | not started |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
-| Theorem B.8 | Global Sobolev inequality | not started |
-| Theorem B.9 | Local Sobolev–Poincaré inequality | not started |
-| Theorem B.10 | Morrey's inequality | not started |
-| Proposition B.11 | Sobolev–Poincaré–Wirtinger inequality | not started |
+| Theorem B.8 | Global Sobolev inequality | in progress (the case `k = 1`, proved as `theorem_B_8_one`, module `AppB/TheoremB8.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
+| Theorem B.9 | Local Sobolev–Poincaré inequality | in progress (the case `k = 1`, both parts, on balls `B_r(z)`, proved as `theorem_B_9_one`, module `AppB/TheoremB9.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
+| Theorem B.10 | Morrey's inequality | in progress (the case `k = 1`, for `d ≥ 1`: (B.8), its zero-boundary form and (B.9), proved as `theorem_B_10_one`, module `AppB/TheoremB10.lean` (proofs in `AppB/ConvexMorreySmooth.lean` and `AppB/ConvexMorrey.lean`); `k ≥ 2` not proved); see CORRESPONDENCE.md |
+| Proposition B.11 | Sobolev–Poincaré–Wirtinger inequality | in progress (the case `α = 1` on bounded open convex domains, proved as `proposition_B_11_convex`, module `AppB/PropositionB11.lean`; bounded Lipschitz domains, and the case `α < 1` on cubes, not proved); see CORRESPONDENCE.md |
 | Proposition B.13 | Embedding between fractional Sobolev spaces | not started |
 | Proposition B.14 | Extension theorem | not started |
 | Proposition B.15 | Sobolev trace theorem | not started |
