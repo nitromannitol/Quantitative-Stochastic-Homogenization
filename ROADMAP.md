@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 57 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 13 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 58 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 13 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -34,8 +34,8 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 0 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
-| Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **57** | **13** |
+| Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
+| | **Total** | **226** | **58** | **13** |
 
 ## Front matter
 
@@ -566,7 +566,7 @@ Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean
 
 ## Appendix E: Parabolic Green Functions
 
-Module `AppE/ParabolicGreenFunctions.lean`.
+Module `AppE/ParabolicGreenFunctions.lean` (proofs in `AppE/ReverseHolderImprovement.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
@@ -574,6 +574,6 @@ Module `AppE/ParabolicGreenFunctions.lean`.
 | Proposition E.3 |  | not started |
 | Lemma E.4 |  | not started |
 | Lemma E.5 |  | not started |
-| Lemma E.6 |  | not started |
+| Lemma E.6 |  | proved (`lemma_E_6`, conclusion on `⅔U` as printed; general measurable space in `reverseHolder_improvement`); see CORRESPONDENCE.md |
 | Lemma E.7 |  | not started |
 | Lemma E.8 |  | not started |

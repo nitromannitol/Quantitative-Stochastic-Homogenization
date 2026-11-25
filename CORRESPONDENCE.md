@@ -1300,3 +1300,21 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   Hölder's inequality (5.100)–(5.101) with `ρ = (1 - θ^{1/2})⁻¹` and `ρ' = θ^{-1/2}`
   (`log_integral_exp_add_le`), and Lemma A.9 for `X₂`, which gives
   `log E[exp(ρ' λ X₂)] ≤ K C_A² θ λ²` for `|λ| ≤ λ₂` (`CenteredOsBound.log_integral_exp_le`).
+
+## Appendix E: Lemma E.6 (`AppE/ReverseHolderImprovement.lean`)
+
+- `QSH.lemma_E_6`: for `0 < p < q < r ≤ ∞` (exponents in `ℝ≥0∞`) and `A, a > 0` there is
+  `C : ℝ≥0`, chosen before the dimension, the measure and the function, such that for every measure
+  `μ` on `Vec n`, Borel `U`, Borel `S σ ⊆ U` (`σ ∈ (0, 1]`) and `f` in `L^p(U; μ) ∩ L^r(U; μ)` with
+  (E.18) for all `1/2 ≤ σ' < σ ≤ 1`, `‖f‖_{L^r(S (2/3); μ)} ≤ C ‖f‖_{L^p(U; μ)}`. The conclusion is
+  on `⅔U`, as printed (the display fraction is `2/3` in both the book and arXiv v2); Lemma C.6 gives
+  the bound at `1/2` and is applied to `t ↦ ρ((2t + 1)/3)`, which carries `[1/2, 1)` onto
+  `[2/3, 1)`.
+- `QSH.reverseHolder_improvement` is the same statement on any measurable space; it does not use the
+  measurability of `U` and of the sets `S σ`.
+- Proof: the book's. Hölder's inequality `‖f‖_q ≤ ‖f‖_p^h ‖f‖_r^{1-h}` for
+  `1/q = h/p + (1 - h)/r` is `eLpNorm_le_eLpNorm_rpow_mul_eLpNorm_rpow` (Mathlib's generalized
+  Hölder inequality for `‖f‖^h · ‖f‖^{1-h}`), and Young's inequality is the weighted
+  arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
+  `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
+
