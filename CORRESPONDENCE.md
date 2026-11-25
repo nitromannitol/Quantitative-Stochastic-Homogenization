@@ -374,6 +374,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 
+- **Definition 5.23** (`coarsenedCoefficient`, `Ch05/Sec03HeuristicScalingLimit.lean`). The matrix
+  is defined by its entries, `b_r(z)_{jk} = ½ (J₁(Φ_{z,r}, e_j + e_k, ā e_j) - J₁(Φ_{z,r}, e_j - e_k, ā e_j))`,
+  which is (5.62) at `p = e_j`, `p' = e_k`. The identity (5.62) for all `p, p'` uses that
+  `(p, q) ↦ J₁(Φ_{z,r}, p, q)` is a quadratic form; it is `dot_coarsenedCoefficient_mulVec` when the
+  gradients of `A₁` have the structure (4.12) (`LinearA1Gradients`), which holds almost surely.
+
 - **Lemma 5.24, (5.63)–(5.64), with `s = 1`** (`coarsenedCoefficientEstimates_of`,
   `coarsenedCoefficient_aeOsBound`). The proof departs from the book, which deduces (5.64) from
   (5.62) and Lemma 4.25. When the gradients of `A₁` are, up to null sets, the fields `G ξ` of a
