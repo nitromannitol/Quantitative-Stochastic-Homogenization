@@ -112,10 +112,12 @@ theorem euclideanNorm_indicator_of_notMem {U : Set (Vec d)} {g : Vec d → Vec d
   rw [indicator_of_notMem hx]
   simp [euclideanNorm, euclideanSq, dot]
 
-theorem volume_ball_le_mul (x z : Vec d) {ρ k : ℝ} (hρ : 0 < ρ) (hk : 0 < k) :
+/-- `|B_{kρ}(z)| = k^d |B_ρ(x)|`. -/
+theorem volume_ball_mul_eq (x z : Vec d) {ρ k : ℝ} (hρ : 0 < ρ) (hk : 0 < k) :
     volume (ball z (k * ρ)) = ENNReal.ofReal (k ^ d) * volume (ball x ρ) := by
   rw [volume_ball_mul z hk hρ, volume_ball_eq_of_radius z x hρ]
 
+/-- A bound `|A| ≤ M |B|` on the real volumes of sets of finite measure gives it in `ℝ≥0∞`. -/
 theorem volume_le_ofReal_mul_of_real {A B : Set (Vec d)} (hAt : volume A ≠ ⊤)
     (hBt : volume B ≠ ⊤) {M : ℝ} (hM : 0 ≤ M) (h : volume.real A ≤ M * volume.real B) :
     volume A ≤ ENNReal.ofReal M * volume B := by
@@ -124,7 +126,7 @@ theorem volume_le_ofReal_mul_of_real {A B : Set (Vec d)} (hAt : volume A ≠ ⊤
 
 /-- **Corollary C.9, from `B_{ρ/8}(y)` to `B_ρ(y)`.** For `d ≥ 2`, an open set `U` with boundary
 density `c ∈ (0, 1]` up to the scale `R₀`, and `u ∈ H¹₀(U)` solving `-∇·(a∇u) = ∇·H` in `U` with
-`H ∈ L²(U; ℝ^d)`, the zero extensions `|∇u|` and `|H|` of `|∇u|` and `|H|` satisfy, for every
+`H ∈ L²(U; ℝ^d)`, the zero extensions of `|∇u|` and `|H|` to `ℝ^d` satisfy, for every
 ball `B_ρ(y)` with `ρ ≤ R₀`,
 `‖∇u‖_{L̲²(B_{ρ/8}(y))} ≤ K (‖∇u‖_{L̲^{2_*}(B_ρ(y))} + ‖H‖_{L̲²(B_ρ(y))})` with `K(d, Λ, c)`. -/
 theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {U : Set (Vec d)}
@@ -210,7 +212,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
       exact eLpMeanNormOn_two_euclideanNorm_eq (volume_ball_ne_zero' y hρ8)
         fun i => (hg i).mono_measure (Measure.restrict_mono hB8U le_rfl)
     have hv4 : volume (ball y ρ) ≤ ENNReal.ofReal (4 ^ d) * volume (ball y (ρ / 4)) := by
-      have e := volume_ball_le_mul y y hρ4 (by norm_num : (0 : ℝ) < 4)
+      have e := volume_ball_mul_eq y y hρ4 (by norm_num : (0 : ℝ) < 4)
       rw [show 4 * (ρ / 4) = ρ by ring] at e
       exact e.le
     have hsub4 : ball y (ρ / 4) ⊆ ball y ρ := ball_subset_ball_of_norm (by
@@ -280,7 +282,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
         ENNReal.ofReal (3 ^ d) * ENNReal.ofReal (vectorRms volume (ball z' (r' / 2) ∩ U) g) := by
       have hv3 : volume (ball z' (3 * (ρ / 8))) ≤
           ENNReal.ofReal (3 ^ d) * volume (ball y (ρ / 8)) :=
-        (volume_ball_le_mul y z' hρ8 (by norm_num : (0 : ℝ) < 3)).le
+        (volume_ball_mul_eq y z' hρ8 (by norm_num : (0 : ℝ) < 3)).le
       refine (eLpMeanNormOn_le_of_volume_le hsub8 (volume_ball_ne_zero' y hρ8)
         (volume_ball_ne_top' z' _) h3d hv3 one_le_two F₁).trans ?_
       gcongr
@@ -321,7 +323,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
       rw [div_mul_eq_mul_div, one_mul, le_div_iff₀ hc, mul_comm]
       exact hdenI
     have hv2 : volume (ball y ρ) ≤ ENNReal.ofReal (2 ^ d) * volume (ball z' r') := by
-      have e := volume_ball_le_mul z' y hr' (by norm_num : (0 : ℝ) < 4 / 3)
+      have e := volume_ball_mul_eq z' y hr' (by norm_num : (0 : ℝ) < 4 / 3)
       rw [show 4 / 3 * r' = ρ by rw [hr'def]; ring] at e
       rw [e]
       gcongr
