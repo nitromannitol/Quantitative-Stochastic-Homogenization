@@ -446,4 +446,88 @@ theorem caccioppoli_of_cutoff {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : CoefficientField 
   rw [hHeq, ← hydef, ← hYdef, ← ENNReal.ofReal_add hY0 hH0, ← ENNReal.ofReal_mul hCpos.le]
   exact ENNReal.ofReal_le_ofReal hrms
 
+theorem isOpen_ball' (z : Vec d) {r : ℝ} (hr : 0 < r) : IsOpen (ball z r) := by
+  rw [ball_eq_euclideanBall z hr]
+  exact PDE.isOpen_euclideanBall z r
+
+theorem ball_half_subset (z : Vec d) {r : ℝ} : ball z (r / 2) ⊆ ball z r := by
+  intro x hx
+  have hx' : euclideanNorm (x - z) < r / 2 := hx
+  change euclideanNorm (x - z) < r
+  have : 0 ≤ euclideanNorm (x - z) := Real.sqrt_nonneg _
+  linarith
+
+/-- **Lemma C.8, the estimate (C.18), with an explicit constant.** For an open set `U`,
+`u ∈ H¹₀(U)` solving `-∇·(a∇u) = f + ∇·F` in `U` with `f, F ∈ L²(U)`, and a ball `B_r(z)` with
+`|B_{r/2}(z) ∩ U| > 0`, writing `V = B_r(z) ∩ U` and `W = B_{r/2}(z) ∩ U`,
+`‖∇u‖_{L̲²(W)} ≤ C (r^{-1} ‖u‖_{L̲²(V)} + ‖f + ∇·F‖_{H̲^{-1}(V)})` with
+`C² = (|V|/|W|) · 2 (2 r |V|^{-1/d} + 256 d + 2 d² + 16384 Λ)`. -/
+theorem boundaryCaccioppoli {Λ : ℝ} (hΛ : 1 ≤ Λ) {U : Set (Vec d)} (hUo : IsOpen U)
+    (a : CoefficientField d Λ) {u : Vec d → ℝ} {g : Vec d → Vec d} {f : Vec d → ℝ}
+    {F : Vec d → Vec d} (hu : H01 U u g) (hf : MemLp f 2 (volume.restrict U))
+    (hF : ∀ i, MemLp (fun x => F x i) 2 (volume.restrict U))
+    (hdiv : HasWeakDivergence U (fun x => (a x).mulVec (g x) + F x) (fun x => -f x))
+    (z : Vec d) {r : ℝ} (hr : 0 < r) (hW0 : volume (ball z (r / 2) ∩ U) ≠ 0) :
+    ENNReal.ofReal (vectorRms volume (ball z (r / 2) ∩ U) g) ≤
+      ENNReal.ofReal (Real.sqrt (volume.real (ball z r ∩ U) / volume.real (ball z (r / 2) ∩ U) *
+        (2 * (2 * (r * (volume (ball z r ∩ U)).toReal ^ (-(1 : ℝ) / d)) + 256 * d +
+          2 * d ^ 2 + 16384 * Λ)))) *
+        (ENNReal.ofReal (r⁻¹ * scalarRms volume (ball z r ∩ U) u) +
+          negativeSobolevOneNorm 2 (ball z r ∩ U) f F) := by
+  set V := ball z r ∩ U with hVdef
+  set W := ball z (r / 2) ∩ U with hWdef
+  have hr2 : 0 < r / 2 := by linarith
+  have hVo : IsOpen V := (isOpen_ball' z hr).inter hUo
+  have hVU : V ⊆ U := inter_subset_right
+  have hWV : W ⊆ V := inter_subset_inter_left U (ball_half_subset z)
+  have hWm : MeasurableSet W := ((isOpen_ball' z hr2).inter hUo).measurableSet
+  have hVt : volume V ≠ ⊤ := by
+    refine ne_top_of_le_ne_top ?_ (measure_mono inter_subset_left)
+    rw [ball_eq_euclideanBall z hr]
+    exact PDE.volume_euclideanBall_ne_top z hr.le
+  have hres : volume.restrict V ≤ volume.restrict U := Measure.restrict_mono hVU le_rfl
+  have hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict U) := fun i => MemLp.eval hu.2.1 i
+  -- the cutoff
+  have φ : PDE.QuantitativeSmoothCutoff (ball z (r / 2)) (ball z r) (64 / r) := by
+    have h := PDE.quantitativeBallCutoff z hr2.le (show r / 2 < r by linarith)
+    rw [← ball_eq_euclideanBall z hr2, ← ball_eq_euclideanBall z hr,
+      show 32 / (r - r / 2) = 64 / r by field_simp; norm_num] at h
+    exact h
+  have hφd : ∀ x, DifferentiableAt ℝ φ.toFun x := fun x => φ.smooth.differentiable (by simp) x
+  set θ : Vec d → ℝ := fun x => φ.toFun x * φ.toFun x with hθdef
+  have hθs : ContDiff ℝ (⊤ : ℕ∞) θ := φ.smooth.mul φ.smooth
+  have hθc : HasCompactSupport θ := φ.hasCompactSupport.mul_left
+  have hθV : tsupport θ ∩ U ⊆ V := fun x hx =>
+    ⟨φ.tsupport_subset (tsupport_mul_subset_left hx.1), hx.2⟩
+  have hθgrad : ∀ x, PDE.classicalGradient θ x =
+      (2 * φ.toFun x) • PDE.classicalGradient φ.toFun x := by
+    intro x
+    funext i
+    have e : θ = φ.toFun * φ.toFun := rfl
+    simp only [PDE.classicalGradient_apply, Pi.smul_apply, smul_eq_mul]
+    rw [e, fderiv_mul (hφd x) (hφd x)]
+    change φ.toFun x * fderiv ℝ φ.toFun x (PDE.basisVec i) +
+      φ.toFun x * fderiv ℝ φ.toFun x (PDE.basisVec i) = _
+    ring
+  set v := h10MulCutoff hu.toH10Function hVo hVU hθs hθc hθV with hvdef
+  have hvfun : ∀ x, v.toH1Function x = φ.toFun x * (φ.toFun x * (u x - 0)) := by
+    intro x
+    rw [h10MulCutoff_apply, H01.toH10Function_apply, sub_zero, hθdef]
+    ring
+  have hvgrad : ∀ x, v.toH1Function.grad x = φ.toFun x • (φ.toFun x • g x + (u x - 0) •
+      PDE.classicalGradient φ.toFun x) + (φ.toFun x * (u x - 0)) •
+        PDE.classicalGradient φ.toFun x := by
+    intro x
+    rw [h10MulCutoff_grad, H01.toH10Function_grad, H01.toH10Function_apply, hθgrad x, sub_zero]
+    funext i
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, hθdef]
+    ring
+  have h := caccioppoli_of_cutoff hΛ a hVo.measurableSet hVt hWm hWV hW0
+    (hu.1.mono_measure hres) (fun i => (hg i).mono_measure hres)
+    (hasWeakGradient_mono hVU hu.2.2.1) (hf.mono_measure hres)
+    (fun i => (hF i).mono_measure hres) (hdiv.mono' hVU) hr φ.smooth φ.nonneg φ.le_one
+    (fun x hx => φ.eq_one_on_inner x hx.1) φ.gradient_bound 0 v hvfun hvgrad
+  simp only [sub_zero] at h
+  exact h
+
 end QSH
