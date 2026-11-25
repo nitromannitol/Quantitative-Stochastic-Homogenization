@@ -125,7 +125,8 @@ theorem parabolicCutoff_nonneg {r : ℝ} (hr : 0 < r) (z : Vec d × ℝ) :
 
 theorem parabolicCutoff_le_one {r : ℝ} (hr : 0 < r) (z : Vec d × ℝ) :
     (parabolicCutoff hr).toFun z ≤ 1 :=
-  mul_le_one₀ (timeCutoff_le_one r z.2) ((spaceCutoff hr).nonneg z.1) ((spaceCutoff hr).le_one z.1)
+  (mul_le_of_le_one_left ((spaceCutoff hr).nonneg z.1) (timeCutoff_le_one r z.2)).trans
+    ((spaceCutoff hr).le_one z.1)
 
 theorem parabolicCutoff_eq_one {r : ℝ} (hr : 0 < r) {x : Vec d} (hx : x ∈ ball (0 : Vec d) r)
     {t : ℝ} (ht : -r ^ 2 ≤ t) : (parabolicCutoff hr).toFun (x, t) = 1 := by
