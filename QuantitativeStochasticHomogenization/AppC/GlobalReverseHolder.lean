@@ -45,6 +45,7 @@ theorem exists_mem_frontier_of_not_subset {U S : Set (Vec d)} (hUo : IsOpen U)
   · obtain ⟨x, hxS, hxU⟩ := h1
     exact h hxS (subset_closure hxU)
 
+/-- A ball is preconnected. -/
 theorem isPreconnected_ball (z : Vec d) {r : ℝ} (hr : 0 < r) : IsPreconnected (ball z r) := by
   rw [ball_eq_euclideanBall z hr]
   exact (PDE.convex_euclideanBall z r).isPreconnected
@@ -100,6 +101,7 @@ theorem eLpMeanNormOn_indicator_eq {A U : Set (Vec d)} (hAU : A ⊆ U) (hAm : Me
   change euclideanNorm (U.indicator g x) = euclideanNorm (g x)
   rw [indicator_of_mem (hAU hx)]
 
+/-- On `A ⊆ U`, the normalized `L^s` norm does not see the zero extension from `U`. -/
 theorem eLpMeanNormOn_indicator_eq' {A U : Set (Vec d)} (hAU : A ⊆ U) (hAm : MeasurableSet A)
     (u : Vec d → ℝ) (s : ℝ≥0∞) :
     PDE.eLpMeanNormOn A s (U.indicator u) = PDE.eLpMeanNormOn A s u := by
@@ -107,6 +109,7 @@ theorem eLpMeanNormOn_indicator_eq' {A U : Set (Vec d)} (hAU : A ⊆ U) (hAm : M
   refine (ae_restrict_iff' hAm).mpr (Eventually.of_forall fun x hx => ?_)
   rw [indicator_of_mem (hAU hx)]
 
+/-- The zero extension of a vector field vanishes outside its domain. -/
 theorem euclideanNorm_indicator_of_notMem {U : Set (Vec d)} {g : Vec d → Vec d} {x : Vec d}
     (hx : x ∉ U) : euclideanNorm (U.indicator g x) = 0 := by
   rw [indicator_of_notMem hx]
@@ -204,8 +207,8 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
       (fun i => (hg i).mono_measure hres) (hasWeakGradient_mono hI hu.2.2.1) MemLp.zero
       (fun i => (hH i).mono_measure hres) (hdivf.mono' hI)
     rw [show ρ / 4 / 2 = ρ / 8 by ring] at h
-    have hB8m : MeasurableSet (ball y (ρ / 8)) := (isOpen_ball' y hρ8).measurableSet
-    have hB4m : MeasurableSet (ball y (ρ / 4)) := (isOpen_ball' y hρ4).measurableSet
+    have hB8m : MeasurableSet (ball y (ρ / 8)) := (isOpen_ball y _).measurableSet
+    have hB4m : MeasurableSet (ball y (ρ / 4)) := (isOpen_ball y _).measurableSet
     have hlhs : PDE.eLpMeanNormOn (ball y (ρ / 8)) 2 F₁ =
         ENNReal.ofReal (vectorRms volume (ball y (ρ / 8)) g) := by
       rw [hF₁, eLpMeanNormOn_indicator_eq hB8U hB8m g 2]
@@ -259,14 +262,14 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
     have hVt : volume (ball z' r' ∩ U) ≠ ⊤ :=
       ne_top_of_le_ne_top (volume_ball_ne_top' z' r') (measure_mono inter_subset_left)
     have hBr'pos : 0 < volume.real (ball z' r') := by
-      rw [volume_real_ball_eq z' hr']
+      rw [volume_real_ball_eq_unit z' hr']
       exact mul_pos (pow_pos hr' d) (PDE.volume_euclideanBall_toReal_pos 0 one_pos)
     have hV0 : volume (ball z' r' ∩ U) ≠ 0 := by
       intro h0'
       have : volume.real (ball z' r' ∩ U) = 0 := by rw [measureReal_def, h0', ENNReal.toReal_zero]
       nlinarith
     have hVU : ball z' r' ∩ U ⊆ U := inter_subset_right
-    have hVm : MeasurableSet (ball z' r' ∩ U) := ((isOpen_ball' z' hr').inter hUo).measurableSet
+    have hVm : MeasurableSet (ball z' r' ∩ U) := ((isOpen_ball z' _).inter hUo).measurableSet
     have hres : volume.restrict (ball z' r' ∩ U) ≤ volume.restrict U :=
       Measure.restrict_mono hVU le_rfl
     -- the balls
@@ -277,7 +280,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
     have hr'half : 3 * (ρ / 8) = r' / 2 := by rw [hr'def]; ring
     -- (a) the left-hand side
     have hW'm : MeasurableSet (ball z' (r' / 2) ∩ U) :=
-      ((isOpen_ball' z' (by linarith)).inter hUo).measurableSet
+      ((isOpen_ball z' _).inter hUo).measurableSet
     have hlhs : PDE.eLpMeanNormOn (ball y (ρ / 8)) 2 F₁ ≤
         ENNReal.ofReal (3 ^ d) * ENNReal.ofReal (vectorRms volume (ball z' (r' / 2) ∩ U) g) := by
       have hv3 : volume (ball z' (3 * (ρ / 8))) ≤
@@ -288,7 +291,7 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
       gcongr
       rw [hr'half]
       refine (eLpMeanNormOn_le_of_eq_zero_off inter_subset_left hW'm
-        (isOpen_ball' z' (by linarith)).measurableSet (volume_ball_ne_top' z' _)
+        (isOpen_ball z' _).measurableSet (volume_ball_ne_top' z' _)
         (fun x hx => ?_) 2).trans ?_
       · exact euclideanNorm_indicator_of_notMem fun hxU => hx.2 ⟨hx.1, hxU⟩
       · rw [hF₁, eLpMeanNormOn_indicator_eq inter_subset_right hW'm g 2]
@@ -297,8 +300,8 @@ theorem reverseHolder_eighth_global (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {
     -- (b) the term of `H`
     have hvH : volume (ball y ρ) ≤ ENNReal.ofReal MH * volume (ball z' r' ∩ U) := by
       refine volume_le_ofReal_mul_of_real (volume_ball_ne_top' y ρ) hVt hMH0 ?_
-      rw [volume_real_ball_eq y hρ]
-      rw [volume_real_ball_eq z' hr'] at hdenI
+      rw [volume_real_ball_eq_unit y hρ]
+      rw [volume_real_ball_eq_unit z' hr'] at hdenI
       have hω := PDE.volume_euclideanBall_toReal_pos (0 : Vec d) one_pos
       have hpow : ρ ^ d ≤ 2 ^ d * r' ^ d := by
         rw [← mul_pow]

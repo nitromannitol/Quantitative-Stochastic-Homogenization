@@ -33,17 +33,13 @@ def HasBoundaryDensity (U : Set (Vec d)) (c R₀ : ℝ) : Prop :=
     c * volume.real (ball z r) ≤ volume.real (ball z r ∩ U) ∧
       c * volume.real (ball z r) ≤ volume.real (ball z r \ U)
 
-theorem volume_real_ball_eq (z : Vec d) {r : ℝ} (hr : 0 < r) :
-    volume.real (ball z r) = r ^ d * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal := by
-  rw [measureReal_def, ball_eq_euclideanBall z hr]
-  exact PDE.volume_euclideanBall_toReal_eq_unit_mul_of_pos z hr
-
 /-- The constant `(2^d/c · 2 (4 (c |B_1|)^{-1/d} + 256 d + 2 d² + 16384 Λ))^{1/2}` of (C.18) on a
 domain with boundary density `c`. -/
 def boundaryCaccioppoliConstant (d : ℕ) (Λ c : ℝ) : ℝ :=
   Real.sqrt (2 ^ d / c * (2 * (2 * (2 * (c * (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal) ^
     (-(1 : ℝ) / d)) + 256 * d + 2 * d ^ 2 + 16384 * Λ)))
 
+/-- The constant of (C.18) is positive. -/
 theorem boundaryCaccioppoliConstant_pos (d : ℕ) {Λ c : ℝ} (hΛ : 1 ≤ Λ) (hc : 0 < c) :
     0 < boundaryCaccioppoliConstant d Λ c := by
   have hω : 0 < (volume (PDE.euclideanBall (0 : Vec d) 1)).toReal :=
@@ -75,7 +71,7 @@ theorem boundaryCaccioppoli_of_density (hd : 0 < d) {Λ : ℝ} (hΛ : 1 ≤ Λ) 
   rw [boundaryCaccioppoliConstant, ← hωdef, ← hB₁]
   have hdz := (hden z hz (r / 2) hr2 hrR).1
   have hBpos : 0 < volume.real (ball z (r / 2)) := by
-    rw [volume_real_ball_eq z hr2]
+    rw [volume_real_ball_eq_unit z hr2]
     positivity
   have hWpos : 0 < volume.real (ball z (r / 2) ∩ U) := lt_of_lt_of_le (by positivity) hdz
   have hW0 : volume (ball z (r / 2) ∩ U) ≠ 0 := by
@@ -102,7 +98,7 @@ theorem boundaryCaccioppoli_of_density (hd : 0 < d) {Λ : ℝ} (hΛ : 1 ≤ Λ) 
       _ = 2 ^ d / c := by
           have e : (r / 2) ^ d * 2 ^ d = r ^ d := by
             rw [← mul_pow, div_mul_cancel₀ r two_ne_zero]
-          rw [volume_real_ball_eq z hr, volume_real_ball_eq z hr2,
+          rw [volume_real_ball_eq_unit z hr, volume_real_ball_eq_unit z hr2,
             div_eq_div_iff (by positivity) hc.ne']
           linear_combination (-(c * ω)) * e
   have hnorm : r * (volume (ball z r ∩ U)).toReal ^ (-(1 : ℝ) / d) ≤
@@ -114,7 +110,7 @@ theorem boundaryCaccioppoli_of_density (hd : 0 < d) {Λ : ℝ} (hΛ : 1 ≤ Λ) 
       Real.rpow_le_rpow_of_nonpos (by positivity) (hdz.trans hWV) hexp
     have h2 : (c * volume.real (ball z (r / 2))) ^ (-(1 : ℝ) / d) =
         (r / 2)⁻¹ * (c * ω) ^ (-(1 : ℝ) / d) := by
-      rw [volume_real_ball_eq z hr2, ← hωdef,
+      rw [volume_real_ball_eq_unit z hr2, ← hωdef,
         show c * ((r / 2) ^ d * ω) = (r / 2) ^ d * (c * ω) by ring,
         Real.mul_rpow (pow_nonneg hr2.le d) (by positivity), neg_div,
         Real.rpow_neg (pow_nonneg hr2.le d), one_div,
