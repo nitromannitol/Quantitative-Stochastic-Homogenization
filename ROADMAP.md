@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 55 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 13 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 59 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 13 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -23,7 +23,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 2 | Convergence of the Subadditive Quantities | 12 | 10 | 0 |
 | 3 | Regularity on Large Scales | 23 | 3 | 6 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 2 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 4 | 0 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 7 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
@@ -34,8 +34,8 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 1 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
-| Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **50** | **12** |
+| Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
+| | **Total** | **226** | **59** | **13** |
 
 ## Front matter
 
@@ -257,16 +257,16 @@ No numbered result.
 | Definition 5.23 | Coarsened coefficients | not started |
 | Lemma 5.24 |  | proved, (5.63)-(5.64) with `s = 1`: the frozen statement E5 with no hypothesis (`coarsenedCoefficientEstimates_holds`), from (5.58) with a constant chosen before the law (`uniformEnergyEstimate_holds`) and the first-order Liouville theorem (`coarsenedCoefficientEstimates_of_energyEstimate`, `coarsenedCoefficientEstimates_of_compactTests`); see CORRESPONDENCE.md |
 
-### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
+### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean` (the notation (5.79) and Lemmas 5.27, 5.28 and 5.30 in `Ch05/Sec04/NearGaussian.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Proposition 5.25 |  | not started |
 | Theorem 5.26 |  | not started |
-| Lemma 5.27 |  | not started |
-| Lemma 5.28 |  | not started |
+| Lemma 5.27 |  | proved (`lemma_5_27`, for the notation (5.79), `IsNearGaussian`; see CORRESPONDENCE.md) |
+| Lemma 5.28 |  | proved (`lemma_5_28`, for independent `X : Fin k → Ω → ℝ`; see CORRESPONDENCE.md) |
 | Lemma 5.29 |  | proved: (i)-(iii) for centered local additive fields, and for the localized energy the frozen statements E4, E2 and E3 with no hypothesis (`blockCLT_holds`, `blockBoundary_holds`, `blockChange_holds`), from Theorem 4.6 (i) with constants chosen before the law (`uniformAdditivityJ1_holds`, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`); see CORRESPONDENCE.md |
-| Lemma 5.30 |  | not started |
+| Lemma 5.30 |  | proved (`lemma_5_30`, for `s ∈ (1, 2]`, with Hölder's inequality for exponential moments, `log_integral_exp_add_le`; see CORRESPONDENCE.md) |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`
 
@@ -566,7 +566,7 @@ Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean
 
 ## Appendix E: Parabolic Green Functions
 
-Module `AppE/ParabolicGreenFunctions.lean`.
+Module `AppE/ParabolicGreenFunctions.lean` (proofs in `AppE/ReverseHolderImprovement.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
@@ -574,6 +574,6 @@ Module `AppE/ParabolicGreenFunctions.lean`.
 | Proposition E.3 |  | not started |
 | Lemma E.4 |  | not started |
 | Lemma E.5 |  | not started |
-| Lemma E.6 |  | not started |
+| Lemma E.6 |  | proved (`lemma_E_6`, conclusion on `⅔U` as printed; general measurable space in `reverseHolder_improvement`); see CORRESPONDENCE.md |
 | Lemma E.7 |  | not started |
 | Lemma E.8 |  | not started |
