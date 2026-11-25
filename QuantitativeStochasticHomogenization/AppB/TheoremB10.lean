@@ -273,4 +273,129 @@ theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < 
   refine (eLpNormEssSup_le_of_ae_bound hvb).trans (le_of_eq ?_)
   rw [ENNReal.ofReal_mul hc0, ENNReal.ofReal_toReal hAfin]
 
+/-- Every point of `ℝ^d` lies in a ball `B_{√d}(z)` with `z ∈ ℤ^d`. -/
+theorem exists_mem_ball_latticeShift (hd : 0 < d) (x : Vec d) :
+    ∃ z : LatticeIndex d, x ∈ ball (latticeShift z) (Real.sqrt d) := by
+  have hs : 0 < Real.sqrt d := Real.sqrt_pos.2 (by exact_mod_cast hd)
+  refine ⟨fun i => round (x i), ?_⟩
+  show euclideanNorm (x - latticeShift fun i => round (x i)) < Real.sqrt d
+  rw [euclideanNorm_eq_vecEuclideanNorm]
+  have hn : ‖x - latticeShift fun i => round (x i)‖ ≤ 1 / 2 := by
+    refine (pi_norm_le_iff_of_nonneg (by norm_num)).2 fun i => ?_
+    rw [Pi.sub_apply, Real.norm_eq_abs]
+    exact abs_sub_round (x i)
+  calc PDE.vecEuclideanNorm (x - latticeShift fun i => round (x i))
+      ≤ Real.sqrt d * ‖x - latticeShift fun i => round (x i)‖ :=
+        PDE.vecEuclideanNorm_le_sqrt_natCast_mul_norm _
+    _ ≤ Real.sqrt d * (1 / 2) := mul_le_mul_of_nonneg_left hn hs.le
+    _ < Real.sqrt d := by linarith
+
+/-- The balls `B_{√d}(z)` have volume at least `1`. -/
+theorem one_le_volume_ball_sqrt (hd : 0 < d) (z : Vec d) :
+    1 ≤ volume (ball z (Real.sqrt d)) := by
+  have hs : 0 < Real.sqrt d := Real.sqrt_pos.2 (by exact_mod_cast hd)
+  have hsub : Metric.ball z 1 ⊆ ball z (Real.sqrt d) := fun x hx => by
+    show euclideanNorm (x - z) < Real.sqrt d
+    rw [euclideanNorm_eq_vecEuclideanNorm]
+    have h1 : ‖x - z‖ < 1 := by rwa [Metric.mem_ball, dist_eq_norm] at hx
+    calc PDE.vecEuclideanNorm (x - z) ≤ Real.sqrt d * ‖x - z‖ :=
+          PDE.vecEuclideanNorm_le_sqrt_natCast_mul_norm _
+      _ < Real.sqrt d * 1 := mul_lt_mul_of_pos_left h1 hs
+      _ = Real.sqrt d := mul_one _
+  calc (1 : ℝ≥0∞) ≤ ENNReal.ofReal ((2 * 1) ^ d) := by
+        rw [ENNReal.one_le_ofReal]
+        exact one_le_pow₀ (by norm_num)
+    _ = volume (Metric.ball z 1) := by rw [Real.volume_pi_ball z one_pos, Fintype.card_fin]
+    _ ≤ volume (ball z (Real.sqrt d)) := measure_mono hsub
+
+/-- The normalized norm on a set of volume at least `1` is at most the norm on `ℝ^d`. -/
+theorem eLpMeanNormOn_le_eLpNorm {U : Set (Vec d)} (hU1 : 1 ≤ volume U) (hUt : volume U ≠ ⊤)
+    (p : ℝ≥0∞) {E : Type*} [NormedAddCommGroup E] (f : Vec d → E) :
+    PDE.eLpMeanNormOn U p f ≤ eLpNorm f p volume := by
+  rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt)]
+  calc (volume U)⁻¹ ^ (1 / p).toReal * PDE.eLpNormOn U p f ≤ 1 * PDE.eLpNormOn U p f :=
+        mul_le_mul' (ENNReal.rpow_le_one (ENNReal.inv_le_one.2 hU1) ENNReal.toReal_nonneg) le_rfl
+    _ = eLpNorm f p (volume.restrict U) := one_mul _
+    _ ≤ eLpNorm f p volume := eLpNorm_mono_measure _ Measure.restrict_le_self
+
+/-- The average of `v` over `U` is bounded by its normalized `L^p(U)` norm, `p ≥ 1`. -/
+theorem abs_integralAverage_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hUt : volume U ≠ ⊤)
+    {p : ℝ≥0∞} (hp : 1 ≤ p) {v : Vec d → ℝ} (hv : MemLp v p (volume.restrict U)) :
+    |PDE.integralAverage U v| ≤ (PDE.eLpMeanNormOn U p v).toReal := by
+  have : IsProbabilityMeasure (PDE.normalizedVolumeOn U) :=
+    PDE.isProbabilityMeasure_normalizedVolumeOn_of_pos_of_lt_top (pos_iff_ne_zero.2 hU0)
+      (lt_top_iff_ne_top.2 hUt)
+  rw [← PDE.integral_normalizedVolumeOn_eq_integralAverage, ← Real.norm_eq_abs]
+  refine (norm_integral_le_lintegral_norm v).trans ?_
+  simp only [ofReal_norm]
+  rw [← eLpNorm_one_eq_lintegral_enorm]
+  · exact ENNReal.toReal_mono (eLpMeanNormOn_ne_top hU0 hUt hv)
+      (eLpNorm_le_eLpNorm_of_exponent_le hp)
+  · exact hv.aestronglyMeasurable.smul_measure (volume U)⁻¹
+
+/-- (B.9) for `p ∈ (d, ∞)`: `‖v‖_{L^∞(ℝ^d)} ≤ C ‖v‖_{W^{1,p}(ℝ^d)}`. -/
+theorem eLpNorm_top_le_w1pNorm_univ (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p) :
+    ∃ C : ℝ, 0 < C ∧ ∀ (v : Vec d → ℝ) (g : Vec d → Vec d),
+      IsW1p Set.univ (ENNReal.ofReal p) v g →
+        eLpNorm v ⊤ volume ≤ ENNReal.ofReal C * w1pNorm Set.univ (ENNReal.ofReal p) v g := by
+  have hd1 : (1 : ℝ) ≤ d := by exact_mod_cast hd
+  have hp0 : 0 < p := by linarith
+  have hp1 : 1 ≤ ENNReal.ofReal p := by simpa using ENNReal.ofReal_le_ofReal (by linarith : 1 ≤ p)
+  have hc : 0 < 1 - (d : ℝ) / p := by
+    have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
+    linarith
+  have hs : 0 < Real.sqrt d := Real.sqrt_pos.2 (by exact_mod_cast hd)
+  set c : ℝ := 1 / (1 - d / p) * (2 * Real.sqrt d) * Real.sqrt d with hcdef
+  have hc0 : 0 ≤ c := by positivity
+  refine ⟨c + 1, by positivity, fun v g hv => ?_⟩
+  set W := w1pNorm Set.univ (ENNReal.ofReal p) v g with hW
+  have hWfin : W ≠ ⊤ := by
+    refine ENNReal.add_ne_top.2 ⟨hv.1.eLpNorm_lt_top.ne, ?_⟩
+    exact (ENNReal.sum_lt_top.2 fun i _ => (hv.2.1.eval i).eLpNorm_lt_top).ne
+  have hball : ∀ z : LatticeIndex d, ∀ᵐ x ∂(volume.restrict (ball (latticeShift z) (Real.sqrt d))),
+      |v x| ≤ (c + 1) * W.toReal := by
+    intro z
+    set B := ball (latticeShift z) (Real.sqrt d) with hB
+    have hB1 := one_le_volume_ball_sqrt hd (latticeShift z)
+    have hB0 : volume B ≠ 0 := (lt_of_lt_of_le zero_lt_one hB1).ne'
+    have hBt : volume B ≠ ⊤ := volume_ball_ne_top _ hs
+    have hBc := isOpenBoundedConvexDomain_ball (latticeShift z) hs
+    have hvB : IsW1p B (ENNReal.ofReal p) v g := hv.mono (Set.subset_univ _)
+    have hae := ae_abs_sub_integralAverage_le_of_convex hBc.1 (isBounded_ball _ hs) hBc.2.2
+      ⟨_, center_mem_ball _ hs⟩ (fun a ha b hb => norm_sub_le_of_mem_ball ha hb) hd hdp
+      hvB.toW1pFunction
+    have hG : (PDE.eLpMeanNormOn B (ENNReal.ofReal p)
+        (fun y => PDE.vecEuclideanNorm (g y))).toReal ≤ W.toReal := by
+      refine ENNReal.toReal_mono hWfin ((eLpMeanNormOn_le_eLpNorm hB1 hBt _ _).trans ?_)
+      have h := hv.eLpNorm_euclideanNorm_le_w1pNorm hp1
+      rwa [Measure.restrict_univ] at h
+    have hA : |PDE.integralAverage B v| ≤ W.toReal := by
+      refine (abs_integralAverage_le hB0 hBt hp1 hvB.1).trans
+        (ENNReal.toReal_mono hWfin ((eLpMeanNormOn_le_eLpNorm hB1 hBt _ _).trans ?_))
+      have h := eLpNorm_le_w1pNorm Set.univ (ENNReal.ofReal p) v g
+      rwa [Measure.restrict_univ] at h
+    filter_upwards [hae] with x hx
+    have hx' : |v x - PDE.integralAverage B v| ≤ c * W.toReal :=
+      hx.trans (by rw [hcdef]; exact mul_le_mul_of_nonneg_left hG (by positivity))
+    calc |v x| ≤ |v x - PDE.integralAverage B v| + |PDE.integralAverage B v| := by
+          have := abs_add_le (v x - PDE.integralAverage B v) (PDE.integralAverage B v)
+          rwa [sub_add_cancel] at this
+      _ ≤ c * W.toReal + W.toReal := add_le_add hx' hA
+      _ = (c + 1) * W.toReal := by ring
+  have hall : ∀ᵐ x ∂volume, ∀ z : LatticeIndex d,
+      x ∈ ball (latticeShift z) (Real.sqrt d) → |v x| ≤ (c + 1) * W.toReal :=
+    ae_all_iff.2 fun z => (ae_restrict_iff' (isOpenBoundedConvexDomain_ball _ hs).1.measurableSet).1
+      (hball z)
+  have hvb : ∀ᵐ x ∂volume, ‖v x‖ ≤ (c + 1) * W.toReal := by
+    filter_upwards [hall] with x hx
+    obtain ⟨z, hz⟩ := exists_mem_ball_latticeShift hd x
+    rw [Real.norm_eq_abs]
+    exact hx z hz
+  have hvm : AEStronglyMeasurable v volume := by
+    have h := hv.1.aestronglyMeasurable
+    rwa [Measure.restrict_univ] at h
+  rw [eLpNorm_exponent_top hvm]
+  refine (eLpNormEssSup_le_of_ae_bound hvb).trans (le_of_eq ?_)
+  rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal hWfin]
+
 end QSH
