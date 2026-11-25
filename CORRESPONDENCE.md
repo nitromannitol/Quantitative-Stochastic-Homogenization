@@ -991,13 +991,15 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
   and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
-  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 are not.
+  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
+  (Remark B.6 on balls is `remark_B_6`, see the Appendix B section).
 
-## Appendix B: Remark B.6 and Definition B.4 on balls (`AppB/DivergenceRepresentation.lean`)
+## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls (`AppB/DivergenceRepresentation.lean`)
 
-- **Definition B.4** is formalized for `α = 1` only, by the normalized norm
+- **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
-  the spaces `W^{-α,p}(U)` for `α ≠ 1` are not formalized.
+  the spaces `W^{-α,p}(U)` for `α ≠ 1`, and `W^{-1,1}`, `W^{-1,∞}`, are not formalized (for
+  `p = 1` the test exponent `p/(p-1)` is `0` in Lean).
 - **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
   `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
   with `∫ h ψ = -∫ H · ∇ψ` for every `ψ ∈ C_c^∞(B_r(z))` (the book's (B.5) is stated with the
@@ -1059,14 +1061,15 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   ball `B_ρ(z) ⊆ B_r`, the bound `‖∇·H‖_{H̲^{-1}} ≤ ‖H‖_{L̲²}` and Lemma C.4. The book applies Lemma C.4
   with `q = 2_*`, which is `1` for `d = 2`, outside the range `(1, 2)` of the lemma; the proof uses
   `q = max(2_*, 3/2)`. The general case is reduced to this one in the book by Proposition B.16
-  (the Dirichlet problem `-Δw = h` in `W^{1,s}_0(B_r)`, `H = ∇w`); the Lean proof uses instead the
+  (the Dirichlet problem `-Δw = h` in `W^{1,s}_0(B_r)`, `H = -∇w`); the Lean proof uses instead the
   representation of Remark B.6 on balls (`remark_B_6`, see the Appendix B section): every
   `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C(d) ‖h‖_{W̲^{-1,s}(B_r)}`, which is what the
   reduction uses. `theorem_C_1_of_divergenceRepresentation` is the reduction under this
   representation as a hypothesis (`DivergenceRepresentation d C`), `exists_divergenceRepresentation`
   discharges it, and `theorem_C_1` is the statement of the book, for `d ≥ 2` and
-  `h = f + ∇·F` with `f ∈ L²(B_r)`, `F ∈ L²(B_r; ℝ^d)`. The elliptic regularity library proves a Meyers estimate on the unit ball for
-  divergence-form right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
+  `h = f + ∇·F` with `f ∈ L²(B_r)`, `F ∈ L²(B_r; ℝ^d)`.
+  The elliptic regularity library proves a Meyers estimate on the unit ball for divergence-form
+  right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
 

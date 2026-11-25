@@ -522,7 +522,7 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls in `A
 | Definition B.1 | C^{k,α} domain | not started |
 | Definition B.2 | Sobolev space W^{k,p}(U) | not started |
 | Definition B.3 | Sobolev space W^{α,p}(U) | not started |
-| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`; `α ≠ 1` not formalized; see CORRESPONDENCE.md) |
+| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
 | Theorem B.8 | Global Sobolev inequality | not started |
 | Theorem B.9 | Local Sobolev–Poincaré inequality | not started |
