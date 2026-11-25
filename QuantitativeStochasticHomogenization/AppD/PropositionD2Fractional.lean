@@ -8,9 +8,11 @@ Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-S
 Appendix D, Proposition D.2, (D.4): for `α ∈ (0, ∞) \ ℕ`, `k ∈ ℕ ∩ (α, ∞)` and `q ∈ (1, ∞)`,
 `(∫_0^∞ (t^{(k-α)/2} ‖∇^k Φ(t, ·) ∗ u‖_{L^q(ℝ^d)})^q dt/t)^{1/q} ≤ C [u]_{W^{α,q}(ℝ^d)}`.
 
-This file proves the case `α ∈ (0, 1)` (`propositionD2_fractional_lt_one`), with the fractional
-seminorm (B.2) on `ℝ^d` (`fractionalSeminorm`). The proof is the book's estimate (D.7) for every
-order `k ≥ 1` at once:
+This file proves it as `propositionD2_fractional`, with the seminorm (B.2)–(B.3) on `ℝ^d`
+(`fractionalSeminorm`, `fractionalSobolevSeminorm`) and `u ∈ W^{m,q}(ℝ^d)` given with its weak
+derivatives (`IsSobolevFamilyLp`), `α = m + β`, `β ∈ (0, 1)`. The case `α ∈ (0, 1)`
+(`propositionD2_fractional_lt_one`) is the book's estimate (D.7), proved for every order `k ≥ 1`
+at once:
 * `∂^w Φ(t, ·)` has integral zero (`integral_heatKernelDeriv_ofFn_eq_zero`), so
   `∂^w Φ(t, ·) ∗ u (x) = ∫ ∂^w Φ(t, x - y) (u(y) - u(x)) dy`, and the Gaussian majorant
   `|∂^w Φ(t, z)| ≤ C (2t)^{-k/2} Φ(2t, z)` gives the pointwise bound `ofReal_sqrt_heatGradSq_le`;
@@ -20,10 +22,12 @@ order `k ≥ 1` at once:
   integral) give `∫∫ |u(x) - u(y)|^q / |x - y|^{d+αq}` (`lintegral_heatGradSq_le_fractional`).
 The book reduces to `k = 1` by the semigroup property and Young's inequality; the Gaussian majorant
 handles every `k` directly. The constant depends on `q`, see the notes on (D.4) in
-CORRESPONDENCE.md. The weak derivative identity against smooth functions with integrable products
-(`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative_of_integrable`) and its
-consequences for `u ∈ W^{m,q}(ℝ^d)` (`IsSobolevFamilyLp`, `kconv_heatKernelDeriv_append_eq_of_memLp`)
-move derivatives from the heat kernel onto `u`.
+CORRESPONDENCE.md. For `m ≥ 1` the `m` derivatives are moved from the heat kernel onto `u` by the weak derivative
+identity against smooth functions with integrable products
+(`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative_of_integrable`,
+`kconv_heatKernelDeriv_append_eq_of_memLp`), so that
+`|∇^{m+n} Φ(t, ·) ∗ u|² = ∑_{|w| = m} |∇^n Φ(t, ·) ∗ ∂_w u|²` (`heatGradSq_add_eq_of_memLp`), as the
+book does when it considers `∇^{k-1} u` in place of `u`.
 -/
 
 open MeasureTheory Filter Set
@@ -675,5 +679,149 @@ theorem kconv_heatKernelDeriv_append_eq_of_memLp {q : ℝ} (hq : 1 ≤ q) {m : �
       (hS.memLp n hlen.le) (hS.memLp (i :: n) (by simp only [List.length_cons]; omega)) (l ++ p) x,
       ih (i :: n) (by simp only [List.length_cons]; omega)]
     simp [List.reverse_cons, List.append_assoc]
+
+/-- The seminorm `[u]_{W^{m+β,q}(ℝ^d)} = ∑_{|w| = m} [∂_w u]_{W^{β,q}(ℝ^d)}` of (B.3), the sum over
+the lists `w` of `m` coordinates. -/
+def fractionalSobolevSeminorm (m : ℕ) (β q : ℝ) (g : List (Fin d) → Vec d → ℝ) : ℝ≥0∞ :=
+  ∑ w : Fin m → Fin d, fractionalSeminorm β q (g (List.ofFn w))
+
+/-- **Splitting the derivatives**: `|∇^{m+n} Φ(t, ·) ∗ u|² = ∑_{|w| = m} |∇^n Φ(t, ·) ∗ ∂_w u|²`
+for `u ∈ W^{m,q}(ℝ^d)`. -/
+theorem heatGradSq_add_eq_of_memLp {q : ℝ} (hq : 1 ≤ q) {m : ℕ} {u : Vec d → ℝ}
+    {g : List (Fin d) → Vec d → ℝ} (hS : IsSobolevFamilyLp q m u g) {t : ℝ} (ht : 0 < t) (n : ℕ)
+    (x : Vec d) :
+    heatGradSq (m + n) t u x = ∑ w : Fin m → Fin d, heatGradSq n t (g (List.ofFn w)) x := by
+  unfold heatGradSq
+  rw [← (Fin.appendEquiv (α := Fin d) m n).sum_comp, Fintype.sum_prod_type]
+  refine Finset.sum_congr rfl fun v _ => Finset.sum_congr rfl fun w _ => ?_
+  have hperm : heatKernelDeriv t (List.ofFn (Fin.append v w)) =
+      heatKernelDeriv t ((List.ofFn v).reverse ++ List.ofFn w) := by
+    rw [List.ofFn_fin_append]
+    exact foldr_coordinateDerivative_perm (contDiff_euclideanHeatKernel t)
+      ((List.reverse_perm _).symm.append_right _)
+  have h := kconv_heatKernelDeriv_append_eq_of_memLp hq hS ht (List.ofFn w) x
+    (List.ofFn v).reverse [] (by simp)
+  rw [hS.nil, List.reverse_reverse, List.append_nil] at h
+  change kconv (heatKernelDeriv t (List.ofFn (Fin.append v w))) u x ^ 2 = _
+  rw [hperm, h]
+
+theorem sqrt_sum_le_sum_sqrt {ι : Type*} (s : Finset ι) {h : ι → ℝ} (hh : ∀ i ∈ s, 0 ≤ h i) :
+    Real.sqrt (∑ i ∈ s, h i) ≤ ∑ i ∈ s, Real.sqrt (h i) := by
+  have h1 := sqrt_sum_sq_le_sum_abs s (fun i => Real.sqrt (h i))
+  simp only [abs_of_nonneg (Real.sqrt_nonneg _)] at h1
+  calc Real.sqrt (∑ i ∈ s, h i) = Real.sqrt (∑ i ∈ s, Real.sqrt (h i) ^ 2) := by
+        congr 1
+        exact Finset.sum_congr rfl fun i hi => (Real.sq_sqrt (hh i hi)).symm
+    _ ≤ _ := h1
+
+/-- **Proposition D.2, (D.4)**: for `α = m + β` with `m ∈ ℕ` and `β ∈ (0, 1)`, `k ∈ ℕ ∩ (α, ∞)` and
+`q ∈ (1, ∞)`, there is `C(k, α, q, d)` such that, for every `u ∈ W^{α,q}(ℝ^d)` (here `u ∈ W^{m,q}(ℝ^d)`
+with its weak derivatives `g`; the right-hand side is infinite otherwise),
+`(∫_0^∞ (t^{(k-α)/2} ‖∇^k Φ(t, ·) ∗ u‖_{L^q(ℝ^d)})^q dt/t)^{1/q} ≤ C [u]_{W^{α,q}(ℝ^d)}`. -/
+theorem propositionD2_fractional (m : ℕ) {β : ℝ} (hβ : 0 < β) (hβ1 : β < 1) {k : ℕ}
+    (hk : m < k) {q : ℝ} (hq : 1 < q) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (u : Vec d → ℝ) (g : List (Fin d) → Vec d → ℝ),
+      IsSobolevFamilyLp q m u g →
+      (∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (t ^ (q * (k - (m + β)) / 2) / t) *
+          ∫⁻ x, ENNReal.ofReal (Real.sqrt (heatGradSq k t u x)) ^ q) ^ (1 / q) ≤
+        ENNReal.ofReal C * fractionalSobolevSeminorm m β q g := by
+  obtain ⟨n, rfl⟩ : ∃ n, k = m + n := ⟨k - m, by omega⟩
+  have hn : 0 < n := by omega
+  obtain ⟨C₀, hC₀, h0⟩ := propositionD2_fractional_lt_one (d := d) hβ hβ1 hn hq
+  have hq0 : 0 < q := by linarith
+  set N : ℝ≥0∞ := ((Fintype.card (Fin m → Fin d) : ℕ) : ℝ≥0∞) with hN
+  have hNtop : N ^ (q - 1) ≠ ⊤ :=
+    ENNReal.rpow_ne_top_of_nonneg (by linarith) (ENNReal.natCast_ne_top _)
+  refine ⟨(Fintype.card (Fin m → Fin d) : ℝ) * C₀, by positivity, fun u g hS => ?_⟩
+  have hexp : ∀ t : ℝ, t ^ (q * (((m + n : ℕ) : ℝ) - (m + β)) / 2) = t ^ (q * (n - β) / 2) :=
+    fun t => by
+      congr 1
+      push_cast
+      ring
+  have hH : ∀ w : Fin m → Fin d, ∃ H : ℝ × Vec d → ℝ, Measurable H ∧
+      ∀ t, 0 < t → ∀ x, heatGradSq n t (g (List.ofFn w)) x = H (t, x) := fun w =>
+    exists_measurable_heatGradSq n (hS.memLp _ (by simp)).aestronglyMeasurable
+  choose H hHm hHeq using hH
+  set G : (Fin m → Fin d) → ℝ → Vec d → ℝ≥0∞ := fun w t x =>
+    ENNReal.ofReal (Real.sqrt (heatGradSq n t (g (List.ofFn w)) x)) ^ q with hG
+  set T : ℝ → ℝ≥0∞ := fun t => ENNReal.ofReal (t ^ (q * (n - β) / 2) / t) with hT
+  have hpt : ∀ t, 0 < t → ∀ x,
+      ENNReal.ofReal (Real.sqrt (heatGradSq (m + n) t u x)) ^ q ≤ N ^ (q - 1) * ∑ w, G w t x := by
+    intro t ht x
+    rw [heatGradSq_add_eq_of_memLp hq.le hS ht n x]
+    have hs := sqrt_sum_le_sum_sqrt Finset.univ
+      (h := fun w : Fin m → Fin d => heatGradSq n t (g (List.ofFn w)) x)
+      (fun w _ => heatGradSq_nonneg _ _ _ _)
+    calc ENNReal.ofReal (Real.sqrt (∑ w, heatGradSq n t (g (List.ofFn w)) x)) ^ q
+        ≤ (∑ w, ENNReal.ofReal (Real.sqrt (heatGradSq n t (g (List.ofFn w)) x))) ^ q := by
+          rw [← ENNReal.ofReal_sum_of_nonneg fun w _ => Real.sqrt_nonneg _]
+          exact ENNReal.rpow_le_rpow (ENNReal.ofReal_le_ofReal hs) hq0.le
+      _ ≤ N ^ (q - 1) * ∑ w, G w t x := by
+          have h := ENNReal.rpow_sum_le_const_mul_sum_rpow (s := Finset.univ)
+            (f := fun w : Fin m → Fin d =>
+              ENNReal.ofReal (Real.sqrt (heatGradSq n t (g (List.ofFn w)) x))) hq.le
+          rw [Finset.card_univ] at h
+          exact h
+  have hGm : ∀ w, Measurable (fun p : ℝ × Vec d => ENNReal.ofReal (Real.sqrt (H w p)) ^ q) :=
+    fun w => ((hHm w).sqrt.ennreal_ofReal).pow_const _
+  have hGx : ∀ w t, 0 < t → AEMeasurable (G w t) volume := by
+    intro w t ht
+    refine ((hGm w).comp (measurable_prodMk_left (x := t))).aemeasurable.congr
+      (Eventually.of_forall fun x => ?_)
+    simp only [hG, Function.comp_apply, hHeq w t ht x]
+  have hIt : ∀ w, AEMeasurable (fun t => T t * ∫⁻ x, G w t x) (volume.restrict (Ioi 0)) := by
+    intro w
+    have hm : Measurable (fun t => T t * ∫⁻ x, ENNReal.ofReal (Real.sqrt (H w (t, x))) ^ q) :=
+      (((measurable_id.pow_const _).div measurable_id).ennreal_ofReal).mul
+        (hGm w).lintegral_prod_right'
+    refine hm.aemeasurable.congr ((ae_restrict_iff' measurableSet_Ioi).mpr
+      (Eventually.of_forall fun t (ht : 0 < t) => ?_))
+    simp only [hG]
+    congr 1
+    refine lintegral_congr fun x => ?_
+    rw [hHeq w t ht x]
+  have hterm : ∀ w, ∫⁻ t in Ioi (0 : ℝ), T t * ∫⁻ x, G w t x ≤
+      (ENNReal.ofReal C₀ * fractionalSeminorm β q (g (List.ofFn w))) ^ q := by
+    intro w
+    have h := ENNReal.rpow_le_rpow (h0 (g (List.ofFn w)) (hS.memLp _ (by simp))) hq0.le
+    rwa [← ENNReal.rpow_mul, one_div_mul_cancel hq0.ne', ENNReal.rpow_one] at h
+  set S := fractionalSobolevSeminorm m β q g with hSdef
+  have hle : ∀ w, ENNReal.ofReal C₀ * fractionalSeminorm β q (g (List.ofFn w)) ≤
+      ENNReal.ofReal C₀ * S := fun w =>
+    mul_le_mul' le_rfl (Finset.single_le_sum
+      (f := fun w => fractionalSeminorm β q (g (List.ofFn w))) (fun w _ => zero_le)
+      (Finset.mem_univ w))
+  have hmain : ∫⁻ t in Ioi (0 : ℝ), ENNReal.ofReal (t ^ (q * (((m + n : ℕ) : ℝ) - (m + β)) / 2) / t) *
+        ∫⁻ x, ENNReal.ofReal (Real.sqrt (heatGradSq (m + n) t u x)) ^ q ≤
+      N ^ (q - 1) * (N * (ENNReal.ofReal C₀ * S) ^ q) := by
+    calc _ ≤ ∫⁻ t in Ioi (0 : ℝ), N ^ (q - 1) * ∑ w, T t * ∫⁻ x, G w t x := by
+          refine setLIntegral_mono' measurableSet_Ioi fun t ht => ?_
+          have ht0 : 0 < t := ht
+          rw [hexp t]
+          calc ENNReal.ofReal (t ^ (q * (n - β) / 2) / t) *
+                ∫⁻ x, ENNReal.ofReal (Real.sqrt (heatGradSq (m + n) t u x)) ^ q
+              ≤ T t * ∫⁻ x, N ^ (q - 1) * ∑ w, G w t x :=
+                mul_le_mul' le_rfl (lintegral_mono fun x => hpt t ht0 x)
+            _ = N ^ (q - 1) * ∑ w, T t * ∫⁻ x, G w t x := by
+                rw [lintegral_const_mul' _ _ hNtop,
+                  lintegral_finsetSum' _ fun w _ => hGx w t ht0, ← mul_assoc,
+                  mul_comm (T t), mul_assoc, Finset.mul_sum]
+      _ = N ^ (q - 1) * ∑ w, ∫⁻ t in Ioi (0 : ℝ), T t * ∫⁻ x, G w t x := by
+          rw [lintegral_const_mul' _ _ hNtop, lintegral_finsetSum' _ fun w _ => hIt w]
+      _ ≤ N ^ (q - 1) * ∑ _w : Fin m → Fin d, (ENNReal.ofReal C₀ * S) ^ q := by
+          gcongr with w
+          exact (hterm w).trans (ENNReal.rpow_le_rpow (hle w) hq0.le)
+      _ = N ^ (q - 1) * (N * (ENNReal.ofReal C₀ * S) ^ q) := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  have hfin : N ^ (q - 1) * (N * (ENNReal.ofReal C₀ * S) ^ q) = (N * (ENNReal.ofReal C₀ * S)) ^ q := by
+    have hNq : N ^ (q - 1) * N = N ^ q := by
+      conv_rhs => rw [show q = (q - 1) + 1 by ring]
+      rw [ENNReal.rpow_add_of_nonneg _ _ (by linarith) zero_le_one, ENNReal.rpow_one]
+    rw [← mul_assoc, hNq, ← ENNReal.mul_rpow_of_nonneg _ _ hq0.le]
+  calc _ ≤ ((N * (ENNReal.ofReal C₀ * S)) ^ q) ^ (1 / q) :=
+        ENNReal.rpow_le_rpow (hmain.trans_eq hfin) (one_div_nonneg.mpr hq0.le)
+    _ = ENNReal.ofReal ((Fintype.card (Fin m → Fin d) : ℝ) * C₀) * S := by
+        rw [← ENNReal.rpow_mul, mul_one_div_cancel hq0.ne', ENNReal.rpow_one, ← mul_assoc,
+          ENNReal.ofReal_mul (Nat.cast_nonneg _), ENNReal.ofReal_natCast]
 
 end QSH
