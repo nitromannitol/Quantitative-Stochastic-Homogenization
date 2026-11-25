@@ -554,12 +554,12 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
-Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean` and `AppD/PropositionD2.lean`).
+Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean`, `AppD/PropositionD2.lean` and `AppD/PropositionD2Fractional.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Proposition D.1 |  | not started (a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
-| Proposition D.2 |  | in progress (the case `q = 2`, `α ∈ ℕ` of (D.3), `propositionD2_two`, which is Lemma D.3; see CORRESPONDENCE.md) |
+| Proposition D.2 |  | in progress ((D.4), `α ∉ ℕ`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`: `propositionD2_fractional`, with a constant depending also on `q`; (D.3) for `q = 2`, `α ∈ ℕ`: `propositionD2_two`, which is Lemma D.3; (D.3) for `q ≠ 2` not proved; see CORRESPONDENCE.md) |
 | Lemma D.3 |  | proved (`lemmaD3`; see CORRESPONDENCE.md) |
 | Lemma D.4 |  | proved (`lemmaD4`; see CORRESPONDENCE.md) |
 | Proposition D.5 |  | not started |

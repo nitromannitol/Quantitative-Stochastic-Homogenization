@@ -993,9 +993,25 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   regularity library (`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative`). The book
   reduces to `α = 0` by considering `∇^α u` in place of `u`, which is this step.
 - **Proposition D.2** (`propositionD2_two`) is proved in the case `q = 2`, `α ∈ ℕ` of (D.3), in which,
-  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The cases `q ≠ 2`
+  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The case `q ≠ 2`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
-  and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
+  is not formalized.
+- **Proposition D.2, (D.4)** (`propositionD2_fractional`, `AppD/PropositionD2Fractional.lean`) is
+  proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`. The space
+  `W^{α,q}(ℝ^d)` is given as `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives `g l` along lists of
+  coordinates (`IsSobolevFamilyLp`), and `[u]_{W^{α,q}(ℝ^d)}` is `∑_{|w| = m} [∂_w u]_{W^{β,q}(ℝ^d)}`
+  with the seminorm (B.2), `(1 - β) ∫∫ |v(x) - v(y)|^q / |x - y|^{d+βq}` (`fractionalSeminorm`,
+  `fractionalSobolevSeminorm`); the sum over lists counts each multi-index of (B.3) with its
+  multiplicity, which changes the constant only. The constant depends on `k`, `α`, `q` and `d`: the
+  book states `C(k, α, d)`, but its proof of (D.7) bounds `‖·‖^q` by
+  `C^q ∫_0^∞ s^{d+qα} exp(-s²/16) ds/s` times the seminorm, a Gamma integral that is not bounded by
+  `C(d)^q` uniformly in `q`, so the proof gives a constant depending on `q`. The proof follows the
+  book's (D.7) with one change: instead of reducing to `k = 1` by the semigroup property and Young's
+  inequality, it uses for every `k ≥ 1` the Gaussian majorant `|∂^w Φ(t, z)| ≤ C (2t)^{-k/2} Φ(2t, z)`
+  (`abs_multiIndexDerivative_euclideanHeatKernel_le`) and `∫ ∂^w Φ(t, ·) = 0`, then Jensen's
+  inequality for the probability density `Φ(2t, x - ·)` in place of the annular decomposition, and
+  the time integral `∫_0^∞ t^{-a-1} Φ(2t, z) dt = K |z|^{-d-2a}` (a Gamma integral). The reduction
+  from `α` to `α - m` moves the `m` derivatives onto `u` as in the book.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
   formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
   (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
