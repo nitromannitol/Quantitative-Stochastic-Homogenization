@@ -53,6 +53,57 @@ theorem toReal_eLpMeanNormOn_eq {U : Set (Vec d)} (hUt : volume U ≠ ⊤) {p : 
     ENNReal.toReal_ofReal (Real.rpow_nonneg hI _),
     Real.mul_rpow (inv_nonneg.2 ENNReal.toReal_nonneg) hI, one_div p]
 
+/-- For `f ∈ C¹`, `(⨍_U ‖Df‖^p)^{1/p} ≤ √d ‖∇f‖_{L̲^p(U)}`. -/
+theorem rpow_average_norm_fderiv_le {U : Set (Vec d)} (hU0 : volume U ≠ 0) (hUt : volume U ≠ ⊤)
+    {p : ℝ} (hp0 : 0 < p) {f : Vec d → ℝ} (hfs : ContDiff ℝ 1 f)
+    (hGm : MemLp (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) (ENNReal.ofReal p)
+      (volume.restrict U)) :
+    ((volume U).toReal⁻¹ * ∫ y in U, ‖fderiv ℝ f y‖ ^ p) ^ (1 / p) ≤
+      Real.sqrt d * (PDE.eLpMeanNormOn U (ENNReal.ofReal p)
+        (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y))).toReal := by
+  have hDm : MemLp (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U) := by
+    refine (hGm.const_mul (Real.sqrt d)).of_le
+      (hfs.continuous_fderiv one_ne_zero).norm.aestronglyMeasurable
+      (Eventually.of_forall fun y => ?_)
+    rw [norm_norm, Real.norm_of_nonneg (mul_nonneg (Real.sqrt_nonneg _)
+      (PDE.vecEuclideanNorm_nonneg _))]
+    exact norm_fderiv_le_sqrt_mul f y
+  rw [← toReal_eLpMeanNormOn_eq hUt hp0 (fun y => norm_nonneg _) hDm]
+  have hle : PDE.eLpMeanNormOn U (ENNReal.ofReal p) (fun y => ‖fderiv ℝ f y‖) ≤
+      ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
+        (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) := by
+    rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt),
+      PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt),
+      mul_left_comm]
+    refine mul_le_mul' le_rfl ?_
+    change eLpNorm (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U) ≤
+      ENNReal.ofReal (Real.sqrt d) * eLpNorm
+        (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) (ENNReal.ofReal p)
+        (volume.restrict U)
+    calc eLpNorm (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U)
+        ≤ eLpNorm (fun y => Real.sqrt d * PDE.vecEuclideanNorm (PDE.classicalGradient f y))
+            (ENNReal.ofReal p) (volume.restrict U) := by
+          refine eLpNorm_mono_real hDm.aestronglyMeasurable fun y => ?_
+          rw [norm_norm]
+          exact norm_fderiv_le_sqrt_mul f y
+      _ = ENNReal.ofReal (Real.sqrt d) * eLpNorm
+            (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) (ENNReal.ofReal p)
+            (volume.restrict U) := by
+          rw [show (fun y => Real.sqrt d * PDE.vecEuclideanNorm (PDE.classicalGradient f y)) =
+            Real.sqrt d • (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) from rfl,
+            eLpNorm_const_smul, Real.enorm_of_nonneg (Real.sqrt_nonneg _)]
+  have hfin' : ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
+      (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y)) ≠ ⊤ := by
+    refine ENNReal.mul_ne_top ENNReal.ofReal_ne_top ?_
+    rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt)]
+    exact ENNReal.mul_ne_top (ENNReal.rpow_ne_top_of_nonneg (by positivity)
+      (ENNReal.inv_ne_top.2 hU0)) hGm.eLpNorm_lt_top.ne
+  calc (PDE.eLpMeanNormOn U (ENNReal.ofReal p) (fun y => ‖fderiv ℝ f y‖)).toReal
+      ≤ (ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
+          (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient f y))).toReal :=
+        ENNReal.toReal_mono hfin' hle
+    _ = _ := by rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (Real.sqrt_nonneg _)]
+
 /-- **Morrey's inequality on a bounded convex domain**: for `p ∈ (d, ∞)` and
 `u ∈ W^{1,p}(U)`, almost every `x ∈ U` satisfies
 `|u(x) - (u)_U| ≤ (1 - d/p)⁻¹ δ √d ‖∇u‖_{L̲^p(U)}`, where `δ` bounds the distances in `U`. -/
@@ -106,53 +157,8 @@ theorem ae_abs_sub_integralAverage_le_of_convex {U : Set (Vec d)} (hUo : IsOpen 
     have h1 := ConvexMorrey.abs_sub_average_le volume hfs hUo.measurableSet hUc hUb hU0 hx
       (fun y hy => hδ y hy x hx) hp1 (by simpa [Module.finrank_fin_fun] using hdp)
     rw [Module.finrank_fin_fun] at h1
-    have hgf : (ψ n).grad = PDE.classicalGradient f := rfl
-    have hGm : MemLp (fun y => PDE.vecEuclideanNorm ((ψ n).grad y)) (ENNReal.ofReal p)
-        (volume.restrict U) := PDE.GradMemLpOn.memLp_vecEuclideanNorm (ψ n).gradMemLp
-    have hDm : MemLp (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U) := by
-      refine (hGm.const_mul (Real.sqrt d)).of_le
-        (hfs.continuous_fderiv one_ne_zero).norm.aestronglyMeasurable
-        (Eventually.of_forall fun y => ?_)
-      rw [norm_norm, Real.norm_of_nonneg (mul_nonneg (Real.sqrt_nonneg _)
-        (PDE.vecEuclideanNorm_nonneg _)), hgf]
-      exact norm_fderiv_le_sqrt_mul f y
-    have hM : ((volume U).toReal⁻¹ * ∫ y in U, ‖fderiv ℝ f y‖ ^ p) ^ (1 / p) ≤
-        Real.sqrt d * (PDE.eLpMeanNormOn U (ENNReal.ofReal p)
-          (fun y => PDE.vecEuclideanNorm ((ψ n).grad y))).toReal := by
-      rw [← toReal_eLpMeanNormOn_eq hUt hp0 (fun y => norm_nonneg _) hDm]
-      have hle : PDE.eLpMeanNormOn U (ENNReal.ofReal p) (fun y => ‖fderiv ℝ f y‖) ≤
-          ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
-            (fun y => PDE.vecEuclideanNorm ((ψ n).grad y)) := by
-        rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt),
-          PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt),
-          mul_left_comm]
-        refine mul_le_mul' le_rfl ?_
-        change eLpNorm (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U) ≤
-          ENNReal.ofReal (Real.sqrt d) * eLpNorm (fun y => PDE.vecEuclideanNorm ((ψ n).grad y))
-            (ENNReal.ofReal p) (volume.restrict U)
-        calc eLpNorm (fun y => ‖fderiv ℝ f y‖) (ENNReal.ofReal p) (volume.restrict U)
-            ≤ eLpNorm (fun y => Real.sqrt d * PDE.vecEuclideanNorm ((ψ n).grad y))
-                (ENNReal.ofReal p) (volume.restrict U) := by
-              refine eLpNorm_mono_real hDm.aestronglyMeasurable fun y => ?_
-              rw [norm_norm, hgf]
-              exact norm_fderiv_le_sqrt_mul f y
-          _ = ENNReal.ofReal (Real.sqrt d) * eLpNorm
-                (fun y => PDE.vecEuclideanNorm ((ψ n).grad y)) (ENNReal.ofReal p)
-                (volume.restrict U) := by
-              rw [show (fun y => Real.sqrt d * PDE.vecEuclideanNorm ((ψ n).grad y)) =
-                Real.sqrt d • (fun y => PDE.vecEuclideanNorm ((ψ n).grad y)) from rfl,
-                eLpNorm_const_smul, Real.enorm_of_nonneg (Real.sqrt_nonneg _)]
-      have hfin' : ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
-          (fun y => PDE.vecEuclideanNorm ((ψ n).grad y)) ≠ ⊤ := by
-        refine ENNReal.mul_ne_top ENNReal.ofReal_ne_top ?_
-        rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hUt)]
-        exact ENNReal.mul_ne_top (ENNReal.rpow_ne_top_of_nonneg (by positivity)
-          (ENNReal.inv_ne_top.2 hU0)) hGm.eLpNorm_lt_top.ne
-      calc (PDE.eLpMeanNormOn U (ENNReal.ofReal p) (fun y => ‖fderiv ℝ f y‖)).toReal
-          ≤ (ENNReal.ofReal (Real.sqrt d) * PDE.eLpMeanNormOn U (ENNReal.ofReal p)
-              (fun y => PDE.vecEuclideanNorm ((ψ n).grad y))).toReal :=
-            ENNReal.toReal_mono hfin' hle
-        _ = _ := by rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (Real.sqrt_nonneg _)]
+    have hM := rpow_average_norm_fderiv_le hU0 hUt hp0 hfs
+      (PDE.GradMemLpOn.memLp_vecEuclideanNorm (ψ n).gradMemLp)
     have hc0 : 0 ≤ 1 / (1 - (d : ℝ) / p) * δ := by
       have hδ0 : 0 ≤ δ := (norm_nonneg _).trans (hδ x hx x hx)
       have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
