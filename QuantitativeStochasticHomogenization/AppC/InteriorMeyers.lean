@@ -66,89 +66,9 @@ theorem negativeSobolevOneNorm_two_zero_le {U : Set (Vec d)} (hU0 : volume U ≠
     (hF : ∀ i, MemLp (fun x => F x i) 2 (volume.restrict U)) :
     negativeSobolevOneNorm 2 U (fun _ => 0) F ≤
       PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) := by
-  set μ := PDE.normalizedVolumeOn U with hμ
-  have hpos : 0 < volume U := pos_iff_ne_zero.mpr hU0
-  have hq : ENNReal.ofReal ((2 : ℝ) / (2 - 1)) = 2 := by norm_num
-  have hnF : MemLp (fun x => euclideanNorm (F x)) 2 (volume.restrict U) :=
-    memLp_euclideanNorm_of_coord hF
-  refine iSup_le fun ψ => ?_
-  obtain ⟨ψ, htest, hT⟩ := ψ
-  rw [hq] at hT
-  have hgrad : ∀ i, Continuous fun x => coordinateDerivative i ψ x := by
-    intro i
-    exact (htest.1.continuous_fderiv (by simp)).clm_apply continuous_const
-  have hav : distributionPairing U (fun _ => 0) F ψ =
-      ∫ x, (0 * ψ x - dot (F x) (gradient ψ x)) ∂μ := by
-    rw [distributionPairing, hμ, PDE.integral_normalizedVolumeOn_eq_integralAverage,
-      PDE.integralAverage, setAverage_eq, smul_eq_mul, measureReal_def]
-  rw [hav, ← Real.enorm_eq_ofReal_abs]
-  refine (enorm_integral_le_lintegral_enorm _).trans ?_
-  have hpt : ∀ x, ‖0 * ψ x - dot (F x) (gradient ψ x)‖ₑ ≤
-      ∑ i, ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ := by
-    intro x
-    rw [zero_mul, zero_sub, enorm_neg, Real.enorm_eq_ofReal_abs]
-    calc ENNReal.ofReal |dot (F x) (gradient ψ x)| ≤
-        ENNReal.ofReal (∑ i, euclideanNorm (F x) * |coordinateDerivative i ψ x|) := by
-          refine ENNReal.ofReal_le_ofReal ?_
-          refine (Finset.abs_sum_le_sum_abs _ _).trans (Finset.sum_le_sum fun i _ => ?_)
-          rw [abs_mul]
-          exact mul_le_mul_of_nonneg_right (abs_apply_le_euclideanNorm'' _ i) (abs_nonneg _)
-      _ = ∑ i, ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ := by
-          rw [ENNReal.ofReal_sum_of_nonneg (fun i _ => by
-            have := euclideanNorm_nonneg' (F x); positivity)]
-          refine Finset.sum_congr rfl fun i _ => ?_
-          rw [ENNReal.ofReal_mul (euclideanNorm_nonneg' _), Real.enorm_eq_ofReal_abs,
-            Real.enorm_eq_ofReal_abs, abs_of_nonneg (euclideanNorm_nonneg' _)]
-  have hFμ : AEStronglyMeasurable (fun x => euclideanNorm (F x)) μ :=
-    (hnF.smul_measure (ENNReal.inv_ne_top.mpr hU0)).aestronglyMeasurable
-  have hmF : AEMeasurable (fun x => ‖euclideanNorm (F x)‖ₑ) μ := hFμ.enorm
-  have hholder : ∀ i, ∫⁻ x, ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ ≤
-      PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) *
-        PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) := by
-    intro i
-    have h := ENNReal.lintegral_mul_le_Lp_mul_Lq μ Real.HolderConjugate.two_two hmF
-      (hgrad i).aestronglyMeasurable.enorm
-    have e1 : PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) =
-        (∫⁻ x, ‖euclideanNorm (F x)‖ₑ ^ (2 : ℝ) ∂μ) ^ (1 / (2 : ℝ)) := by
-      rw [PDE.eLpMeanNormOn, ← hμ, eLpNorm_eq_lintegral_rpow_enorm_toReal two_ne_zero
-        ENNReal.ofNat_ne_top hFμ, ENNReal.toReal_ofNat]
-    have e2 : PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) =
-        (∫⁻ x, ‖coordinateDerivative i ψ x‖ₑ ^ (2 : ℝ) ∂μ) ^ (1 / (2 : ℝ)) := by
-      rw [PDE.eLpMeanNormOn, ← hμ, eLpNorm_eq_lintegral_rpow_enorm_toReal two_ne_zero
-        ENNReal.ofNat_ne_top (hgrad i).aestronglyMeasurable, ENNReal.toReal_ofNat]
-    rw [e1, e2]
-    exact h
-  have hsumT : ∑ i, PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) ≤ 1 := by
-    let φ : PDE.WeakTestFunction U := ⟨ψ, htest.1, htest.2.1, htest.2.2⟩
-    have hfin : ∀ i, PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) ≠ ⊤ := fun i =>
-      eLpMeanNormOn_ne_top hU0 (φ.grad_memVectorL2On i)
-    have e : ∑ i, PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) =
-        ENNReal.ofReal (∑ i, (PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ)).toReal) := by
-      rw [ENNReal.ofReal_sum_of_nonneg (fun i _ => ENNReal.toReal_nonneg)]
-      exact Finset.sum_congr rfl fun i _ => (ENNReal.ofReal_toReal (hfin i)).symm
-    rw [e, ← ENNReal.ofReal_one]
-    refine ENNReal.ofReal_le_ofReal (le_trans ?_ hT)
-    unfold sobolevOneTestNorm
-    have h0 : 0 ≤ (volume U).toReal ^ (-(1 : ℝ) / d) *
-        (PDE.eLpMeanNormOn U 2 ψ).toReal :=
-      mul_nonneg (Real.rpow_nonneg ENNReal.toReal_nonneg _) ENNReal.toReal_nonneg
-    linarith
-  have hmeas : ∀ i ∈ Finset.univ, AEMeasurable
-      (fun x => ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ) μ :=
-    fun i _ => hmF.mul (hgrad i).aestronglyMeasurable.enorm
-  calc ∫⁻ x, ‖0 * ψ x - dot (F x) (gradient ψ x)‖ₑ ∂μ
-      ≤ ∫⁻ x, ∑ i, ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ :=
-        lintegral_mono hpt
-    _ = ∑ i, ∫⁻ x, ‖euclideanNorm (F x)‖ₑ * ‖coordinateDerivative i ψ x‖ₑ ∂μ :=
-        lintegral_finsetSum' _ hmeas
-    _ ≤ ∑ i, PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) *
-          PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) :=
-        Finset.sum_le_sum fun i _ => hholder i
-    _ = PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) *
-          ∑ i, PDE.eLpMeanNormOn U 2 (coordinateDerivative i ψ) := by
-        rw [Finset.mul_sum]
-    _ ≤ PDE.eLpMeanNormOn U 2 (fun x => euclideanNorm (F x)) * 1 := by gcongr
-    _ = _ := mul_one _
+  have h2 : ENNReal.ofReal 2 = 2 := by norm_num
+  have h := negativeSobolevOneNorm_zero_le hU0 one_lt_two (H := F) (by rw [h2]; exact hF)
+  rwa [h2] at h
 
 /-- **Theorem C.1 for a right-hand side in divergence form.** For `d ≥ 2` there are
 `δ(d, Λ) > 0` and `C(d, Λ) < ∞` such that, for `p ∈ (2, ∞)`, `r > 0`, `H ∈ L^p(B_r; ℝ^d)` and
