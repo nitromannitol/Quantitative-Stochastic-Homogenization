@@ -398,4 +398,123 @@ theorem eLpNorm_top_le_w1pNorm_univ (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p)
   refine (eLpNormEssSup_le_of_ae_bound hvb).trans (le_of_eq ?_)
   rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_toReal hWfin]
 
+/-- **Theorem B.10** (Morrey's inequality), `k = 1`, for a finite exponent `p ∈ (d, ∞)`. -/
+theorem theorem_B_10_one_ofReal (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p) :
+    ∃ C : ℝ, 0 < C ∧
+      (∀ (z : Vec d) (r : ℝ), 0 < r → ∀ (v : Vec d → ℝ) (g : Vec d → Vec d),
+        (IsW1p (ball z r) (ENNReal.ofReal p) v g →
+          ⨅ w : ℝ, eLpNorm (fun x => v x - w) ⊤ (volume.restrict (ball z r)) ≤
+            ENNReal.ofReal (C * r) *
+              PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p) (fun x => euclideanNorm (g x))) ∧
+        (IsW01p (ball z r) (ENNReal.ofReal p) v g →
+          eLpNorm v ⊤ (volume.restrict (ball z r)) ≤
+            ENNReal.ofReal (C * r) *
+              PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p) (fun x => euclideanNorm (g x)))) ∧
+      ∀ (v : Vec d → ℝ) (g : Vec d → Vec d), IsW1p Set.univ (ENNReal.ofReal p) v g →
+        eLpNorm v ⊤ volume ≤ ENNReal.ofReal C * w1pNorm Set.univ (ENNReal.ofReal p) v g := by
+  have hp0 : 0 < p := (Nat.cast_pos.2 hd).trans hdp
+  have hc : 0 < 1 - (d : ℝ) / p := by
+    have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
+    linarith
+  obtain ⟨Cg, hCg, hglob⟩ := eLpNorm_top_le_w1pNorm_univ hd hdp
+  obtain ⟨a, ha⟩ : ∃ a : ℝ, a = 8 * Real.sqrt d / (1 - d / p) := ⟨_, rfl⟩
+  have ha0 : 0 ≤ a := by
+    rw [ha]
+    exact div_nonneg (by positivity) hc.le
+  have h28 : 2 * Real.sqrt d / (1 - d / p) ≤ a := by
+    rw [ha]
+    exact div_le_div_of_nonneg_right (by nlinarith [Real.sqrt_nonneg (d : ℝ)]) hc.le
+  refine ⟨a + Cg, by positivity, fun z r hr v g => ⟨fun hv => ?_, fun hv => ?_⟩, fun v g hv => ?_⟩
+  · refine (iInf_le _ (PDE.integralAverage (ball z r) v)).trans
+      ((eLpNorm_top_sub_integralAverage_ball_le hd hdp z hr hv).trans
+        (mul_le_mul' (ENNReal.ofReal_le_ofReal ?_) le_rfl))
+    exact mul_le_mul_of_nonneg_right (by linarith) hr.le
+  · refine (eLpNorm_top_ball_le_of_isW01p hd hdp z hr hv).trans
+      (mul_le_mul' (ENNReal.ofReal_le_ofReal ?_) le_rfl)
+    rw [← ha]
+    exact mul_le_mul_of_nonneg_right (by linarith) hr.le
+  · exact (hglob v g hv).trans (mul_le_mul' (ENNReal.ofReal_le_ofReal (by linarith)) le_rfl)
+
+theorem IsW1p.of_top {U : Set (Vec d)} (hUt : volume U ≠ ⊤) {q : ℝ≥0∞} {v : Vec d → ℝ}
+    {g : Vec d → Vec d} (hv : IsW1p U ⊤ v g) : IsW1p U q v g := by
+  have : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.mpr hUt
+  exact ⟨hv.1.mono_exponent le_top, hv.2.1.mono_exponent le_top, hv.2.2⟩
+
+theorem eLpMeanNormOn_le_eLpMeanNormOn_top {U : Set (Vec d)} (hU0 : volume U ≠ 0)
+    (hUt : volume U ≠ ⊤) (q : ℝ≥0∞) {E : Type*} [NormedAddCommGroup E] (f : Vec d → E) :
+    PDE.eLpMeanNormOn U q f ≤ PDE.eLpMeanNormOn U ⊤ f := by
+  have : IsProbabilityMeasure (PDE.normalizedVolumeOn U) :=
+    PDE.isProbabilityMeasure_normalizedVolumeOn_of_pos_of_lt_top (pos_iff_ne_zero.2 hU0)
+      (lt_top_iff_ne_top.2 hUt)
+  exact eLpNorm_le_eLpNorm_of_exponent_le le_top
+
+theorem w1pNorm_le_w1pNorm_top_mul {U : Set (Vec d)} (q : ℝ≥0∞) {u : Vec d → ℝ}
+    {g : Vec d → Vec d} (hu : AEStronglyMeasurable u (volume.restrict U))
+    (hg : AEStronglyMeasurable g (volume.restrict U)) :
+    w1pNorm U q u g ≤ w1pNorm U ⊤ u g * volume U ^ (1 / q.toReal) := by
+  have key : ∀ f : Vec d → ℝ, AEStronglyMeasurable f (volume.restrict U) →
+      eLpNorm f q (volume.restrict U) ≤
+        eLpNorm f ⊤ (volume.restrict U) * volume U ^ (1 / q.toReal) := fun f hf => by
+    have h := eLpNorm_le_eLpNorm_mul_rpow_measure_univ (le_top : q ≤ ⊤) hf
+    rwa [Measure.restrict_apply_univ, ENNReal.toReal_top, div_zero, sub_zero] at h
+  unfold w1pNorm
+  rw [add_mul, Finset.sum_mul]
+  exact add_le_add (key u hu)
+    (Finset.sum_le_sum fun i _ => key _ ((continuous_apply i).comp_aestronglyMeasurable hg))
+
+theorem IsW01p.of_top {U : Set (Vec d)} (hUt : volume U ≠ ⊤) {q : ℝ≥0∞} {v : Vec d → ℝ}
+    {g : Vec d → Vec d} (hv : IsW01p U ⊤ v g) : IsW01p U q v g := by
+  obtain ⟨φ, hφ, hlim⟩ := hv.2
+  refine ⟨hv.1.of_top hUt, φ, hφ, ?_⟩
+  have h := ENNReal.Tendsto.mul_const (b := volume U ^ (1 / q.toReal)) hlim
+    (Or.inr (ENNReal.rpow_ne_top_of_nonneg (by positivity) hUt))
+  rw [zero_mul] at h
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h (fun _ => zero_le)
+    fun n => w1pNorm_le_w1pNorm_top_mul q ?_ ?_
+  · exact (hφ n).1.continuous.aestronglyMeasurable.sub hv.1.1.aestronglyMeasurable
+  · exact (continuous_gradient ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
+      hv.1.2.1.aestronglyMeasurable
+
+/-- **Theorem B.10** (Morrey's inequality), `k = 1`: for `d ≥ 1` and `p ∈ (d, ∞]` there is
+`C(p, d)` such that for every ball `B_r(z)` and `v ∈ W^{1,p}(B_r(z))`,
+`inf_{w ∈ ℝ} ‖v - w‖_{L^∞(B_r(z))} ≤ C r ‖∇v‖_{L̲^p(B_r(z))}` (B.8);
+`‖v‖_{L^∞(B_r(z))} ≤ C r ‖∇v‖_{L̲^p(B_r(z))}` if `v ∈ W^{1,p}_0(B_r(z))`; and
+`‖v‖_{L^∞(ℝ^d)} ≤ C ‖v‖_{W^{1,p}(ℝ^d)}` for `v ∈ W^{1,p}(ℝ^d)` (B.9). -/
+theorem theorem_B_10_one (hd : 0 < d) (p : ℝ≥0∞) (hp : (d : ℝ≥0∞) < p) :
+    ∃ C : ℝ, 0 < C ∧
+      (∀ (z : Vec d) (r : ℝ), 0 < r → ∀ (v : Vec d → ℝ) (g : Vec d → Vec d),
+        (IsW1p (ball z r) p v g →
+          ⨅ w : ℝ, eLpNorm (fun x => v x - w) ⊤ (volume.restrict (ball z r)) ≤
+            ENNReal.ofReal (C * r) *
+              PDE.eLpMeanNormOn (ball z r) p (fun x => euclideanNorm (g x))) ∧
+        (IsW01p (ball z r) p v g →
+          eLpNorm v ⊤ (volume.restrict (ball z r)) ≤
+            ENNReal.ofReal (C * r) *
+              PDE.eLpMeanNormOn (ball z r) p (fun x => euclideanNorm (g x)))) ∧
+      ∀ (v : Vec d → ℝ) (g : Vec d → Vec d), IsW1p Set.univ p v g →
+        eLpNorm v ⊤ volume ≤ ENNReal.ofReal C * w1pNorm Set.univ p v g := by
+  by_cases hpt : p = ⊤
+  · subst hpt
+    obtain ⟨C, hC, hball, hglob⟩ := theorem_B_10_one_ofReal hd (by linarith : (d : ℝ) < d + 1)
+    refine ⟨C + 1, by positivity, fun z r hr v g => ⟨fun hv => ?_, fun hv => ?_⟩, fun v g hv => ?_⟩
+    · have hBt := volume_ball_ne_top z hr
+      exact ((hball z r hr v g).1 (hv.of_top hBt)).trans (mul_le_mul'
+        (ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_right (by linarith) hr.le))
+        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos z hr).ne' hBt _ _))
+    · have hBt := volume_ball_ne_top z hr
+      exact ((hball z r hr v g).2 (hv.of_top hBt)).trans (mul_le_mul'
+        (ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_right (by linarith) hr.le))
+        (eLpMeanNormOn_le_eLpMeanNormOn_top (volume_ball_pos z hr).ne' hBt _ _))
+    · have h := eLpNorm_le_w1pNorm Set.univ ⊤ v g
+      rw [Measure.restrict_univ] at h
+      exact h.trans (le_mul_of_one_le_left zero_le (by rw [ENNReal.one_le_ofReal]; linarith))
+  · obtain ⟨q, rfl⟩ : ∃ q : ℝ, p = ENNReal.ofReal q := ⟨p.toReal, (ENNReal.ofReal_toReal hpt).symm⟩
+    have hdq : (d : ℝ) < q := by
+      have h := ENNReal.toReal_strict_mono hpt hp
+      rwa [ENNReal.toReal_natCast, ENNReal.toReal_ofReal] at h
+      by_contra hq
+      rw [ENNReal.ofReal_of_nonpos (by linarith)] at hp
+      exact absurd hp (not_lt.2 zero_le)
+    exact theorem_B_10_one_ofReal hd hdq
+
 end QSH
