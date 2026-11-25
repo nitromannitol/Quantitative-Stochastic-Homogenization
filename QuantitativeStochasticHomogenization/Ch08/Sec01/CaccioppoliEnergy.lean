@@ -405,8 +405,8 @@ theorem parabolicCaccioppoli_identity {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : Coefficie
 `∫_{B_r} u(t)² + ∫_{-r²}^t ∫_{B_r} |∇u|² ≤ C r⁻² ∫_{Q_{2r}} u² + C |B_{2r}| ∫_{I_{2r}} ‖∇·F‖²_{H̲⁻¹(B_{2r})}`
 with `C` depending only on `d` and `Λ`. -/
 theorem parabolicCaccioppoli_energy {Λ : ℝ} (hΛ : 1 ≤ Λ) (hd : 0 < d) :
-    ∃ C : ℝ, 0 < C ∧ ∀ (a : CoefficientField d Λ) (r : ℝ) (hr : 0 < r)
-      (u : PDE.ParH1Function (ball (0 : Vec d) (2 * r)) (Ioc (-(2 * r) ^ 2) 0))
+    ∃ C : ℝ, 0 < C ∧ ∀ (a : CoefficientField d Λ) (r : ℝ), 0 < r →
+      ∀ (u : PDE.ParH1Function (ball (0 : Vec d) (2 * r)) (Ioc (-(2 * r) ^ 2) 0))
       (F : Vec d × ℝ → Vec d),
       (∀ i, MemLp (fun z => F z i) 2 (volume.restrict (parabolicCylinder d (2 * r)))) →
       IsParabolicSolution a (ball 0 (2 * r)) (Ioc (-(2 * r) ^ 2) 0) u F →
