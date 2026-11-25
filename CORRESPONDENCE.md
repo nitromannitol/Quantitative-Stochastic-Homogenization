@@ -1490,6 +1490,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
   `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
 
+## Section 7.1: Lemma 7.2 (`Ch07/Sec01/GoodLambda.lean`, `Ch07/Sec01/Lemma72.lean`)
+
+- Norms are normalized (`PDE.eLpMeanNormOn`, the book's `L̲^p`). `f_{x,r} ∈ L^q(B_r(x))` is
+  `MemLp f_{x,r} q` on `B_r(x)`, with `q ∈ (p, ∞]` in `ℝ≥0∞`.
+- `QSH.lemma_7_2_ball`: for `p ∈ (2, ∞)`, `q ∈ (p, ∞]` and `A ≥ 1` there are `δ₀(p, q, A, d) > 0` and
+  `C(p, q, A, d) < ∞` such that, for every `δ ∈ (0, δ₀]` and every `R > 0`, if `f ∈ L²(B_R)`,
+  `g ∈ L^p(B_R)` and every ball `B_r(x)` with `r < R/2` and `B_{2r}(x) ⊆ B_R` carries some
+  `f_{x,r}` with (7.6) and (7.7), then `f ∈ L^p(B_{R/2})` and (7.8) holds on `B_{R/2}` with the
+  norms of `f` and `g` on `B_R`.
+- GAP: the book assumes (7.6) and (7.7) only for `x ∈ B_{1/2}` and `r ∈ (0, 1/4)` and concludes on
+  `B_{1/2}`, but Steps 2 and 3 of its proof apply them at the stopping balls `B_{5 r_x}(x)` for
+  every `x ∈ {|f| > λ} ∩ B_s` with `s ∈ [1/2, 1)`, centers that need not lie in `B_{1/2}`.
+  `QSH.lemma_7_2` proves the conclusion under the printed hypotheses on `B_{1/4}` (with the norms of
+  `f` and `g` on `B_{1/2}` on the right), as `lemma_7_2_ball` with `R = 1/2`. The proof of
+  Proposition 7.3 supplies the hypotheses on every ball `B_{2r}(x) ⊆ B_1`, which is the form of
+  `lemma_7_2_ball` with `R = 1`.
+- Proof: the book's, through the good-λ inequality (7.10) (`QSH.cz_goodLambda`), with
+  `G = ε⁻¹ g`, `η = εA + δ` and `λ₀ = (128/(t - s))^{d/2} (‖f‖_{L̲²(B_R)} + ‖G‖_{L̲²(B_R)})`. The
+  stopping radius is the largest dyadic radius `(t - s)R/(16 · 2^k)` with `λ < E(x, r)`, so that
+  `E(x, 16r) ≤ λ` replaces the equality `E(x, r_x) = λ` of (7.11), and the hypotheses are applied at
+  the radius `8r`; the numerical constants of (7.12) and (7.15) change accordingly (`16`, `4^{p-2}`,
+  thresholds `λ/4` in place of `λ/2`). As in Lemma C.4, the absorbed quantity is
+  `∫_{B_s} f² (|f| ∧ m)^{p-2}` (`QSH.cz_step`), which the display after (7.9) writes as
+  `‖f_m‖^p_{L^p(B_s)}`; Lemma C.6 and the monotone convergence theorem in `m` conclude. For
+  `q = ∞` the hypothesis (7.6) at a finite exponent `q' ∈ (p, ∞)` follows from the monotonicity of
+  normalized norms.
+
 ## Section 10.1: Definition 10.2 (`Ch10/Sec01/VariationalRepresentation.lean`)
 
 - Definition 10.2: `QSH.VariationallyRepresents F φ`, with the convexity of `(p, q) ↦ F(p, q)` on
