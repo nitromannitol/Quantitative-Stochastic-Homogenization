@@ -196,18 +196,18 @@ theorem subcubeDeviation_le_structuralMatrixConst [NeZero d] {P : Measure (Coeff
 
 /-! ## The bound (2.68) of `E(m)` -/
 
-/-- **(2.68)**: if for every `n`, `|a(□_n) - ā| + |a*(□_n) - ā| ≤ c 3^{-nγ} + O₁(θ 3^{-nσ})` with
-`γ ≤ 1` and `0 < σ < d`, then there is `K > 0` such that for every `m ∈ ℕ` and `ρ > 0` there is
-`V ≤ O₁(K ρ^{1-2d} 3^{-mσ})` with
+/-- **(2.68)**: there is `K > 0` depending on `(c, θ, σ, d, Λ)` such that, if
+`|a(□_n) - ā| + |a*(□_n) - ā| ≤ c 3^{-nγ} + O₁(θ 3^{-nσ})` for every `n`, with `γ ≤ 1` and
+`0 < σ < d`, then for every `m ∈ ℕ` and `ρ > 0` there is `V ≤ O₁(K ρ^{1-2d} 3^{-mσ})` with
 `E(m)^{1/2} ≤ c^{1/2} (1 - 3^{γ/2-1})⁻¹ 3^{-mγ/2} + ρ + V`. -/
-theorem sqrt_coarseDeviation_le_os (hd : 2 ≤ d) {P : Measure (CoefficientField d Λ)}
-    (hP : LawHypotheses P) (hΛ : 0 ≤ Λ) {c θ σ γ : ℝ} (hc : 0 < c) (hθ : 0 < θ) (hσ : 0 < σ)
-    (hσd : σ < d) (hγ1 : γ ≤ 1)
-    (h24 : ∀ n : ℕ, OsBound P (fun a =>
+theorem sqrt_coarseDeviation_le_os (hd : 2 ≤ d) (hΛ : 0 ≤ Λ) {c θ σ γ : ℝ} (hc : 0 < c)
+    (hθ : 0 < θ) (hσ : 0 < σ) (hσd : σ < d) (hγ1 : γ ≤ 1) :
+    ∃ K : ℝ, 0 < K ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+    (∀ n : ℕ, OsBound P (fun a =>
       frobeniusNorm (coarseMatrix a (triadicCube d n) - homogenizedMatrix P) +
         frobeniusNorm (coarseDualMatrix a (triadicCube d n) - homogenizedMatrix P) -
-          c * (3 : ℝ) ^ (-((n : ℝ) * γ))) 1 (θ * (3 : ℝ) ^ (-((n : ℝ) * σ)))) :
-    ∃ K : ℝ, 0 < K ∧ ∀ (m : ℕ) (ρ : ℝ), 0 < ρ → ∃ V : CoefficientField d Λ → ℝ,
+          c * (3 : ℝ) ^ (-((n : ℝ) * γ))) 1 (θ * (3 : ℝ) ^ (-((n : ℝ) * σ)))) →
+    ∀ (m : ℕ) (ρ : ℝ), 0 < ρ → ∃ V : CoefficientField d Λ → ℝ,
       OsBound P V 1 (K * ρ ^ (1 - 2 * (d : ℝ)) * (3 : ℝ) ^ (-((m : ℝ) * σ))) ∧
       ∀ a, √(coarseDeviation P m a) ≤
         √c * (1 - (3 : ℝ) ^ (γ / 2 - 1))⁻¹ * (3 : ℝ) ^ (-((m : ℝ) * (γ / 2))) + ρ + V a := by
@@ -232,7 +232,7 @@ theorem sqrt_coarseDeviation_le_os (hd : 2 ≤ d) {P : Measure (CoefficientField
     rw [hG]
     have : (3 : ℝ) ^ (κ - 1) < 1 := Real.rpow_lt_one_of_one_lt_of_neg (by norm_num) (by linarith)
     exact inv_pos.mpr (by linarith)
-  refine ⟨(K₃ * G) ^ (2 * (d : ℝ)), by positivity, fun m ρ hρ => ?_⟩
+  refine ⟨(K₃ * G) ^ (2 * (d : ℝ)), by positivity, fun P hP h24 m ρ hρ => ?_⟩
   -- the square roots of the averages over the subcubes
   have hW : ∀ n : ℕ, OsBound P (fun a => max (√(subcubeDeviation P m n a) -
       √(c * (3 : ℝ) ^ (-((n : ℝ) * γ)))) 0) (2 * d) (K₃ * (3 : ℝ) ^ (-((n : ℝ) * κ))) := by
