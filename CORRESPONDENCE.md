@@ -1012,10 +1012,27 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   inequality for the probability density `Φ(2t, x - ·)` in place of the annular decomposition, and
   the time integral `∫_0^∞ t^{-a-1} Φ(2t, z) dt = K |z|^{-d-2a}` (a Gamma integral). The reduction
   from `α` to `α - m` moves the `m` derivatives onto `u` as in the book.
-- **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
-  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
-  (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
-  see the Appendix B section).
+- **Proposition D.1, the first inequality of (D.2)** (`propositionD1_fractional`,
+  `AppD/PropositionD1Fractional.lean`) is proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every
+  `p ∈ (1, ∞)`, and `u ∈ L^p(ℝ^d)`; a distribution of `W^{-α,p}(ℝ^d)` that is not a function is not
+  covered. The norm (B.4) is the supremum of `|∫ u g|` over `g ∈ C_c^∞(ℝ^d)` with
+  `‖g‖_{W^{α,q}(ℝ^d)} ≤ 1`, `q = p/(p-1)` (`negativeFractionalSobolevNorm`), with the norm (B.3)
+  `∑_{j ≤ m} ∑_{|w| = j} ‖∂_w g‖_{L^q} + ∑_{|w| = m} [∂_w g]_{W^{β,q}}` over lists of coordinates
+  (`fractionalSobolevNorm`), which counts each multi-index with its multiplicity and changes the
+  constant only. The right-hand side is
+  `(∫_0^1 t^{pα/2} ‖u ∗ Φ(t, ·)‖^p_{L^p} dt/t)^{1/p}` as a lower Lebesgue integral. The proof is the
+  book's Step 1 with `k = ⌊m/2⌋ + 1`: the Taylor formula (D.21) is the paired Taylor formula of the
+  heat semigroup (`integral_mul_heatTaylor_ball`, which needs only `u exp(-|x|²/16) ∈ L¹`); the
+  terms `ρ^{(j)}(1)` are bounded by `‖u ∗ Φ(1, ·)‖_{L^p} ‖Δ^j g‖_{L^q}` with `2j ≤ m`, and
+  `‖u ∗ Φ(1, ·)‖_{L^p} ≤ ‖u ∗ Φ(τ, ·)‖_{L^p}` for every `τ ∈ (1/2, 1)` (the book uses one `τ`
+  between `1/4` and `1/2`); the remainder is split as `∫ (u ∗ Φ(s/2, ·)) (Δ^k g ∗ Φ(s/2, ·))`
+  (`integral_mul_heatSmooth_split`), with `|Δ^k g ∗ Φ| ≤ d^k |∇^{2k} Φ ∗ g|`, Hölder's inequality in
+  space and in time and Proposition D.2 (`propositionD2_fractional`, which gives a constant depending
+  on `q`). The second inequality of (D.2), whose proof uses (D.25) from [128], and (D.1) for
+  `α ∈ ℕ` are not formalized. The local variant of the first inequality of (D.1) used for (4.126)
+  is formalized separately (see Section 4.6 above); Remark B.6 on `ℝ^d` is not (Remark B.6 on balls
+  is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`; see the Appendix B
+  section).
 
 ## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 

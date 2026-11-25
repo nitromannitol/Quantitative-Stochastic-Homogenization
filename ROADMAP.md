@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 64 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 19 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 64 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 20 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -33,9 +33,9 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 6 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
-| Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
+| Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 2 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **64** | **19** |
+| | **Total** | **226** | **64** | **20** |
 
 ## Front matter
 
@@ -554,11 +554,11 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
-Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean`, `AppD/PropositionD2.lean` and `AppD/PropositionD2Fractional.lean`).
+Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean`, `AppD/PropositionD2.lean`, `AppD/PropositionD2Fractional.lean`, `AppD/HeatFlowLp.lean` and `AppD/PropositionD1Fractional.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Proposition D.1 |  | not started (a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
+| Proposition D.1 |  | in progress (the first inequality of (D.2), `α ∉ ℕ`, every `p ∈ (1, ∞)`, for `u ∈ L^p(ℝ^d)`: `propositionD1_fractional`; the second inequality of (D.2), (D.1) for `α ∈ ℕ` and distributions `u ∈ W^{-α,p}(ℝ^d)` outside `L^p` not proved; a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
 | Proposition D.2 |  | in progress ((D.4), `α ∉ ℕ`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`: `propositionD2_fractional`, with a constant depending also on `q`; (D.3) for `q = 2`, `α ∈ ℕ`: `propositionD2_two`, which is Lemma D.3; (D.3) for `q ≠ 2` not proved; see CORRESPONDENCE.md) |
 | Lemma D.3 |  | proved (`lemmaD3`; see CORRESPONDENCE.md) |
 | Lemma D.4 |  | proved (`lemmaD4`; see CORRESPONDENCE.md) |
