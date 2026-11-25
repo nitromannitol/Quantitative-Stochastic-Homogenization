@@ -966,7 +966,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
   the markers of the frozen files, since each frozen file is imported by the modules of its proof.
 
-## Appendix D: Propositions D.1 and D.2, Lemmas D.3 and D.4 (`AppD/`)
+## Appendix D: Propositions D.1, D.2 and D.5, Lemmas D.3 and D.4 (`AppD/`)
 
 - **Lemma D.4** (`lemmaD4`). The maximal function `maximalFunction f` is the centered maximal
   function over the open Euclidean balls, with values in `[0, ∞]`; it is lower semicontinuous
@@ -993,19 +993,75 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   regularity library (`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative`). The book
   reduces to `α = 0` by considering `∇^α u` in place of `u`, which is this step.
 - **Proposition D.2** (`propositionD2_two`) is proved in the case `q = 2`, `α ∈ ℕ` of (D.3), in which,
-  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The cases `q ≠ 2`
+  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The case `q ≠ 2`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
-  and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
-- **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
-  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
-  (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
-  see the Appendix B section).
+  is not formalized.
+- **Proposition D.2, (D.4)** (`propositionD2_fractional`, `AppD/PropositionD2Fractional.lean`) is
+  proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`. The space
+  `W^{α,q}(ℝ^d)` is given as `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives `g l` along lists of
+  coordinates (`IsSobolevFamilyLp`), and `[u]_{W^{α,q}(ℝ^d)}` is `∑_{|w| = m} [∂_w u]_{W^{β,q}(ℝ^d)}`
+  with the seminorm (B.2), `[v]^q_{W^{β,q}} = (1 - β) ∫∫ |v(x) - v(y)|^q / |x - y|^{d+βq}` (`fractionalSeminorm`,
+  `fractionalSobolevSeminorm`); the sum over lists counts each multi-index of (B.3) with its
+  multiplicity, which changes the constant only. The constant depends on `k`, `α`, `q` and `d`: the
+  book states `C(k, α, d)`, but its proof of (D.7) bounds `‖·‖^q` by
+  `C^q ∫_0^∞ s^{d+qα} exp(-s²/16) ds/s` times the seminorm, a Gamma integral that is not bounded by
+  `C(d)^q` uniformly in `q`, so the proof gives a constant depending on `q`. The proof follows the
+  book's (D.7) with two changes: instead of reducing to `k = 1` by the semigroup property and Young's
+  inequality, it uses for every `k ≥ 1` the Gaussian majorant `|∂^w Φ(t, z)| ≤ C (2t)^{-k/2} Φ(2t, z)`
+  (`abs_multiIndexDerivative_euclideanHeatKernel_le`) and `∫ ∂^w Φ(t, ·) = 0`, then Jensen's
+  inequality for the probability density `Φ(2t, x - ·)` in place of the annular decomposition, and
+  the time integral `∫_0^∞ t^{-a-1} Φ(2t, z) dt = K |z|^{-d-2a}` (a Gamma integral). The reduction
+  from `α` to `α - m` moves the `m` derivatives onto `u` as in the book.
+- **Proposition D.1, the first inequality of (D.2)** (`propositionD1_fractional`,
+  `AppD/PropositionD1Fractional.lean`) is proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every
+  `p ∈ (1, ∞)`, and `u ∈ L^p(ℝ^d)`; a distribution of `W^{-α,p}(ℝ^d)` that is not a function is covered
+  only when it is a derivative `∂^l u` of `u ∈ L^p(ℝ^d)` (`propositionD1_fractional_foldr`, below). The norm (B.4) is the supremum of `|∫ u g|` over `g ∈ C_c^∞(ℝ^d)` with
+  `‖g‖_{W^{α,q}(ℝ^d)} ≤ 1`, `q = p/(p-1)` (`negativeFractionalSobolevNorm`), with the norm (B.3)
+  `∑_{j ≤ m} ∑_{|w| = j} ‖∂_w g‖_{L^q} + ∑_{|w| = m} [∂_w g]_{W^{β,q}}` over lists of coordinates
+  (`fractionalSobolevNorm`), which counts each multi-index with its multiplicity and changes the
+  constant only. The right-hand side is
+  `(∫_0^1 t^{pα/2} ‖u ∗ Φ(t, ·)‖^p_{L^p} dt/t)^{1/p}` as a lower Lebesgue integral. The proof is the
+  book's Step 1 with `k = ⌊m/2⌋ + 1`: the Taylor formula (D.21) is the paired Taylor formula of the
+  heat semigroup (`integral_mul_heatTaylor_ball`, which needs only `u exp(-|x|²/16) ∈ L¹`); the
+  terms `ρ^{(j)}(1)` are bounded by `‖u ∗ Φ(1, ·)‖_{L^p} ‖Δ^j g‖_{L^q}` with `2j ≤ m`, and
+  `‖u ∗ Φ(1, ·)‖_{L^p} ≤ ‖u ∗ Φ(τ, ·)‖_{L^p}` for every `τ ∈ (1/2, 1)` (the book uses one `τ`
+  between `1/4` and `1/2`); the remainder is split as `∫ (u ∗ Φ(s/2, ·)) (Δ^k g ∗ Φ(s/2, ·))`
+  (`integral_mul_heatSmooth_split`), with `|Δ^k g ∗ Φ| ≤ d^k |∇^{2k} Φ ∗ g|`, Hölder's inequality in
+  space and in time and Proposition D.2 (`propositionD2_fractional`, which gives a constant depending
+  on `q`). The second inequality of (D.2), whose proof uses (D.25) from [128], and (D.1) for
+  `α ∈ ℕ` are not formalized. The local variant of the first inequality of (D.1) used for (4.126)
+  is formalized separately (see Section 4.6 above); Remark B.6 on `ℝ^d` is not (Remark B.6 on balls
+  is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`; see the Appendix B
+  section).
+- **Proposition D.1, the first inequality of (D.2), for `∂^l u`** (`propositionD1_fractional_foldr`,
+  `AppD/PropositionD5Fractional.lean`): for `u ∈ L^p(ℝ^d)` and a list of coordinates `l`, the norm of
+  the distribution `∂^l u` in `W^{-α,p}(ℝ^d)` is the supremum of `|∫ u ∂^l g|` over the same tests
+  (`negativeFractionalSobolevNormDeriv`), and the right-hand side has `‖∂^l Φ(t, ·) ∗ u‖_{L^p}`. The
+  book applies Proposition D.1 to the distribution directly; the Lean proof applies
+  `propositionD1_fractional` to the function `∂^l Φ(ε, ·) ∗ u ∈ L^p`, whose pairing with `g` is
+  `± ∫ u (Φ(ε) ∗ ∂^l g)` (the derivatives of the heat kernel have the parity of their order,
+  `heatKernelDeriv_neg`) and whose heat flow `Φ(t) ∗ (∂^l Φ(ε, ·) ∗ u) = Φ(ε) ∗ (∂^l Φ(t, ·) ∗ u)` has
+  `L^p` norm at most `‖∂^l Φ(t, ·) ∗ u‖_{L^p}` (`heatSmooth_kconv_heatKernelDeriv`), and lets `ε → 0`
+  by dominated convergence (`tendsto_integral_mul_heatSmooth`).
+- **Proposition D.5** (`propositionD5_fractional_of_lifting`) is proved for `α = m + β`, `m ∈ ℕ`,
+  `β ∈ (0, 1)`, `k ∈ ℕ ∩ (α, ∞)` and `q ∈ (1, ∞)`, for `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives
+  (`IsSobolevFamilyLp`) and the norm (B.3) (`fractionalSobolevFamilyNorm`), under the hypothesis
+  `‖u‖_{W^{α,q}} ≤ C₀ (‖u‖_{L^q} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}})` for every `u ∈ W^{m,q}(ℝ^d)` (for
+  `u ∉ W^{α,q}(ℝ^d)` it says that the right-hand side is infinite). This is the observation with
+  which the book's proof begins ("We simply observe that"), which the book does not prove; the rest
+  of the proof is the book's: the first inequality of (D.2) for `∂_w u` with the order `k - α`
+  (`propositionD1_fractional_foldr`) and `|∂_w Φ(t, ·) ∗ u| ≤ |∇^k Φ(t, ·) ∗ u|`. The case `α ∈ ℕ`
+  is not formalized.
 
 ## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 
 - **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
-  the spaces `W^{-α,p}(U)` for `α ≠ 1`, and `W^{-1,1}`, `W^{-1,∞}`, are not formalized (for
+  for `α ∉ ℕ` and `p ∈ (1, ∞)` the norm (B.4) on `ℝ^d` of `u ∈ L^p(ℝ^d)` and of its derivatives is
+  `negativeFractionalSobolevNorm` / `negativeFractionalSobolevNormDeriv` (Appendix D section,
+  Propositions D.1 and D.5), and the order `2` normalized as in (0.29) is `negativeSobolevTwoNorm`
+  (Section 1.4); the other orders, the fractional orders on `U ≠ ℝ^d`, and `W^{-1,1}`, `W^{-1,∞}`,
+  are not formalized (for
   `p = 1` the test exponent `p/(p-1)` is `0` in Lean).
 - **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
   `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
