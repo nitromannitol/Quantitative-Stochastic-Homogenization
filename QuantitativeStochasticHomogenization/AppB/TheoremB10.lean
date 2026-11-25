@@ -99,7 +99,7 @@ theorem eLpNorm_top_sub_integralAverage_ball_le (hd : 0 < d) {p : ℝ} (hdp : (d
 
 theorem continuous_gradient {φ : Vec d → ℝ} (hφ : ContDiff ℝ 1 φ) :
     Continuous fun x => gradient φ x :=
-  continuous_pi fun i => (hφ.continuous_fderiv one_ne_zero).clm_apply continuous_const
+  continuous_pi fun _ => (hφ.continuous_fderiv one_ne_zero).clm_apply continuous_const
 
 /-- A test function in `B_r(z)` is bounded by `8 √d (1 - d/p)⁻¹ r ‖∇φ‖_{L̲^p(B_r(z))}`: the
 `C¹` Morrey inequality on `B_{2r}(z)` bounds `|φ(x) - φ(y)|` for a point `y` with `φ(y) = 0`. -/
@@ -125,10 +125,10 @@ theorem abs_le_of_isSpatialTest_ball (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p
         (fun y => euclideanNorm (gradient φ y))).toReal := by positivity
   have h0 : ∀ y, y ∉ ball z r → φ y = 0 := fun y hy =>
     image_eq_zero_of_notMem_tsupport fun h => hy (hφ.2.2 h)
-  by_cases hxK : x ∉ ball z (2 * r)
+  by_cases hxK : x ∈ ball z (2 * r)
+  swap
   · rw [h0 x fun h => hxK (hBK h), abs_zero]
     exact hRHS
-  push_neg at hxK
   set i0 : Fin d := ⟨0, hd⟩
   set y : Vec d := z + (3 * r / 2) • PDE.basisVec i0 with hy
   have hyz : euclideanNorm (y - z) = 3 * r / 2 := by
@@ -187,5 +187,90 @@ theorem abs_le_of_isSpatialTest_ball (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p
             (fun y => PDE.vecEuclideanNorm (PDE.classicalGradient φ y))).toReal
         field_simp
         ring
+
+/-- (B.8) with `w = 0` for `v ∈ W^{1,p}_0(B_r(z))`, `p ∈ (d, ∞)`: the bound of
+`abs_le_of_isSpatialTest_ball` passes to the limit along an almost everywhere convergent
+subsequence of the approximating test functions. -/
+theorem eLpNorm_top_ball_le_of_isW01p (hd : 0 < d) {p : ℝ} (hdp : (d : ℝ) < p) (z : Vec d)
+    {r : ℝ} (hr : 0 < r) {v : Vec d → ℝ} {g : Vec d → Vec d}
+    (hv : IsW01p (ball z r) (ENNReal.ofReal p) v g) :
+    eLpNorm v ⊤ (volume.restrict (ball z r)) ≤
+      ENNReal.ofReal (8 * Real.sqrt d / (1 - d / p) * r) *
+        PDE.eLpMeanNormOn (ball z r) (ENNReal.ofReal p) (fun x => euclideanNorm (g x)) := by
+  have hd1 : (1 : ℝ) ≤ d := by exact_mod_cast hd
+  have hp0 : 0 < p := by linarith
+  have hp1 : 1 ≤ ENNReal.ofReal p := by simpa using ENNReal.ofReal_le_ofReal (by linarith : 1 ≤ p)
+  have hc : 0 < 1 - (d : ℝ) / p := by
+    have : (d : ℝ) / p < 1 := (div_lt_one hp0).2 hdp
+    linarith
+  have hB0 : volume (ball z r) ≠ 0 := (volume_ball_pos z hr).ne'
+  have hBt : volume (ball z r) ≠ ⊤ := volume_ball_ne_top z hr
+  obtain ⟨φ, hφ, hlim⟩ := hv.2
+  set B := ball z r with hBdef
+  set μ := volume.restrict B with hμ
+  set c : ℝ := 8 * Real.sqrt d / (1 - d / p) * r with hcdef
+  have hc0 : 0 ≤ c := by positivity
+  have hval : Tendsto (fun n => eLpNorm (φ n - v) (ENNReal.ofReal p) μ) atTop (𝓝 0) :=
+    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlim (fun _ => zero_le)
+      (fun n => eLpNorm_le_w1pNorm B _ (fun x => φ n x - v x) (fun x => gradient (φ n) x - g x))
+  obtain ⟨ns, hns, hae⟩ :=
+    (tendstoInMeasure_of_tendsto_eLpNorm (by simpa using hp0) hval).exists_seq_tendsto_ae
+  set A := PDE.eLpMeanNormOn B (ENNReal.ofReal p) (fun x => euclideanNorm (g x)) with hA
+  have hAfin : A ≠ ⊤ := eLpMeanNormOn_ne_top hB0 hBt hv.1.memLp_euclideanNorm
+  set E : ℕ → ℝ≥0∞ := fun n =>
+    PDE.eLpMeanNormOn B (ENNReal.ofReal p) (fun x => euclideanNorm (gradient (φ n) x - g x))
+    with hE
+  have hgm : AEStronglyMeasurable g μ := hv.1.2.1.aestronglyMeasurable
+  have hEle : ∀ n, E n ≤ (volume B)⁻¹ ^ (1 / ENNReal.ofReal p).toReal *
+      w1pNorm B (ENNReal.ofReal p) (fun x => φ n x - v x) (fun x => gradient (φ n) x - g x) := by
+    intro n
+    show PDE.eLpMeanNormOn B (ENNReal.ofReal p)
+      (fun x => euclideanNorm (gradient (φ n) x - g x)) ≤ _
+    rw [PDE.eLpMeanNormOn_eq_volume_inv_rpow_mul_eLpNormOn (lt_top_iff_ne_top.2 hBt)]
+    refine mul_le_mul' le_rfl ?_
+    have hm : AEStronglyMeasurable (fun x => gradient (φ n) x - g x) μ :=
+      (continuous_gradient ((hφ n).1.of_le (by exact_mod_cast le_top))).aestronglyMeasurable.sub
+        hgm
+    exact (eLpNorm_euclideanNorm_le_sum hp1 hm).trans le_add_self
+  have hEt : Tendsto E atTop (𝓝 0) := by
+    have h := ENNReal.Tendsto.const_mul (a := (volume B)⁻¹ ^ (1 / ENNReal.ofReal p).toReal) hlim
+      (Or.inr (ENNReal.rpow_ne_top_of_nonneg ENNReal.toReal_nonneg (ENNReal.inv_ne_top.2 hB0)))
+    rw [mul_zero] at h
+    exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h (fun _ => zero_le) hEle
+  have hbound : ∀ n x, E n ≠ ⊤ → |φ n x| ≤ c * (A.toReal + (E n).toReal) := by
+    intro n x hEn
+    have hφ1 : ContDiff ℝ 1 (φ n) := (hφ n).1.of_le (by exact_mod_cast le_top)
+    have h1 := abs_le_of_isSpatialTest_ball hd hdp z hr (hφ n) x
+    have hN : PDE.eLpMeanNormOn B (ENNReal.ofReal p) (fun y => euclideanNorm (gradient (φ n) y)) ≤
+        A + E n := by
+      change eLpNorm _ _ (PDE.normalizedVolumeOn B) ≤
+        eLpNorm _ _ (PDE.normalizedVolumeOn B) + eLpNorm _ _ (PDE.normalizedVolumeOn B)
+      refine le_trans ?_ (eLpNorm_add_le hp1)
+      refine eLpNorm_mono_real (PDE.continuous_vecEuclideanNorm.comp
+        (continuous_gradient hφ1)).aestronglyMeasurable fun y => ?_
+      rw [Real.norm_of_nonneg (show 0 ≤ euclideanNorm (gradient (φ n) y) from Real.sqrt_nonneg _),
+        Pi.add_apply]
+      have := PDE.vecEuclideanNorm_add_le (g y) (gradient (φ n) y - g y)
+      rwa [add_sub_cancel] at this
+    have hN' := ENNReal.toReal_mono (ENNReal.add_ne_top.2 ⟨hAfin, hEn⟩) hN
+    rw [ENNReal.toReal_add hAfin hEn] at hN'
+    exact h1.trans (mul_le_mul_of_nonneg_left hN' hc0)
+  have hEv : ∀ᶠ k in atTop, E (ns k) ≠ ⊤ :=
+    (hEt.comp hns.tendsto_atTop).eventually (gt_mem_nhds zero_lt_one) |>.mono
+      fun k hk => ne_top_of_lt hk
+  have hlimE : Tendsto (fun k => c * (A.toReal + (E (ns k)).toReal)) atTop
+      (𝓝 (c * (A.toReal + 0))) := by
+    refine tendsto_const_nhds.mul (tendsto_const_nhds.add ?_)
+    have := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp (hEt.comp hns.tendsto_atTop)
+    rw [ENNReal.toReal_zero] at this
+    exact this
+  rw [add_zero] at hlimE
+  have hvb : ∀ᵐ x ∂μ, ‖v x‖ ≤ c * A.toReal := by
+    filter_upwards [hae] with x hx
+    rw [Real.norm_eq_abs]
+    exact le_of_tendsto_of_tendsto hx.abs hlimE (hEv.mono fun k hk => hbound (ns k) x hk)
+  rw [eLpNorm_exponent_top hv.1.1.aestronglyMeasurable]
+  refine (eLpNormEssSup_le_of_ae_bound hvb).trans (le_of_eq ?_)
+  rw [ENNReal.ofReal_mul hc0, ENNReal.ofReal_toReal hAfin]
 
 end QSH
