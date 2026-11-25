@@ -1564,6 +1564,45 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `2 η_r u ∇η_r · a∇u` by Young's inequality; then absorption (`parabolicCaccioppoli_energy`) and
   normalization.
 
+## Section 10.1: Proposition 10.3 (`Ch10/Sec01/GeneralCoefficients.lean`, `Ch10/Sec01/Proposition103.lean`)
+
+- The set Ω of (10.2) is `QSH.GeneralCoefficientField d Λ`: fields `a : ℝ^d → ℝ^{d×d}` with a.e.
+  strongly measurable entries and `|ξ|² ≤ ξ·a(x)ξ`, `|a(x)ξ| ≤ Λ|ξ|` for every `x` and `ξ`.
+- `u ∈ H¹(U)` is `QSH.H1 U u G` (gradient `G`). The right-hand side `u* ∈ H⁻¹(U)` is given by its
+  values `u*(φ, ∇φ)` on the pairs with `QSH.H01 U φ ∇φ`, and `-∇·g = u*` is `IsNegDivergenceOn U g u*`:
+  `∫_U ∇φ·g = u*(φ, ∇φ)` for every such pair. No linearity or continuity of `u*` is assumed.
+- The functional of (10.12) is `GeneralCoefficientField.representativeDefect a U G g` and the set
+  whose infimum is taken is `representativeDefectSet a U G u*` (over `g ∈ L²(U; ℝ^d)` with
+  `-∇·g = u*`). Since a general map `u*` need not be of the form `-∇·g`, the formal statement
+  `proposition_10_3` has, on its right-hand side, that this set is nonempty and has infimum `0`;
+  `proposition_10_3_of_nonempty` is the printed equivalence for `u*` in the range of `-∇·` on `L²(U)`
+  (every `u* ∈ H⁻¹(U)` on a bounded domain), and `proposition_10_3_attained` is the last sentence
+  (the infimum is attained at `g = a∇u`). The book's direct method is replaced by a minimizing
+  sequence: the integrand is `½ (a∇u - g)·s⁻¹(a∇u - g) ≥ (2 max(Λ,1))⁻¹ |a∇u - g|²`, so the
+  minimizing sequence converges to `a∇u` in `L²(U)`.
+
+## Section 10.2: Lemma 10.9 and Lemma 10.10 in part (`Ch10/Sec02/`)
+
+- The results of Section 10.2 are proved on bounded open convex domains (the domains
+  `Homogenization.Book.Ch02.Domain` of the coarse-graining library), which include the cubes used in
+  Section 10.3, from the double-variable framework of that library (Armstrong and Kuusi). A field
+  `a` of `Ω` is a coefficient field of the library with ellipticity constants `1` and `max(Λ², 1)`
+  (`GeneralCoefficientField.isEllipticMatrix`, `toCGCoeffOn`), and the block pairing of the library
+  is the bilinear form of (10.7) (`blockVecDot_blockMatrixField`).
+- The spaces (0.33)–(0.36) are those of the library (`IsL2PotOn`, `IsL2SolOn`, `IsL2Pot0On`,
+  `IsL2Sol0On`); `S(U)` (10.19) is `IsResponseField`, `μ(U, p, q)` (10.15) is `doubleMu`,
+  `μ*(U, q*, p*)` (10.16) is `doubleMuStar`, `J(U, X, X*)` (10.20) is `doubleJ` for `X = (p, q)` and
+  `X* = (q*, p*)` as in (10.21), and `S(·, U, X, X*)` is `IsResponseMaximizer` (`Ch10/Sec02/Quantities.lean`).
+  On a domain of the library they are the library's doubled response space, doubled `μ` and doubled
+  response functional (`isResponseField_iff`, `doubleMu_eq`, `doubleJ_eq`).
+- Lemma 10.9: `A(U)` and `A*(U)` are `IsSolutionOn (fun x => a x) U` and
+  `IsSolutionOn (fun x => (a x)ᵀ) U` (tested on `H¹₀(U)`), and (10.37) is stated with a.e. equalities,
+  the elements of `S(U)` being fields up to null sets.
+- Lemma 10.10: the matrices `A(U)`, `A*(U)` and `A*(U)⁻¹` are 2×2 block matrices of `d×d` matrices
+  (`coarseMatrix`, `coarseStar`, `coarseStarInv`). The identities (10.42) and (10.43) are printed for
+  every `X`, `X*`; they hold for `X* = 0` and `X = 0` respectively (as (2.13) and (2.14) in Lemma 2.2),
+  since in general the average of `S(·, U, X, X*)` is `A*(U)⁻¹X* - X`.
+
 ## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
 
 - Definition B.2, the case `k = 1`: `QSH.IsW1p U p u g` (`u` and `g` in `L^p(U)`, `∇u = g` weakly in
