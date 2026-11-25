@@ -374,6 +374,12 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 5.3 (`Ch05/Sec03/`) and the Gram space of Section 4.1 (`Ch04/Sec01/GramSpace.lean`)
 
+- **Definition 5.23** (`coarsenedCoefficient`, `Ch05/Sec03HeuristicScalingLimit.lean`). The matrix
+  is defined by its entries, `b_r(z)_{jk} = ½ (J₁(Φ_{z,r}, e_j + e_k, ā e_j) - J₁(Φ_{z,r}, e_j - e_k, ā e_j))`,
+  which is (5.62) at `p = e_j`, `p' = e_k`. The identity (5.62) for all `p, p'` uses that
+  `(p, q) ↦ J₁(Φ_{z,r}, p, q)` is a quadratic form; it is `dot_coarsenedCoefficient_mulVec` when the
+  gradients of `A₁` have the structure (4.12) (`LinearA1Gradients`), which holds almost surely.
+
 - **Lemma 5.24, (5.63)–(5.64), with `s = 1`** (`coarsenedCoefficientEstimates_of`,
   `coarsenedCoefficient_aeOsBound`). The proof departs from the book, which deduces (5.64) from
   (5.62) and Lemma 4.25. When the gradients of `A₁` are, up to null sets, the fields `G ξ` of a
@@ -991,7 +997,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
   and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
-  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 are not.
+  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
+  (Remark B.6 on balls is `remark_B_6`, see the Appendix B section).
+
+## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls (`AppB/DivergenceRepresentation.lean`)
+
+- **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
+  `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
+  the spaces `W^{-α,p}(U)` for `α ≠ 1`, and `W^{-1,1}`, `W^{-1,∞}`, are not formalized (for
+  `p = 1` the test exponent `p/(p-1)` is `0` in Lean).
+- **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
+  `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
+  with `∫ h ψ = -∫ H · ∇ψ` for every `ψ ∈ C_c^∞(B_r(z))` (the book's (B.5) is stated with the
+  opposite sign convention `∫ w h = ∫ F · ∇w`, i.e. `F = -H`, and for `w ∈ W_0^{1,p'}(U)`; the
+  pairing of a distribution with `W_0^{1,p'}` is its extension from `C_c^∞` by density) and
+  `‖h‖_{W̲^{-1,p}(B_r(z))} ≤ ‖H‖_{L̲^p(B_r(z))} ≤ C(d) ‖h‖_{W̲^{-1,p}(B_r(z))}`, where
+  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). The endpoint `p = ∞`
+  and domains other than balls are not formalized. The proof is the book's: on the tests the
+  gradient map into `L^{p'}(B_r(z); ℝ^d)` is injective, the test norm `‖ψ‖_{W̲^{1,p'}}` is at most
+  `C(d) ‖∇ψ‖_{L̲^{p'}}` by the Poincaré inequality for tests of the elliptic regularity library
+  (`PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad`, constant `(2^d + 1)·2r`), and the
+  functional `ψ ↦ ⨍ h ψ` is represented through the Hahn–Banach theorem and the duality
+  `(L^{p'})^* = L^p` (`PDE.exists_nativeLp_density_through_injective`). The lower bound is Hölder's
+  inequality (`negativeSobolevOneNorm_zero_le`). For `d = 0` the statement fails (the ball is a
+  point and `h = f` is not a divergence).
 
 ## Appendix C: Theorem C.1, Lemmas C.2 and C.4–C.6, Corollary C.3 (`AppC/`)
 
@@ -1037,11 +1066,16 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   book's proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right-hand side, from Corollary C.3 on every
   ball `B_ρ(z) ⊆ B_r`, the bound `‖∇·H‖_{H̲^{-1}} ≤ ‖H‖_{L̲²}` and Lemma C.4. The book applies Lemma C.4
   with `q = 2_*`, which is `1` for `d = 2`, outside the range `(1, 2)` of the lemma; the proof uses
-  `q = max(2_*, 3/2)`. `theorem_C_1` is the statement of the book under the hypothesis
-  `DivergenceRepresentation d C` (Remark B.6 and Proposition B.16 on centered balls for exponents
-  `s ∈ [2, 3]`: every `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C ‖h‖_{W̲^{-1,s}(B_r)}`), which
-  is not formalized. The elliptic regularity library proves a Meyers estimate on the unit ball for
-  divergence-form right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
+  `q = max(2_*, 3/2)`. The general case is reduced to this one in the book by Proposition B.16
+  (the Dirichlet problem `-Δw = h` in `W^{1,s}_0(B_r)`, `H = -∇w`); the Lean proof uses instead the
+  representation of Remark B.6 on balls (`remark_B_6`, see the Appendix B section): every
+  `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C(d) ‖h‖_{W̲^{-1,s}(B_r)}`, which is what the
+  reduction uses. `theorem_C_1_of_divergenceRepresentation` is the reduction under this
+  representation as a hypothesis (`DivergenceRepresentation d C`), `exists_divergenceRepresentation`
+  discharges it, and `theorem_C_1` is the statement of the book, for `d ≥ 2` and
+  `h = f + ∇·F` with `f ∈ L²(B_r)`, `F ∈ L²(B_r; ℝ^d)`.
+  The elliptic regularity library proves a Meyers estimate on the unit ball for divergence-form
+  right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
 
@@ -1250,6 +1284,32 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
   Theorem 2.18 (Section 2.3, not formalized).
 
+## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
+
+- Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
+  law, for the homogenization data given by Proposition 3.21 (`uniformGaussianCorrectorRate`).
+  The gradient `∇φ_e` is `G e - e` for the corrected field `G e = ∑ᵢ eᵢ (eᵢ + ∇φ_{eᵢ})`
+  (`correctedField`). The statement includes the almost sure integrability in `x` of the three
+  densities against `Φ_{x,r}` and the integrability in the coefficient field of their averages.
+- Proof: not the book's Poincaré inequality on the torus ((3.109) and Exercise 3.24), but the bound
+  of the periodized heat kernel by Poisson summation (`abs_tsum_heatKernel_add_latticeShift_sub_one_le`),
+  whose error `(1 + ∑_{k ≠ 0} e^{-4π² r² k²})^d - 1` is at most `C exp(-4π² r²)` for `r ≥ 1`
+  (`periodizationError_le_exp`); the expectations of the Gaussian averages of the stationary
+  densities are within this error of their cell means (`expectedAveragesBounds_of_scales`, the
+  bound of the expectations (1) at a general rate `exp(-h(r))`, of which the rate `r^{-β}` of
+  `expectedAveragesEstimateAt_of_scales` is the case `h(r) = β log r`), and the cell means are
+  identified by Proposition 3.21 as in the expectations (1) above.
+
+## Section 3.4: Definitions 3.14 and 3.15 (`Ch03/Sec04/StationaryFields.lean`)
+
+- Definition 3.14: `QSH.IsStationaryRandomField P F` for `F : CoefficientField d Λ → Vec d → S`
+  (the book's `F(x, a)` is `F a x`), with the joint measurability and, for every `z ∈ ℤ^d`,
+  `F(x + z, a) = F(x, T_z a)` for almost every `x`, `P`-almost surely; `T_z` is `translate`.
+- Definition 3.15: `QSH.IsStationaryPotentialField P F`; `F(·, a)` is the gradient of a function in
+  `H¹_loc(ℝ^d)` in the sense of the library: a weak gradient on `ℝ^d`, the function and the field
+  being square integrable on every ball. The corrector gradients belong to `L²_pot`
+  (`Corrector.isStationaryPotentialField_grad`).
+
 ## Section 5.1: Lemma 5.2 (`Ch05/Sec01/Lemma52.lean`)
 
 - Lemma 5.2 (1): `QSH.lemma_5_2_tendstoInDistribution`: for `Vec d`-valued random variables `Xₙ` on
@@ -1281,6 +1341,53 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `∫ g_{k+1}(x + s e_k) ds = ∫ g_k(x + s e_k) ds` (`integral_bumpLineSeq_succ`). The book observes
   `g_d = h(x₁)⋯h(x_d) ∫ f = 0`; here `g_d = c ∏ h(x_j)` (`bumpLineSeq_eq_prefix_mul`,
   `eq_of_invariant`) and `c = ∫ g_d = ∫ f - ∫ ∇·F = 0`.
+
+## Section 5.4: the notation (5.79) and Lemmas 5.27, 5.28 and 5.30 (`Ch05/Sec04/NearGaussian.lean`)
+
+- (5.79), `X = N(σ², λ₁, c)`: `QSH.IsNearGaussian P X v λ₁ c` with `v = σ²`; for every
+  `λ ∈ (-λ₁, λ₁)` the integrability of `exp(λ X)` is part of the definition.
+- Lemma 5.27: `QSH.lemma_5_27`, for a measurable `X` with `exp(2|X|)` integrable; the constant
+  is that of Lemma A.8 (`exists_abs_log_integral_exp_sub_le`), since `C|λ|³ ≤ C λ₁ λ²` for
+  `|λ| < λ₁`.
+- Lemma 5.28: `QSH.lemma_5_28`, for `X : Fin k → Ω → ℝ` measurable and independent in the sense
+  of `iIndepFun`; the conditions `σ, λ₁, c ≥ 0` are not needed. The proof is the book's, from the
+  additivity of the logarithm of the moment generating function (`iIndepFun.cgf_sum`).
+- Lemma 5.30: `QSH.lemma_5_30`, for `s ∈ (1, 2]` (the book fixes `s ∈ (1, 2)` in (5.82)) and every
+  real `λ₂`; the hypotheses are `σ ∈ ℝ`, `c ≥ 0`, `λ₁ ≤ λ₂`, `θ ∈ (0, 1/2]`, `X₁` measurable with
+  `X₁ = N(σ², λ₁, c)`, and `X₂` centered with `X₂ ≤ O_s(θ)` and `-X₂ ≤ O_s(θ)` (the notation
+  `X₂ = O_s(θ)` after (A.2)); `X₁` need not be centered. The constant is `C = 4 + K C_A²` with
+  `K = max(1, (C_A λ₂)^{s/(s-1) - 2})` and `C_A` the constant of Lemma A.9. The proof is the book's:
+  Hölder's inequality (5.100)–(5.101) with `ρ = (1 - θ^{1/2})⁻¹` and `ρ' = θ^{-1/2}`
+  (`log_integral_exp_add_le`), and Lemma A.9 for `X₂`, which gives
+  `log E[exp(ρ' λ X₂)] ≤ K C_A² θ λ²` for `|λ| ≤ λ₂` (`CenteredOsBound.log_integral_exp_le`).
+
+## Appendix E: Lemma E.6 (`AppE/ReverseHolderImprovement.lean`)
+
+- `QSH.lemma_E_6`: for `0 < p < q < r ≤ ∞` (exponents in `ℝ≥0∞`) and `A, a > 0` there is
+  `C : ℝ≥0`, chosen before the dimension, the measure and the function, such that for every measure
+  `μ` on `Vec n`, Borel `U`, Borel `S σ ⊆ U` (`σ ∈ (0, 1]`) and `f` in `L^p(U; μ) ∩ L^r(U; μ)` with
+  (E.18) for all `1/2 ≤ σ' < σ ≤ 1`, `‖f‖_{L^r(S (2/3); μ)} ≤ C ‖f‖_{L^p(U; μ)}`. The conclusion is
+  on `⅔U`, as printed (the display fraction is `2/3` in both the book and arXiv v2); Lemma C.6 gives
+  the bound at `1/2` and is applied to `t ↦ ρ((2t + 1)/3)`, which carries `[1/2, 1)` onto
+  `[2/3, 1)`.
+- `QSH.reverseHolder_improvement` is the same statement on any measurable space; it does not use the
+  measurability of `U` and of the sets `S σ`.
+- Proof: the book's. Hölder's inequality `‖f‖_q ≤ ‖f‖_p^h ‖f‖_r^{1-h}` for
+  `1/q = h/p + (1 - h)/r` is `eLpNorm_le_eLpNorm_rpow_mul_eLpNorm_rpow` (Mathlib's generalized
+  Hölder inequality for `‖f‖^h · ‖f‖^{1-h}`), and Young's inequality is the weighted
+  arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
+  `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
+
+## Section 10.1: Definition 10.2 (`Ch10/Sec01/VariationalRepresentation.lean`)
+
+- Definition 10.2: `QSH.VariationallyRepresents F φ`, with the convexity of `(p, q) ↦ F(p, q)` on
+  `ℝ^d × ℝ^d`.
+- The quadratic form (10.7) is `QSH.linearRepresentative a`, for a constant matrix `a` (the book's
+  `a(x)` at a fixed `x`), with `s` and `m` the symmetric and antisymmetric parts of `a`
+  (`symmetricPart`, `antisymmetricPart`). For `a` with `ξ·aξ > 0` for `ξ ≠ 0`, the identity
+  `A(p, q) - p·q = ½ (a p - q)·s⁻¹(a p - q)` (`linearRepresentative_sub_dot`, the computation
+  before (10.7)) gives (10.10) and (10.11), and with the convexity of nonnegative quadratic forms
+  (`convexOn_dotProduct_mulVec`), `variationallyRepresents_linearRepresentative`.
 
 ## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
 

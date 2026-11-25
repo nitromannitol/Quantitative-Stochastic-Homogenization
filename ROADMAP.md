@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 54 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Lemma 3.16 and Proposition 3.21), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Lemma 5.24), Section 5.4 (Lemma 5.29), Appendix C (Lemmas C.2 and C.4–C.6 and Corollary C.3) and Appendix D (Lemmas D.3 and D.4), and 13 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 64 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 16 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -21,21 +21,21 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | --- | --- | --- | --- | --- |
 | 1 | Introduction and Qualitative Theory | 12 | 8 | 1 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 10 | 0 |
-| 3 | Regularity on Large Scales | 23 | 3 | 6 |
-| 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 2 |
-| 5 | Scaling Limits of First-Order Correctors | 19 | 4 | 0 |
+| 3 | Regularity on Large Scales | 23 | 6 | 3 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
 | 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
 | 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
 | 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
-| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 0 | 0 |
+| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 1 | 0 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
-| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 5 |
-| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 5 | 1 |
+| Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 6 |
+| Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 0 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
-| Appendix E | Parabolic Green Functions | 7 | 0 | 0 |
-| | **Total** | **226** | **49** | **12** |
+| Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
+| | **Total** | **226** | **64** | **16** |
 
 ## Front matter
 
@@ -136,13 +136,13 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 3.14 | Stationary random field | in progress (used for the corrector gradients only, as the fields `measurable_grad` and `stationary` of `Corrector`) |
-| Definition 3.15 | Stationary random potential field | in progress (used for the corrector gradients only, as the fields `weak_gradient` and `locally_square_integrable` of `Corrector`) |
+| Definition 3.14 | Stationary random field | defined (`IsStationaryRandomField`, module `Ch03/Sec04/StationaryFields.lean`; the gradient of a corrector is one, `Corrector.isStationaryPotentialField_grad`) |
+| Definition 3.15 | Stationary random potential field | defined (`IsStationaryPotentialField`, module `Ch03/Sec04/StationaryFields.lean`, with `H¹_loc(ℝ^d)` as a weak gradient on `ℝ^d` square integrable on balls together with its potential; the gradients of the correctors belong to `L²_pot`, `Corrector.isStationaryPotentialField_grad`) |
 | Lemma 3.16 |  | proved (every law satisfying (0.10)–(0.11) has correctors with jointly measurable stationary gradients and homogenization data, `homogenizationDataExists`; the gradients of `A₁` are the corrected fields for all homogenization data, `ae_gradientsOfA1AreCorrected_of_liouville` with `firstOrderLiouville`; see CORRESPONDENCE.md) |
 | Lemma 3.17 |  | in progress (the oscillation and energy bounds (3.85) and (3.86) with the exponent `1 - β(d - s)` of the book, with a random scale that depends on the slope, `sublinearCorrectors`; see CORRESPONDENCE.md) |
 | Proposition 3.21 |  | proved, with constants chosen before the law and at every center (`uniformGaussianCorrectorRate`), from the homogenization theorem at a polynomial scale in high contrast; the identification of the homogenized matrix of the homogenization data with the matrix of the bounds, `homogenized_eq_of_basisBounds`, is not in the book (see CORRESPONDENCE.md) |
 | Lemma 3.22 |  | not started |
-| Lemma 3.23 |  | in progress (expectation bound (1) from Proposition 3.21 as `expectedAveragesEstimate_of_rate`, with rate `r^{-β}` for every `β`; see CORRESPONDENCE.md) |
+| Lemma 3.23 |  | proved (`lemma_3_23`, (3.106)–(3.108) with the rate `C exp(-c r²)`, `c = 4π²`, and constants chosen before the law, for the homogenization data of Proposition 3.21, from the periodized heat kernel bound `periodizationError_le_exp` and `expectedAveragesBounds_of_energy_and_rate`; see CORRESPONDENCE.md) |
 
 ### 3.5 Boundary Regularity, module `Ch03/Sec05BoundaryRegularity.lean`
 
@@ -209,7 +209,7 @@ No numbered result.
 | Lemma 4.19 | Multiscale Poincaré inequality, heat kernel version | not started |
 | Lemma 4.20 |  | not started (for Lemma 4.21 it is replaced by the finite-ball observation (`finiteBallObservation_of_compactTests`) from the estimate with compact tests, a deterministic finite-ball estimate above a random radius with tests chosen for each law, which is proved from the first-order and flux correctors (`compactTestFiniteBall`); see CORRESPONDENCE.md) |
 | Lemma 4.21 |  | proved, on the classes of laws with the linear estimate at an exponent above the construction exponent, with constants chosen before the law (`uniformLinearSlopeEstimates_holds`), and (5.85): the frozen statement E6 with no hypothesis (`localizedEnergy_holds`); the single-slope estimate from the excess decay of one slope in high contrast (`ballExcessDecay`), the observation of the smoothed correctors (`smoothedCorrectorObservation_of_gaussianGradient`) and the finite-ball observation (`slopeEstimateOnClass_of_linear_finiteBall`), the finite-ball observation from the estimate with compact tests (`finiteBallObservation_of_compactTests`, `compactTestFiniteBall`), and (5.85) from the single-slope estimate (`localizedEnergy_of_linearSlope`, `localizedEnergy_of_compactTests`); see CORRESPONDENCE.md |
-| Lemma 4.22 |  | not started |
+| Lemma 4.22 |  | in progress: the deterministic form (`abs_J1Heat_sub_localizedJ1_le`, from the approximation property of Lemma 4.21 and (4.104)), and the stochastic bound as (5.85), the frozen statement E6 with no hypothesis (`localizedEnergy_holds`), for `s ∈ (1, 2)` and `d(1+δ)/2 < γ < d/s ∧ (d(1+δ)/2 + δ)`, with the construction exponent `α` chosen with the constants; see CORRESPONDENCE.md |
 
 ### 4.5 Fluctuation Estimates, module `Ch04/Sec05FluctuationEstimates.lean`
 
@@ -254,19 +254,19 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 5.23 | Coarsened coefficients | not started |
+| Definition 5.23 | Coarsened coefficients | defined (`coarsenedCoefficient`, by its entries `p = e_j`, `p' = e_k` in (5.62); (5.62) for all `p, p'` where `A₁` has the structure (4.12), `dot_coarsenedCoefficient_mulVec`; see CORRESPONDENCE.md) |
 | Lemma 5.24 |  | proved, (5.63)-(5.64) with `s = 1`: the frozen statement E5 with no hypothesis (`coarsenedCoefficientEstimates_holds`), from (5.58) with a constant chosen before the law (`uniformEnergyEstimate_holds`) and the first-order Liouville theorem (`coarsenedCoefficientEstimates_of_energyEstimate`, `coarsenedCoefficientEstimates_of_compactTests`); see CORRESPONDENCE.md |
 
-### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean`
+### 5.4 A Central Limit Theorem for J₁, module `Ch05/Sec04CentralLimitTheoremForJ1.lean` (the notation (5.79) and Lemmas 5.27, 5.28 and 5.30 in `Ch05/Sec04/NearGaussian.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Proposition 5.25 |  | not started |
 | Theorem 5.26 |  | not started |
-| Lemma 5.27 |  | not started |
-| Lemma 5.28 |  | not started |
+| Lemma 5.27 |  | proved (`lemma_5_27`, for the notation (5.79), `IsNearGaussian`; see CORRESPONDENCE.md) |
+| Lemma 5.28 |  | proved (`lemma_5_28`, for independent `X : Fin k → Ω → ℝ`; see CORRESPONDENCE.md) |
 | Lemma 5.29 |  | proved: (i)-(iii) for centered local additive fields, and for the localized energy the frozen statements E4, E2 and E3 with no hypothesis (`blockCLT_holds`, `blockBoundary_holds`, `blockChange_holds`), from Theorem 4.6 (i) with constants chosen before the law (`uniformAdditivityJ1_holds`, `blockCLT_of_uniformAdditivity`, `blockBoundary_of_uniformAdditivity`, `blockChange_of_uniformAdditivity`); see CORRESPONDENCE.md |
-| Lemma 5.30 |  | not started |
+| Lemma 5.30 |  | proved (`lemma_5_30`, for `s ∈ (1, 2]`, with Hölder's inequality for exponential moments, `log_integral_exp_add_le`; see CORRESPONDENCE.md) |
 
 ### 5.5 Convergence of the Correctors to a Gaussian Free Field, module `Ch05/Sec05ConvergenceToGaussianFreeField.lean`
 
@@ -425,7 +425,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Definition 10.2 |  | not started |
+| Definition 10.2 |  | defined (`VariationallyRepresents`, module `Ch10/Sec01/VariationalRepresentation.lean`; the quadratic form (10.7) represents `p ↦ a p` for a matrix with positive definite symmetric part, (10.10)–(10.11), `variationallyRepresents_linearRepresentative`; see CORRESPONDENCE.md) |
 | Proposition 10.3 |  | not started |
 
 ### 10.2 The Double-Variable Subadditive Quantities, module `Ch10/Sec02DoubleVariableSubadditiveQuantities.lean`
@@ -515,14 +515,14 @@ Module `AppA/OsNotation.lean`.
 
 ## Appendix B: Function Spaces and Elliptic Equations on Lipschitz Domains
 
-Module `AppB/FunctionSpacesAndEllipticEquations.lean`.
+Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls in `AppB/DivergenceRepresentation.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
 | Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2`, the rescaled norm `‖·‖_{W̲^{k,p}(U)}` and `W^{k,p}_loc(U)` not defined); see CORRESPONDENCE.md |
 | Definition B.3 | Sobolev space W^{α,p}(U) | not started |
-| Definition B.4 | Sobolev space W^{-α,p}(U) | not started |
+| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
 | Theorem B.8 | Global Sobolev inequality | in progress (the case `k = 1`, proved as `theorem_B_8_one`, module `AppB/TheoremB8.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
 | Theorem B.9 | Local Sobolev–Poincaré inequality | in progress (the case `k = 1`, both parts, on balls `B_r(z)`, proved as `theorem_B_9_one`, module `AppB/TheoremB9.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
@@ -538,11 +538,11 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean`.
 
 ## Appendix C: The Meyers L^{2+δ} Estimate
 
-Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/IterationLemma.lean`, `AppC/NegativeSobolevPairing.lean`, `AppC/InteriorCaccioppoli.lean`, `AppC/ReverseHolder.lean`, `AppC/BallLebesgueDifferentiation.lean`, `AppC/GehringBallEstimates.lean`, `AppC/GehringLevelSet.lean`, `AppC/GehringIntegration.lean`, `AppC/GehringLemma.lean` and `AppC/InteriorMeyers.lean`).
+Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/IterationLemma.lean`, `AppC/NegativeSobolevPairing.lean`, `AppC/InteriorCaccioppoli.lean`, `AppC/ReverseHolder.lean`, `AppC/BallLebesgueDifferentiation.lean`, `AppC/GehringBallEstimates.lean`, `AppC/GehringLevelSet.lean`, `AppC/GehringIntegration.lean`, `AppC/GehringLemma.lean` and `AppC/InteriorMeyers.lean`; Remark B.6 in `AppB/DivergenceRepresentation.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem C.1 | Interior Meyers estimate | in progress (for `d ≥ 2`: the case `h = ∇·H` of the proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right, `theorem_C_1_divergence`; the statement of the book given the representation of Remark B.6 and Proposition B.16, `theorem_C_1`; see CORRESPONDENCE.md) |
+| Theorem C.1 | Interior Meyers estimate | proved (`theorem_C_1`, for `d ≥ 2`; see CORRESPONDENCE.md) |
 | Lemma C.2 | Interior Caccioppoli inequality | proved (`lemma_C_2`; see CORRESPONDENCE.md) |
 | Corollary C.3 |  | proved (`corollary_C_3`, for `d ≥ 2`; see CORRESPONDENCE.md) |
 | Lemma C.4 | Gehring's lemma | proved (`lemma_C_4`; see CORRESPONDENCE.md) |
@@ -566,7 +566,7 @@ Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean
 
 ## Appendix E: Parabolic Green Functions
 
-Module `AppE/ParabolicGreenFunctions.lean`.
+Module `AppE/ParabolicGreenFunctions.lean` (proofs in `AppE/ReverseHolderImprovement.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
@@ -574,6 +574,6 @@ Module `AppE/ParabolicGreenFunctions.lean`.
 | Proposition E.3 |  | not started |
 | Lemma E.4 |  | not started |
 | Lemma E.5 |  | not started |
-| Lemma E.6 |  | not started |
+| Lemma E.6 |  | proved (`lemma_E_6`, conclusion on `⅔U` as printed; general measurable space in `reverseHolder_improvement`); see CORRESPONDENCE.md |
 | Lemma E.7 |  | not started |
 | Lemma E.8 |  | not started |
