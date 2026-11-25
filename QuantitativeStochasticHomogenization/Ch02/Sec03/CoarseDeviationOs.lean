@@ -9,12 +9,13 @@ hypothesis `|a(□_n) - ā| + |a*(□_n) - ā| ≤ c 3^{-nγ} + O₁(θ 3^{-nσ}
 
 * `osBound_subcubeDeviation_sub`: by stationarity, the same bound for the average
   `|Z_n|⁻¹ Σ_{z ∈ Z_n} |a(z + □_n) - ā|` over the subcubes of `□_m`;
-* `sqrt_coarseDeviation_le_os`, the claim (2.68): `E(m)^{1/2} ≤ C 3^{-mγ/2} + ρ + V` with
-  `V ≤ O₁(K ρ^{1-2d} 3^{-mσ})`, for every `ρ > 0`. The proof is the book's: the square roots of the
-  averages exceed `(c 3^{-nγ})^{1/2}` by at most `O₂`, they are bounded, so by Lemma A.3 by
-  `O_{2d}(C 3^{-nσ/(2d)})` (the book uses `O_d`; `2d > 2` lets Lemma A.3 apply also for `d = 2`);
-  the weighted sum over `n` is `O_{2d}(C 3^{-mσ/(2d)})` by the triangle inequality, and Young's
-  inequality (2.23) of Remark 2.6 turns `O_{2d}` into `ρ + O₁`;
+* `sqrt_coarseDeviation_le_os`, the claim (2.68) before the choice of `ρ`:
+  `E(m)^{1/2} ≤ C 3^{-mγ/2} + ρ + V` with `V ≤ O₁(K ρ^{1-2d} 3^{-mσ})`, for every `ρ > 0`.
+  The proof is the book's: the square roots of the averages exceed `(c 3^{-nγ})^{1/2}` by at
+  most `O₂`, they are bounded, so by Lemma A.3 by `O_{2d}(C 3^{-nσ/(2d)})` (the book uses `O_d`;
+  `2d > 2` lets Lemma A.3 apply also for `d = 2`); the weighted sum over `n` is
+  `O_{2d}(C 3^{-mσ/(2d)})` by the triangle inequality, and Young's inequality (2.23) of Remark 2.6
+  turns `O_{2d}` into `ρ + O₁`;
 * `sqrt_le_two_mul_sqrt_add_os`, the inequality (2.65) in the form used for `J(□_m, ā⁻¹q, q)`:
   `X^{1/2} ≤ 2 c^{1/2} + c^{-1/2} (X - c)₊` with `c^{-1/2} (X - c)₊ ≤ O₁(c^{-1/2} θ)`.
 -/
@@ -30,7 +31,7 @@ variable {d : ℕ} {Λ : ℝ}
 
 /-! ## Elementary inequalities -/
 
-/-- `Σ_{n=0}^m 3^{n-m} 3^{-nγ} ≤ (1 - 3^{γ-1})⁻¹ 3^{-mγ}` for `0 ≤ γ < 1`. -/
+/-- `Σ_{n=0}^m 3^{n-m} 3^{-nγ} ≤ (1 - 3^{γ-1})⁻¹ 3^{-mγ}` for `γ < 1`. -/
 theorem sum_inv_three_pow_mul_rpow_le {γ : ℝ} (hγ1 : γ < 1) (m : ℕ) :
     ∑ n ∈ Finset.range (m + 1), ((3 : ℝ) ^ (m - n))⁻¹ * (3 : ℝ) ^ (-((n : ℝ) * γ)) ≤
       (1 - (3 : ℝ) ^ (γ - 1))⁻¹ * (3 : ℝ) ^ (-((m : ℝ) * γ)) := by
@@ -114,6 +115,7 @@ theorem OsBound.sup_zero {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} {X :
 
 /-! ## The averages over the subcubes -/
 
+/-- `|Z_n| = (3^{m-n})^d` for the subcubes of the partition. -/
 theorem card_fun_fin_three_pow (r : ℕ) :
     ((Fintype.card (Fin d → Fin (3 ^ r)) : ℕ) : ℝ) = ((3 : ℝ) ^ r) ^ d := by
   rw [Fintype.card_fun, Fintype.card_fin, Fintype.card_fin]
@@ -196,10 +198,10 @@ theorem subcubeDeviation_le_structuralMatrixConst [NeZero d] {P : Measure (Coeff
 
 /-! ## The bound (2.68) of `E(m)` -/
 
-/-- **(2.68)**: there is `K > 0` depending on `(c, θ, σ, d, Λ)` such that, if
-`|a(□_n) - ā| + |a*(□_n) - ā| ≤ c 3^{-nγ} + O₁(θ 3^{-nσ})` for every `n`, with `γ ≤ 1` and
-`0 < σ < d`, then for every `m ∈ ℕ` and `ρ > 0` there is `V ≤ O₁(K ρ^{1-2d} 3^{-mσ})` with
-`E(m)^{1/2} ≤ c^{1/2} (1 - 3^{γ/2-1})⁻¹ 3^{-mγ/2} + ρ + V`. -/
+/-- **(2.68)**, before the choice of `ρ`: there is `K > 0` depending on `(c, θ, σ, γ, d, Λ)`
+such that, if `|a(□_n) - ā| + |a*(□_n) - ā| ≤ c 3^{-nγ} + O₁(θ 3^{-nσ})` for every `n`, with
+`γ ≤ 1` and `0 < σ < d`, then for every `m ∈ ℕ` and `ρ > 0` there is
+`V ≤ O₁(K ρ^{1-2d} 3^{-mσ})` with `E(m)^{1/2} ≤ c^{1/2} (1 - 3^{γ/2-1})⁻¹ 3^{-mγ/2} + ρ + V`. -/
 theorem sqrt_coarseDeviation_le_os (hd : 2 ≤ d) (hΛ : 0 ≤ Λ) {c θ σ γ : ℝ} (hc : 0 < c)
     (hθ : 0 < θ) (hσ : 0 < σ) (hσd : σ < d) (hγ1 : γ ≤ 1) :
     ∃ K : ℝ, 0 < K ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →

@@ -56,6 +56,7 @@ theorem vectorHatNegativeSobolevNorm_le_of_ae_eq {U : Set (Vec d)} {F G₁ G₂ 
         exact hatNegativeSobolevNorm_add_le m₁.neg m₂
     _ = _ := by rw [hatNegativeSobolevNorm_neg U (fun x => G₁ x j)]
 
+/-- `|□_m|^{1/d} = 3^m`. -/
 theorem toReal_volume_triadicCube_rpow_one_div [NeZero d] (m : ℕ) :
     (volume (triadicCube d m)).toReal ^ ((1 : ℝ) / d) = (3 : ℝ) ^ m := by
   rw [← measureReal_def, volumeReal_triadicCube, one_div]
@@ -74,16 +75,11 @@ theorem IsDefectMaximizer.setAverage_euclideanSq_le {a : CoefficientField d Λ}
   rw [setAverage_eq, setAverage_eq, smul_eq_mul, smul_eq_mul] at h
   linarith
 
+/-- `⨍_U c f = c ⨍_U f`. -/
 theorem setAverage_const_mul_eq (U : Set (Vec d)) (c : ℝ) (f : Vec d → ℝ) :
     ⨍ x in U, c * f x = c * ⨍ x in U, f x := by
   rw [setAverage_eq, setAverage_eq, integral_const_mul, smul_eq_mul, smul_eq_mul]
   ring
-
-theorem setAverage_euclideanSq_nonneg (U : Set (Vec d)) (g : Vec d → Vec d) :
-    0 ≤ ⨍ x in U, euclideanSq (g x) := by
-  rw [setAverage_eq, smul_eq_mul]
-  exact mul_nonneg (inv_nonneg.mpr measureReal_nonneg)
-    (integral_nonneg fun x => euclideanSq_nonneg _)
 
 /-- **The `J` term**: `‖∇v‖_{Ĥ̲⁻¹(U)} + ‖a∇v‖_{Ĥ̲⁻¹(U)} ≤ d (1 + Λ) |U|^{1/d} (2 J(U, p, q))^{1/2}`
 for the maximizer `v = v(·, U, p, q)`. -/
@@ -97,7 +93,8 @@ theorem IsDefectMaximizer.vectorHat_add_le {a : CoefficientField d Λ} {U : Set 
   have hUt : volume U ≠ ⊤ := hUb.measure_lt_top.ne
   have hg := hmax.1.1.2.1
   have hS := hmax.setAverage_euclideanSq_le hUb hU0
-  have hS0 := setAverage_euclideanSq_nonneg U g
+  have hS0 : 0 ≤ ⨍ x in U, euclideanSq (g x) :=
+    setAverage_nonneg_of_nonneg fun x => euclideanSq_nonneg (g x)
   have hV0 : 0 ≤ (volume U).toReal ^ ((1 : ℝ) / d) := by positivity
   have hR0 : 0 ≤ √(2 * dualityDefect a U p q) := Real.sqrt_nonneg _
   have hIg := integrable_euclideanSq_of_memLp hg

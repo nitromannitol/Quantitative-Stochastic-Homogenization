@@ -33,6 +33,7 @@ theorem euclideanSq_le_dot_homogenizedMatrix {P : Measure (CoefficientField d Λ
     rwa [integral_const, probReal_univ, one_smul] at h1
   linarith
 
+/-- `|e|² ≤ |ā e|²`, from (1.25) and the Cauchy–Schwarz inequality. -/
 theorem euclideanSq_le_euclideanSq_homogenizedMatrix_mulVec {P : Measure (CoefficientField d Λ)}
     (hP : LawHypotheses P) (hΛ : 0 ≤ Λ) (e : Vec d) :
     euclideanSq e ≤ euclideanSq ((homogenizedMatrix P).mulVec e) := by
@@ -47,6 +48,7 @@ theorem euclideanSq_le_euclideanSq_homogenizedMatrix_mulVec {P : Measure (Coeffi
     exact euclideanSq_nonneg _
   · nlinarith
 
+/-- A vector with `|x|² ≤ 0` is zero. -/
 theorem eq_zero_of_euclideanSq_nonpos {x : Vec d} (h : euclideanSq x ≤ 0) : x = 0 := by
   funext i
   have h1 : x i * x i ≤ euclideanSq x :=

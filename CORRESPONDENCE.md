@@ -1451,13 +1451,14 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   and is linear in these norms. Theorem 1.17 uses `E′(ε)^{1/2}`, in line with this form. The
   minimizer is `v = ℓ_p + u` with gradient `p + g`, as in Proposition 1.10.
 
-## Section 2.3: Theorem 2.17 (`Ch02/Sec03/HatNormAlgebra.lean`, `Ch02/Sec03/HomogenizedInverse.lean`, `Ch02/Sec03/MaximizerHatBound.lean`, `Ch02/Sec03/CoarseDeviationOs.lean`, `Ch02/Sec03/Theorem217.lean`)
+## Section 2.3: Theorem 2.17 (`Ch02/Sec03/`)
 
-- Lean: `QSH.theorem_2_17`, for `d ≥ 2` and `Λ > 1`, the hypotheses of Theorem 2.4 on which the
-  proof rests. `∃ α ∈ (0, 1/d], ∀ s ∈ (0, d), ∃ C > 0`, for every law satisfying (0.10)–(0.11) and
-  every `m`, there is a random variable `Y` with `OsBound P Y 1 (C 3^{m - ms})` such that, for every
-  coefficient field, `p, q ∈ B₁` and every maximizer `v` of (2.9) on `□_m` (unique up to the
-  gradient, `IsDefectMaximizer.ae_eq`) of gradient `g`, the left side of (2.66) is at most
+- Lean: `QSH.theorem_2_17`, for `d ≥ 2` (the book's standing assumption) and `Λ > 1` (the book:
+  `Λ ≥ 1`), the hypotheses of Theorem 2.4 on which the proof rests. `∃ α ∈ (0, 1/d], ∀ s ∈ (0, d),
+  ∃ C > 0`, for every law satisfying (0.10)–(0.11) and every `m`, there is a random variable `Y` with
+  `OsBound P Y 1 (C 3^{m - ms})` such that, for every coefficient field, `p, q ∈ B₁` and every
+  maximizer `v` of (2.9) on `□_m` (whose gradient is unique almost everywhere,
+  `IsDefectMaximizer.ae_eq`) of gradient `g`, the left side of (2.66) is at most
   `C 3^{m - mα(d-s)} + Y`. This is (2.66) with the convention `X ≤ A + O₁(θ)` of (0.42), with one
   `Y` for all `p, q` and all maximizers, so the measurability of the left side is not needed. The
   norms are the normalized `Ĥ̲⁻¹(□_m)` norms of (0.31) (`vectorHatNegativeSobolevNorm`, the sum

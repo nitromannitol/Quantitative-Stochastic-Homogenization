@@ -18,6 +18,7 @@ namespace QSH
 
 variable {d : ℕ}
 
+/-- `‖f‖_{Ĥ̲⁻¹(U)}` depends on `f` only almost everywhere in `U`. -/
 theorem hatNegativeSobolevNorm_congr_ae {U : Set (Vec d)} {f f' : Vec d → ℝ}
     (h : f =ᵐ[volume.restrict U] f') :
     hatNegativeSobolevNorm U f = hatNegativeSobolevNorm U f' := by
@@ -29,6 +30,7 @@ theorem hatNegativeSobolevNorm_congr_ae {U : Set (Vec d)} {f f' : Vec d → ℝ}
     exact integral_congr_ae (h.mono fun x hx => by simp only [hx])
   rw [e]
 
+/-- `‖-f‖_{Ĥ̲⁻¹(U)} = ‖f‖_{Ĥ̲⁻¹(U)}`. -/
 theorem hatNegativeSobolevNorm_neg (U : Set (Vec d)) (f : Vec d → ℝ) :
     hatNegativeSobolevNorm U (fun x => -f x) = hatNegativeSobolevNorm U f := by
   unfold hatNegativeSobolevNorm
@@ -36,6 +38,7 @@ theorem hatNegativeSobolevNorm_neg (U : Set (Vec d)) (f : Vec d → ℝ) :
   rw [setAverage_eq, setAverage_eq]
   simp only [neg_mul, integral_neg, smul_neg, abs_neg]
 
+/-- `‖f + h‖_{Ĥ̲⁻¹(U)} ≤ ‖f‖_{Ĥ̲⁻¹(U)} + ‖h‖_{Ĥ̲⁻¹(U)}` for `f, h ∈ L²(U)`. -/
 theorem hatNegativeSobolevNorm_add_le {U : Set (Vec d)} {f h : Vec d → ℝ}
     (hf : MemLp f 2 (volume.restrict U)) (hh : MemLp h 2 (volume.restrict U)) :
     hatNegativeSobolevNorm U (fun x => f x + h x) ≤
