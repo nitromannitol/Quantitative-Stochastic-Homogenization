@@ -993,6 +993,27 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
   formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 are not.
 
+## Appendix B: Remark B.6 and Definition B.4 on balls (`AppB/DivergenceRepresentation.lean`)
+
+- **Definition B.4** is formalized for `α = 1` only, by the normalized norm
+  `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
+  the spaces `W^{-α,p}(U)` for `α ≠ 1` are not formalized.
+- **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
+  `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
+  with `∫ h ψ = -∫ H · ∇ψ` for every `ψ ∈ C_c^∞(B_r(z))` (the book's (B.5) is stated with the
+  opposite sign convention `∫ w h = ∫ F · ∇w`, i.e. `F = -H`, and for `w ∈ W_0^{1,p'}(U)`; the
+  pairing of a distribution with `W_0^{1,p'}` is its extension from `C_c^∞` by density) and
+  `‖h‖_{W̲^{-1,p}(B_r(z))} ≤ ‖H‖_{L̲^p(B_r(z))} ≤ C(d) ‖h‖_{W̲^{-1,p}(B_r(z))}`, where
+  `C(d) = 2 (2^d + 1) |B_1|^{-1/d} + d` (`divergenceRepresentationConstant`). The endpoint `p = ∞`
+  and domains other than balls are not formalized. The proof is the book's: on the tests the
+  gradient map into `L^{p'}(B_r(z); ℝ^d)` is injective, the test norm `‖ψ‖_{W̲^{1,p'}}` is at most
+  `C(d) ‖∇ψ‖_{L̲^{p'}}` by the Poincaré inequality for tests of the elliptic regularity library
+  (`PDE.eLpNormOn_testFunction_le_two_pow_add_one_mul_diameter_grad`, constant `(2^d + 1)·2r`), and the
+  functional `ψ ↦ ⨍ h ψ` is represented through the Hahn–Banach theorem and the duality
+  `(L^{p'})^* = L^p` (`PDE.exists_nativeLp_density_through_injective`). The lower bound is Hölder's
+  inequality (`negativeSobolevOneNorm_zero_le`). For `d = 0` the statement fails (the ball is a
+  point and `h = f` is not a divergence).
+
 ## Appendix C: Theorem C.1, Lemmas C.2 and C.4–C.6, Corollary C.3 (`AppC/`)
 
 - **Norms and right-hand sides.** The normalized norms `‖·‖_{L̲^s(U)}` are `PDE.eLpMeanNormOn U s`
@@ -1037,10 +1058,14 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   book's proof, with `‖H‖_{L̲^{(2+δ)∧p}(B_r)}` on the right-hand side, from Corollary C.3 on every
   ball `B_ρ(z) ⊆ B_r`, the bound `‖∇·H‖_{H̲^{-1}} ≤ ‖H‖_{L̲²}` and Lemma C.4. The book applies Lemma C.4
   with `q = 2_*`, which is `1` for `d = 2`, outside the range `(1, 2)` of the lemma; the proof uses
-  `q = max(2_*, 3/2)`. `theorem_C_1` is the statement of the book under the hypothesis
-  `DivergenceRepresentation d C` (Remark B.6 and Proposition B.16 on centered balls for exponents
-  `s ∈ [2, 3]`: every `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C ‖h‖_{W̲^{-1,s}(B_r)}`), which
-  is not formalized. The elliptic regularity library proves a Meyers estimate on the unit ball for
+  `q = max(2_*, 3/2)`. The general case is reduced to this one in the book by Proposition B.16
+  (the Dirichlet problem `-Δw = h` in `W^{1,s}_0(B_r)`, `H = ∇w`); the Lean proof uses instead the
+  representation of Remark B.6 on balls (`remark_B_6`, see the Appendix B section): every
+  `h ∈ W^{-1,s}(B_r)` is `∇·H` with `‖H‖_{L̲^s(B_r)} ≤ C(d) ‖h‖_{W̲^{-1,s}(B_r)}`, which is what the
+  reduction uses. `theorem_C_1_of_divergenceRepresentation` is the reduction under this
+  representation as a hypothesis (`DivergenceRepresentation d C`), `exists_divergenceRepresentation`
+  discharges it, and `theorem_C_1` is the statement of the book, for `d ≥ 2` and
+  `h = f + ∇·F` with `f ∈ L²(B_r)`, `F ∈ L²(B_r; ℝ^d)`. The elliptic regularity library proves a Meyers estimate on the unit ball for
   divergence-form right-hand sides with exponents up to `2 + c/√Λ` (`PDE.MeyersProof.result`, via a
   Gehring lemma on cubes with the lower exponent `2d/(d+1)`); the proof here follows the book through
   Lemma C.4, which holds for every `q ∈ (1, 2)`.
