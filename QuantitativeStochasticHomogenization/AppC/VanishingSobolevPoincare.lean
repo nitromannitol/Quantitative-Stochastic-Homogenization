@@ -178,7 +178,7 @@ theorem sobolevPoincare_of_vanishing (hd : 2 ≤ d) :
   have hw0 : ∀ x ∈ B \ U, w.toFun x = 0 := fun x hx => by
     rw [hwf]
     exact indicator_of_notMem hx.2 _
-  have hvan := eLpMeanNormOn_two_le_of_eq_zero_on hB0 hBt diff_subset hEm hθ hθB w.memL2 hw0
+  have hvan := eLpMeanNormOn_two_le_of_eq_zero_on hB0 hBt sdiff_subset hEm hθ hθB w.memL2 hw0
     (PDE.integralAverage B w.toFun)
   have hθ0 : 0 ≤ 1 + θ ^ (-(1 : ℝ) / 2) := by
     have := Real.rpow_nonneg hθ.le (-(1 : ℝ) / 2)
