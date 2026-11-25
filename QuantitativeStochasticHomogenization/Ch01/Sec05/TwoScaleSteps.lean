@@ -340,6 +340,208 @@ theorem vectorHat_flux_le (hΛ : 1 ≤ Λ) (hU : PDE.IsOpenBoundedConvexDomain U
     ring
   linarith
 
+theorem stepOneConstant_nonneg (U V : Set (Vec d)) (b : CoefficientField d Λ) (A : Mat d)
+    (η : Vec d → ℝ) (g : Vec d → Vec d) (G Φ : Fin d → Vec d → ℝ) {M : ℝ} (hM : 0 ≤ M)
+    {N : Fin d → Fin d → ℝ} (hN0 : ∀ j i, 0 ≤ N j i) :
+    0 ≤ stepOneConstant U V b A η g G Φ M N := by
+  unfold stepOneConstant
+  refine add_nonneg (add_nonneg (Finset.sum_nonneg fun _ _ => l2_nonneg _ _)
+    (Finset.sum_nonneg fun _ _ => Finset.sum_nonneg fun _ _ => l2_nonneg _ _))
+    (mul_nonneg (mul_nonneg (Real.rpow_nonneg ENNReal.toReal_nonneg _) (by positivity))
+      (Finset.sum_nonneg fun j _ => Finset.sum_nonneg fun i _ => hN0 j i))
+
+set_option maxHeartbeats 400000 in
+/-- **Steps 2–4 of the proof of Theorem 1.17** for fixed data. -/
+theorem exists_twoScale_steps [NeZero d] (hΛ : 1 ≤ Λ) (hU : PDE.IsOpenBoundedConvexDomain U)
+    (hUb : Bornology.IsBounded U) (hU0 : volume U ≠ 0) (hUcube : U ⊆ cube 0 1) :
+    ∃ c : ℝ, 0 ≤ c ∧ ∀ (V : Set (Vec d)), U ⊆ V → 1 ≤ (volume V).toReal → volume V ≠ ⊤ →
+      ∀ (b : CoefficientField d Λ) (A : Mat d),
+      ∀ (u uε η : Vec d → ℝ) (g gε : Vec d → Vec d) (G Φ : Fin d → Vec d → ℝ)
+        (DΦ : Fin d → Vec d → Vec d) (M : ℝ) (N : Fin d → Fin d → ℝ),
+      (∀ i, MemLp (fun x => g x i) 2 (volume.restrict U)) →
+      HasWeakDivergence U (fun x => A.mulVec (g x)) (fun _ => 0) →
+      H01 U (fun x => uε x - u x) (fun x => gε x - g x) →
+      HasWeakDivergence U (fun x => (b x).mulVec (gε x)) (fun _ => 0) →
+      Continuous η → (∀ x, 0 ≤ η x ∧ η x ≤ 1) →
+      (∀ j, ContDiff ℝ (⊤ : ℕ∞) (G j)) → (∀ j, HasCompactSupport (G j)) →
+      (∀ j, tsupport (G j) ⊆ U) →
+      (∀ᵐ x ∂(volume.restrict U), (fun j => G j x) = η x • g x) →
+      (∀ j, MemLp (Φ j) 2 (volume.restrict U)) →
+      (∀ j i, MemLp (fun x => DΦ j x i) 2 (volume.restrict U)) →
+      (∀ j, HasWeakGradient U (Φ j) (DΦ j)) →
+      (∀ j, HasWeakDivergence U (fun x => (b x).mulVec (unitVector j + DΦ j x))
+        (fun _ => 0)) →
+      0 ≤ M → (∀ j x, |G j x| ≤ M) → (∀ j i x, |coordinateDerivative i (G j) x| ≤ M) →
+      (∀ j i k x, |coordinateDerivative k (coordinateDerivative i (G j)) x| ≤ M) →
+      (∀ j i, 0 ≤ N j i) →
+      (∀ j i, negativeSobolevOneNorm 2 V
+        (fun x => ((b x).mulVec (unitVector j + DΦ j x) - A.mulVec (unitVector j)) i) 0 ≤
+          ENNReal.ofReal (N j i)) →
+      scalarRms volume U (fun x => uε x - u x) ≤
+          c * (stepOneConstant U V b A η g G Φ M N + M * ∑ j, l2 U (Φ j)) ∧
+        vectorHatNegativeSobolevNorm U (fun x => gε x - g x) ≤
+          ENNReal.ofReal (c * (stepOneConstant U V b A η g G Φ M N + M * ∑ j, l2 U (Φ j))) ∧
+        vectorHatNegativeSobolevNorm U (fun x => (b x).mulVec (gε x) - A.mulVec (g x)) ≤
+          ENNReal.ofReal (c * (stepOneConstant U V b A η g G Φ M N + M * ∑ j, l2 U (Φ j))) := by
+  have hUt : volume U ≠ ⊤ := (volume_lt_top_of_isBoundedDomain hU.2.1).ne
+  have : IsFiniteMeasure (volume.restrict U) := isFiniteMeasure_restrict.mpr hUt
+  obtain ⟨C8, hC8, h8⟩ := lemma_C_8_energy hΛ hU.1 hUb hU0
+  set CP := testPoincareConstant d with hCP
+  have hCP0 : 0 ≤ CP := testPoincareConstant_nonneg d
+  set R := (volume U).toReal ^ ((1 : ℝ) / d) with hR
+  set s := (volume U).toReal ^ (1 / 2 : ℝ) with hs
+  have hR0 : 0 ≤ R := Real.rpow_nonneg ENNReal.toReal_nonneg _
+  have hs0 : 0 ≤ s⁻¹ := inv_nonneg.2 (Real.rpow_nonneg ENNReal.toReal_nonneg _)
+  have hΛ0 : 0 ≤ Λ := by linarith
+  set cU := s⁻¹ * (R + 1) with hcU
+  have hcU0 : 0 ≤ cU := mul_nonneg hs0 (by linarith)
+  have hd0 : (0 : ℝ) ≤ d := Nat.cast_nonneg d
+  have q0 : 0 ≤ Real.sqrt CP * (C8 * cU) := by positivity
+  have q3 : 0 ≤ d * (R * (C8 * cU)) := by positivity
+  have q4 : 0 ≤ (d : ℝ) * s⁻¹ := by positivity
+  have q5 : 0 ≤ d * R * (Λ * (C8 * cU)) + R * s⁻¹ + s⁻¹ * ((1 + d) * R + d) := by positivity
+  obtain ⟨c, hc⟩ : ∃ c : ℝ, c = Real.sqrt CP * (C8 * cU) + s⁻¹ + (d * (R * (C8 * cU)) + d * s⁻¹) +
+      (d * R * (Λ * (C8 * cU)) + R * s⁻¹ + s⁻¹ * ((1 + d) * R + d)) := ⟨_, rfl⟩
+  have hc0 : 0 ≤ c := by rw [hc]; linarith
+  have c1 : Real.sqrt CP * (C8 * cU) ≤ c := by rw [hc]; linarith
+  have c2 : s⁻¹ ≤ c := by rw [hc]; linarith
+  have c3 : d * (R * (C8 * cU)) ≤ c := by rw [hc]; linarith
+  have c4 : d * s⁻¹ ≤ c := by rw [hc]; linarith
+  have c5 : d * R * (Λ * (C8 * cU)) + R * s⁻¹ + s⁻¹ * ((1 + d) * R + d) ≤ c := by
+    rw [hc]; linarith
+  clear hc
+  refine ⟨c, hc0, fun V hUV hV1 hVt b A u uε η g gε G Φ DΦ M N hg hu hε hdivε hη hη01
+    hG hGc hGU hGη hΦ hDΦ hΦw hflux hM hM0 hM1 hM2 hN0 hN => ?_⟩
+  set K1 := stepOneConstant U V b A η g G Φ M N with hK1def
+  have hK1 : 0 ≤ K1 := stepOneConstant_nonneg U V b A η g G Φ hM hN0
+  -- Step 1 in normalized form
+  have hS1 : ∀ ψ, IsSpatialTest U ψ →
+      |∫ x in U, dot ((b x).mulVec (twoScaleGrad g G Φ DΦ x)) (gradient ψ x)| ≤
+        K1 * (l2 U ψ + ∑ k, l2 U (coordinateDerivative k ψ)) := fun ψ hψ =>
+    abs_integral_twoScaleGrad_le hUt hUV hV1 hVt hg hu hη hη01 hG hGc hGη hΦ hDΦ hflux hM hM1 hM2
+      hN0 hN hψ
+  have hneg := negativeSobolevOneNorm_le_of_abs_setIntegral_le hU0 hUt hK1 hS1
+  -- the corrector part of the expansion
+  have hW : H01 U (fun x => ∑ j, G j x * Φ j x)
+      (fun x => ∑ j, (G j x • DΦ j x + Φ j x • gradient (G j) x)) :=
+    H01.finsetSum _ fun j _ => h01_cutoff_mul hU (hΦ j) (hDΦ j) (hΦw j) (hG j) (hGc j) (hGU j)
+  -- Step 2
+  have hv := hε.sub hW
+  set h : Vec d → Vec d := fun x => gε x - g x - ∑ j, (G j x • DΦ j x + Φ j x • gradient (G j) x)
+    with hh
+  have hhw : ∀ x, h x = gε x - twoScaleGrad g G Φ DΦ x := fun x => by
+    simp only [hh, twoScaleGrad, sub_sub]
+  have hhm : ∀ i, MemLp (fun x => h x i) 2 (volume.restrict U) := fun i => hv.2.1.eval i
+  have hwg : ∀ i, MemLp (fun x => twoScaleGrad g G Φ DΦ x i) 2 (volume.restrict U) := fun i =>
+    ((hg i).add (hW.2.1.eval i)).ae_eq (Eventually.of_forall fun x => by
+      simp [twoScaleGrad])
+  have hbw : ∀ i, MemLp (fun x => (b x).mulVec (twoScaleGrad g G Φ DΦ x) i) 2
+      (volume.restrict U) := fun i => memLp_coefficient_mulVec_apply b (memLp_pi_iff.2 hwg) i
+  have hdiv8 : HasWeakDivergence U
+      (fun x => (b x).mulVec (h x) + (b x).mulVec (twoScaleGrad g G Φ DΦ x))
+      (fun x => -(fun _ => (0 : ℝ)) x) := by
+    have e : (fun x => (b x).mulVec (h x) + (b x).mulVec (twoScaleGrad g G Φ DΦ x)) =
+        fun x => (b x).mulVec (gε x) := funext fun x => by
+      rw [hhw x, Matrix.mulVec_sub, sub_add_cancel]
+    rw [e]
+    simpa using hdivε
+  have h8' := h8 b _ h (fun _ => 0) (fun x => (b x).mulVec (twoScaleGrad g G Φ DΦ x)) hv
+    (memLp_const 0) hbw hdiv8
+  have hY : vectorRms volume U h ≤ C8 * (cU * K1) := by
+    have h1 : ENNReal.ofReal (vectorRms volume U h) ≤
+        ENNReal.ofReal C8 * ENNReal.ofReal (cU * K1) :=
+      h8'.trans (mul_le_mul' le_rfl (by rw [hcU, mul_assoc]; exact hneg))
+    rw [← ENNReal.ofReal_mul hC8.le] at h1
+    exact (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 h1
+  have hY0 : 0 ≤ C8 * (cU * K1) := by positivity
+  -- Poincaré for `u^ε - w^ε`
+  have hP := setIntegral_sq_le_of_H01 (0 : Vec d) one_pos hUcube hv
+  rw [one_pow, mul_one] at hP
+  have hvr := scalarRms_le_of_setIntegral_sq_le hCP0 hP
+  -- the corrector part
+  have hWl : l2 U (fun x => ∑ j, G j x * Φ j x) ≤ M * ∑ j, l2 U (Φ j) := by
+    have hGΦ : ∀ j, MemLp (fun x => G j x * Φ j x) 2 (volume.restrict U) := fun j =>
+      memLp_continuous_mul (hG j).continuous (hGc j) (hΦ j)
+    refine (l2_sum_le _ fun j _ => hGΦ j).trans ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_le_sum fun j _ => l2_le_mul (hGΦ j).aestronglyMeasurable (hΦ j) hM
+      fun x => by rw [abs_mul]; exact mul_le_mul_of_nonneg_right (hM0 j x) (abs_nonneg _)
+  have hWr : scalarRms volume U (fun x => ∑ j, G j x * Φ j x) ≤ s⁻¹ * (M * ∑ j, l2 U (Φ j)) := by
+    rw [scalarRms_eq_inv_mul_l2 hUt hU0 hW.1]
+    exact mul_le_mul_of_nonneg_left hWl hs0
+  have hMS : 0 ≤ M * ∑ j, l2 U (Φ j) := mul_nonneg hM (Finset.sum_nonneg fun _ _ => l2_nonneg _ _)
+  refine ⟨?_, ?_, ?_⟩
+  · -- the `L²` bound
+    have e : (fun x => uε x - u x) = fun x => (uε x - u x - ∑ j, G j x * Φ j x) +
+        ∑ j, G j x * Φ j x := funext fun x => by ring
+    have hm : MemLp (fun x => (uε x - u x - ∑ j, G j x * Φ j x) + ∑ j, G j x * Φ j x) 2
+        (volume.restrict U) := hv.1.add hW.1
+    rw [e, scalarRms_eq_inv_mul_l2 hUt hU0 hm]
+    have h1 := l2_add_le hv.1 hW.1
+    rw [l2_eq_sqrt_mul_scalarRms hUt hv.1] at h1
+    have hsp : 0 < s := Real.rpow_pos_of_pos (ENNReal.toReal_pos hU0 hUt) _
+    have h2 : s⁻¹ * l2 U (fun x => (uε x - u x - ∑ j, G j x * Φ j x) + ∑ j, G j x * Φ j x) ≤
+        Real.sqrt CP * (C8 * (cU * K1)) + s⁻¹ * (M * ∑ j, l2 U (Φ j)) := by
+      calc s⁻¹ * l2 U (fun x => (uε x - u x - ∑ j, G j x * Φ j x) + ∑ j, G j x * Φ j x)
+          ≤ s⁻¹ * (s * scalarRms volume U (fun x => uε x - u x - ∑ j, G j x * Φ j x) +
+            M * ∑ j, l2 U (Φ j)) :=
+            mul_le_mul_of_nonneg_left (h1.trans (add_le_add le_rfl hWl)) hs0
+        _ = scalarRms volume U (fun x => uε x - u x - ∑ j, G j x * Φ j x) +
+            s⁻¹ * (M * ∑ j, l2 U (Φ j)) := by
+            rw [mul_add, ← mul_assoc, inv_mul_cancel₀ hsp.ne', one_mul]
+        _ ≤ _ := add_le_add (hvr.trans (mul_le_mul_of_nonneg_left hY (Real.sqrt_nonneg _))) le_rfl
+    refine h2.trans ?_
+    calc Real.sqrt CP * (C8 * (cU * K1)) + s⁻¹ * (M * ∑ j, l2 U (Φ j))
+        = (Real.sqrt CP * (C8 * cU)) * K1 + s⁻¹ * (M * ∑ j, l2 U (Φ j)) := by ring
+      _ ≤ c * K1 + c * (M * ∑ j, l2 U (Φ j)) :=
+          add_le_add (mul_le_mul_of_nonneg_right c1 hK1) (mul_le_mul_of_nonneg_right c2 hMS)
+      _ = c * (K1 + M * ∑ j, l2 U (Φ j)) := by ring
+  · -- the gradient bound
+    refine (vectorHat_grad_le hU0 hUt hW hhm (fun x => by simp only [hh]; abel)
+      (hY.trans le_rfl) hWr).trans (ENNReal.ofReal_le_ofReal ?_)
+    calc d * (R * (C8 * (cU * K1)) + s⁻¹ * (M * ∑ j, l2 U (Φ j)))
+        = d * (R * (C8 * cU)) * K1 + d * s⁻¹ * (M * ∑ j, l2 U (Φ j)) := by ring
+      _ ≤ c * K1 + c * (M * ∑ j, l2 U (Φ j)) :=
+          add_le_add (mul_le_mul_of_nonneg_right c3 hK1) (mul_le_mul_of_nonneg_right c4 hMS)
+      _ = c * (K1 + M * ∑ j, l2 U (Φ j)) := by ring
+  · -- the flux bound
+    refine (vectorHat_flux_le hΛ hU hU0 hUV hV1 hVt hg hhm hη hη01 hG hGc hGU hGη hΦ hDΦ hhw hM
+      hM0 hM1 hN0 hN hY).trans (ENNReal.ofReal_le_ofReal ?_)
+    have hV0 : 0 ≤ (volume V).toReal ^ (1 / 2 : ℝ) := Real.rpow_nonneg ENNReal.toReal_nonneg _
+    have hNs : 0 ≤ ∑ j, ∑ i, N j i :=
+      Finset.sum_nonneg fun j _ => Finset.sum_nonneg fun i _ => hN0 j i
+    have hpart : ∑ k, l2 U (fun x => ((1 - η x) • ((b x).mulVec (g x) - A.mulVec (g x))) k) +
+        ∑ j, ∑ k, l2 U (fun x => (b x).mulVec (Φ j x • gradient (G j) x) k) ≤ K1 := by
+      rw [hK1def, stepOneConstant]
+      have := mul_nonneg (mul_nonneg hV0 (mul_nonneg (by positivity : (0 : ℝ) ≤ 1 + d) hM)) hNs
+      linarith
+    have hpart2 : (volume V).toReal ^ (1 / 2 : ℝ) * (M * ∑ j, ∑ i, N j i) ≤ K1 := by
+      rw [hK1def, stepOneConstant]
+      have h1 : 0 ≤ ∑ k, l2 U (fun x => ((1 - η x) • ((b x).mulVec (g x) - A.mulVec (g x))) k) +
+          ∑ j, ∑ k, l2 U (fun x => (b x).mulVec (Φ j x • gradient (G j) x) k) :=
+        add_nonneg (Finset.sum_nonneg fun _ _ => l2_nonneg _ _)
+          (Finset.sum_nonneg fun _ _ => Finset.sum_nonneg fun _ _ => l2_nonneg _ _)
+      have h2 : (volume V).toReal ^ (1 / 2 : ℝ) * (M * ∑ j, ∑ i, N j i) ≤
+          (volume V).toReal ^ (1 / 2 : ℝ) * ((1 + d) * M) * ∑ j, ∑ i, N j i := by
+        have := mul_nonneg (mul_nonneg hV0 (mul_nonneg hd0 hM)) hNs
+        nlinarith
+      linarith
+    have q1 := mul_le_mul_of_nonneg_left hpart (mul_nonneg hR0 hs0)
+    have q2 := mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hpart2 hs0)
+      (by positivity : (0 : ℝ) ≤ (1 + d) * R + d)
+    have e1 : d * R * (Λ * (C8 * (cU * K1))) = (d * R * (Λ * (C8 * cU))) * K1 := by ring
+    have e2 : s⁻¹ * ((volume V).toReal ^ (1 / 2 : ℝ) * (M * ∑ j, ∑ i, N j i)) *
+        ((1 + d) * R + d) ≤ s⁻¹ * K1 * ((1 + d) * R + d) := q2
+    calc d * R * (Λ * (C8 * (cU * K1))) + R * s⁻¹ *
+          (∑ k, l2 U (fun x => ((1 - η x) • ((b x).mulVec (g x) - A.mulVec (g x))) k) +
+            ∑ j, ∑ k, l2 U (fun x => (b x).mulVec (Φ j x • gradient (G j) x) k)) +
+          s⁻¹ * ((volume V).toReal ^ (1 / 2 : ℝ) * (M * ∑ j, ∑ i, N j i)) * ((1 + d) * R + d)
+        ≤ (d * R * (Λ * (C8 * cU))) * K1 + R * s⁻¹ * K1 + s⁻¹ * K1 * ((1 + d) * R + d) := by
+          rw [e1]; linarith [q1, e2]
+      _ = (d * R * (Λ * (C8 * cU)) + R * s⁻¹ + s⁻¹ * ((1 + d) * R + d)) * K1 := by ring
+      _ ≤ c * K1 := mul_le_mul_of_nonneg_right c5 hK1
+      _ ≤ c * (K1 + M * ∑ j, l2 U (Φ j)) := mul_le_mul_of_nonneg_left (by linarith) hc0
+
 end TwoScale
 
 end QSH
