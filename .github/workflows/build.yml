@@ -35,10 +35,21 @@ jobs:
       - name: Reclaim runner disk space
         shell: bash
         run: |
+          df -h /
+          # Preinstalled toolchains and SDKs that no step uses. The tool cache directory is kept
+          # (emptied) so that actions/setup-* can still install into it.
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
                       /usr/local/.ghcup /usr/local/share/powershell \
-                      /usr/share/swift /usr/local/share/boost || true
-          sudo docker image prune --all --force >/dev/null 2>&1 || true
+                      /usr/share/swift /usr/local/share/boost \
+                      /opt/hostedtoolcache/* /usr/local/lib/node_modules \
+                      /usr/local/share/chromium /opt/google /opt/microsoft \
+                      /usr/lib/jvm /usr/lib/google-cloud-sdk /opt/az \
+                      /usr/share/miniconda /usr/local/julia* /opt/pipx \
+                      /usr/local/aws-cli /usr/local/aws-sam-cli /usr/local/share/vcpkg \
+                      /usr/share/kotlinc /usr/share/sbt /usr/share/gradle* \
+                      /usr/share/apache-maven* /usr/lib/firefox /opt/mssql-tools || true
+          sudo docker system prune --all --force >/dev/null 2>&1 || true
+          sudo apt-get clean || true
           df -h /
 
       - name: Enlarge swap
