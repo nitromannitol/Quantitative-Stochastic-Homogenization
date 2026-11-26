@@ -182,7 +182,7 @@ theorem negativeSobolevOneNorm_le_of_abs_setIntegral_le {U : Set (Vec d)} (hU0 :
   simp only [toReal_eLpMeanNormOn_two_eq hUt] at hψ1
   have hdp : distributionPairing U 0 Φ ψ = -((volume U).toReal⁻¹ *
       ∫ x in U, dot (Φ x) (gradient ψ x)) := by
-    simp [distributionPairing, setAverage_eq, measureReal_def, smul_eq_mul, integral_neg]
+    simp [distributionPairing, setAverage_eq, measureReal_def, smul_eq_mul]
   rw [hdp, abs_neg, abs_mul, abs_of_pos (inv_pos.2 hV)]
   have hb := h ψ hψ
   have hl := l2_nonneg U ψ

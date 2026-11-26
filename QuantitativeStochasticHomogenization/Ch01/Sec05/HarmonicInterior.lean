@@ -169,9 +169,9 @@ in `S`, and every `δ > 0`, there is a smooth `v` with: for every `y₀` with `B
 `v = u` almost everywhere on `B_δ(y₀)`, and for `n ≤ 2`, `a ∈ {1, …, d}` and every multi-index
 `β` of length `n`, `|∂^β ∂_a v(y₀)| ≤ C δ^{-n} (δ^{-d})^{1/2} ‖g_a‖_{L²(S)}`. -/
 theorem exists_smooth_harmonic_interior_bound (hd : 0 < d) :
-    ∃ C : ℝ, 0 ≤ C ∧ ∀ (S : Set (Vec d)), IsOpen S → ∀ (u : Vec d → ℝ) (g : Vec d → Vec d)
-      (hu : MemLp u 2 (volume.restrict S))
-      (hg : ∀ i, MemLp (fun x => g x i) 2 (volume.restrict S)),
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (S : Set (Vec d)), IsOpen S → ∀ (u : Vec d → ℝ) (g : Vec d → Vec d),
+      MemLp u 2 (volume.restrict S) →
+      (∀ i, MemLp (fun x => g x i) 2 (volume.restrict S)) →
       HasWeakGradient S u g →
       HasWeakDivergence S (fun x => (1 : Mat d).mulVec (g x)) (fun _ => 0) →
       ∀ δ : ℝ, 0 < δ → ∃ v : Vec d → ℝ, ContDiff ℝ (⊤ : ℕ∞) v ∧
