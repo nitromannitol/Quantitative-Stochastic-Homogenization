@@ -283,7 +283,12 @@ theorem rescaledCorrector_facts (a : CoefficientField d Λ) (A : Mat d) {ε : �
   have hh1 := fun k => h1_rescaledCorrector (hmin k).1 hε hVm hVt hVmap
   have hfl := fun k => hasWeakDivergence_rescaledCorrector (hmin k) hε hVm hVt hVmap
   have hDe : ∀ j, MemLp (fun x => unitVector j + Dφ j (ε⁻¹ • x)) 2 (volume.restrict V) :=
-    fun j => (memLp_const _).add (memLp_pi_iff.2 (hh1 j).2.1)
+    fun j => by
+      have h1 : MemLp (fun x => Dφ j (ε⁻¹ • x)) 2 (volume.restrict V) :=
+        memLp_pi_iff.2 (hh1 j).2.1
+      have h0 : MemLp (fun _ : Vec d => unitVector (d := d) j) 2 (volume.restrict V) :=
+        memLp_const _
+      exact h0.add h1
   have hflL2 : ∀ j i, MemLp (fun x => ((a (ε⁻¹ • x)).mulVec (unitVector j + Dφ j (ε⁻¹ • x)) -
       A.mulVec (unitVector j)) i) 2 (volume.restrict V) := fun j i =>
     (memLp_coefficient_mulVec_apply (rescaledCoefficientField a hεne) (hDe j) i).sub
@@ -591,8 +596,10 @@ theorem exists_twoScale_estimate (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d
       refine h.ae_eq (Eventually.of_forall fun x => ?_)
       simp only [Pi.smul_apply, smul_eq_mul]
       ring
-    have hm := (memLp_coefficient_mulVec_apply (rescaledCoefficientField a hεne)
-      (memLp_pi_iff.2 hΦG) k).aestronglyMeasurable
+    have hΦG' : MemLp (fun x => (ε * φ j (ε⁻¹ • x)) • gradient (G j) x) 2 (volume.restrict U) :=
+      memLp_pi_iff.2 hΦG
+    have hm := (memLp_coefficient_mulVec_apply (rescaledCoefficientField a hεne) hΦG'
+      k).aestronglyMeasurable
     have hpt : ∀ x, ‖(rescaledCoefficientField a hεne x).mulVec
         ((ε * φ j (ε⁻¹ • x)) • gradient (G j) x) k‖ ≤
           (Λ * (d * M)) * ‖ε * φ j (ε⁻¹ • x)‖ := fun x => by
@@ -640,7 +647,7 @@ theorem exists_twoScale_estimate (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d
     calc _ ≤ _ := stepOneConstant_add_le (rescaledCoefficientField a hεne) A η g G
           (fun j x => ε * φ j (ε⁻¹ • x)) _ hM0 ht0 ht hBL hT2 hNs hΦl2
       _ = C1 * Fr * r ^ β + M * t * s * C2 := e1
-      _ ≤ C1 * Fr * r ^ β + KC * (Fr * (r ^ (-(2 + (d : ℝ) / 2)) * s)) := add_le_add_left hM' _
+      _ ≤ C1 * Fr * r ^ β + KC * (Fr * (r ^ (-(2 + (d : ℝ) / 2)) * s)) := add_le_add le_rfl hM'
       _ ≤ (C1 + KC) * (Fr * (r ^ β + r ^ (-(2 + (d : ℝ) / 2)) * s)) := by
           rw [show (C1 + KC) * (Fr * (r ^ β + r ^ (-(2 + (d : ℝ) / 2)) * s)) =
             C1 * Fr * r ^ β + KC * (Fr * (r ^ (-(2 + (d : ℝ) / 2)) * s)) +
