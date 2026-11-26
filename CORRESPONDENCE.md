@@ -1758,3 +1758,26 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   gives `r^{-4-d}`, which is smaller for `r < 1`). (2.68) at `(s + d)/2`, the choice
   `r = 3^{-(m+1)α(d-s)/(4(4+d))}` and Lemma A.4 give the random variable (`exists_random_rate`), with
   `β = β₁ α / (4(4 + d))`.
+
+## Section 3.1: Proposition 3.2 (`Ch03/Sec01/`)
+
+- Lean: `QSH.proposition_3_2`, for `d ≥ 2` and `Λ > 1` (the hypotheses of Theorem 2.18, on which the
+  proof rests; the book: `Λ ≥ 1`). `∃ α > 0, ∀ s ∈ (0, d), ∃ C > 0`, for every law satisfying
+  (0.10)–(0.11) there is a random variable `X ≥ 1` with `OsBound P X s C`, (3.11), such that, for almost
+  every coefficient field, every `R ≥ X` and every `u ∈ H¹(B_R)` with `a∇u` weakly divergence free in
+  `B_R`, there is `ū ∈ H¹(B_{R/2})` with `ā∇ū` weakly divergence free in `B_{R/2}` and (3.13) in the
+  normalized `L̲²` norms. Departures: (i) the book's `X_s` takes values in `[1, ∞]`; here `X` is real
+  valued and the estimate holds for almost every coefficient field, as in Theorem 2.18, whose random
+  variable is finite only almost surely; (ii) `Λ > 1`.
+- Proof: the book's. (3.14) is `meyers_halfBall`: the book refers to Theorem C.1, which bounds
+  `‖∇u‖_{L̲^{2+δ}(B_{r/2})}` by `‖∇u‖_{L̲²(B_r)}`; with the Caccioppoli inequality (Lemma C.2) it gives
+  (3.14) on a smaller ball, and `B_{R/2}` is covered by the balls `B_{R/16}(c)` with centers on a grid
+  of step `R/(16√d)`, on each of which Theorem C.1 (for the translated coefficient field,
+  `interiorMeyers_center`) and Lemma C.2 on `B_{R/4}(c) ⊆ B_R` apply (`meyers_smallBall`). Theorem 2.18
+  is applied on `B_{1/2} ⊆ □_0` to `x ↦ u(Rx)` with `ε = 1/R` and `(s + d)/2` in place of `s`
+  (`harmonicApprox_of_bound`); the exponent `2 + δ` is the Meyers exponent reduced to at most `2 + 1/d`,
+  so that `u ∈ L^{2+δ}(B_{R/2})` by the Sobolev inequality (Theorem B.9,
+  `memLp_two_add_inv_of_h1_ball`); the homogenized solution with the boundary values of `u(R ·)` is
+  given by the existence theorem of the elliptic regularity library (`exists_ballDirichlet`); the
+  changes of variables are `rescale_h1_div`, `eLpMeanNormOn_comp_smul` and `eLpMeanNormOn_comp_add`.
+  `X = max(X_{(s+d)/2}^{1/s}, 1)` and `α = min(β, 1)/4`, `β` the exponent of Theorem 2.18 for `B_{1/2}`.
