@@ -467,4 +467,68 @@ theorem exists_random_rate (hd : 2 ≤ d) (hΛ : 1 < Λ) {β₁ K₁ K₂ : ℝ}
         exact le_add_of_nonneg_right (add_nonneg (mul_nonneg (by linarith) hD0)
           (mul_nonneg (by linarith) hSX))
 
+/-- `3^{-m(ε) p} ≤ ε^p` for `ε ∈ (0, 1]` and `p ≥ 0`. -/
+theorem three_rpow_neg_triadicScale_le {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1) {p : ℝ} (hp : 0 ≤ p) :
+    (3 : ℝ) ^ (-((triadicScale ε : ℝ) * p)) ≤ ε ^ p := by
+  obtain ⟨h1, -⟩ := TwoScale.three_pow_triadicScale_bounds hε hε1
+  rw [show -((triadicScale ε : ℝ) * p) = (triadicScale ε : ℝ) * (-p) by ring,
+    Real.rpow_mul (by norm_num), Real.rpow_neg (by positivity), Real.rpow_natCast,
+    ← Real.inv_rpow (by positivity)]
+  exact Real.rpow_le_rpow (by positivity) h1 hp
+
+/-- **Theorem 2.18**, (2.72), for `d ≥ 2`, `Λ > 1` and a bounded open convex domain `U ⊆ □_0`:
+for every `δ > 0` there is `β > 0` such that for every `s ∈ (0, d)` there is `C < ∞` with, for
+every law satisfying (0.10)–(0.11), a random variable `X ≤ O₁(C)` such that, for almost every
+coefficient field `a`, every `ε ∈ (0, 1]`, every `f ∈ W^{1,2+δ}(U)` of gradient `∇f` and the
+solutions `u^ε, u ∈ f + H¹₀(U)` of (2.71),
+`‖u^ε - u‖²_{L̲²(U)} + ‖∇u^ε - ∇u‖²_{Ĥ̲⁻¹(U)} + ‖a(·/ε)∇u^ε - ā∇u‖²_{Ĥ̲⁻¹(U)}
++ ‖½∇u^ε·a(·/ε)∇u^ε - ½∇u·ā∇u‖_{W̲^{-2,1}(U)} ≤ C ‖∇f‖²_{L̲^{2+δ}(U)} (ε^{β(d-s)} + X ε^s)`. -/
+theorem theorem_2_18 (hd : 2 ≤ d) (hΛ : 1 < Λ) {U : Set (Vec d)} (hUo : IsOpen U)
+    (hUc : Convex ℝ U) (hUne : U.Nonempty) (hU : U ⊆ triadicCube d 0) {δ : ℝ} (hδ : 0 < δ) :
+    ∃ β : ℝ, 0 < β ∧ ∀ s : ℝ, 0 < s → s < d → ∃ C : ℝ, 0 < C ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X 1 C ∧ ∀ᵐ a ∂P,
+        ∀ ε : ℝ, 0 < ε → ε ≤ 1 →
+        ∀ (f : Vec d → ℝ) (F : Vec d → Vec d), IsW1p U (ENNReal.ofReal (2 + δ)) f F →
+        ∀ (uε u : Vec d → ℝ) (gε g : Vec d → Vec d),
+        H01 U (fun x => uε x - f x) (fun x => gε x - F x) →
+        HasWeakDivergence U (fun x => (a (ε⁻¹ • x)).mulVec (gε x)) (fun _ => 0) →
+        H01 U (fun x => u x - f x) (fun x => g x - F x) →
+        HasWeakDivergence U (fun x => (homogenizedMatrix P).mulVec (g x)) (fun _ => 0) →
+        ENNReal.ofReal (scalarRms volume U (fun x => uε x - u x)) ^ 2 +
+            vectorHatNegativeSobolevNorm U (fun x => gε x - g x) ^ 2 +
+            vectorHatNegativeSobolevNorm U
+              (fun x => (a (ε⁻¹ • x)).mulVec (gε x) - (homogenizedMatrix P).mulVec (g x)) ^ 2 +
+            negativeSobolevTwoNorm (ENNReal.ofReal 1) U (fun x =>
+              (1 / 2 : ℝ) * dot (gε x) ((a (ε⁻¹ • x)).mulVec (gε x)) -
+                (1 / 2 : ℝ) * dot (g x) ((homogenizedMatrix P).mulVec (g x))) ≤
+          ENNReal.ofReal C *
+            PDE.eLpMeanNormOn U (ENNReal.ofReal (2 + δ)) (fun x => euclideanNorm (F x)) ^ 2 *
+            ENNReal.ofReal (ε ^ (β * ((d : ℝ) - s)) + X a * ε ^ s) := by
+  obtain ⟨β₁, K₁, K₂, hβ₁, hβ₁1, hK₁, hK₂, hL2⟩ :=
+    exists_dirichlet_bound hd hΛ.le hUo hUc hUne hU hδ
+  obtain ⟨β, hβ, hL3⟩ := exists_random_rate hd hΛ hβ₁ hβ₁1 hK₁ hK₂
+  refine ⟨β, hβ, fun s hs hsd => ?_⟩
+  obtain ⟨C, hC, hCs⟩ := hL3 s hs hsd
+  refine ⟨C, hC, fun P hP => ?_⟩
+  obtain ⟨X, hX, hX0, hae⟩ := hCs P hP
+  refine ⟨X, hX, ?_⟩
+  filter_upwards [hae] with a ha
+  intro ε hε hε1 f F hf uε u gε g h1 h2 h3 h4
+  obtain ⟨r, hr0, hr1, hrb⟩ := ha (triadicScale ε)
+  refine (hL2 P hP a ε hε hε1 f F hf uε u gε g h1 h2 h3 h4 r hr0 hr1).trans ?_
+  have hds : 0 ≤ β * ((d : ℝ) - s) := mul_nonneg hβ.le (by linarith)
+  have hb1 := three_rpow_neg_triadicScale_le hε hε1 hds
+  have hb2 := three_rpow_neg_triadicScale_le hε hε1 hs.le
+  have hK : K₁ * r ^ β₁ + K₂ * r ^ (-(4 + (d : ℝ))) *
+      Real.sqrt (((3 : ℝ) ^ triadicScale ε)⁻¹ ^ 2 +
+        coarseDeviation P (triadicScale ε) a) ≤
+      C * (ε ^ (β * ((d : ℝ) - s)) + X a * ε ^ s) := by
+    refine hrb.trans (mul_le_mul_of_nonneg_left (add_le_add hb1 ?_) hC.le)
+    rw [mul_comm]
+    exact mul_le_mul_of_nonneg_left hb2 (hX0 a)
+  refine le_of_le_of_eq (mul_le_mul_right (ENNReal.ofReal_le_ofReal hK) _) ?_
+  rw [ENNReal.ofReal_mul hC.le]
+  ring
+
 end QSH
