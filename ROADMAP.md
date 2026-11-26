@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 65 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 10.1 (Definition 10.2), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 21 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 68 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 8.1 (Lemma 8.1), Section 10.1 (Definition 10.2 and Proposition 10.3), Section 10.2 (Lemma 10.9), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 25 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -25,17 +25,17 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
-| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 0 |
-| 8 | Estimates for Parabolic Problems | 19 | 0 | 0 |
+| 7 | Calderón–Zygmund Gradient L^p Estimates | 10 | 0 | 1 |
+| 8 | Estimates for Parabolic Problems | 19 | 1 | 0 |
 | 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
-| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 1 | 0 |
+| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 3 | 1 |
 | 11 | Nonlinear Equations | 12 | 0 | 0 |
 | Appendix A | The O_s Notation | 10 | 10 | 0 |
 | Appendix B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 6 |
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
-| Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 1 |
+| Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 3 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **65** | **21** |
+| | **Total** | **226** | **68** | **25** |
 
 ## Front matter
 
@@ -313,12 +313,12 @@ No numbered result.
 
 ## Chapter 7: Calderón–Zygmund Gradient L^p Estimates
 
-### 7.1 Interior Calderón–Zygmund Estimates, module `Ch07/Sec01InteriorCalderonZygmund.lean`
+### 7.1 Interior Calderón–Zygmund Estimates, module `Ch07/Sec01InteriorCalderonZygmund.lean` (Lemma 7.2 in `Ch07/Sec01/GoodLambda.lean` and `Ch07/Sec01/Lemma72.lean`)
 
 | Result | Name | Status |
 | --- | --- | --- |
 | Theorem 7.1 | Gradient L^p-type estimates | not started |
-| Lemma 7.2 |  | not started |
+| Lemma 7.2 |  | in progress (`lemma_7_2_ball`: for every `R > 0`, with (7.6) and (7.7) on every ball `B_r(x)` with `r < R/2` and `B_{2r}(x) ⊆ B_R`, the conclusion (7.8) on `B_{R/2}`; `lemma_7_2`: under the printed hypotheses (centers in `B_{1/2}`, `r < 1/4`), the conclusion on `B_{1/4}`; the book's proof uses the hypotheses at centers outside `B_{1/2}`; see CORRESPONDENCE.md) |
 | Proposition 7.3 |  | not started |
 | Lemma 7.6 |  | not started |
 
@@ -344,7 +344,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Lemma 8.1 | Parabolic Caccioppoli inequality | not started |
+| Lemma 8.1 | Parabolic Caccioppoli inequality | proved, with `u* = ∇·F` and (8.9) in the form given by its proof, `C ‖u‖_{L̲²(Q_{2r})} + C r ‖u*‖` on the right (`lemma_8_1`, module `Ch08/Sec01/Lemma81.lean`); see CORRESPONDENCE.md |
 | Lemma 8.2 | L² gradient estimate in time slices | not started |
 
 ### 8.2 Homogenization of the Cauchy–Dirichlet Problem, module `Ch08/Sec02CauchyDirichletHomogenization.lean`
@@ -426,7 +426,7 @@ No numbered result.
 | Result | Name | Status |
 | --- | --- | --- |
 | Definition 10.2 |  | defined (`VariationallyRepresents`, module `Ch10/Sec01/VariationalRepresentation.lean`; the quadratic form (10.7) represents `p ↦ a p` for a matrix with positive definite symmetric part, (10.10)–(10.11), `variationallyRepresents_linearRepresentative`; see CORRESPONDENCE.md) |
-| Proposition 10.3 |  | not started |
+| Proposition 10.3 |  | proved (`GeneralCoefficientField.proposition_10_3`, with `proposition_10_3_of_nonempty` (the printed form) and `proposition_10_3_attained`, module `Ch10/Sec01/Proposition103.lean`; the set Ω of (10.2) is `GeneralCoefficientField`, module `Ch10/Sec01/GeneralCoefficients.lean`; see CORRESPONDENCE.md) |
 
 ### 10.2 The Double-Variable Subadditive Quantities, module `Ch10/Sec02DoubleVariableSubadditiveQuantities.lean`
 
@@ -435,8 +435,8 @@ No numbered result.
 | Lemma 10.5 |  | not started |
 | Lemma 10.7 |  | not started |
 | Lemma 10.8 | Caccioppoli inequality in S(U) | not started |
-| Lemma 10.9 |  | not started |
-| Lemma 10.10 | Basic properties of J | not started |
+| Lemma 10.9 |  | proved, on bounded open convex domains (`GeneralCoefficientField.lemma_10_9`, module `Ch10/Sec02/Lemma109.lean`; `S(U)`, `μ(U, p, q)`, `μ*(U, q*, p*)` and `J(U, X, X*)` of (10.15)–(10.20) are defined in `Ch10/Sec02/Quantities.lean`; see CORRESPONDENCE.md) |
+| Lemma 10.10 | Basic properties of J | in progress: on bounded open convex domains, (10.41) with `A(U)` and `A*(U)⁻¹` positive definite and `A*(U)` inverse to `A*(U)⁻¹` (`lemma_10_10_quadratic`, `lemma_10_10_posDef`), existence and a.e. uniqueness of the maximizer (`exists_isResponseMaximizer`, `isResponseMaximizer_unique`) and the first variation (10.45) of the maximizer (`lemma_10_10_firstVariation`), module `Ch10/Sec02/Lemma1010.lean`; the bounds (10.40), (10.42)–(10.43) (which hold only with `X* = 0`, resp. `X = 0`, as in (2.13)–(2.14)), the subadditivity (10.44), the converse in (10.45) and (10.46) remain |
 
 ### 10.3 Convergence of the Subadditive Quantities, module `Ch10/Sec03ConvergenceOfSubadditiveQuantities.lean`
 
@@ -521,8 +521,8 @@ Module `AppB/FunctionSpacesAndEllipticEquations.lean` (Remark B.6 on balls and o
 | --- | --- | --- |
 | Definition B.1 | C^{k,α} domain | not started |
 | Definition B.2 | Sobolev space W^{k,p}(U) | in progress (the case `k = 1`: `W^{1,p}(U)` as `IsW1p`, the norm (B.1) as `w1pNorm`, `W^{1,p}_0(U)` as `IsW01p`, module `AppB/SobolevSpaces.lean`; `k ≥ 2`, the rescaled norm `‖·‖_{W̲^{k,p}(U)}` and `W^{k,p}_loc(U)` not defined); see CORRESPONDENCE.md |
-| Definition B.3 | Sobolev space W^{α,p}(U) | not started |
-| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`, and on open subsets of a ball, `remark_B_6_of_subset_ball`; `α ≠ 1` and `p ∈ {1, ∞}` not formalized; see CORRESPONDENCE.md) |
+| Definition B.3 | Sobolev space W^{α,p}(U) | in progress (on `ℝ^d`, `α = m + β` with `β ∈ (0, 1)`, multi-indices written as lists of coordinates: the seminorm (B.2), `fractionalSeminorm`; `∑_{|w| = m} [∂_w u]_{W^{β,p}}` for `u ∈ W^{m,p}(ℝ^d)` given with its weak derivatives, `fractionalSobolevSeminorm` (module `AppD/PropositionD2Fractional.lean`); the norm (B.3), `fractionalSobolevNorm` for smooth functions (`AppD/PropositionD1Fractional.lean`) and `fractionalSobolevFamilyNorm` for `u ∈ W^{m,p}(ℝ^d)` (`AppD/PropositionD5Fractional.lean`); the space on `U ≠ ℝ^d`, `p = ∞`, the rescaled norm, `W^{α,p}_0(U)` and `W^{α,p}_loc(U)` not defined; see the Appendix D section of CORRESPONDENCE.md) |
+| Definition B.4 | Sobolev space W^{-α,p}(U) | in progress (`α = 1`, `p ∈ (1, ∞)`: the normalized norm `negativeSobolevOneNorm p U f F` of `h = f + ∇·F`, `AppC/NegativeSobolevPairing.lean`, with Remark B.6 on balls, `remark_B_6`, and on open subsets of a ball, `remark_B_6_of_subset_ball`; `α = m + β ∉ ℕ`, `p ∈ (1, ∞)`, on `ℝ^d`: the norm (B.4) of `u ∈ L^p(ℝ^d)`, `negativeFractionalSobolevNorm`, and of its derivatives `∂^l u`, `negativeFractionalSobolevNormDeriv` (`AppD/PropositionD1Fractional.lean`, `AppD/PropositionD5Fractional.lean`); the order `2` normalized as in (0.29), for `q ∈ [1, ∞]`: `negativeSobolevTwoNorm` (`AppB/NegativeSobolevTwo.lean`); the other orders, the fractional orders on `U ≠ ℝ^d` or for other distributions, and `p ∈ {1, ∞}` for `α = 1` and `α ∉ ℕ` not formalized; see CORRESPONDENCE.md) |
 | Definition B.7 | Besov space B^{p,p}_α(∂U) | not started |
 | Theorem B.8 | Global Sobolev inequality | in progress (the case `k = 1`, proved as `theorem_B_8_one`, module `AppB/TheoremB8.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
 | Theorem B.9 | Local Sobolev–Poincaré inequality | in progress (the case `k = 1`, both parts, on balls `B_r(z)`, proved as `theorem_B_9_one`, module `AppB/TheoremB9.lean`; `k ≥ 2` not proved); see CORRESPONDENCE.md |
@@ -554,15 +554,15 @@ Module `AppC/MeyersEstimate.lean` (proofs in `AppC/VitaliCovering.lean`, `AppC/I
 
 ## Appendix D: Sobolev Norms and Heat Flow
 
-Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean` and `AppD/PropositionD2.lean`).
+Module `AppD/SobolevNormsAndHeatFlow.lean` (proofs in `AppD/MaximalFunction.lean`, `AppD/HeatEnergyIdentity.lean`, `AppD/HeatGradientKernel.lean`, `AppD/HeatGradientL2.lean`, `AppD/LemmaD3.lean`, `AppD/PropositionD2.lean`, `AppD/PropositionD2Fractional.lean`, `AppD/HeatFlowLp.lean`, `AppD/PropositionD1Fractional.lean` and `AppD/PropositionD5Fractional.lean`).
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Proposition D.1 |  | not started (a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
-| Proposition D.2 |  | in progress (the case `q = 2`, `α ∈ ℕ` of (D.3), `propositionD2_two`, which is Lemma D.3; see CORRESPONDENCE.md) |
+| Proposition D.1 |  | in progress (the first inequality of (D.2), `α ∉ ℕ`, every `p ∈ (1, ∞)`, for `u ∈ L^p(ℝ^d)`: `propositionD1_fractional`; for the derivatives `∂^l u` of `u ∈ L^p(ℝ^d)`: `propositionD1_fractional_foldr`; the second inequality of (D.2), (D.1) for `α ∈ ℕ` and the other distributions of `W^{-α,p}(ℝ^d)` not proved; a variant of the first inequality of (D.1) for `p = 2` and integer orders, with the normalized norm of `H^{-m}(B_1)`, is used for (4.126): `negativeIntegerSobolevNorm_le_heatBracket`; see CORRESPONDENCE.md) |
+| Proposition D.2 |  | in progress ((D.4), `α ∉ ℕ`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`: `propositionD2_fractional`, with a constant depending also on `q`; (D.3) for `q = 2`, `α ∈ ℕ`: `propositionD2_two`, which is Lemma D.3; (D.3) for `q ≠ 2` not proved; see CORRESPONDENCE.md) |
 | Lemma D.3 |  | proved (`lemmaD3`; see CORRESPONDENCE.md) |
 | Lemma D.4 |  | proved (`lemmaD4`; see CORRESPONDENCE.md) |
-| Proposition D.5 |  | not started |
+| Proposition D.5 |  | in progress (`α ∉ ℕ`: `propositionD5_fractional_of_lifting`, from the observation `‖u‖_{W^{α,q}} ≤ C ‖u‖_{L^q} + ‖∇^k u‖_{W^{α-k,q}}` of the book's proof, which the book does not prove, taken as a hypothesis; the first inequality of (D.2) for `∇^k u`: `propositionD1_fractional_foldr`; `α ∈ ℕ` not proved; see CORRESPONDENCE.md) |
 
 ## Appendix E: Parabolic Green Functions
 

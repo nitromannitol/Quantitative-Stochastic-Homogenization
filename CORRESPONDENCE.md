@@ -966,7 +966,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   constants chosen before the law. They are stated in `Ch05/Sec04/FrozenProved.lean` and not after
   the markers of the frozen files, since each frozen file is imported by the modules of its proof.
 
-## Appendix D: Propositions D.1 and D.2, Lemmas D.3 and D.4 (`AppD/`)
+## Appendix D: Propositions D.1, D.2 and D.5, Lemmas D.3 and D.4 (`AppD/`)
 
 - **Lemma D.4** (`lemmaD4`). The maximal function `maximalFunction f` is the centered maximal
   function over the open Euclidean balls, with values in `[0, ∞]`; it is lower semicontinuous
@@ -993,19 +993,75 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   regularity library (`integral_mul_coordinateDerivative_of_hasWeakPartialDerivative`). The book
   reduces to `α = 0` by considering `∇^α u` in place of `u`, which is this step.
 - **Proposition D.2** (`propositionD2_two`) is proved in the case `q = 2`, `α ∈ ℕ` of (D.3), in which,
-  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The cases `q ≠ 2`
+  as the book remarks, its left-hand side is that of (D.5) by Tonelli's theorem. The case `q ≠ 2`
   of (D.3) (Stein's argument with the maximal function and the Marcinkiewicz interpolation theorem)
-  and (D.4) (fractional `α`, with the Gagliardo seminorm) are not formalized.
-- **Proposition D.1.** Only the local variant of its first inequality used for (4.126) is
-  formalized (see Section 4.6 above); the spaces `W^{-α,p}(ℝ^d)` and Remark B.6 on `ℝ^d` are not
-  (Remark B.6 on balls is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`;
-  see the Appendix B section).
+  is not formalized.
+- **Proposition D.2, (D.4)** (`propositionD2_fractional`, `AppD/PropositionD2Fractional.lean`) is
+  proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every `q ∈ (1, ∞)` and `k ∈ ℕ ∩ (α, ∞)`. The space
+  `W^{α,q}(ℝ^d)` is given as `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives `g l` along lists of
+  coordinates (`IsSobolevFamilyLp`), and `[u]_{W^{α,q}(ℝ^d)}` is `∑_{|w| = m} [∂_w u]_{W^{β,q}(ℝ^d)}`
+  with the seminorm (B.2), `[v]^q_{W^{β,q}} = (1 - β) ∫∫ |v(x) - v(y)|^q / |x - y|^{d+βq}` (`fractionalSeminorm`,
+  `fractionalSobolevSeminorm`); the sum over lists counts each multi-index of (B.3) with its
+  multiplicity, which changes the constant only. The constant depends on `k`, `α`, `q` and `d`: the
+  book states `C(k, α, d)`, but its proof of (D.7) bounds `‖·‖^q` by
+  `C^q ∫_0^∞ s^{d+qα} exp(-s²/16) ds/s` times the seminorm, a Gamma integral that is not bounded by
+  `C(d)^q` uniformly in `q`, so the proof gives a constant depending on `q`. The proof follows the
+  book's (D.7) with two changes: instead of reducing to `k = 1` by the semigroup property and Young's
+  inequality, it uses for every `k ≥ 1` the Gaussian majorant `|∂^w Φ(t, z)| ≤ C (2t)^{-k/2} Φ(2t, z)`
+  (`abs_multiIndexDerivative_euclideanHeatKernel_le`) and `∫ ∂^w Φ(t, ·) = 0`, then Jensen's
+  inequality for the probability density `Φ(2t, x - ·)` in place of the annular decomposition, and
+  the time integral `∫_0^∞ t^{-a-1} Φ(2t, z) dt = K |z|^{-d-2a}` (a Gamma integral). The reduction
+  from `α` to `α - m` moves the `m` derivatives onto `u` as in the book.
+- **Proposition D.1, the first inequality of (D.2)** (`propositionD1_fractional`,
+  `AppD/PropositionD1Fractional.lean`) is proved for `α = m + β`, `m ∈ ℕ`, `β ∈ (0, 1)`, every
+  `p ∈ (1, ∞)`, and `u ∈ L^p(ℝ^d)`; a distribution of `W^{-α,p}(ℝ^d)` that is not a function is covered
+  only when it is a derivative `∂^l u` of `u ∈ L^p(ℝ^d)` (`propositionD1_fractional_foldr`, below). The norm (B.4) is the supremum of `|∫ u g|` over `g ∈ C_c^∞(ℝ^d)` with
+  `‖g‖_{W^{α,q}(ℝ^d)} ≤ 1`, `q = p/(p-1)` (`negativeFractionalSobolevNorm`), with the norm (B.3)
+  `∑_{j ≤ m} ∑_{|w| = j} ‖∂_w g‖_{L^q} + ∑_{|w| = m} [∂_w g]_{W^{β,q}}` over lists of coordinates
+  (`fractionalSobolevNorm`), which counts each multi-index with its multiplicity and changes the
+  constant only. The right-hand side is
+  `(∫_0^1 t^{pα/2} ‖u ∗ Φ(t, ·)‖^p_{L^p} dt/t)^{1/p}` as a lower Lebesgue integral. The proof is the
+  book's Step 1 with `k = ⌊m/2⌋ + 1`: the Taylor formula (D.21) is the paired Taylor formula of the
+  heat semigroup (`integral_mul_heatTaylor_ball`, which needs only `u exp(-|x|²/16) ∈ L¹`); the
+  terms `ρ^{(j)}(1)` are bounded by `‖u ∗ Φ(1, ·)‖_{L^p} ‖Δ^j g‖_{L^q}` with `2j ≤ m`, and
+  `‖u ∗ Φ(1, ·)‖_{L^p} ≤ ‖u ∗ Φ(τ, ·)‖_{L^p}` for every `τ ∈ (1/2, 1)` (the book uses one `τ`
+  between `1/4` and `1/2`); the remainder is split as `∫ (u ∗ Φ(s/2, ·)) (Δ^k g ∗ Φ(s/2, ·))`
+  (`integral_mul_heatSmooth_split`), with `|Δ^k g ∗ Φ| ≤ d^k |∇^{2k} Φ ∗ g|`, Hölder's inequality in
+  space and in time and Proposition D.2 (`propositionD2_fractional`, which gives a constant depending
+  on `q`). The second inequality of (D.2), whose proof uses (D.25) from [128], and (D.1) for
+  `α ∈ ℕ` are not formalized. The local variant of the first inequality of (D.1) used for (4.126)
+  is formalized separately (see Section 4.6 above); Remark B.6 on `ℝ^d` is not (Remark B.6 on balls
+  is `remark_B_6`, and on open subsets of a ball `remark_B_6_of_subset_ball`; see the Appendix B
+  section).
+- **Proposition D.1, the first inequality of (D.2), for `∂^l u`** (`propositionD1_fractional_foldr`,
+  `AppD/PropositionD5Fractional.lean`): for `u ∈ L^p(ℝ^d)` and a list of coordinates `l`, the norm of
+  the distribution `∂^l u` in `W^{-α,p}(ℝ^d)` is the supremum of `|∫ u ∂^l g|` over the same tests
+  (`negativeFractionalSobolevNormDeriv`), and the right-hand side has `‖∂^l Φ(t, ·) ∗ u‖_{L^p}`. The
+  book applies Proposition D.1 to the distribution directly; the Lean proof applies
+  `propositionD1_fractional` to the function `∂^l Φ(ε, ·) ∗ u ∈ L^p`, whose pairing with `g` is
+  `± ∫ u (Φ(ε) ∗ ∂^l g)` (the derivatives of the heat kernel have the parity of their order,
+  `heatKernelDeriv_neg`) and whose heat flow `Φ(t) ∗ (∂^l Φ(ε, ·) ∗ u) = Φ(ε) ∗ (∂^l Φ(t, ·) ∗ u)` has
+  `L^p` norm at most `‖∂^l Φ(t, ·) ∗ u‖_{L^p}` (`heatSmooth_kconv_heatKernelDeriv`), and lets `ε → 0`
+  by dominated convergence (`tendsto_integral_mul_heatSmooth`).
+- **Proposition D.5** (`propositionD5_fractional_of_lifting`) is proved for `α = m + β`, `m ∈ ℕ`,
+  `β ∈ (0, 1)`, `k ∈ ℕ ∩ (α, ∞)` and `q ∈ (1, ∞)`, for `u ∈ W^{m,q}(ℝ^d)` with its weak derivatives
+  (`IsSobolevFamilyLp`) and the norm (B.3) (`fractionalSobolevFamilyNorm`), under the hypothesis
+  `‖u‖_{W^{α,q}} ≤ C₀ (‖u‖_{L^q} + ∑_{|w| = k} ‖∂_w u‖_{W^{α-k,q}})` for every `u ∈ W^{m,q}(ℝ^d)` (for
+  `u ∉ W^{α,q}(ℝ^d)` it says that the right-hand side is infinite). This is the observation with
+  which the book's proof begins ("We simply observe that"), which the book does not prove; the rest
+  of the proof is the book's: the first inequality of (D.2) for `∂_w u` with the order `k - α`
+  (`propositionD1_fractional_foldr`) and `|∂_w Φ(t, ·) ∗ u| ≤ |∇^k Φ(t, ·) ∗ u|`. The case `α ∈ ℕ`
+  is not formalized.
 
 ## Appendix B: Definition B.4 for `α = 1` and Remark B.6 on balls and on open subsets of a ball (`AppB/DivergenceRepresentation.lean`)
 
 - **Definition B.4** is formalized for `α = 1` and `p ∈ (1, ∞)` only, by the normalized norm
   `negativeSobolevOneNorm p U f F` of a distribution `h = f + ∇·F` (see the Appendix C section);
-  the spaces `W^{-α,p}(U)` for `α ≠ 1`, and `W^{-1,1}`, `W^{-1,∞}`, are not formalized (for
+  for `α ∉ ℕ` and `p ∈ (1, ∞)` the norm (B.4) on `ℝ^d` of `u ∈ L^p(ℝ^d)` and of its derivatives is
+  `negativeFractionalSobolevNorm` / `negativeFractionalSobolevNormDeriv` (Appendix D section,
+  Propositions D.1 and D.5), and the order `2` normalized as in (0.29) is `negativeSobolevTwoNorm`
+  (Section 1.4); the other orders, the fractional orders on `U ≠ ℝ^d`, and `W^{-1,1}`, `W^{-1,∞}`,
+  are not formalized (for
   `p = 1` the test exponent `p/(p-1)` is `0` in Lean).
 - **Remark B.6** (`remark_B_6`) is formalized on balls `B_r(z)`, for `d ≥ 1`, `p ∈ (1, ∞)` and
   `h = f + ∇·F` with `f, F ∈ L¹(B_r(z))`, with the normalized norms: there is `H ∈ L^p(B_r(z); ℝ^d)`
@@ -1434,6 +1490,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   arithmetic-geometric mean inequality (`mul_rpow_mul_rpow_le_half_add`), with the constant
   `h (2(1 - h))^{(1-h)/h} A^{1/h}` and exponent `a/h`.
 
+## Section 7.1: Lemma 7.2 (`Ch07/Sec01/GoodLambda.lean`, `Ch07/Sec01/Lemma72.lean`)
+
+- Norms are normalized (`PDE.eLpMeanNormOn`, the book's `L̲^p`). `f_{x,r} ∈ L^q(B_r(x))` is
+  `MemLp f_{x,r} q` on `B_r(x)`, with `q ∈ (p, ∞]` in `ℝ≥0∞`.
+- `QSH.lemma_7_2_ball`: for `p ∈ (2, ∞)`, `q ∈ (p, ∞]` and `A ≥ 1` there are `δ₀(p, q, A, d) > 0` and
+  `C(p, q, A, d) < ∞` such that, for every `δ ∈ (0, δ₀]` and every `R > 0`, if `f ∈ L²(B_R)`,
+  `g ∈ L^p(B_R)` and every ball `B_r(x)` with `r < R/2` and `B_{2r}(x) ⊆ B_R` carries some
+  `f_{x,r}` with (7.6) and (7.7), then `f ∈ L^p(B_{R/2})` and (7.8) holds on `B_{R/2}` with the
+  norms of `f` and `g` on `B_R`.
+- GAP: the book assumes (7.6) and (7.7) only for `x ∈ B_{1/2}` and `r ∈ (0, 1/4)` and concludes on
+  `B_{1/2}`, but Steps 2 and 3 of its proof apply them at the stopping balls `B_{5 r_x}(x)` for
+  every `x ∈ {|f| > λ} ∩ B_s` with `s ∈ [1/2, 1)`, centers that need not lie in `B_{1/2}`.
+  `QSH.lemma_7_2` proves the conclusion under the printed hypotheses on `B_{1/4}` (with the norms of
+  `f` and `g` on `B_{1/2}` on the right), as `lemma_7_2_ball` with `R = 1/2`. The proof of
+  Proposition 7.3 supplies the hypotheses on every ball `B_{2r}(x) ⊆ B_1`, which is the form of
+  `lemma_7_2_ball` with `R = 1`.
+- Proof: the book's, through the good-λ inequality (7.10) (`QSH.cz_goodLambda`), with
+  `G = ε⁻¹ g`, `η = εA + δ` and `λ₀ = (128/(t - s))^{d/2} (‖f‖_{L̲²(B_R)} + ‖G‖_{L̲²(B_R)})`. The
+  stopping radius is the largest dyadic radius `(t - s)R/(16 · 2^k)` with `λ < E(x, r)`, so that
+  `E(x, 16r) ≤ λ` replaces the equality `E(x, r_x) = λ` of (7.11), and the hypotheses are applied at
+  the radius `8r`; the numerical constants of (7.12) and (7.15) change accordingly (`16`, `4^{p-2}`,
+  thresholds `λ/4` in place of `λ/2`). As in Lemma C.4, the absorbed quantity is
+  `∫_{B_s} f² (|f| ∧ m)^{p-2}` (`QSH.cz_step`), which the display after (7.9) writes as
+  `‖f_m‖^p_{L^p(B_s)}`; Lemma C.6 and the monotone convergence theorem in `m` conclude. For
+  `q = ∞` the hypothesis (7.6) at a finite exponent `q' ∈ (p, ∞)` follows from the monotonicity of
+  normalized norms.
+
 ## Section 10.1: Definition 10.2 (`Ch10/Sec01/VariationalRepresentation.lean`)
 
 - Definition 10.2: `QSH.VariationallyRepresents F φ`, with the convexity of `(p, q) ↦ F(p, q)` on
@@ -1444,6 +1527,81 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `A(p, q) - p·q = ½ (a p - q)·s⁻¹(a p - q)` (`linearRepresentative_sub_dot`, the computation
   before (10.7)) gives (10.10) and (10.11), and with the convexity of nonnegative quadratic forms
   (`convexOn_dotProduct_mulVec`), `variationallyRepresents_linearRepresentative`.
+
+## Section 8.1: Lemma 8.1 (`Ch08/Sec01/ParabolicSolutions.lean`, `Ch08/Sec01/FluxEnergy.lean`, `Ch08/Sec01/ParabolicCutoff.lean`, `Ch08/Sec01/CaccioppoliSlice.lean`, `Ch08/Sec01/CaccioppoliEnergy.lean`, `Ch08/Sec01/Lemma81.lean`)
+
+- Space-time points are written `(x, t)`, space first, as in the parabolic part of the elliptic
+  regularity library. `Q_r = I_r × B_r` is `parabolicCylinder d r = B_r ×ˢ (-r², 0]`.
+- `H¹_par(Q_{2r})` of (8.2) is `PDE.ParH1Function (B_{2r}) (I_{2r})` of the elliptic regularity
+  library: a function of `L²(I; H¹(U))` given by its representative which is weakly continuous in
+  time, every time slice being in `L²_loc(U)`. Every function of `H¹_par` has such a representative
+  (`H¹_par ⊆ C(Ī; L²(U))`); for a weak solution, `∂ₜu ∈ L²(I; H⁻¹(U))` follows from the equation.
+- The right-hand side `u* ∈ L²(I_{2r}; H⁻¹(B_{2r}))` is written `u* = ∇·F` with
+  `F ∈ L²(Q_{2r}; ℝ^d)`; every element of `L²(I; H⁻¹(U))` for a bounded `U` has this form (Riesz
+  representation in `H¹₀(U)`). The weak formulation (8.6) is `IsParabolicSolution a U I u F`:
+  `∫ (-u ∂ₜφ + (a∇u + F) · ∇φ) = 0` for every `C¹` test function `φ` with compact support in
+  `U × (I₋, I₊)`, which is the book's formulation tested against `L²(I; H¹₀(U))`. The norm
+  `‖u*‖_{L̲²(I; H̲⁻¹(U))}` is `timeNegativeSobolevNorm I U F`, the volume-normalized `L²` norm in time
+  (in `[0, ∞]`, a lower integral) of the normalized `H⁻¹(U)` norm `negativeSobolevOneNorm 2 U 0 F(·, t)`
+  of (0.29).
+- `QSH.lemma_8_1` (for `d ≥ 1`, `Λ ≥ 1`): (8.8) as printed; and for every `s ∈ I_r`,
+  `‖u(s, ·)‖_{L̲²(B_r)} ≤ C ‖u‖_{L̲²(Q_{2r})} + C r ‖u*‖_{L̲²(I_{2r}; H̲⁻¹(B_{2r}))}`, which is what the
+  book's proof of (8.9) gives. The printed (8.9),
+  `sup_{s ∈ I_r} ‖u(s, ·)‖_{L̲²(B_r)} ≤ C ‖∇u‖_{L̲²(Q_{2r})} + C ‖u*‖_{L̲²(I_{2r}; H̲⁻¹(B_{2r}))}`, fails
+  for `u = 1`, `u* = 0` (left side `1`, right side `0`), and is not invariant under the scaling
+  `u ↦ u(r²·, r·)`; its proof (the test function `η_r² u 1_{t < s}`) estimates the term
+  `∫ η_r |∂ₜη_r| u²` by `C r⁻² ∫_{Q_{2r}} u²`, which is the first term on the right here. The time
+  slice is that of the weakly continuous representative, for which the book's supremum over
+  `s ∈ I_r` is the bound at every `s`.
+- Proof: the book's. The energy identity for `η_r² u` (`fluxEnergyIdentity`, for any equation
+  `∂ₜu = ∇·G` with square-integrable flux) is obtained from the library's abstract energy identity
+  (`PDE.Parabolic.Energy.Data.energy_identity`), whose hypotheses follow from the weak slice identity
+  `fluxWeakSlice` (the library's Lemma 5.5, proved there for `G = a∇u`, with the same proof for any
+  `G`). The cutoff is `η_r(x, t) = θ(t) ζ(x)` with `θ` the smooth transition from `t = -3r²` to
+  `t = -r²` and `ζ` the library's ball cutoff of `B_r` in `B_{3r/2}` (`parabolicCutoff`). The pairing
+  with `u*` at each time is bounded by `|B_{2r}| ‖u*(t)‖_{H̲⁻¹} ‖η_r² u(t)‖_{H̲¹}`
+  (`abs_integral_pairing_le_of_h10`) and Young's inequality (`slicePairing_le`); the cross term
+  `2 η_r u ∇η_r · a∇u` by Young's inequality; then absorption (`parabolicCaccioppoli_energy`) and
+  normalization.
+
+## Section 10.1: Proposition 10.3 (`Ch10/Sec01/GeneralCoefficients.lean`, `Ch10/Sec01/Proposition103.lean`)
+
+- The set Ω of (10.2) is `QSH.GeneralCoefficientField d Λ`: fields `a : ℝ^d → ℝ^{d×d}` with a.e.
+  strongly measurable entries and `|ξ|² ≤ ξ·a(x)ξ`, `|a(x)ξ| ≤ Λ|ξ|` for every `x` and `ξ`.
+- `u ∈ H¹(U)` is `QSH.H1 U u G` (gradient `G`). The right-hand side `u* ∈ H⁻¹(U)` is given by its
+  values `u*(φ, ∇φ)` on the pairs with `QSH.H01 U φ ∇φ`, and `-∇·g = u*` is `IsNegDivergenceOn U g u*`:
+  `∫_U ∇φ·g = u*(φ, ∇φ)` for every such pair. No linearity or continuity of `u*` is assumed.
+- The functional of (10.12) is `GeneralCoefficientField.representativeDefect a U G g` and the set
+  whose infimum is taken is `representativeDefectSet a U G u*` (over `g ∈ L²(U; ℝ^d)` with
+  `-∇·g = u*`). Since a general map `u*` need not be of the form `-∇·g`, the formal statement
+  `proposition_10_3` has, on its right-hand side, that this set is nonempty and has infimum `0`;
+  `proposition_10_3_of_nonempty` is the printed equivalence for `u*` in the range of `-∇·` on `L²(U)`
+  (every `u* ∈ H⁻¹(U)` on a bounded domain), and `proposition_10_3_attained` is the last sentence
+  (the infimum is attained at `g = a∇u`). The book's direct method is replaced by a minimizing
+  sequence: the integrand is `½ (a∇u - g)·s⁻¹(a∇u - g) ≥ (2 max(Λ,1))⁻¹ |a∇u - g|²`, so the
+  minimizing sequence converges to `a∇u` in `L²(U)`.
+
+## Section 10.2: Lemma 10.9 and Lemma 10.10 in part (`Ch10/Sec02/`)
+
+- The results of Section 10.2 are proved on bounded open convex domains (the domains
+  `Homogenization.Book.Ch02.Domain` of the coarse-graining library), which include the cubes used in
+  Section 10.3, from the double-variable framework of that library (Armstrong and Kuusi). A field
+  `a` of `Ω` is a coefficient field of the library with ellipticity constants `1` and `max(Λ², 1)`
+  (`GeneralCoefficientField.isEllipticMatrix`, `toCGCoeffOn`), and the block pairing of the library
+  is the bilinear form of (10.7) (`blockVecDot_blockMatrixField`).
+- The spaces (0.33)–(0.36) are those of the library (`IsL2PotOn`, `IsL2SolOn`, `IsL2Pot0On`,
+  `IsL2Sol0On`); `S(U)` (10.19) is `IsResponseField`, `μ(U, p, q)` (10.15) is `doubleMu`,
+  `μ*(U, q*, p*)` (10.16) is `doubleMuStar`, `J(U, X, X*)` (10.20) is `doubleJ` for `X = (p, q)` and
+  `X* = (q*, p*)` as in (10.21), and `S(·, U, X, X*)` is `IsResponseMaximizer` (`Ch10/Sec02/Quantities.lean`).
+  On a domain of the library they are the library's doubled response space, doubled `μ` and doubled
+  response functional (`isResponseField_iff`, `doubleMu_eq`, `doubleJ_eq`).
+- Lemma 10.9: `A(U)` and `A*(U)` are `IsSolutionOn (fun x => a x) U` and
+  `IsSolutionOn (fun x => (a x)ᵀ) U` (tested on `H¹₀(U)`), and (10.37) is stated with a.e. equalities,
+  the elements of `S(U)` being fields up to null sets.
+- Lemma 10.10: the matrices `A(U)`, `A*(U)` and `A*(U)⁻¹` are 2×2 block matrices of `d×d` matrices
+  (`coarseMatrix`, `coarseStar`, `coarseStarInv`). The identities (10.42) and (10.43) are printed for
+  every `X`, `X*`; they hold for `X* = 0` and `X = 0` respectively (as (2.13) and (2.14) in Lemma 2.2),
+  since in general the average of `S(·, U, X, X*)` is `A*(U)⁻¹X* - X`.
 
 ## Appendix B: Definition B.2, Theorems B.8–B.10 and Proposition B.11 for first-order spaces (`AppB/SobolevSpaces.lean`, `AppB/TheoremB8.lean`, `AppB/TheoremB9.lean`, `AppB/PropositionB11.lean`, `AppB/ConvexMorreySmooth.lean`, `AppB/ConvexMorrey.lean`, `AppB/TheoremB10.lean`)
 
