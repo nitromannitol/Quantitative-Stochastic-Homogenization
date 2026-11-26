@@ -1737,12 +1737,14 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `negativeSobolevOneNorm_comp_inv_smul_le`). Proposition 1.10 is stated for slopes in the open unit
   ball, so it is applied to `(φ_k/2, ∇φ_k/2)`, the minimizer for `e_k/2`
   (`IsDirichletMinimizer.const_smul`).
-- (2.68): `QSH.exists_sqrt_coarseDeviation_le`, `E(m)^{1/2} ≤ C 3^{-mα(d-s)} + V` with `V ≤ O₁(C 3^{-ms})`,
+- (2.68): `QSH.exists_sqrt_coarseDeviation_le`, `E(m)^{1/2} ≤ C 3^{-mα(d-s)} + V` with `V ≤ O₁(C 3^{-ms})`
+  (the form quoted in the proof of Theorem 2.18; the same as the printed (2.68),
+  `E(m)^{1/2} ≤ 3^{-mα(d-s)/2} + O₁(C 3^{-ms})`, up to the choice of `α` and `C`),
   the bound used in the proof of Theorem 2.17, stated separately for Theorem 2.18 (`d ≥ 2`, `Λ > 1`).
 - Lean: `QSH.theorem_2_18`, for `d ≥ 2`, `Λ > 1` (the hypotheses of Theorem 2.4, on which (2.68)
   rests) and a bounded open convex `U ⊆ □_0` (the book: a bounded Lipschitz domain `U ⊆ B₁`; Theorem
   1.17 is stated for `U ⊆ □_0`). `∃ β > 0, ∀ s ∈ (0, d), ∃ C > 0`, for every law satisfying
-  (0.10)–(0.11) there is a random variable `X` with `OsBound P X 1 C` such that, for almost every
+  (0.10)–(0.11) there is a random variable `X ≥ 0` with `OsBound P X 1 C` such that, for almost every
   coefficient field, every `ε ∈ (0, 1]`, `f ∈ W^{1,2+δ}(U)` and `u^ε, u` as in Theorem 1.17 with `ā`
   the homogenized matrix, (2.72) holds with `C ‖∇f‖²_{L̲^{2+δ}(U)} (ε^{β(d-s)} + X ε^s)` on the right.
   Departures: (i) `β` depends also on `U` (as in Theorem 1.17; the book: `β(δ, d, Λ)`); (ii) the
@@ -1752,6 +1754,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `[0, ∞]`.
 - Proof: the book's. Theorem 1.17, (1.57) and `E(m) ≤ (9/4) C(d, Λ)` (`coarseDeviation_le_structural`)
   give, for every `r ∈ (0, 1)`, the bound (2.73) by `‖∇f‖² (K₁ r^{β₁} + K₂ r^{-4-d} (3^{-2m} + E(m))^{1/2})`
-  (`exists_dirichlet_bound`; the book has `r^{-6-d}`). (2.68) at `(s + d)/2`, the choice
+  (`exists_dirichlet_bound`; the book has `r^{-6-d}`; squaring the factor `r^{-2-d/2}` of (1.59)
+  gives `r^{-4-d}`, which is smaller for `r < 1`). (2.68) at `(s + d)/2`, the choice
   `r = 3^{-(m+1)α(d-s)/(4(4+d))}` and Lemma A.4 give the random variable (`exists_random_rate`), with
   `β = β₁ α / (4(4 + d))`.

@@ -8,7 +8,8 @@ import QuantitativeStochasticHomogenization.Ch02.Sec03.HomogenizedInverse
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
 Section 2.3, Theorem 2.18, for `d ≥ 2`, `Λ > 1` and a bounded open convex domain `U ⊆ □_0`: for
 every `δ > 0` there is `β > 0` such that for every `s ∈ (0, d)` there is `C < ∞` with, for every
-law satisfying the assumptions, a random variable `X_s ≤ O₁(C)` such that, for almost every
+law satisfying the assumptions, a random variable `0 ≤ X_s ≤ O₁(C)` (so `X_s = O₁(C)`, (2.70))
+such that, for almost every
 coefficient field, every `ε ∈ (0, 1]`, `f ∈ W^{1,2+δ}(U)` and the solutions `u^ε, u ∈ f + H¹₀(U)`
 of (2.71), (2.72) holds:
 `‖u^ε - u‖²_{L̲²(U)} + ‖∇u^ε - ∇u‖²_{Ĥ̲⁻¹(U)} + ‖a(·/ε)∇u^ε - ā∇u‖²_{Ĥ̲⁻¹(U)}
@@ -20,6 +21,12 @@ for every `r ∈ (0, 1)` (`exists_dirichlet_bound`); (2.68) with `(s + d)/2` in 
 choice `r = 3^{-(m+1)α(d-s)/(4(4+d))}` and Lemma A.4 for the counting measure on `ℕ` give the
 random variable `X_s` (`exists_random_rate`). The sum over the scales defining `X_s` is finite
 almost surely, which is why the estimate holds for almost every coefficient field.
+
+Departures from the book: `U` is convex and contained in `□_0` (the book: a bounded Lipschitz
+domain `U ⊆ B₁`; Theorem 1.17 is stated for `U ⊆ □_0`); `Λ > 1`, the hypothesis of Theorem 2.4;
+`β` depends also on `U`, through the Meyers exponent of `U` in Theorem 1.17 (the book:
+`β(δ, d, Λ)`); the estimate holds for almost every coefficient field; the norms are the normalized
+norms, in `[0, ∞]`.
 -/
 
 open MeasureTheory Filter Set
@@ -132,7 +139,9 @@ theorem dirichlet_bound_real {C₁ C₅₇ r β₁ x M : ℝ} (hC₁ : 0 ≤ C�
 set_option maxHeartbeats 400000 in
 /-- **The bound (2.73)** for every `r ∈ (0, 1)`: from Theorem 1.17, (1.57) and `E(m) ≤ C`, there
 are `β₁ ∈ (0, 1]` and `K₁, K₂` such that, with `m = m(ε)`, the left side of (2.72) is at most
-`‖∇f‖²_{L̲^{2+δ}(U)} (K₁ r^{β₁} + K₂ r^{-4-d} (3^{-2m} + E(m))^{1/2})`. -/
+`‖∇f‖²_{L̲^{2+δ}(U)} (K₁ r^{β₁} + K₂ r^{-4-d} (3^{-2m} + E(m))^{1/2})`. The book's (2.73) has
+`r^{-6-d}`; `r^{-4-d}` is the square of the factor `r^{-2-d/2}` of (1.59) and is smaller for
+`r < 1`. -/
 theorem exists_dirichlet_bound (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d)} (hUo : IsOpen U)
     (hUc : Convex ℝ U) (hUne : U.Nonempty) (hU : U ⊆ triadicCube d 0) {δ : ℝ} (hδ : 0 < δ) :
     ∃ β₁ K₁ K₂ : ℝ, 0 < β₁ ∧ β₁ ≤ 1 ∧ 0 ≤ K₁ ∧ 0 ≤ K₂ ∧
@@ -173,7 +182,8 @@ theorem exists_dirichlet_bound (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d)}
     exists_isDirichletMinimizer a (isBounded_triadicCube _) (volume_triadicCube_ne_zero d _) _
   choose φ Dφ hmin using hex
   obtain ⟨hA, hB⟩ := h117 a (homogenizedMatrix P) (homogenizedMatrix_transpose hP hΛ0)
-    (euclideanSq_le_dot_homogenizedMatrix hP hΛ0) (fun ξ => (homogenizedMatrix_dot_bounds hP hΛ0 ξ).2)
+    (euclideanSq_le_dot_homogenizedMatrix hP hΛ0)
+    (fun ξ => (homogenizedMatrix_dot_bounds hP hΛ0 ξ).2)
     ε hε hε1 φ Dφ hmin f F hf uε u gε g h1 h2 h3 h4 r hr0 hr1
   have hE := h57 P hP a ε hε hε1 φ Dφ hmin
   obtain ⟨x, hx⟩ : ∃ x : ℝ, x = ((3 : ℝ) ^ triadicScale ε)⁻¹ ^ 2 +
@@ -199,7 +209,8 @@ theorem exists_dirichlet_bound (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d)}
   have hR0 : 0 ≤ r ^ (-(2 + (d : ℝ) / 2)) := Real.rpow_nonneg hr0.le _
   have hY0 : 0 ≤ Y := by rw [hY]; positivity
   have hBr : ENNReal.ofReal (r ^ β) + ENNReal.ofReal (r ^ (-(2 + (d : ℝ) / 2))) *
-      TwoScale.twoScaleDeviation a (homogenizedMatrix P) ε φ Dφ ^ (1 / 2 : ℝ) ≤ ENNReal.ofReal Y := by
+      TwoScale.twoScaleDeviation a (homogenizedMatrix P) ε φ Dφ ^ (1 / 2 : ℝ) ≤
+        ENNReal.ofReal Y := by
     rw [hY, ENNReal.ofReal_add (Real.rpow_nonneg hr0.le _) (mul_nonneg hR0 (Real.sqrt_nonneg _)),
       ENNReal.ofReal_mul hR0]
     exact add_le_add le_rfl (mul_le_mul_right hEs _)
@@ -477,17 +488,18 @@ theorem three_rpow_neg_triadicScale_le {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 
   exact Real.rpow_le_rpow (by positivity) h1 hp
 
 /-- **Theorem 2.18**, (2.72), for `d ≥ 2`, `Λ > 1` and a bounded open convex domain `U ⊆ □_0`:
-for every `δ > 0` there is `β > 0` such that for every `s ∈ (0, d)` there is `C < ∞` with, for
-every law satisfying (0.10)–(0.11), a random variable `X ≤ O₁(C)` such that, for almost every
-coefficient field `a`, every `ε ∈ (0, 1]`, every `f ∈ W^{1,2+δ}(U)` of gradient `∇f` and the
-solutions `u^ε, u ∈ f + H¹₀(U)` of (2.71),
+for every `δ > 0` there is `β > 0` (`β` depends on `U` through the Meyers exponent of `U` in
+Theorem 1.17) such that for every `s ∈ (0, d)` there is `C < ∞` with, for every law satisfying
+(0.10)–(0.11), a random variable `0 ≤ X ≤ O₁(C)` (so `X = O₁(C)`, (2.70)) such that, for
+almost every coefficient field `a`, every `ε ∈ (0, 1]`, every `f ∈ W^{1,2+δ}(U)` of gradient
+`∇f` and the solutions `u^ε, u ∈ f + H¹₀(U)` of (2.71),
 `‖u^ε - u‖²_{L̲²(U)} + ‖∇u^ε - ∇u‖²_{Ĥ̲⁻¹(U)} + ‖a(·/ε)∇u^ε - ā∇u‖²_{Ĥ̲⁻¹(U)}
 + ‖½∇u^ε·a(·/ε)∇u^ε - ½∇u·ā∇u‖_{W̲^{-2,1}(U)} ≤ C ‖∇f‖²_{L̲^{2+δ}(U)} (ε^{β(d-s)} + X ε^s)`. -/
 theorem theorem_2_18 (hd : 2 ≤ d) (hΛ : 1 < Λ) {U : Set (Vec d)} (hUo : IsOpen U)
     (hUc : Convex ℝ U) (hUne : U.Nonempty) (hU : U ⊆ triadicCube d 0) {δ : ℝ} (hδ : 0 < δ) :
     ∃ β : ℝ, 0 < β ∧ ∀ s : ℝ, 0 < s → s < d → ∃ C : ℝ, 0 < C ∧
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
-      ∃ X : CoefficientField d Λ → ℝ, OsBound P X 1 C ∧ ∀ᵐ a ∂P,
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X 1 C ∧ (∀ a, 0 ≤ X a) ∧ ∀ᵐ a ∂P,
         ∀ ε : ℝ, 0 < ε → ε ≤ 1 →
         ∀ (f : Vec d → ℝ) (F : Vec d → Vec d), IsW1p U (ENNReal.ofReal (2 + δ)) f F →
         ∀ (uε u : Vec d → ℝ) (gε g : Vec d → Vec d),
@@ -512,7 +524,7 @@ theorem theorem_2_18 (hd : 2 ≤ d) (hΛ : 1 < Λ) {U : Set (Vec d)} (hUo : IsOp
   obtain ⟨C, hC, hCs⟩ := hL3 s hs hsd
   refine ⟨C, hC, fun P hP => ?_⟩
   obtain ⟨X, hX, hX0, hae⟩ := hCs P hP
-  refine ⟨X, hX, ?_⟩
+  refine ⟨X, hX, hX0, ?_⟩
   filter_upwards [hae] with a ha
   intro ε hε hε1 f F hf uε u gε g h1 h2 h3 h4
   obtain ⟨r, hr0, hr1, hrb⟩ := ha (triadicScale ε)
