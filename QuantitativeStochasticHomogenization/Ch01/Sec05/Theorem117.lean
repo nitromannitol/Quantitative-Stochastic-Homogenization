@@ -34,7 +34,7 @@ by `r^β`, `β = 1/2 - 1/q`, `q = (2 + δ₀) ∧ (2 + δ)`, `δ₀` the Meyers 
 multipliers `η_r ∂_j ũ` of the two-scale expansion (`exists_multipliers`) satisfy (1.65); Steps 2–4
 (`exists_twoScale_steps`) give the three bounds of (1.59); the energy estimate (Lemma C.8) and
 Lemma 1.16 with exponent `1` give the bound of the energy densities. The norms are the normalized
-norms of (0.29)–(0.31); the `Ĥ̲⁻¹(U)` norm dominates the `H̲⁻¹(U)` norm of the book.
+norms of (0.29)–(0.31); the gradient and flux errors are in `Ĥ̲⁻¹(U)`, the norm of (1.59).
 -/
 
 open MeasureTheory Filter Set
@@ -661,7 +661,8 @@ theorem exists_twoScale_estimate (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {U : Set (Vec d
 
 set_option maxHeartbeats 400000 in
 /-- **Theorem 1.17** for `d ≥ 2` and a bounded open convex domain `U ⊆ □_0`: for every `δ > 0`
-there are `β > 0` and `C < ∞` such that, for every coefficient field `a`, every constant symmetric
+there are `β > 0` and `C < ∞` (`β` depends on `U` through the Meyers exponent of `U`) such that,
+for every coefficient field `a`, every constant symmetric
 matrix `ā` with `Id ≤ ā ≤ Λ Id`, `ε ∈ (0, 1]`, finite-volume correctors `φ_k` of (1.55) on
 `□_{m(ε)}`, `f ∈ W^{1,2+δ}(U)` of gradient `∇f`, solutions `u^ε, u ∈ f + H¹₀(U)` of
 `-∇·(a(·/ε)∇u^ε) = 0` and `-∇·(ā∇u) = 0` in `U` and `r ∈ (0, 1)`, (1.59) holds,

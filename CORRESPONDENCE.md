@@ -1699,7 +1699,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   with `m = triadicScale ε = ⌈log₃ ε⁻¹⌉` (the book's `⌈|log ε| / log 3⌉`, `3^{-m} ≤ ε < 3^{1-m}`). The
   norms are the normalized `L̲²(ε□_m)` and `H̲⁻¹(ε□_m)` norms (`scalarRms`,
   `vectorNegativeSobolevOneNorm 2`, the sum over the components as in Proposition 1.10), and
-  `E′(ε)` takes values in `[0, ∞]`. The theorem holds for every choice of the minimizers.
+  `E′(ε)` takes values in `[0, ∞]`. The `H̲⁻¹(ε□_m)` norm, whose test functions are normalized by the
+  sum of the norms of their partial derivatives, is at most the book's, so the Lean statement is at least as
+  strong. The theorem holds for every choice of the minimizers.
 - Lean: `QSH.TwoScale.theorem_1_17`, for `d ≥ 2` (the book's standing assumption) and a bounded open
   convex `U ⊆ □_0` (the book: a bounded Lipschitz domain), `ε ∈ (0, 1]`, `r ∈ (0, 1)`,
   `f ∈ W^{1,2+δ}(U)` with gradient `F` (`IsW1p`), and `u^ε, u` with `u^ε - f, u - f ∈ H¹₀(U)` whose
@@ -1708,9 +1710,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   exponent `δ₀` of the Meyers estimate (Theorem C.7) on `U` (the book: `β(δ, d, Λ)`; its proof takes
   `q = 2 + δ` with `δ` smaller than the Meyers exponent); (ii) the norms are the normalized norms of
   (0.29)–(0.31): `‖∇f‖_{L̲^{2+δ}(U)}` in place of `‖∇f‖_{L^{2+δ}(U)}` (comparable for a fixed `U`),
-  the gradient and flux errors in `Ĥ̲⁻¹(U)` (`vectorHatNegativeSobolevNorm`), which dominates the
-  `H̲⁻¹(U)` norm of the book, and the energy densities in `W̲^{-2,1}(U)`
-  (`negativeSobolevTwoNorm 1`); (iii) `ā` is any constant symmetric matrix with `Id ≤ ā ≤ Λ Id`
+  the gradient and flux errors in `Ĥ̲⁻¹(U)` (`vectorHatNegativeSobolevNorm`), the norm of (1.59), and
+  the energy densities in `W̲^{-2,1}(U)` (`negativeSobolevTwoNorm 1`); (iii) `ā` is any constant symmetric matrix with `Id ≤ ā ≤ Λ Id`
   (the homogenized matrix is one by (1.25)); (iv) the right sides take values in `[0, ∞]`.
 - Proof: the book's, with the following choices. The cutoff `η_r` of (1.60) is the mollification,
   by a radial kernel at scale `ρr/8`, of the indicator of the homothetic image of `U` of ratio
