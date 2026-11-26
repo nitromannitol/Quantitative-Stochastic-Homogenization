@@ -178,8 +178,8 @@ theorem hasBoundaryDensity_of_convex {U : Set (Vec d)} (hUo : IsOpen U) (hUc : C
   constructor
   · obtain ⟨c, hc⟩ := exists_ball_subset_ball_inter_of_convex hUo hUc hρ hball hUR hz.1 hr hrR
     have h1 := measureReal_mono hc (measure_ne_top_of_subset inter_subset_left hfin)
-    rw [volume_real_ball_eq c (mul_pos (div_pos hr (by linarith)) hρ)] at h1
-    rw [volume_real_ball_eq z hr]
+    rw [volume_real_ball_eq_unit c (mul_pos (div_pos hr (by linarith)) hρ)] at h1
+    rw [volume_real_ball_eq_unit z hr]
     have e : (r / (2 * R + ρ) * ρ) ^ d = (ρ / (2 * R + ρ)) ^ d * r ^ d := by
       rw [← mul_pow]
       congr 1
@@ -193,8 +193,8 @@ theorem hasBoundaryDensity_of_convex {U : Set (Vec d)} (hUo : IsOpen U) (hUc : C
     exact h2.trans h1
   · obtain ⟨c, hc⟩ := exists_ball_subset_ball_sdiff_of_convex hUo hUc ⟨x₀, hx₀U⟩ hz.2 hr
     have h1 := measureReal_mono hc (measure_ne_top_of_subset sdiff_subset hfin)
-    rw [volume_real_ball_eq c (half_pos hr)] at h1
-    rw [volume_real_ball_eq z hr]
+    rw [volume_real_ball_eq_unit c (half_pos hr)] at h1
+    rw [volume_real_ball_eq_unit z hr]
     have e : (r / 2) ^ d = (1 / 2 : ℝ) ^ d * r ^ d := by
       rw [← mul_pow]
       congr 1

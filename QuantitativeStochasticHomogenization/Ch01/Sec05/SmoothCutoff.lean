@@ -244,7 +244,7 @@ theorem exists_mem_of_mem_tsupport_mollifiedIndicator {t : ℝ} (ht : 0 < t) {A 
     unfold euclideanNorm euclideanSq dot
     fun_prop
   obtain ⟨x', hx'U, hx'⟩ := mem_closure_iff.1 hx _ hopen (by
-    simp only [mem_setOf_eq, sub_self]
+    simp only [mem_ofPred_eq, sub_self]
     simpa [euclideanNorm, euclideanSq, dot] using ht)
   have hne : mollifiedIndicator t A x' ≠ 0 := hx'
   by_contra hcon
