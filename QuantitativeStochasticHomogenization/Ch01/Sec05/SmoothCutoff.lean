@@ -248,7 +248,7 @@ theorem exists_mem_of_mem_tsupport_mollifiedIndicator {t : ℝ} (ht : 0 < t) {A 
     simpa [euclideanNorm, euclideanSq, dot] using ht)
   have hne : mollifiedIndicator t A x' ≠ 0 := hx'
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   refine hne (mollifiedIndicator_eq_zero ht fun y hy hyA => ?_)
   have h1 := hcon y hyA
   have h2 : euclideanNorm (x - y) ≤ euclideanNorm (x - x') + euclideanNorm (x' - y) := by
@@ -390,7 +390,7 @@ theorem exists_cutoff_of_convex {U : Set (Vec d)} (hUo : IsOpen U)
       rw [this]
       linarith
     have hfin : volume (U \ AffineMap.homothety x₀ (1 - r) '' U) ≠ ⊤ :=
-      measure_ne_top_of_subset diff_subset hUt
+      measure_ne_top_of_subset Set.sdiff_subset hUt
     calc volume.real {x ∈ U | mollifiedIndicator t A x ≠ 1}
         ≤ volume.real (U \ AffineMap.homothety x₀ (1 - r) '' U) :=
           measureReal_mono hsub hfin
