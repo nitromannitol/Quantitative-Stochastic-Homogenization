@@ -96,4 +96,42 @@ theorem memLp_two_add_inv_of_h1_ball (hd : 2 ≤ d) {r : ℝ} (hr : 0 < r) {u : 
     rw [← e]; exact hmw.add (memLp_const w)
   exact hmu.mono_exponent (ENNReal.ofReal_le_ofReal hq)
 
+/-- **Rescaling** `x ↦ c x` of an `H¹` function and of a divergence-free flux: if `cV ⊆ U`, then
+`v(c ·) ∈ H¹(V)` with gradient `c ∇v(c ·)` and `B(c ·) c ∇v(c ·)` is divergence free in `V`. -/
+theorem rescale_h1_div {U V : Set (Vec d)} (hUm : MeasurableSet U) (hVm : MeasurableSet V)
+    (hVt : volume V ≠ ⊤) {c : ℝ} (hc : 0 < c) (hV : ∀ x ∈ V, c • x ∈ U) {v : Vec d → ℝ}
+    {G : Vec d → Vec d} (B : Vec d → Mat d) (hv : MemLp v 2 (volume.restrict U))
+    (hG : ∀ i, MemLp (fun x => G x i) 2 (volume.restrict U)) (hvG : HasWeakGradient U v G)
+    (hdiv : HasWeakDivergence U (fun x => (B x).mulVec (G x)) (fun _ => 0))
+    (hloc : ∀ i, LocallyIntegrableOn (fun x => (B (c • x)).mulVec (G (c • x)) i) V volume) :
+    MemLp (fun x => v (c • x)) 2 (volume.restrict V) ∧
+      (∀ i, MemLp (fun x => (c • G (c • x)) i) 2 (volume.restrict V)) ∧
+      HasWeakGradient V (fun x => v (c • x)) (fun x => c • G (c • x)) ∧
+      HasWeakDivergence V (fun x => (B (c • x)).mulVec (c • G (c • x))) (fun _ => 0) := by
+  have hV' : ∀ x ∈ V, c • x + 0 ∈ U := fun x hx => by rw [add_zero]; exact hV x hx
+  have : IsFiniteMeasure (volume.restrict V) := isFiniteMeasure_restrict.mpr hVt
+  have h1 : MemLp (fun x => v (c • x)) 2 (volume.restrict V) := by
+    have h := MemLp.comp_smul_add_restrict hUm hVm hc.ne' 0 hV' hv
+    simpa only [add_zero] using h
+  have h2 : ∀ i, MemLp (fun x => G (c • x) i) 2 (volume.restrict V) := fun i => by
+    have h := MemLp.comp_smul_add_restrict (f := fun x => G x i) hUm hVm hc.ne' 0 hV' (hG i)
+    simpa only [add_zero] using h
+  have hw := hasWeakGradientOn_comp_smul_add hc 0 hV' hvG
+  simp only [add_zero] at hw
+  have hw' : HasWeakGradient V (fun x => c⁻¹ * v (c • x)) (fun x => G (c • x)) :=
+    hasWeakGradient_of_hasWeakGradientOn' hw
+      (IntegrableOn.locallyIntegrableOn ((h1.const_mul c⁻¹).integrable one_le_two))
+      (fun i => IntegrableOn.locallyIntegrableOn ((h2 i).integrable one_le_two))
+  have hw'' := hw'.const_mul' c
+  have e : (fun x => c * (c⁻¹ * v (c • x))) = fun x => v (c • x) := by
+    funext x; field_simp
+  rw [e] at hw''
+  refine ⟨h1, fun i => (h2 i).const_mul c, hw'', ?_⟩
+  have hd := TwoScale.hasWeakDivergence_comp_smul_add hc 0 hV' hdiv
+    (fun i => by simpa only [add_zero] using hloc i)
+  simp only [add_zero] at hd
+  have hd' := hd.const_smul' c
+  convert hd' using 2 with x
+  rw [Matrix.mulVec_smul]
+
 end QSH
