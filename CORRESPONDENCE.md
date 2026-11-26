@@ -1691,3 +1691,38 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `d = 2`, and the square in (2.69) is not needed since `E(m)^{1/2}` is the weighted sum itself. The term
   `J(□_m, ā⁻¹q, q)^{1/2}` is bounded by (2.65), `X^{1/2} ≤ 2c^{1/2} + c^{-1/2}(X - c)₊`
   (`sqrt_le_two_mul_sqrt_add_os`). The exponent is `α = min(α₀/4, β)`, `α₀` that of Theorem 2.4.
+
+## Section 1.5: Theorem 1.17 (`Ch01/Sec05/`)
+
+- (1.55)–(1.56): `QSH.TwoScale.twoScaleDeviation a ā ε φ Dφ` is `E′(ε)` for given finite-volume
+  correctors: `IsDirichletMinimizer a □_m e_k (φ k) (Dφ k)`, so that `ℓ_{e_k} + φ_k = v(·, □_m, e_k)`,
+  with `m = triadicScale ε = ⌈log₃ ε⁻¹⌉` (the book's `⌈|log ε| / log 3⌉`, `3^{-m} ≤ ε < 3^{1-m}`). The
+  norms are the normalized `L̲²(ε□_m)` and `H̲⁻¹(ε□_m)` norms (`scalarRms`,
+  `vectorNegativeSobolevOneNorm 2`, the sum over the components as in Proposition 1.10), and
+  `E′(ε)` takes values in `[0, ∞]`. The theorem holds for every choice of the minimizers.
+- Lean: `QSH.TwoScale.theorem_1_17`, for `d ≥ 2` (the book's standing assumption) and a bounded open
+  convex `U ⊆ □_0` (the book: a bounded Lipschitz domain), `ε ∈ (0, 1]`, `r ∈ (0, 1)`,
+  `f ∈ W^{1,2+δ}(U)` with gradient `F` (`IsW1p`), and `u^ε, u` with `u^ε - f, u - f ∈ H¹₀(U)` whose
+  fluxes `a(·/ε)∇u^ε` and `ā∇u` are weakly divergence free in `U`. The differences with (1.59) and the
+  energy estimate: (i) `β = 1/2 - 1/q` with `q = min(2 + δ₀, 2 + δ)` depends also on `U` through the
+  exponent `δ₀` of the Meyers estimate (Theorem C.7) on `U` (the book: `β(δ, d, Λ)`; its proof takes
+  `q = 2 + δ` with `δ` smaller than the Meyers exponent); (ii) the norms are the normalized norms of
+  (0.29)–(0.31): `‖∇f‖_{L̲^{2+δ}(U)}` in place of `‖∇f‖_{L^{2+δ}(U)}` (comparable for a fixed `U`),
+  the gradient and flux errors in `Ĥ̲⁻¹(U)` (`vectorHatNegativeSobolevNorm`), which dominates the
+  `H̲⁻¹(U)` norm of the book, and the energy densities in `W̲^{-2,1}(U)`
+  (`negativeSobolevTwoNorm 1`); (iii) `ā` is any constant symmetric matrix with `Id ≤ ā ≤ Λ Id`
+  (the homogenized matrix is one by (1.25)); (iv) the right sides take values in `[0, ∞]`.
+- Proof: the book's, with the following choices. The cutoff `η_r` of (1.60) is the mollification,
+  by a radial kernel at scale `ρr/8`, of the indicator of the homothetic image of `U` of ratio
+  `1 - r/2` about the center of a ball `B_ρ(x₀) ⊆ U` (`exists_cutoff_of_convex`); for convex `U` the set
+  `{η_r ≠ 1}` has measure at most `d r |U|` (`measureReal_sdiff_homothety_image_le`), which replaces
+  the boundary layer `U \ U_{2r}`. The interior estimate (1.61) is the estimate for weakly harmonic
+  functions (`exists_smooth_harmonic_interior_bound`) after the change of variables `x = ā^{1/2} y`
+  (`exists_smooth_interior_bound_of_constant`), and the multipliers are `η_r ∂_j ũ` with `ũ` smooth and
+  `ũ = u` near the support of `η_r` (`exists_multipliers`), which gives (1.65). The Meyers estimate (1.62)
+  on `U` is Theorem C.7 with the boundary density of convex domains
+  (`meyers_constantCoefficient_of_convex`, `hasBoundaryDensity_of_convex`). Step 1 is the identity of
+  `abs_integral_twoScaleGrad_le` (1.64); Steps 2–4 are `exists_twoScale_steps`, the energy estimate
+  being Lemma C.8 for `u^ε - w^ε ∈ H¹₀(U)`; `‖u^ε - u‖_{L̲²(U)}` is bounded by the Poincaré inequality
+  for `u^ε - w^ε` and the bound of `w^ε - u` instead of Lemma 1.13. The energy densities follow from
+  Lemma 1.16 with exponent `1` and the energy estimate (Lemma C.8) for `∇u^ε`.

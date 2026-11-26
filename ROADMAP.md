@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 68 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 8.1 (Lemma 8.1), Section 10.1 (Definition 10.2 and Proposition 10.3), Section 10.2 (Lemma 10.9), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 25 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 68 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.2 (Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 8.1 (Lemma 8.1), Section 10.1 (Definition 10.2 and Proposition 10.3), Section 10.2 (Lemma 10.9), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 26 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -19,7 +19,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 
 | Chapter | Title | Numbered results | Proved or defined | In progress |
 | --- | --- | --- | --- | --- |
-| 1 | Introduction and Qualitative Theory | 12 | 8 | 3 |
+| 1 | Introduction and Qualitative Theory | 12 | 8 | 4 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 11 | 0 |
 | 3 | Regularity on Large Scales | 23 | 6 | 3 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 3 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **68** | **25** |
+| | **Total** | **226** | **68** | **26** |
 
 ## Front matter
 
@@ -73,11 +73,11 @@ No numbered result.
 | Proposition 1.15 |  | in progress (for `d ≥ 2`, with the right side `C (3^{-2m} + E(m))^{1/2}` that its proof gives, `proposition_1_15`, module `Ch01/Sec04/Proposition115.lean`, and the normalized `W^{-2,q}` norm `negativeSobolevTwoNorm` of `AppB/NegativeSobolevTwo.lean`; the printed right side `C 3^{-2m} + C E(m)` of (1.53) is not proved); see CORRESPONDENCE.md |
 | Lemma 1.16 | Div-curl lemma | in progress (for `d ≥ 2` on bounded open convex domains, with the normalized norms of (0.29), `lemma_1_16`, and with the constant `C(q, d, κ) D` on domains of diameter at most `D` and volume at least `κ D^d`, `lemma_1_16_quantitative`; modules `Ch01/Sec04/DivCurlIdentity.lean`, `Ch01/Sec04/DivCurlBounds.lean` and `Ch01/Sec04/Lemma116.lean`; other domains not proved); see CORRESPONDENCE.md |
 
-### 1.5 Homogenization of the Dirichlet Problem, module `Ch01/Sec05HomogenizationOfDirichletProblem.lean`
+### 1.5 Homogenization of the Dirichlet Problem, module `Ch01/Sec05HomogenizationOfDirichletProblem.lean` (proofs in `Ch01/Sec05/`)
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 1.17 |  | not started |
+| Theorem 1.17 |  | in progress (for `d ≥ 2` and a bounded open convex `U ⊆ □_0`, with `β` depending also on `U` and any constant symmetric `ā` with `Id ≤ ā ≤ Λ Id`, `theorem_1_17` and the quantity (1.56) `twoScaleDeviation`, module `Ch01/Sec05/Theorem117.lean`; Lipschitz domains not proved); see CORRESPONDENCE.md |
 
 ## Chapter 2: Convergence of the Subadditive Quantities
 
