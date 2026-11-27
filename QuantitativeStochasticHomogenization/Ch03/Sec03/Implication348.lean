@@ -545,17 +545,17 @@ theorem implication_348 (k : ℕ) :
   have hmemr : ∀ m, MemLp (if m < N then Φ m else fun _ => (0 : ℝ)) 2
       (volume.restrict (ball (0 : Vec d) r)) := fun m => by
     by_cases h : m < N
-    · simp only [h, if_true]; exact ((hΦ m h).1.1 r hr0).1
-    · simp only [h, if_false]; exact MemLp.zero
+    · simp only [h, ite_true]; exact ((hΦ m h).1.1 r hr0).1
+    · simp only [h, ite_false]; exact MemLp.zero
   have hS := scalarRms_finset_sum_le (Finset.Ico j N) hmemr (fun _ => (1 : ℝ))
   have e1 : (fun x => ∑ m ∈ Finset.Ico j N, (1 : ℝ) * (if m < N then Φ m else fun _ => 0) x) =
       fun x => ∑ m ∈ Finset.Ico j N, Φ m x := by
     funext x
     refine Finset.sum_congr rfl fun m hm => ?_
-    simp only [(Finset.mem_Ico.1 hm).2, if_true, one_mul]
+    simp only [(Finset.mem_Ico.1 hm).2, ite_true, one_mul]
   have e2 : ∀ m ∈ Finset.Ico j N, |(1 : ℝ)| * scalarRms volume (ball 0 r)
       (if m < N then Φ m else fun _ => 0) = scalarRms volume (ball 0 r) (Φ m) := fun m hm => by
-    simp only [abs_one, one_mul, (Finset.mem_Ico.1 hm).2, if_true]
+    simp only [abs_one, one_mul, (Finset.mem_Ico.1 hm).2, ite_true]
   rw [e1, Finset.sum_congr rfl e2] at hS
   have hsumb : scalarRms volume (ball 0 r) (fun x => ∑ m ∈ Finset.Ico j N, Φ m x) ≤
       Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * (ρ ^ j / (1 - ρ)) *
