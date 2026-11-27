@@ -64,9 +64,9 @@ theorem hasFDerivAt_diag {m : ℕ} (B : ContinuousMultilinearMap ℝ (fun _ : Fi
   have e : ∀ i : Fin (m + 1), B (Function.update (fun _ => x) i v) =
       B (Fin.snoc (fun _ : Fin m => x) v) := fun i => by
     rw [update_const_eq_snoc_comp_swap, hB]
-  simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.coe_pi',
+  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearMap.coe_pi',
     ContinuousLinearMap.coe_id', id_eq, ContinuousMultilinearMap.linearDeriv_apply,
-    ContinuousLinearMap.smul_apply, ContinuousMultilinearMap.curryRight_apply, smul_eq_mul]
+    smul_apply, ContinuousMultilinearMap.curryRight_apply, smul_eq_mul]
   rw [Finset.sum_congr rfl fun i _ => e i, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
     nsmul_eq_mul]
   push_cast
@@ -168,11 +168,11 @@ theorem sum_iteratedFDeriv_snoc_snoc_eq_zero {f : Vec d → ℝ} (hf : ContDiff 
   have hzero : iteratedFDeriv ℝ m (PDE.euclideanCoordLaplacian f) 0 = 0 := by
     have hΔ' : PDE.euclideanCoordLaplacian f =ᶠ[𝓝 (0 : Vec d)] fun _ => (0 : ℝ) := hΔ
     have h := (hΔ'.iteratedFDeriv ℝ m).eq_of_nhds
-    rw [h, iteratedFDeriv_zero_fun]
+    rw [h, iteratedFDeriv_fun_zero]
     rfl
   rw [hLf, hzero] at hcomp
   have h := congrArg (fun T => T (fun _ : Fin m => x)) hcomp
-  simp only [ContinuousMultilinearMap.zero_apply, ContinuousLinearMap.compContinuousMultilinearMap_coe,
+  simp only [zero_apply, ContinuousLinearMap.compContinuousMultilinearMap_coe,
     Function.comp_apply, hLapp] at h
   rw [Finset.sum_congr rfl fun i _ => hstep i]
   exact h.symm
@@ -193,7 +193,7 @@ theorem laplacian_sum_const_mul {ι : Type*} (s : Finset ι) (c : ι → ℝ) {g
     funext y
     have hdy : ∀ n, DifferentiableAt ℝ (h n) y := fun n => ((hh n).differentiable (by simp)) y
     rw [PDE.euclideanCoordDeriv, fderiv_fun_sum fun n _ => (hdy n).const_mul (c n)]
-    simp only [ContinuousLinearMap.coe_sum', Finset.sum_apply]
+    simp only [FunLike.coe_sum, Finset.sum_apply]
     refine Finset.sum_congr rfl fun n _ => ?_
     rw [fderiv_const_mul (hdy n), smul_apply, smul_eq_mul, PDE.euclideanCoordDeriv]
   rw [PDE.euclideanCoordLaplacian]
