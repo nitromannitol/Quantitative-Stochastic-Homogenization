@@ -1582,7 +1582,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 3.3: the estimate (iii')₁ (`Ch03/Sec03/Theorem38IIIPrimeOne.lean`)
 
-- Lean: `QSH.theorem_3_8_iii_prime_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`,
+- Lean: `QSH.theorem_3_8_iii_prime_one` (and `QSH.theorem_3_8_iii_prime_one_le`, the same for every
+  exponent below a threshold), for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`,
   `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such
   that, for almost every coefficient field, every `R ≥ X` and every solution `u` in `B_R`, some
   `φ ∈ A_1` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. This is
@@ -1623,6 +1624,35 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   depend on `s`. The qualitative description of `A_1` through the first-order correctors of
   Section 3.4 is `QSH.firstOrderLiouville`; its space `HarmonicA1 a` and `solutionGrowthSpace a 1` are
   two encodings of `A_1` that are not yet related in Lean.
+
+## Section 3.3: statement (ii)₂ (`Ch03/Sec03/Theorem38IITwo.lean`)
+
+- Lean: `QSH.theorem_3_8_ii_two`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`, `C`
+  and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such that,
+  for almost every coefficient field, every `p ∈ Ā_2` has some `u ∈ A_2` with
+  `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every `R ≥ X`. This is `(ii)₂`, obtained by the
+  implication (3.46) for `k = 2`.
+- Proof: the part of degree two of `p` by (3.46) for homogeneous `q` (`QSH.implication_346_homogeneous`
+  with `k = 2`), whose inputs are (3.52) (`QSH.equation_3_52`), `(iii')₁` (`QSH.theorem_3_8_iii_prime_one_le`)
+  and `(i)₁` (`QSH.theorem_3_8_i_one`); the part of degree at most one by `(ii)₁`
+  (`QSH.theorem_3_8_ii_one`) and `A_1 ⊆ A_2`; the dyadic radii of (3.46) are passed to every `R` as for
+  `(ii)₁`, and the parts of `p` are bounded by `p` through (3.27). The common exponent is the minimum of
+  those of `(i)₁`, `(ii)₁` and (3.52) and of an exponent at which `(iii')₁` holds, which is why `(iii')₁`
+  is also stated for every exponent below a threshold; the smallness condition of (3.46) on the
+  constant of `(i)₁` is met by a constant scale `H`. Departures: the scale is `X₁ ∨ X₂ ∨ X₃ ∨ X₅₂ ∨ H`;
+  as in Theorem 3.3, `X` is real valued, the estimate holds for almost every coefficient field and
+  `Λ > 1`; the constants depend on `s`.
+
+## Section 3.3: the estimate (iii')₂ (`Ch03/Sec03/Theorem38IIIPrimeTwo.lean`)
+
+- Lean: `QSH.theorem_3_8_iii_prime_two`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are
+  `δ ∈ (0, 1/2]`, `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
+  `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every solution `u` in
+  `B_R`, some `φ ∈ A_2` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{3-δ/2} ‖u‖_{L̲²(B_R)}` for every
+  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved.
+- Proof: `QSH.iii_prime_of_ii`, the argument of `(iii')₁` for every `k`: (3.48) above the random scale
+  (`QSH.implication_348_random`) with `(ii)_k` given as a hypothesis, the scale `X₂ ∨ X₃ ∨ H`; applied
+  with `(ii)₂` (`QSH.theorem_3_8_ii_two`). Departures: as for `(iii')₁`.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
