@@ -1478,10 +1478,11 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 3.3: the implication (3.48) (`Ch03/Sec03/Implication348.lean`)
 
-- Lean: `QSH.implication_348`, for every `k`, deterministic, for one coefficient field `a`: with
+- Lean: `QSH.implication_348`, for every `k`, deterministic, for one coefficient field `a` and any
+  matrix `A` in place of `ā`: with
   `θ ∈ (0, 1)`, `δ ∈ (0, 1]` and a scale `r₀ > 0`, if (3.50) holds above `r₀` in the form
   `harmonicFlatness ā k v (θ r) ≤ ¼ θ^{k+1-δ/2} harmonicFlatness ā k v r + C r^{-δ} ‖v‖_{L̲²(B_r)}` for
-  every solution `v` in `B_r`, `r ≥ r₀` (the book's (3.50) multiplied by `(θr)^k`), and `(ii)_k` holds
+  every solution `v` in `B_r`, `r ≥ r₀` (the book's (3.50) multiplied by `(θr)^k`, with `θ^k ≤ 1` absorbed in the constant), and `(ii)_k` holds
   above `r₀` with a constant `C₂`, and `r₀` is large (`C r₀^{-δ} ≤ θ^{k+1-δ/2}/8`,
   `C₂ r₀^{-δ} (θ^{-d/2} + 1) ≤ θ^{k+1-δ/2}/2`, `C₂ r₀^{-δ} ≤ 1/2`, the book's conditions on `H`), then
   `(iii')_k` holds: every solution `u` in `B_R` (`QSH.IsSolutionBall`), `R ≥ r₀`, has some
