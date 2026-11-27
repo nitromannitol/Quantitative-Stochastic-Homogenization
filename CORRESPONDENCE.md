@@ -1390,11 +1390,18 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   functions `x ↦ P(x)` with `P` a polynomial of total degree at most `k` that are weakly `A`-harmonic
   on every ball. The book defines `Ā_k` by (3.23) (the `ā`-harmonic functions on `ℝ^d` with
   `‖u‖_{L̲²(B_r)} = o(r^{k+1})`) and identifies it with the `ā`-harmonic polynomials of degree at most
-  `k` by (3.7); the Lean definition is that characterization. The identification is not
-  formalized: `harmonicPolys A k` is contained in (3.23), and the converse needs Weyl's lemma on `ℝ^d`
-  and a Liouville theorem for `o(r^{k+1})` growth. Since the infimum over `Ā_k` is on both sides of
-  (3.29), `lemma_3_6` and the printed (3.29) do not imply each other as formal statements; they agree
-  once the two spaces are identified. The proof is the book's, with (3.24)
+  `k` by (3.7); `lemma_3_6` uses that characterization. The identification is
+  `Ch03/Sec02/HarmonicGrowth.lean`: `QSH.growthHarmonicSpace A k` is (3.23) (weakly `A`-harmonic in
+  `H¹(B_R)` for every `R`, with `r^{-(k+1)} ‖u‖_{L̲²(B_r)} → 0`); it contains `harmonicPolys A k`
+  (`QSH.harmonicPolys_subset_growthHarmonicSpace`), and each of its elements agrees almost everywhere
+  with an element of `harmonicPolys A k` (`QSH.exists_harmonicPoly_ae_of_growth`; the book's spaces
+  are spaces of classes of functions). The proof of the second inclusion takes, after `x = M y`, the
+  representative of Weyl's lemma on every ball and bounds `D^{k+1}` at every point by the pointwise
+  derivative bounds of the elliptic regularity library on balls of radius `b → ∞`,
+  `(C (k+1)/b)^{k+1} ‖u‖_{L̲²(B_b)} → 0`, so that the representative is its Taylor polynomial of
+  degree `k` (the Liouville theorem of the library, for `O(r^{k+1})` growth, is not needed). Hence the
+  distances to the two spaces coincide (`QSH.growthFlatness_eq`), and the printed (3.29) with the
+  book's `Ā_k` is `QSH.lemma_3_6_growth`. The proof of `lemma_3_6` is the book's, with (3.24)
   in the `L̲²` form `‖h - q‖_{L̲²(B_t)} ≤ C (t/ρ)^{k+1} ‖h‖_{L̲²(B_ρ)}` for `t ≤ ρ/(4√Λ)`
   (`QSH.exists_harmonicPoly_scalarRms_ball_le`) applied to `w_r - p`, `p ∈ Ā_k`, and
   `θ = min(1/(8√Λ), (4 (C + 1) 2^{k+1} 2^{d/2})^{-2/α})`. (3.24) is proved for the Laplacian on balls
