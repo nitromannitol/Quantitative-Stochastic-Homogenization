@@ -1649,8 +1649,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `δ ∈ (0, 1/2]`, `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
   `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every solution `u` in
   `B_R`, some `φ ∈ A_2` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{3-δ/2} ‖u‖_{L̲²(B_R)}` for every
-  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved (by (3.49) it needs
-  `(i)₃`, `(ii)₃` and `(iii')₃`).
+  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is the case `k = 2` of
+  `QSH.theorem_3_8` (below).
 - Proof: `QSH.iii_prime_of_ii` (`Ch03/Sec03/Theorem38IIIPrimeOne.lean`, which also derives `(iii')₁`
   from it), the argument of `(iii')₁` for every `k`: (3.48) above the random scale
   (`QSH.implication_348_random`) with `(ii)_k` given as a hypothesis, the scale `X₂ ∨ X₃ ∨ H`; applied
@@ -1696,6 +1696,25 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`QSH.theorem_3_8_ii_two`) and `(iii')₂` (`QSH.theorem_3_8_iii_prime_two`). Departures: the scale is
   `X₁ ∨ X₂ ∨ X₃ ∨ H`; as in Theorem 3.3, `X` is real valued, the estimate holds for almost every
   coefficient field and `Λ > 1`; the constant depends on `s`.
+
+## Section 3.3: Theorem 3.8 for every `k` (`Ch03/Sec03/Theorem38AllK.lean`)
+
+- Lean: `QSH.theorem_3_8`, for `d ≥ 2`, `Λ > 1`, `s ∈ (0, d)` and every `k`: `QSH.StatementI`,
+  `QSH.StatementII` and `QSH.StatementIII` for `k`, that is `(i)_k`, `(ii)_k` and `(iii)_k` of
+  Theorem 3.8 (with (3.40) and (3.41)) for almost every coefficient field above a random scale
+  `X ≥ 1` with `X ≤ O_s(C)`, for an exponent `δ ∈ (0, 1/2]` and constants `C`.
+- Proof: induction over `k` (`QSH.statements_all`) on `(i)_k`, `(ii)_k` and `(iii')_k`
+  (`QSH.StatementIIIPrime`, for every exponent below a threshold): the case `k = 0` from
+  `QSH.theorem_3_8_zero` (`QSH.statements_zero`); `(ii)_{k+1}` by (3.46) for the part of degree
+  `k + 1` (`QSH.implication_346_homogeneous`, with (3.52), `(iii')_k` and `(i)_k`) and `(ii)_k` for the
+  part of degree at most `k` (`QSH.statementII_succ`); `(iii')_{k+1}` by (3.48) (`QSH.iii_prime_of_ii`);
+  `(i)_{k+1}` by (3.47) (`QSH.implication_347`, `QSH.statementI_succ`); then `(iii)_k` by (3.49) from the
+  statements for `k + 1` (`QSH.implication_349`, `QSH.statementIII_of`). The earlier statements for
+  `k = 1, 2` (`QSH.theorem_3_8_i_one`, …, `QSH.theorem_3_8_iii_one`) are kept. Departures: the exponent
+  `δ`, the constants and the random scale `X` depend on `k`, whereas Theorem 3.8 has one exponent
+  `δ(s, d, Λ)` and one scale `X_s` for every `k` (with constants depending on `k`); as in Theorem 3.3,
+  `X` is real valued, the statements hold for almost every coefficient field and `Λ > 1`. The dimension
+  formula (3.42) is not proved.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
