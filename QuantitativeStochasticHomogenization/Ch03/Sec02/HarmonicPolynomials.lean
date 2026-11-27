@@ -83,7 +83,7 @@ theorem totalDegree_bind₁_le (f : Fin d → MvPolynomial (Fin d) ℝ)
   rw [MvPolynomial.bind₁_monomial]
   refine (MvPolynomial.totalDegree_mul _ _).trans ?_
   rw [MvPolynomial.totalDegree_C, zero_add]
-  refine (MvPolynomial.totalDegree_finset_prod _ _).trans ?_
+  refine (MvPolynomial.totalDegree_finsetProd _ _).trans ?_
   calc ∑ i ∈ s.support, ((f i) ^ (s i)).totalDegree ≤ ∑ i ∈ s.support, s i :=
         Finset.sum_le_sum fun i _ => (MvPolynomial.totalDegree_pow _ _).trans
           (by simpa using Nat.mul_le_mul_left (s i) (hf i))
