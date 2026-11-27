@@ -203,4 +203,151 @@ theorem scalarRms_poly_growth (k : ℕ) :
         mul_le_mul_of_nonneg_left h2 (by positivity)
     _ = _ := by ring
 
+theorem scalarRms_le_add_of_sub {U : Set (Vec d)} {f g : Vec d → ℝ}
+    (hf : MemLp f 2 (volume.restrict U)) (hg : MemLp g 2 (volume.restrict U)) :
+    scalarRms volume U g ≤ scalarRms volume U f + scalarRms volume U (fun x => f x - g x) := by
+  have h := scalarRms_sub_le (f := f) (g := fun x => f x - g x) hf (hf.sub hg)
+  have e : (fun x => f x - (f x - g x)) = g := by funext x; ring
+  rwa [e] at h
+
+/-- **One correction step of (3.48)**: from (3.50) and `(ii)_k`, with `r₀` large, a solution `v` in
+`B_r`, `θ r ≥ r₀`, has `φ ∈ A_k` with `‖v - φ‖_{L̲²(B_{θr})} ≤ θ^{k+1-δ/2} ‖v‖_{L̲²(B_r)}`, and `φ`
+grows like a polynomial of degree `k` above the scale `r₀`. -/
+theorem exists_correction_step (k : ℕ) :
+    ∃ Cg : ℝ, 0 ≤ Cg ∧ ∀ (a : CoefficientField d Λ) (A : Mat d) (r₀ θ δ C₅₀ C₂ : ℝ),
+      0 < r₀ → 0 < θ → θ < 1 → 0 < δ → δ ≤ 1 → 0 ≤ C₂ →
+      (∀ r : ℝ, r₀ ≤ r → ∀ v, IsSolutionBall a r v →
+        harmonicFlatness A k v (θ * r) ≤
+          1 / 4 * θ ^ ((k : ℝ) + 1 - δ / 2) * harmonicFlatness A k v r +
+            C₅₀ * r ^ (-δ) * scalarRms volume (ball 0 r) v) →
+      (∀ p ∈ harmonicPolys A k, ∃ φ ∈ solutionGrowthSpace a k, ∀ s : ℝ, r₀ ≤ s →
+        scalarRms volume (ball 0 s) (fun x => φ x - p x) ≤
+          C₂ * s ^ (-δ) * scalarRms volume (ball 0 s) p) →
+      C₅₀ * r₀ ^ (-δ) ≤ 1 / 8 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+      C₂ * r₀ ^ (-δ) * (Real.sqrt ((1 / θ) ^ d) + 1) ≤ 1 / 2 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+      C₂ * r₀ ^ (-δ) ≤ 1 / 2 →
+      ∀ r : ℝ, r₀ ≤ θ * r → ∀ v, IsSolutionBall a r v → ∃ φ,
+        (φ ∈ solutionGrowthSpace a k ∧ ∀ t s : ℝ, r₀ ≤ t → t ≤ s →
+          scalarRms volume (ball 0 s) φ ≤ Cg * (s / t) ^ k * scalarRms volume (ball 0 t) φ) ∧
+        scalarRms volume (ball 0 (θ * r)) (fun x => v x - φ x) ≤
+          θ ^ ((k : ℝ) + 1 - δ / 2) * scalarRms volume (ball 0 r) v := by
+  obtain ⟨C₂₇, hC₂₇, hgrow⟩ := scalarRms_poly_growth (d := d) k
+  refine ⟨4 * C₂₇, by positivity, ?_⟩
+  intro a A r₀ θ δ C₅₀ C₂ hr₀ hθ0 hθ1 hδ hδ1 hC₂ H50 Hii hs50 hs2 hs2' r hθr v hv
+  obtain ⟨β, hβ⟩ : ∃ β : ℝ, β = (k : ℝ) + 1 - δ / 2 := ⟨_, rfl⟩
+  rw [← hβ] at H50 hs50 hs2 ⊢
+  have hr : 0 < r := by
+    by_contra h; push Not at h; nlinarith
+  have hθr0 : 0 < θ * r := mul_pos hθ0 hr
+  have hθrr : θ * r ≤ r := by nlinarith
+  have hr₀r : r₀ ≤ r := hθr.trans hθrr
+  have hθβ0 : 0 < θ ^ β := Real.rpow_pos_of_pos hθ0 β
+  have hsq : 0 ≤ Real.sqrt ((1 / θ) ^ d) := Real.sqrt_nonneg _
+  have hrpow : ∀ x : ℝ, r₀ ≤ x → x ^ (-δ) ≤ r₀ ^ (-δ) := fun x hx =>
+    Real.rpow_le_rpow_of_nonpos hr₀ hx (by linarith)
+  -- the polynomial growth of a good correction
+  have hgood : ∀ p ∈ harmonicPolys A k, ∀ φ, (∀ s : ℝ, r₀ ≤ s →
+      scalarRms volume (ball 0 s) (fun x => φ x - p x) ≤
+        C₂ * s ^ (-δ) * scalarRms volume (ball 0 s) p) → φ ∈ solutionGrowthSpace a k →
+      ∀ t s : ℝ, r₀ ≤ t → t ≤ s →
+        scalarRms volume (ball 0 s) φ ≤ 4 * C₂₇ * (s / t) ^ k * scalarRms volume (ball 0 t) φ := by
+    intro p hp φ hφp hφ t s ht hts
+    have ht0 : 0 < t := lt_of_lt_of_le hr₀ ht
+    have hs0 : 0 < s := lt_of_lt_of_le ht0 hts
+    obtain ⟨⟨P, hP, hPe⟩, hph⟩ := hp
+    have hpP : p = fun x => MvPolynomial.eval x P := funext hPe
+    have hpt0 := scalarRms_nonneg (d := d) (ball 0 t) p
+    have hps0 := scalarRms_nonneg (d := d) (ball 0 s) p
+    -- `‖p‖_t ≤ 2 ‖φ‖_t`
+    have h1 : scalarRms volume (ball 0 t) p ≤ 2 * scalarRms volume (ball 0 t) φ := by
+      have h := scalarRms_le_add_of_sub (hφ.1 t ht0).1 (hph t ht0).1
+      have h' := hφp t ht
+      have : C₂ * t ^ (-δ) ≤ 1 / 2 := (mul_le_mul_of_nonneg_left (hrpow t ht) hC₂).trans hs2'
+      nlinarith
+    -- `‖φ‖_s ≤ 2 ‖p‖_s`
+    have h2 : scalarRms volume (ball 0 s) φ ≤ 2 * scalarRms volume (ball 0 s) p := by
+      have h := scalarRms_le_add_of_sub (hph s hs0).1 (hφ.1 s hs0).1
+      have e : (fun x => p x - φ x) = fun x => -1 * (φ x - p x) := by funext x; ring
+      rw [e, scalarRms_const_mul, abs_neg, abs_one, one_mul] at h
+      have h' := hφp s (ht.trans hts)
+      have : C₂ * s ^ (-δ) ≤ 1 / 2 :=
+        (mul_le_mul_of_nonneg_left (hrpow s (ht.trans hts)) hC₂).trans hs2'
+      nlinarith
+    have h3 := hgrow P hP t s ht0 hts
+    rw [← hpP] at h3
+    have hst : 0 ≤ (s / t) ^ k := by positivity
+    calc scalarRms volume (ball 0 s) φ ≤ 2 * scalarRms volume (ball 0 s) p := h2
+      _ ≤ 2 * (C₂₇ * (s / t) ^ k * scalarRms volume (ball 0 t) p) := by linarith
+      _ ≤ 2 * (C₂₇ * (s / t) ^ k * (2 * scalarRms volume (ball 0 t) φ)) := by
+          gcongr
+      _ = 4 * C₂₇ * (s / t) ^ k * scalarRms volume (ball 0 t) φ := by ring
+  have hvθ : MemLp v 2 (volume.restrict (ball (0 : Vec d) (θ * r))) :=
+    hv.1.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero hθrr) le_rfl)
+  have hvball : scalarRms volume (ball 0 (θ * r)) v ≤
+      Real.sqrt ((1 / θ) ^ d) * scalarRms volume (ball 0 r) v := by
+    have h := scalarRms_ball_le hθr0 hθrr hv.1
+    rwa [show r / (θ * r) = 1 / θ by field_simp] at h
+  have hv0 := scalarRms_nonneg (d := d) (ball 0 r) v
+  rcases hv0.eq_or_lt with hv00 | hvpos
+  · refine ⟨fun _ => 0, ⟨zero_mem_solutionGrowthSpace a k, fun t s _ _ => ?_⟩, ?_⟩
+    · have e : ∀ ρ : ℝ, scalarRms volume (ball (0 : Vec d) ρ) (fun _ => (0 : ℝ)) = 0 := fun ρ => by
+        unfold scalarRms; simp
+      rw [e, e, mul_zero]
+    · simp only [sub_zero]
+      rw [← hv00] at hvball ⊢
+      rw [mul_zero] at hvball ⊢
+      exact hvball
+  -- a near-minimizer in `Ā_k`
+  have hflat : harmonicFlatness A k v (θ * r) ≤ 3 / 8 * θ ^ β * scalarRms volume (ball 0 r) v := by
+    have h1 := harmonicFlatness_le v r (zero_mem_harmonicPolys A k)
+    simp only [sub_zero] at h1
+    have h2 : C₅₀ * r ^ (-δ) ≤ 1 / 8 * θ ^ β := by
+      rcases le_or_gt 0 C₅₀ with hC | hC
+      · exact (mul_le_mul_of_nonneg_left (hrpow r hr₀r) hC).trans hs50
+      · have : C₅₀ * r ^ (-δ) ≤ 0 :=
+          mul_nonpos_of_nonpos_of_nonneg hC.le (Real.rpow_nonneg hr.le _)
+        linarith
+    have h3 := H50 r hr₀r v hv
+    nlinarith [harmonicFlatness_nonneg A k v r]
+  have : Nonempty (harmonicPolys A k) := ⟨⟨_, zero_mem_harmonicPolys A k⟩⟩
+  have hlt : harmonicFlatness A k v (θ * r) < 1 / 2 * θ ^ β * scalarRms volume (ball 0 r) v := by
+    have : 3 / 8 * θ ^ β * scalarRms volume (ball 0 r) v <
+        1 / 2 * θ ^ β * scalarRms volume (ball 0 r) v := by
+      have := mul_pos hθβ0 hvpos
+      nlinarith
+    linarith
+  obtain ⟨⟨p, hp⟩, hpb⟩ := exists_lt_of_ciInf_lt hlt
+  simp only at hpb
+  obtain ⟨φ, hφ, hφp⟩ := Hii p hp
+  refine ⟨φ, ⟨hφ, hgood p hp φ hφp hφ⟩, ?_⟩
+  have hpL2 := (hp.2 (θ * r) hθr0).1
+  have hφL2 := (hφ.1 (θ * r) hθr0).1
+  -- `‖p‖_{θr} ≤ (2^{d/2}θ^{-d/2} + ½θ^β) ‖v‖_r`
+  have hpn : scalarRms volume (ball 0 (θ * r)) p ≤
+      (Real.sqrt ((1 / θ) ^ d) + 1) * scalarRms volume (ball 0 r) v := by
+    have h := scalarRms_le_add_of_sub hvθ hpL2
+    have hθβ1 : θ ^ β ≤ 1 := Real.rpow_le_one hθ0.le hθ1.le (by
+      have : (0 : ℝ) ≤ k := Nat.cast_nonneg k
+      rw [hβ]; linarith)
+    nlinarith
+  have hsplit : scalarRms volume (ball 0 (θ * r)) (fun x => v x - φ x) ≤
+      scalarRms volume (ball 0 (θ * r)) (fun x => v x - p x) +
+        scalarRms volume (ball 0 (θ * r)) (fun x => φ x - p x) := by
+    have e : (fun x => v x - φ x) = fun x => (v x - p x) - (φ x - p x) := by funext x; ring
+    rw [e]
+    exact scalarRms_sub_le (hvθ.sub hpL2) (hφL2.sub hpL2)
+  have hφb := hφp (θ * r) hθr
+  have hC₂r : C₂ * (θ * r) ^ (-δ) ≤ C₂ * r₀ ^ (-δ) :=
+    mul_le_mul_of_nonneg_left (hrpow _ hθr) hC₂
+  calc scalarRms volume (ball 0 (θ * r)) (fun x => v x - φ x)
+      ≤ 1 / 2 * θ ^ β * scalarRms volume (ball 0 r) v +
+          C₂ * r₀ ^ (-δ) * ((Real.sqrt ((1 / θ) ^ d) + 1) * scalarRms volume (ball 0 r) v) := by
+        refine hsplit.trans (add_le_add hpb.le (hφb.trans ?_))
+        exact mul_le_mul hC₂r hpn (scalarRms_nonneg _ _) (by positivity)
+    _ ≤ 1 / 2 * θ ^ β * scalarRms volume (ball 0 r) v +
+          1 / 2 * θ ^ β * scalarRms volume (ball 0 r) v := by
+        rw [← mul_assoc]
+        exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hs2 hv0)
+    _ = θ ^ β * scalarRms volume (ball 0 r) v := by ring
+
 end QSH
