@@ -80,4 +80,36 @@ theorem equation_3_50 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0
     _ ≤ C * r ^ (-δ) * scalarRms volume (ball 0 r) v :=
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right hC36 hrδ) (scalarRms_nonneg _ _)
 
+/-- **The implication (3.48) above the random scale**: for almost every coefficient field, every
+scale `r₀ ≥ X` large enough for the constants of (3.50) and of `(ii)_k` (the book's `r₀ = H ∨ X_s`)
+at which `(ii)_k` holds gives `(iii')_k` above `r₀`. -/
+theorem implication_348_random (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s)
+    (hsd : s < d) (k : ℕ) :
+    ∃ δ θ C : ℝ, 0 < δ ∧ δ ≤ 1 / 2 ∧ 0 < θ ∧ θ < 1 / 2 ∧ 0 < C ∧ ∃ Cg : ℝ, 0 ≤ Cg ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X s C ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
+        ∀ r₀ C₂ : ℝ, X a ≤ r₀ → 0 ≤ C₂ →
+        C * r₀ ^ (-δ) ≤ 1 / 8 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+        C₂ * r₀ ^ (-δ) * (Real.sqrt ((1 / θ) ^ d) + 1) ≤ 1 / 2 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+        C₂ * r₀ ^ (-δ) ≤ 1 / 2 →
+        (∀ p ∈ harmonicPolys (homogenizedMatrix P) k, ∃ φ ∈ solutionGrowthSpace a k,
+          ∀ s' : ℝ, r₀ ≤ s' → scalarRms volume (ball 0 s') (fun x => φ x - p x) ≤
+            C₂ * s' ^ (-δ) * scalarRms volume (ball 0 s') p) →
+        ∀ R : ℝ, r₀ ≤ R → ∀ u, IsSolutionBall a R u → ∃ φ ∈ solutionGrowthSpace a k,
+          ∀ r : ℝ, r₀ ≤ r → r ≤ R →
+            scalarRms volume (ball 0 r) (fun x => u x - φ x) ≤
+              (Real.sqrt ((1 / θ) ^ d) + Cg * (Real.sqrt ((1 / θ) ^ d) + 1) /
+                (1 - θ ^ (1 - δ / 2))) * θ ^ (-((k : ℝ) + 1 - δ / 2)) *
+                (r / R) ^ ((k : ℝ) + 1 - δ / 2) * scalarRms volume (ball 0 R) u := by
+  obtain ⟨δ, θ, C, hδ0, hδ2, hθ0, hθ1, hC0, h350⟩ := equation_3_50 hd hΛ hs hsd k
+  obtain ⟨Cg, hCg, h348⟩ := implication_348 (d := d) (Λ := Λ) k
+  refine ⟨δ, θ, C, hδ0, hδ2, hθ0, hθ1, hC0, Cg, hCg, fun P hP => ?_⟩
+  obtain ⟨X, hXos, hX1, hXae⟩ := h350 P hP
+  refine ⟨X, hXos, hX1, ?_⟩
+  filter_upwards [hXae] with a ha
+  intro r₀ C₂ hXr₀ hC₂ hs50 hs2 hs2' Hii
+  have hr₀ : 0 < r₀ := lt_of_lt_of_le one_pos ((hX1 a).trans hXr₀)
+  exact h348 a (homogenizedMatrix P) r₀ θ δ C C₂ hr₀ hθ0 (by linarith) hδ0 (by linarith) hC₂
+    (fun r hr v hv => ha r (hXr₀.trans hr) v hv) Hii hs50 hs2 hs2'
+
 end QSH
