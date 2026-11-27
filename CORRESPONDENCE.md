@@ -1390,7 +1390,11 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   functions `x ↦ P(x)` with `P` a polynomial of total degree at most `k` that are weakly `A`-harmonic
   on every ball. The book defines `Ā_k` by (3.23) (the `ā`-harmonic functions on `ℝ^d` with
   `‖u‖_{L̲²(B_r)} = o(r^{k+1})`) and identifies it with the `ā`-harmonic polynomials of degree at most
-  `k` by (3.7); the Lean definition is that characterization. The proof is the book's, with (3.24)
+  `k` by (3.7); the Lean definition is that characterization. The identification is not
+  formalized: `harmonicPolys A k` is contained in (3.23), and the converse needs Weyl's lemma on `ℝ^d`
+  and a Liouville theorem for `o(r^{k+1})` growth. Since the infimum over `Ā_k` is on both sides of
+  (3.29), `lemma_3_6` and the printed (3.29) do not imply each other as formal statements; they agree
+  once the two spaces are identified. The proof is the book's, with (3.24)
   in the `L̲²` form `‖h - q‖_{L̲²(B_t)} ≤ C (t/ρ)^{k+1} ‖h‖_{L̲²(B_ρ)}` for `t ≤ ρ/(4√Λ)`
   (`QSH.exists_harmonicPoly_scalarRms_ball_le`) applied to `w_r - p`, `p ∈ Ā_k`, and
   `θ = min(1/(8√Λ), (4 (C + 1) 2^{k+1} 2^{d/2})^{-2/α})`. (3.24) is proved for the Laplacian on balls

@@ -10,7 +10,9 @@ Section 3.2, Lemma 3.6: for a symmetric `A` with `1 ≤ A ≤ Λ`, `α > 0` and 
 then (3.29)
 `inf_{p ∈ Ā_k} ‖u - p‖_{L̲²(B_{θr})} ≤ ¼ θ^{k+1-α/2} inf_{p ∈ Ā_k} ‖u - p‖_{L̲²(B_r)}
 + C K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}` for every `r ∈ [X, R]`. The proof is the book's, with the
-approximation (3.24) of `exists_harmonicPoly_scalarRms_ball_le`.
+approximation (3.24) of `exists_harmonicPoly_scalarRms_ball_le`. Here `Ā_k` is `harmonicPolys A k`,
+the polynomials of degree at most `k` that are `A`-harmonic, which is the book's characterization of
+(3.23); `K ≥ 1` and `R ≥ 2X` are not needed.
 -/
 
 open MeasureTheory Filter Set
