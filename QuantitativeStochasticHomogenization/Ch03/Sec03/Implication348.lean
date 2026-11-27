@@ -14,6 +14,7 @@ which the book takes from `(i)_k`, follows here from `(ii)_k` and (3.27).
 -/
 
 open MeasureTheory Filter Set Topology
+open scoped Pointwise
 
 noncomputable section
 
@@ -105,5 +106,101 @@ theorem sum_mem_solutionGrowthSpace {a : CoefficientField d Λ} {k : ℕ} (s : F
     have h := add_mem_solutionGrowthSpace (hΦ m (Finset.mem_insert_self m s))
       (ih fun m' hm' => hΦ m' (Finset.mem_insert_of_mem hm'))
     simpa only [Finset.sum_insert hm] using h
+
+/-- **The iteration along the radii `θ^j R`**: if a solution in `B_{θ^j R}` can be corrected by a
+good element of `A_k` with a gain `q` from `B_{θ^j R}` to `B_{θ^{j+1} R}` for `j < n`, then
+`‖u - ∑_{m < j} Φ_m‖_{L̲²(B_{θ^j R})} ≤ q^j ‖u‖_{L̲²(B_R)}` for `j ≤ n`. -/
+theorem exists_correction_iteration {a : CoefficientField d Λ} {k : ℕ} {θ q R : ℝ}
+    (Good : (Vec d → ℝ) → Prop) (hGood : ∀ φ, Good φ → φ ∈ solutionGrowthSpace a k)
+    (hθ0 : 0 < θ) (hθ1 : θ ≤ 1) (hR : 0 < R) (hq : 0 ≤ q) {u : Vec d → ℝ}
+    (hu : IsSolutionBall a R u) (n : ℕ)
+    (hstep : ∀ j < n, ∀ v, IsSolutionBall a (θ ^ j * R) v → ∃ φ, Good φ ∧
+      scalarRms volume (ball 0 (θ ^ (j + 1) * R)) (fun x => v x - φ x) ≤
+        q * scalarRms volume (ball 0 (θ ^ j * R)) v) :
+    ∃ Φ : ℕ → Vec d → ℝ, (∀ m < n, Good (Φ m)) ∧ ∀ j ≤ n,
+      scalarRms volume (ball 0 (θ ^ j * R)) (fun x => u x - ∑ m ∈ Finset.range j, Φ m x) ≤
+        q ^ j * scalarRms volume (ball 0 R) u := by
+  induction n with
+  | zero =>
+    refine ⟨fun _ _ => 0, fun m hm => absurd hm (Nat.not_lt_zero m), fun j hj => ?_⟩
+    rw [Nat.le_zero.1 hj]
+    simp
+  | succ n ih =>
+    obtain ⟨Φ, hΦ, hb⟩ := ih (fun j hj => hstep j (by omega))
+    have hθn : θ ^ n * R ≤ R := by
+      have : θ ^ n ≤ 1 := pow_le_one₀ hθ0.le hθ1
+      nlinarith
+    have hθpos : 0 < θ ^ n * R := by positivity
+    have hsol : IsSolutionBall a (θ ^ n * R)
+        (fun x => u x - ∑ m ∈ Finset.range n, Φ m x) :=
+      (hu.mono hθn).sub (isSolutionBall_of_mem_solutionGrowthSpace
+        (sum_mem_solutionGrowthSpace _ fun m hm => hGood _ (hΦ m (Finset.mem_range.1 hm))) hθpos)
+    obtain ⟨φ, hφ, hbφ⟩ := hstep n (Nat.lt_succ_self n) _ hsol
+    refine ⟨Function.update Φ n φ, fun m hm => ?_, fun j hj => ?_⟩
+    · by_cases h : m = n
+      · subst h; rw [Function.update_self]; exact hφ
+      · rw [Function.update_of_ne h]; exact hΦ m (by omega)
+    · have hsum : ∀ j ≤ n, ∀ x, ∑ m ∈ Finset.range j, Function.update Φ n φ m x =
+          ∑ m ∈ Finset.range j, Φ m x := fun j hj x =>
+        Finset.sum_congr rfl fun m hm => by
+          rw [Function.update_of_ne (by have := Finset.mem_range.1 hm; omega)]
+      rcases Nat.lt_or_ge j (n + 1) with hj' | hj'
+      · simp_rw [hsum j (by omega)]
+        exact hb j (by omega)
+      · have hjn : j = n + 1 := by omega
+        subst hjn
+        have e : (fun x => u x - ∑ m ∈ Finset.range (n + 1), Function.update Φ n φ m x) =
+            fun x => (u x - ∑ m ∈ Finset.range n, Φ m x) - φ x := by
+          funext x
+          rw [Finset.sum_range_succ, hsum n le_rfl x, Function.update_self]
+          ring
+        rw [e]
+        refine hbφ.trans ?_
+        rw [pow_succ, mul_comm (q ^ n) q, mul_assoc]
+        exact mul_le_mul_of_nonneg_left (hb n le_rfl) hq
+
+/-- The growth of a polynomial of degree at most `k`, from (3.27):
+`‖Q‖_{L̲²(B_s)} ≤ C (s/t)^k ‖Q‖_{L̲²(B_t)}` for `0 < t ≤ s`. -/
+theorem scalarRms_poly_growth (k : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ t s : ℝ, 0 < t → t ≤ s →
+      scalarRms volume (ball 0 s) (fun x => MvPolynomial.eval x Q) ≤
+        C * (s / t) ^ k * scalarRms volume (ball 0 t) (fun x => MvPolynomial.eval x Q) := by
+  obtain ⟨C, hC0, h27⟩ := scalarRms_homogeneousComponents_zero (d := d) k
+  refine ⟨C, hC0, fun Q hQ t s ht hts => ?_⟩
+  have hs : 0 < s := lt_of_lt_of_le ht hts
+  have hc : 0 < s / t := div_pos hs ht
+  have hc1 : 1 ≤ s / t := (one_le_div ht).2 hts
+  have hscale : ∀ m, scalarRms volume (ball 0 s)
+      (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) =
+      (s / t) ^ m * scalarRms volume (ball 0 t)
+        (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) := fun m => by
+    have hball : ball (0 : Vec d) s = (s / t) • ball 0 t := by
+      rw [smul_ball_zero hc, div_mul_cancel₀ s ht.ne']
+    have e := TwoScale.scalarRms_comp_smul hc (ball (0 : Vec d) t)
+      (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q))
+    rw [← hball] at e
+    rw [← e]
+    have e2 : (fun y => MvPolynomial.eval ((s / t) • y) (MvPolynomial.homogeneousComponent m Q)) =
+        fun y => (s / t) ^ m * MvPolynomial.eval y (MvPolynomial.homogeneousComponent m Q) := by
+      funext y
+      exact PDE.eval_smul_of_isHomogeneous (MvPolynomial.homogeneousComponent_isHomogeneous m Q) _ y
+    rw [e2, scalarRms_const_mul, abs_of_pos (pow_pos hc m)]
+  obtain ⟨h1, -⟩ := h27 Q hQ s hs
+  obtain ⟨-, h2⟩ := h27 Q hQ t ht
+  calc scalarRms volume (ball 0 s) (fun x => MvPolynomial.eval x Q)
+      ≤ ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 s)
+          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) := h1
+    _ ≤ ∑ m ∈ Finset.range (k + 1), (s / t) ^ k * scalarRms volume (ball 0 t)
+          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) := by
+        refine Finset.sum_le_sum fun m hm => ?_
+        rw [hscale m]
+        exact mul_le_mul_of_nonneg_right
+          (pow_le_pow_right₀ hc1 (by have := Finset.mem_range.1 hm; omega)) (scalarRms_nonneg _ _)
+    _ = (s / t) ^ k * ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 t)
+          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) := by
+        rw [Finset.mul_sum]
+    _ ≤ (s / t) ^ k * (C * scalarRms volume (ball 0 t) (fun x => MvPolynomial.eval x Q)) :=
+        mul_le_mul_of_nonneg_left h2 (by positivity)
+    _ = _ := by ring
 
 end QSH
