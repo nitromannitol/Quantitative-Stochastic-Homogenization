@@ -1,4 +1,5 @@
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Implication348
+import QuantitativeStochasticHomogenization.Ch03.Sec03.WeakGradientH10
 
 /-!
 # Limits of solutions with geometrically small increments
@@ -97,5 +98,23 @@ theorem ae_limit_of_geometric {α : Type*} [MeasurableSpace α] {μ : Measure α
     aestronglyMeasurable_of_tendsto_ae atTop (fun n => (hf n).aestronglyMeasurable) hF
   have ht := Lp.cauchy_tendsto_of_tendsto (fun n => (hf n).aestronglyMeasurable) F hBt hcau hF
   exact ⟨Lp.memLp_of_cauchy_tendsto one_le_two hf F ht, ht⟩
+
+/-- The norm of a component is at most the norm of the vector field. -/
+theorem scalarRms_coord_le_vectorRms {U : Set (Vec d)} {G : Vec d → Vec d}
+    (hG : ∀ j, MemLp (fun x => G x j) 2 (volume.restrict U)) (i : Fin d) :
+    scalarRms volume U (fun x => G x i) ≤ vectorRms volume U G := by
+  unfold scalarRms vectorRms
+  refine Real.sqrt_le_sqrt ?_
+  rw [setAverage_eq, setAverage_eq, smul_eq_mul, smul_eq_mul]
+  refine mul_le_mul_of_nonneg_left ?_ (inv_nonneg.2 measureReal_nonneg)
+  refine integral_mono (hG i).integrable_sq ?_ fun x => ?_
+  · have h : (fun x => euclideanSq (G x)) = fun x => ∑ j, G x j ^ 2 := by
+      funext x; simp only [euclideanSq, dot, sq]
+    rw [h]
+    exact integrable_finsetSum _ fun j _ => (hG j).integrable_sq
+  · simp only [euclideanSq, dot]
+    rw [sq]
+    exact Finset.single_le_sum (f := fun j => G x j * G x j) (fun j _ => mul_self_nonneg _)
+      (Finset.mem_univ i)
 
 end QSH
