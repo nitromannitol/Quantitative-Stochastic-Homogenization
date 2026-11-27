@@ -1534,6 +1534,24 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   with `α` built as in Proposition 3.2 (in Lean a separate constant of `QSH.dirichletApproximation`);
   the book has `δ = α(d - s) ∧ 1/2`, and the later steps can use the minimum of the two exponents.
 
+## Section 3.3: the reduction to homogeneous `q` and the estimate (3.53) (`Ch03/Sec03/`)
+
+- "Due to `(ii)_{k-1}` and (3.27), we may assume that `q ∈ Ā_k` is homogeneous of degree `k`": the
+  homogeneous components of `q ∈ Ā_k` belong to `Ā_m` (`QSH.homogeneousComponent_mem_harmonicPolys`,
+  `Ch03/Sec03/HomogeneousHarmonic.lean`), since the dilates `q(t ·)` are in `Ā_k`
+  (`QSH.dilate_mem_harmonicPolys`) and each component is a fixed combination of the dilates by
+  `t_j = (j + 1)/(k + 1)` (`QSH.exists_vandermonde_combination`, the inverse Vandermonde matrix).
+- (3.53): `QSH.bound_353` (`Ch03/Sec03/Bound353.lean`), deterministic, for one coefficient field, a
+  homogeneous `q ∈ Ā_k` of degree `k ≥ 1` and the radii `r_m = 2^m r₀` (the book: `θ^{-m} r₀`): for
+  sequences `u_m` (solutions in `B_{r_m}` with (3.52)), `φ_m ∈ A_{k-1}` (with `(iii')_{k-1}` for
+  `w_m = u_{m+1} - u_m`) and `p_m ∈ Ā_{k-1}` (with `(i)_{k-1}` for `φ_m`, and `C₁ r₀^{-δ} ≤ 1/2`), with
+  one exponent `δ ∈ (0, 1)` for the three estimates, `v_n = u_n - ∑_{m<n} φ_m` satisfies
+  `‖v_n - q‖_{L̲²(B_{r_j})} ≤ C r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, and
+  `‖v_{n+1} - v_n‖_{L̲²(B_{r_j})} ≤ C 2^{-(n-j)δ/2} r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, the
+  summability used in Step 2. The book's proof, with the growth `‖p‖_{L̲²(B_{tρ})} ≤ C t^{k-1}
+  ‖p‖_{L̲²(B_ρ)}` of `Ā_{k-1}` from (3.27) and the exact scaling `‖q‖_{L̲²(B_{tρ})} = t^k ‖q‖_{L̲²(B_ρ)}`
+  of the homogeneous `q`.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the

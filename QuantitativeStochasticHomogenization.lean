@@ -418,6 +418,8 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.Implication348
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Equation350
 import QuantitativeStochasticHomogenization.Ch03.Sec03.BallDirichletField
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Equation352
+import QuantitativeStochasticHomogenization.Ch03.Sec03.HomogeneousHarmonic
+import QuantitativeStochasticHomogenization.Ch03.Sec03.Bound353
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma52
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma510
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenFromSlope
