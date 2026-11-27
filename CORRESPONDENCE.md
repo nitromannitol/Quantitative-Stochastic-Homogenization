@@ -1553,6 +1553,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   ‖p‖_{L̲²(B_ρ)}` of `Ā_{k-1}` from (3.27) and the exact scaling `‖q‖_{L̲²(B_{tρ})} = t^k ‖q‖_{L̲²(B_ρ)}`
   of the homogeneous `q`.
 
+## Section 3.3: (3.46) for homogeneous `q` and statement (ii)₁ (`Ch03/Sec03/`)
+
+- Step 2 of (3.46): `QSH.solution_limit` (`Ch03/Sec03/SolutionLimit.lean`). The book extracts a
+  subsequence by weak compactness in `H¹` and Rellich's theorem; here no compactness is used: the
+  increments `v_{n+1} - v_n = w_n - φ_n` are geometrically small in `L̲²(B_{r_j})` by (3.53), so `v_n`
+  converges almost everywhere and in `L²` on every ball (`QSH.ae_limit_of_geometric`, from the
+  completeness of `L²` in Mathlib), the gradients converge by the Caccioppoli inequality applied to
+  the increments (`QSH.vectorRms_grad_sub_le`), and the weak forms pass to the limit. The limit is
+  the whole sequence, not a subsequence, and no diagonal argument is needed.
+- `QSH.implication_346_homogeneous` (`Ch03/Sec03/Implication346.lean`): deterministic, for one
+  coefficient field and any matrix `A`, a homogeneous `q ∈ Ā_k` of degree `k ≥ 1`, one exponent
+  `δ ∈ (0, 1)`, and a scale `r₀` at which (3.52), `(iii')_{k-1}` and `(i)_{k-1}` hold (with
+  `C₁ r₀^{-δ} ≤ 1/2`): there is `u ∈ A_k` with `‖u - q‖_{L̲²(B_{2^j r₀})} ≤ C (2^j r₀)^{-δ}
+  ‖q‖_{L̲²(B_{2^j r₀})}` for every `j`, with `C(k, d, δ, C₅₂, C₃)` chosen before the coefficient field.
+  The growth `‖p_m‖_{L̲²(B_{tρ})} ≤ C t^{k-1} ‖p_m‖_{L̲²(B_ρ)}` that `QSH.bound_353` takes as a
+  hypothesis is supplied here by `QSH.scalarRms_poly_growth`.
+- Statement `(ii)_1`: `QSH.theorem_3_8_ii_one` (`Ch03/Sec03/Theorem38IIOne.lean`), for `d ≥ 2`,
+  `Λ > 1` and `s ∈ (0, d)`: with `δ = min(γ, 1/2)` (`γ` the exponent of (3.52)) and the random
+  variable `X = max(X₀, X₅₂)` of Theorem 3.8 for `k = 0` and of (3.52), for almost every coefficient
+  field, every `p ∈ Ā_1` has some `u ∈ A_1` with `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every
+  `R ≥ X`. The inputs of (3.46) for `k = 1` are all proved: (3.52) (`QSH.equation_3_52`),
+  `(iii')_0` from `(iii)_0` (exponent `1 ≥ 1 - δ/2`) and `(i)_0` (with `C₁ = 0`, since the elements
+  of `A_0` are constants almost everywhere), both from `QSH.theorem_3_8_zero`; `p = p(0) + ℓ` with the
+  homogeneous part `ℓ` of degree one handled by (3.46) and the constant in `A_0 ⊆ A_1`. Departures: the
+  scale is `X₀ ∨ X₅₂` rather than one scale for every `k`; `X` is real valued and the statement holds
+  for almost every coefficient field; `Λ > 1`.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
