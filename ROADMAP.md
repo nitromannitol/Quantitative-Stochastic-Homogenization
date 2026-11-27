@@ -128,7 +128,7 @@ No numbered result.
 
 | Result | Name | Status |
 | --- | --- | --- |
-| Theorem 3.8 | Higher regularity theory | in progress (case `k = 1`, the classification of `A₁`, proved as `firstOrderLiouville` from the harmonic approximation on ellipsoids `harmonicApproximation`; the case `k = 0`, (i)₀–(iii)₀ from Theorem 3.3, as `theorem_3_8_zero`, module `Ch03/Sec03/Theorem38Base.lean`; the cases `k ≥ 2` are not proved; see CORRESPONDENCE.md) |
+| Theorem 3.8 | Higher regularity theory | in progress (case `k = 1`, the classification of `A₁`, proved as `firstOrderLiouville` from the harmonic approximation on ellipsoids `harmonicApproximation`; the case `k = 0`, (i)₀–(iii)₀ from Theorem 3.3, as `theorem_3_8_zero`, module `Ch03/Sec03/Theorem38Base.lean`; the implication (3.48) for every `k`, deterministic, from (3.50) and (ii)_k, as `implication_348`, module `Ch03/Sec03/Implication348.lean`; the cases `k ≥ 2` are not proved; see CORRESPONDENCE.md) |
 | Lemma 3.9 |  | not started |
 | Corollary 3.10 | Higher regularity theory, generalized | not started |
 

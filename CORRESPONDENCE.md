@@ -1476,6 +1476,28 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   gives `‖u - (u)_{B_X}‖_{L̲²(B_r)} = 0` for every `r ≥ X`; (ii)₀ holds since `Ā_0` consists of
   constants.
 
+## Section 3.3: the implication (3.48) (`Ch03/Sec03/Implication348.lean`)
+
+- Lean: `QSH.implication_348`, for every `k`, deterministic, for one coefficient field `a`: with
+  `θ ∈ (0, 1)`, `δ ∈ (0, 1]` and a scale `r₀ > 0`, if (3.50) holds above `r₀` in the form
+  `harmonicFlatness ā k v (θ r) ≤ ¼ θ^{k+1-δ/2} harmonicFlatness ā k v r + C r^{-δ} ‖v‖_{L̲²(B_r)}` for
+  every solution `v` in `B_r`, `r ≥ r₀` (the book's (3.50) multiplied by `(θr)^k`), and `(ii)_k` holds
+  above `r₀` with a constant `C₂`, and `r₀` is large (`C r₀^{-δ} ≤ θ^{k+1-δ/2}/8`,
+  `C₂ r₀^{-δ} (θ^{-d/2} + 1) ≤ θ^{k+1-δ/2}/2`, `C₂ r₀^{-δ} ≤ 1/2`, the book's conditions on `H`), then
+  `(iii')_k` holds: every solution `u` in `B_R` (`QSH.IsSolutionBall`), `R ≥ r₀`, has some
+  `φ ∈ A_k` with `‖u - φ‖_{L̲²(B_r)} ≤ C' (r/R)^{k+1-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [r₀, R]`, with
+  `C'` explicit in `θ, δ, k, d`.
+- Departures: (3.50) and `(ii)_k` are hypotheses (the derivation of (3.50) from Proposition 3.2 and
+  Lemma 3.6 for a random scale is a separate step); `(i)_k` is not used, since the growth
+  `‖φ‖_{L̲²(B_s)} ≤ C (s/t)^k ‖φ‖_{L̲²(B_t)}` is needed only for the corrections `φ` given by `(ii)_k`,
+  where it follows from `(ii)_k` and (3.27) (`QSH.scalarRms_poly_growth`); `δ ≤ 1` (the book:
+  `δ ≤ 1/2`).
+- Proof: the book's, along the radii `θ^j R` from `R` downward (the book: `θ^{-j} r₀` upward), with
+  the near-minimizers in `Ā_k` of (3.50) (`QSH.exists_correction_step`) and the iteration
+  `QSH.exists_correction_iteration`; the correction `φ` is the sum of all the corrections, so it does
+  not depend on `r`, and the corrections of the scales below `r` are summed with their growth
+  (`QSH.scalarRms_correction_le`) as in the last step of the book's proof.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
