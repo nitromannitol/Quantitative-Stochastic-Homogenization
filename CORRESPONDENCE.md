@@ -1500,8 +1500,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 
 ## Section 3.3: the estimate (3.50) (`Ch03/Sec03/Equation350.lean`)
 
-- Lean: `QSH.equation_3_50`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ = min(α(d - s), 1/2)`
-  (as in (3.44)), `θ_k ∈ (0, 1/2)` and `C_k > 0` for every `k`, such that, for every law satisfying
+- Lean: `QSH.equation_3_50`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: with `δ₀ = min(α(d - s), 1/2)` (the
+  `δ` of (3.44)), for every exponent `δ ∈ (0, δ₀]` there are `θ_k ∈ (0, 1/2)` and `C_k > 0` for every
+  `k`, such that, for every law satisfying
   (0.10)–(0.11), the random variable `X ≥ 1` of Proposition 3.2 gives, for almost every coefficient
   field, every `k`, and every solution `v` in `B_r`, `r ≥ X`, `harmonicFlatness ā k v (θ_k r) ≤ ¼
   θ_k^{k+1-δ/2} harmonicFlatness ā k v r + C_k r^{-δ} ‖v‖_{L̲²(B_r)}`: the book's (3.50) multiplied by
@@ -1578,6 +1579,20 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   homogeneous part `ℓ` of degree one handled by (3.46) and the constant in `A_0 ⊆ A_1`. Departures: the
   scale is `X₀ ∨ X₅₂` rather than one scale for every `k`; `X` is real valued and the statement holds
   for almost every coefficient field; `Λ > 1`; the constant `C` depends on `s`, as for `k = 0`.
+
+## Section 3.3: the estimate (iii')₁ (`Ch03/Sec03/Theorem38IIIPrimeOne.lean`)
+
+- Lean: `QSH.theorem_3_8_iii_prime_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`,
+  `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such
+  that, for almost every coefficient field, every `R ≥ X` and every solution `u` in `B_R`, some
+  `φ ∈ A_1` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`.
+- Proof: (3.48) for `k = 1` above the random scale (`QSH.implication_348_random`) with `(ii)₁`
+  (`QSH.theorem_3_8_ii_one`); the exponent is `δ = min(δ₂, δ₀)` with `δ₂` that of `(ii)₁` and `δ₀` that
+  of (3.50), which is why (3.50) and its combination with (3.48) are stated for every exponent below
+  `δ₀`; the scale is `X = X₂ ∨ X₃ ∨ H`, the scales of `(ii)₁` and (3.50) and a constant `H` large
+  enough for the smallness conditions of (3.48) (the book's `r₀ = H ∨ X_s`, (3.43)). `(i)₁` is not
+  used (see the correspondence of (3.48)). Departures: as in Theorem 3.3, `X` is real valued, the
+  estimate holds for almost every coefficient field and `Λ > 1`; the constants depend on `s`.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 

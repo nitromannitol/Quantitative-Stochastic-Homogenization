@@ -423,6 +423,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.Bound353
 import QuantitativeStochasticHomogenization.Ch03.Sec03.SolutionLimit
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Implication346
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Theorem38IIOne
+import QuantitativeStochasticHomogenization.Ch03.Sec03.Theorem38IIIPrimeOne
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma52
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma510
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenFromSlope
