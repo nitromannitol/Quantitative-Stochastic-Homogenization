@@ -26,14 +26,11 @@ theorem exists_scale_rpow_le (K : ℝ) {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < �
   obtain ⟨H₀, hH₀⟩ := Filter.eventually_atTop.1 (h.eventually (Iic_mem_nhds hε))
   exact ⟨max H₀ 1, le_max_right _ _, fun r hr => hH₀ r ((le_max_left _ _).trans hr)⟩
 
-/-- **`(iii')₁`**, the large-scale `C^{1,1-δ/2}`-type estimate, for `d ≥ 2`, `Λ > 1` and
-`s ∈ (0, d)`: there are `δ ∈ (0, ½]`, `C` and, for every law satisfying the assumptions, a random
-variable `X ≥ 1` with `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and
-every solution `u` in `B_R`, some `φ ∈ A_1` satisfies
-`‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. -/
-theorem theorem_3_8_iii_prime_one (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s)
+/-- **`(iii')₁`** for every exponent `δ` below some `δ₁ ∈ (0, ½]` (see
+`theorem_3_8_iii_prime_one`). -/
+theorem theorem_3_8_iii_prime_one_le (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s)
     (hsd : s < d) :
-    ∃ δ : ℝ, 0 < δ ∧ δ ≤ 1 / 2 ∧ ∃ C CX : ℝ, 0 ≤ C ∧ 0 < CX ∧
+    ∃ δ₁ : ℝ, 0 < δ₁ ∧ δ₁ ≤ 1 / 2 ∧ ∀ δ : ℝ, 0 < δ → δ ≤ δ₁ → ∃ C CX : ℝ, 0 ≤ C ∧ 0 < CX ∧
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
       ∃ X : CoefficientField d Λ → ℝ, OsBound P X s CX ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
         ∀ R : ℝ, X a ≤ R → ∀ u, IsSolutionBall a R u → ∃ φ ∈ solutionGrowthSpace a 1,
@@ -41,10 +38,9 @@ theorem theorem_3_8_iii_prime_one (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : 
             C * (r / R) ^ ((2 : ℝ) - δ / 2) * scalarRms volume (ball 0 R) u := by
   obtain ⟨δ₂, hδ₂, hδ₂', C₂, CX₂, hC₂, hCX₂, hii⟩ := theorem_3_8_ii_one hd hΛ hs hsd
   obtain ⟨δ₀, hδ₀, hδ₀', h348⟩ := implication_348_random hd hΛ hs hsd
-  obtain ⟨δ, hδdef⟩ : ∃ δ : ℝ, δ = min δ₂ δ₀ := ⟨_, rfl⟩
-  have hδ0 : 0 < δ := by rw [hδdef]; exact lt_min hδ₂ hδ₀
-  have hδ2 : δ ≤ δ₂ := by rw [hδdef]; exact min_le_left _ _
-  have hδ3 : δ ≤ δ₀ := by rw [hδdef]; exact min_le_right _ _
+  refine ⟨min δ₂ δ₀, lt_min hδ₂ hδ₀, (min_le_left _ _).trans hδ₂', fun δ hδ0 hδm => ?_⟩
+  have hδ2 : δ ≤ δ₂ := hδm.trans (min_le_left _ _)
+  have hδ3 : δ ≤ δ₀ := hδm.trans (min_le_right _ _)
   obtain ⟨θ, C, Cg, CX₃, hCX₃, hθC, h348δ⟩ := h348 δ hδ0 hδ3
   obtain ⟨hθ0, hθ1, hC0, hCg0⟩ := hθC 1
   have hβ : 0 < θ 1 ^ ((1 : ℕ) + 1 - δ / 2 : ℝ) := Real.rpow_pos_of_pos hθ0 _
@@ -55,7 +51,7 @@ theorem theorem_3_8_iii_prime_one (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : 
   obtain ⟨H₃, hH₃, hH₃r⟩ := exists_scale_rpow_le C₂ (by norm_num : (0 : ℝ) < 1 / 2) hδ0
   obtain ⟨H, hHdef⟩ : ∃ H : ℝ, H = max H₁ (max H₂ H₃) := ⟨_, rfl⟩
   have hH1 : 1 ≤ H := by rw [hHdef]; exact le_max_of_le_left hH₁
-  refine ⟨δ, hδ0, hδ2.trans hδ₂', (Real.sqrt ((1 / θ 1) ^ d) + Cg 1 * (Real.sqrt ((1 / θ 1) ^ d) + 1) /
+  refine ⟨(Real.sqrt ((1 / θ 1) ^ d) + Cg 1 * (Real.sqrt ((1 / θ 1) ^ d) + 1) /
       (1 - θ 1 ^ (1 - δ / 2))) * θ 1 ^ (-((1 : ℕ) + 1 - δ / 2 : ℝ)),
     (2 : ℝ) ^ s⁻¹ * max ((2 : ℝ) ^ s⁻¹ * max CX₂ CX₃) (H / Real.log 2 ^ s⁻¹), ?_, by positivity,
     fun P hP => ?_⟩
@@ -100,5 +96,21 @@ theorem theorem_3_8_iii_prime_one (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : 
   rw [e] at h
   rw [show (2 : ℝ) - δ / 2 = ((1 : ℕ) : ℝ) + 1 - δ / 2 by push_cast; ring] at h ⊢
   exact h
+
+/-- **`(iii')₁`**, the large-scale `C^{1,1-δ/2}`-type estimate, for `d ≥ 2`, `Λ > 1` and
+`s ∈ (0, d)`: there are `δ ∈ (0, ½]`, `C` and, for every law satisfying the assumptions, a random
+variable `X ≥ 1` with `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and
+every solution `u` in `B_R`, some `φ ∈ A_1` satisfies
+`‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. -/
+theorem theorem_3_8_iii_prime_one (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s)
+    (hsd : s < d) :
+    ∃ δ : ℝ, 0 < δ ∧ δ ≤ 1 / 2 ∧ ∃ C CX : ℝ, 0 ≤ C ∧ 0 < CX ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X s CX ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
+        ∀ R : ℝ, X a ≤ R → ∀ u, IsSolutionBall a R u → ∃ φ ∈ solutionGrowthSpace a 1,
+          ∀ r : ℝ, X a ≤ r → r ≤ R → scalarRms volume (ball 0 r) (fun x => u x - φ x) ≤
+            C * (r / R) ^ ((2 : ℝ) - δ / 2) * scalarRms volume (ball 0 R) u := by
+  obtain ⟨δ₁, hδ₁0, hδ₁2, h⟩ := theorem_3_8_iii_prime_one_le hd hΛ hs hsd
+  exact ⟨δ₁, hδ₁0, hδ₁2, h δ₁ hδ₁0 le_rfl⟩
 
 end QSH
