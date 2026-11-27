@@ -18,9 +18,10 @@ on `B_{1/2} ⊆ □_0` for `x ↦ u(Rx)` with `ε = 1/R` and `(s + d)/2` in plac
 the solution of the homogenized Dirichlet problem with the boundary values of `u(R ·)`
 (`exists_ballDirichlet`), and `X_s = max(X_{(s+d)/2}^{1/s}, 1)`. The exponent `2 + δ` of
 Theorem 2.18 is the Meyers exponent, reduced to at most `2 + 1/d` so that `u ∈ L^{2+δ}(B_{R/2})`
-by the Sobolev inequality (Theorem B.9). Departures from the book: `d ≥ 2` and `Λ > 1`, the
-hypotheses of Theorem 2.18; the estimate holds for almost every coefficient field, as Theorem 2.18;
-the norms are the normalized norms.
+by the Sobolev inequality (Theorem B.9). Departures from the book: `Λ > 1`, the hypothesis of
+Theorem 2.18 (`d ≥ 2` is the book's standing assumption); `X_s` is real valued (the book: values in
+`[1, ∞]`) and the estimate holds for almost every coefficient field, as in Theorem 2.18; the norms
+are the normalized norms.
 -/
 
 open MeasureTheory Filter Set

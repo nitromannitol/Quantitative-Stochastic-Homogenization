@@ -1393,8 +1393,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   neighbouring `r_j` at the end), and the affine minimizers `p_j` of `E₁(r_j)` are replaced by the
   affine functions produced by the improvement step, whose slopes are controlled by the same
   step; the bookkeeping is the discrete lemma `QSH.discrete_flatness_iteration` and the geometric
-  bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized: it needs Proposition 3.2, which uses
-  Theorem 2.18 (Section 2.3, not formalized).
+  bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized; Proposition 3.2, on which it rests, is
+  `proposition_3_2` (Section 3.1).
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
@@ -1781,3 +1781,6 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   given by the existence theorem of the elliptic regularity library (`exists_ballDirichlet`); the
   changes of variables are `rescale_h1_div`, `eLpMeanNormOn_comp_smul` and `eLpMeanNormOn_comp_add`.
   `X = max(X_{(s+d)/2}^{1/s}, 1)` and `α = min(β, 1)/4`, `β` the exponent of Theorem 2.18 for `B_{1/2}`.
+  Theorem 2.18 is proved for bounded open convex `U ⊆ □_0`, which covers `B_{1/2}`, so this is
+  Proposition 3.2 in full (for `Λ > 1`). `QSH.harmonicApproximation` (Ch03/Sec03) is the deterministic
+  approximation on ellipsoids of the proof of Theorem 3.8, not Proposition 3.2.
