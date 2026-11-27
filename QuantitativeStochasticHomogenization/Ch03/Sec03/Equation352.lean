@@ -214,4 +214,147 @@ theorem dirichletApprox_of_bound (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 ≤ Λ) {δ 
     ENNReal.ofReal_le_ofReal_iff (mul_nonneg (mul_nonneg hC₁ (sq_nonneg _)) hb0)] at hX
   exact hX
 
+set_option maxHeartbeats 400000 in
+/-- **The heterogeneous Dirichlet approximation**, for `d ≥ 2` and `Λ > 1`, (3.52) before the
+specialization to `Ā_k`: there is `α(d, Λ) > 0` such that for every `s ∈ (0, d)` there is
+`C(s, d, Λ)` with, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
+`X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every weak solution
+`q ∈ H¹(B_R)` of `-∇·(ā∇q) = 0` in `B_R`, there is a weak solution `u ∈ H¹(B_{R/2})` of
+`-∇·(a∇u) = 0` in `B_{R/2}` (the solution of the Dirichlet problem with the values of `q`) with
+`‖q - u‖_{L̲²(B_{R/2})} ≤ C R^{-α(d-s)} ‖q - (q)_{B_R}‖_{L̲²(B_R)}`. -/
+theorem dirichletApproximation (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) :
+    ∃ α : ℝ, 0 < α ∧ ∀ s : ℝ, 0 < s → s < d → ∃ C : ℝ, 0 < C ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X s C ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
+        ∀ R : ℝ, X a ≤ R → ∀ (u : Vec d → ℝ) (g : Vec d → Vec d),
+        MemLp u 2 (volume.restrict (ball 0 R)) →
+        (∀ i, MemLp (fun x => g x i) 2 (volume.restrict (ball 0 R))) →
+        HasWeakGradient (ball 0 R) u g →
+        HasWeakDivergence (ball 0 R) (fun x => (homogenizedMatrix P).mulVec (g x)) (fun _ => 0) →
+        ∃ (uh : Vec d → ℝ) (gh : Vec d → Vec d), MemLp uh 2 (volume.restrict (ball 0 (R / 2))) ∧
+          (∀ i, MemLp (fun x => gh x i) 2 (volume.restrict (ball 0 (R / 2)))) ∧
+          HasWeakGradient (ball 0 (R / 2)) uh gh ∧
+          HasWeakDivergence (ball 0 (R / 2)) (fun x => (a x).mulVec (gh x)) (fun _ => 0) ∧
+          scalarRms volume (ball 0 (R / 2)) (fun x => u x - uh x) ≤
+            C * R ^ (-(α * ((d : ℝ) - s))) *
+              scalarRms volume (ball 0 R) (fun x => u x - ⨍ y in ball 0 R, u y) := by
+  have hd0 : 0 < d := by omega
+  have hdR : (2 : ℝ) ≤ d := by exact_mod_cast hd
+  have hΛ0 : 0 ≤ Λ := by linarith
+  obtain ⟨δM, CM, hδM, hCM, hMey⟩ := meyers_halfBall hd hΛ.le
+  obtain ⟨δ, hδdef⟩ : ∃ δ : ℝ, δ = min δM (1 / d) := ⟨_, rfl⟩
+  have hδ : 0 < δ := by rw [hδdef]; exact lt_min hδM (by positivity)
+  have hδd : δ ≤ 1 / d := by rw [hδdef]; exact min_le_right _ _
+  have hδδ : δ ≤ δM := by rw [hδdef]; exact min_le_left _ _
+  have hMey' : ∀ (a : CoefficientField d Λ) (R : ℝ), 0 < R → ∀ (u : Vec d → ℝ)
+      (g : Vec d → Vec d), MemLp u 2 (volume.restrict (ball 0 R)) →
+      (∀ i, MemLp (fun x => g x i) 2 (volume.restrict (ball 0 R))) →
+      HasWeakGradient (ball 0 R) u g →
+      HasWeakDivergence (ball 0 R) (fun x => (a x).mulVec (g x)) (fun _ => 0) →
+      PDE.eLpMeanNormOn (ball 0 (R / 2)) (ENNReal.ofReal (2 + δ))
+          (fun x => euclideanNorm (g x)) ≤
+        ENNReal.ofReal (CM * (R⁻¹ * scalarRms volume (ball 0 R)
+          (fun x => u x - ⨍ y in ball 0 R, u y))) := fun a R hR u g hu hg hug hdiv => by
+    refine le_trans ?_ (hMey R hR a u g hu hg hug hdiv)
+    have : IsProbabilityMeasure (PDE.normalizedVolumeOn (ball (0 : Vec d) (R / 2))) :=
+      PDE.isProbabilityMeasure_normalizedVolumeOn_of_pos_of_lt_top
+        (pos_iff_ne_zero.2 (volume_ball_ne_zero' 0 (by positivity)))
+        (lt_top_iff_ne_top.2 (volume_ball_ne_top' 0 _))
+    exact eLpNorm_le_eLpNorm_of_exponent_le (ENNReal.ofReal_le_ofReal (by linarith))
+  -- the domain `B_{1/2} ⊆ □_0`
+  have hU := isOpenBoundedConvexDomain_ball_of_pos (0 : Vec d) (by norm_num : (0 : ℝ) < 1 / 2)
+  have hUne : (ball (0 : Vec d) (1 / 2)).Nonempty :=
+    ⟨0, mem_ball_zero_iff'.2 (by simp [euclideanNorm, euclideanSq, dot])⟩
+  have hUc0 : ball (0 : Vec d) (1 / 2) ⊆ triadicCube d 0 := fun x hx => by
+    have h := mem_ball_zero_iff'.1 hx
+    refine Set.mem_pi.2 fun i _ => ?_
+    have hi := (abs_coord_le_euclideanNorm x i).trans_lt h
+    rw [abs_lt] at hi
+    simp only [pow_zero, Set.mem_Ioo]
+    constructor <;> linarith [hi.1, hi.2]
+  obtain ⟨β, hβ, h218⟩ := theorem_2_18 hd hΛ hU.1 hU.2.2 hUne hUc0 hδ
+  refine ⟨min β 1 / 4, by positivity, fun s hs hsd => ?_⟩
+  have hds : 0 < (d : ℝ) - s := by linarith
+  obtain ⟨C₁, hC₁, h1⟩ := h218 ((s + d) / 2) (by linarith) (by linarith)
+  have hl2 : 0 < Real.log 2 := Real.log_pos one_lt_two
+  obtain ⟨CX, hCX⟩ : ∃ CX : ℝ,
+      CX = (2 : ℝ) ^ s⁻¹ * max (C₁ ^ (1 / s)) (1 / Real.log 2 ^ s⁻¹) := ⟨_, rfl⟩
+  have hCX0 : 0 ≤ CX := by rw [hCX]; positivity
+  obtain ⟨CA, hCA⟩ : ∃ CA : ℝ, CA = Real.sqrt (2 * C₁) * CM := ⟨_, rfl⟩
+  have hCA0 : 0 ≤ CA := by rw [hCA]; exact mul_nonneg (Real.sqrt_nonneg _) hCM
+  refine ⟨CX + CA + 1, by linarith, fun P hP => ?_⟩
+  have : IsProbabilityMeasure P := hP.1
+  obtain ⟨X₁, hX₁, hX₁0, hae⟩ := h1 P hP
+  refine ⟨fun a => max (X₁ a ^ (1 / s)) 1, ?_, fun a => le_max_right _ _, ?_⟩
+  · have h1' := hX₁.rpow hX₁0 (one_div_pos.2 hs)
+    rw [one_div_one_div] at h1'
+    have h2 := osBound_of_le_const (P := P) (X := fun _ => (1 : ℝ)) measurable_const hs one_pos
+      (Eventually.of_forall fun _ => le_rfl)
+    refine (osBound_max h1' h2).mono_scale ?_
+    rw [← hCX]
+    linarith
+  filter_upwards [hae] with a ha
+  intro R hR u g hu hg hug hdiv
+  have hR1 : 1 ≤ R := (le_max_right _ _).trans hR
+  have hR0 : 0 < R := by linarith
+  have hXR : X₁ a ≤ R ^ s := by
+    have h := (le_max_left _ _).trans hR
+    have e : X₁ a = (X₁ a ^ (1 / s)) ^ s := by
+      rw [← Real.rpow_mul (hX₁0 a), one_div_mul_cancel hs.ne', Real.rpow_one]
+    rw [e]
+    exact Real.rpow_le_rpow (Real.rpow_nonneg (hX₁0 a) _) h hs.le
+  have hb := fun ε hε hε1 f F hW uε u' gε g' h₁ h₂ h₃ h₄ =>
+    (le_self_add.trans (le_self_add.trans le_self_add)).trans
+      (ha ε hε hε1 f F hW uε u' gε g' h₁ h₂ h₃ h₄)
+  obtain ⟨uh, gh, h1u, h2u, h3u, h4u, h5u⟩ := dirichletApprox_of_bound hd hΛ.le hδd hCM hC₁.le
+    (hX₁0 a) a (homogenizedMatrix P) (hMey' (constantCoefficientField (homogenizedMatrix P)
+      (homogenizedMatrix_transpose hP hΛ0) (euclideanSq_le_dot_homogenizedMatrix hP hΛ0)
+      (fun ξ => (homogenizedMatrix_dot_bounds hP hΛ0 ξ).2))) hb hR1 hu hg hug hdiv
+  refine ⟨uh, gh, h1u, h2u, h3u, h4u, ?_⟩
+  -- the rate
+  obtain ⟨ρ, hρ⟩ : ∃ ρ : ℝ,
+      ρ = scalarRms volume (ball 0 R) (fun x => u x - ⨍ y in ball 0 R, u y) := ⟨_, rfl⟩
+  rw [← hρ] at h5u ⊢
+  have hρ0 : 0 ≤ ρ := by rw [hρ]; exact Real.sqrt_nonneg _
+  obtain ⟨E, hE⟩ : ∃ E : ℝ, E = R ^ (-(min β 1 / 4 * ((d : ℝ) - s))) := ⟨_, rfl⟩
+  have hE0 : 0 ≤ E := by rw [hE]; exact Real.rpow_nonneg hR0.le _
+  have hEsq : E ^ 2 = R ^ (-(min β 1 * ((d : ℝ) - s) / 2)) := by
+    rw [hE, ← Real.rpow_natCast, ← Real.rpow_mul hR0.le]
+    congr 1; push_cast; ring
+  have hb1 : R⁻¹ ^ (β * ((d : ℝ) - (s + d) / 2)) ≤ E ^ 2 := by
+    rw [hEsq]
+    refine inv_rpow_le_rpow_neg hR1 ?_
+    have : min β 1 * ((d : ℝ) - s) ≤ β * ((d : ℝ) - s) :=
+      mul_le_mul_of_nonneg_right (min_le_left _ _) hds.le
+    linarith
+  have hb2 : X₁ a * R⁻¹ ^ ((s + d) / 2) ≤ E ^ 2 := by
+    rw [hEsq]
+    calc X₁ a * R⁻¹ ^ ((s + d) / 2) ≤ R ^ s * R ^ (-((s + d) / 2)) :=
+          mul_le_mul hXR (inv_rpow_le_rpow_neg hR1 le_rfl)
+            (Real.rpow_nonneg (inv_nonneg.2 hR0.le) _) (Real.rpow_nonneg hR0.le _)
+      _ = R ^ (-(((d : ℝ) - s) / 2)) := by
+          rw [← Real.rpow_add hR0]; congr 1; ring
+      _ ≤ _ := by
+          refine Real.rpow_le_rpow_of_exponent_le hR1 ?_
+          have : min β 1 * ((d : ℝ) - s) ≤ 1 * ((d : ℝ) - s) :=
+            mul_le_mul_of_nonneg_right (min_le_right _ _) hds.le
+          linarith
+  have hsq : scalarRms volume (ball 0 (R / 2)) (fun x => u x - uh x) ^ 2 ≤
+      (CA * E * ρ) ^ 2 := by
+    refine h5u.trans ?_
+    have hCA2 : CA ^ 2 = 2 * C₁ * CM ^ 2 := by
+      rw [hCA, mul_pow, Real.sq_sqrt (by positivity)]
+    have e : (CA * E * ρ) ^ 2 = C₁ * (CM * ρ) ^ 2 * (2 * E ^ 2) := by
+      rw [mul_pow, mul_pow, hCA2]; ring
+    rw [e]
+    exact mul_le_mul_of_nonneg_left (by linarith) (mul_nonneg hC₁.le (sq_nonneg _))
+  have h0 : 0 ≤ CA * E * ρ := mul_nonneg (mul_nonneg hCA0 hE0) hρ0
+  have hle := Real.sqrt_le_sqrt hsq
+  rw [Real.sqrt_sq (show 0 ≤ scalarRms volume (ball 0 (R / 2)) (fun x => u x - uh x) from
+    Real.sqrt_nonneg _), Real.sqrt_sq h0] at hle
+  rw [← hE]
+  calc _ ≤ CA * E * ρ := hle
+    _ ≤ (CX + CA + 1) * E * ρ :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (by linarith) hE0) hρ0
+
 end QSH
