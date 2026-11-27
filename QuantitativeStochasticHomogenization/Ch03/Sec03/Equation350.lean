@@ -23,10 +23,11 @@ namespace QSH
 variable {d : ℕ}
 
 /-- **(3.50)** above the random scale of Proposition 3.2, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`,
-with `δ = min(α(d - s), ½)`: the exponent `δ`, the random variable `X` and the exceptional set do not
-depend on `k`, and `θ` and `C` depend on `k`. -/
+for every exponent `δ ∈ (0, δ₀]`, `δ₀ = min(α(d - s), ½)` (the book: `δ = δ₀`): the random variable
+`X` and the exceptional set do not depend on `k`, and `θ` and `C` depend on `k` and `δ`. -/
 theorem equation_3_50 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s) (hsd : s < d) :
-    ∃ δ : ℝ, 0 < δ ∧ δ ≤ 1 / 2 ∧ ∃ (θ C : ℕ → ℝ) (CX : ℝ), 0 < CX ∧
+    ∃ δ₀ : ℝ, 0 < δ₀ ∧ δ₀ ≤ 1 / 2 ∧ ∀ δ : ℝ, 0 < δ → δ ≤ δ₀ →
+    ∃ (θ C : ℕ → ℝ) (CX : ℝ), 0 < CX ∧
       (∀ k, 0 < θ k ∧ θ k < 1 / 2 ∧ 0 < C k) ∧
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
       ∃ X : CoefficientField d Λ → ℝ, OsBound P X s CX ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
@@ -38,14 +39,16 @@ theorem equation_3_50 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0
   obtain ⟨α, hα, hprop⟩ := proposition_3_2 hd hΛ
   obtain ⟨CP, hCP, hP⟩ := hprop s hs hsd
   have hds : 0 < (d : ℝ) - s := by linarith
-  obtain ⟨δ, hδdef⟩ : ∃ δ : ℝ, δ = min (α * ((d : ℝ) - s)) (1 / 2) := ⟨_, rfl⟩
-  have hδ0 : 0 < δ := by rw [hδdef]; exact lt_min (mul_pos hα hds) (by norm_num)
-  have hδ2 : δ ≤ 1 / 2 := by rw [hδdef]; exact min_le_right _ _
-  have hδα : δ ≤ α * ((d : ℝ) - s) := by rw [hδdef]; exact min_le_left _ _
+  obtain ⟨δ₀, hδdef⟩ : ∃ δ : ℝ, δ = min (α * ((d : ℝ) - s)) (1 / 2) := ⟨_, rfl⟩
+  have hδ₀0 : 0 < δ₀ := by rw [hδdef]; exact lt_min (mul_pos hα hds) (by norm_num)
+  have hδ₀2 : δ₀ ≤ 1 / 2 := by rw [hδdef]; exact min_le_right _ _
+  have hδ₀α : δ₀ ≤ α * ((d : ℝ) - s) := by rw [hδdef]; exact min_le_left _ _
+  refine ⟨δ₀, hδ₀0, hδ₀2, fun δ hδ0 hδδ₀ => ?_⟩
+  have hδα : δ ≤ α * ((d : ℝ) - s) := hδδ₀.trans hδ₀α
   choose θ C₃₆ hθ0 hθ1 hC₃₆ h36 using fun k : ℕ => lemma_3_6 hd hΛ.le hδ0 k
   obtain ⟨K, hK⟩ : ∃ K : ℝ, K = max CP 1 := ⟨_, rfl⟩
   have hK1 : 1 ≤ K := by rw [hK]; exact le_max_right _ _
-  refine ⟨δ, hδ0, hδ2, θ, fun k => C₃₆ k * K + 1, CP, hCP,
+  refine ⟨θ, fun k => C₃₆ k * K + 1, CP, hCP,
     fun k => ⟨hθ0 k, hθ1 k, by have := hC₃₆ k; positivity⟩, fun P hPlaw => ?_⟩
   obtain ⟨X, hXos, hX1, hXae⟩ := hP P hPlaw
   refine ⟨X, hXos, hX1, ?_⟩
@@ -83,11 +86,12 @@ theorem equation_3_50 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0
 
 /-- **The implication (3.48) above the random scale**: for almost every coefficient field, every
 `k` and every scale `r₀ ≥ X` large enough for the constants of (3.50) and of `(ii)_k` (the book's
-`r₀ = H ∨ X_s`) at which `(ii)_k` holds gives `(iii')_k` above `r₀`. The exponent `δ`, the random
-variable `X` and the exceptional set do not depend on `k`. -/
+`r₀ = H ∨ X_s`) at which `(ii)_k` holds gives `(iii')_k` above `r₀`, for every exponent
+`δ ∈ (0, δ₀]`. The random variable `X` and the exceptional set do not depend on `k`. -/
 theorem implication_348_random (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s)
     (hsd : s < d) :
-    ∃ δ : ℝ, 0 < δ ∧ δ ≤ 1 / 2 ∧ ∃ (θ C Cg : ℕ → ℝ) (CX : ℝ), 0 < CX ∧
+    ∃ δ₀ : ℝ, 0 < δ₀ ∧ δ₀ ≤ 1 / 2 ∧ ∀ δ : ℝ, 0 < δ → δ ≤ δ₀ →
+    ∃ (θ C Cg : ℕ → ℝ) (CX : ℝ), 0 < CX ∧
       (∀ k, 0 < θ k ∧ θ k < 1 / 2 ∧ 0 < C k ∧ 0 ≤ Cg k) ∧
       ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
       ∃ X : CoefficientField d Λ → ℝ, OsBound P X s CX ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
@@ -104,9 +108,12 @@ theorem implication_348_random (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ
               (Real.sqrt ((1 / θ k) ^ d) + Cg k * (Real.sqrt ((1 / θ k) ^ d) + 1) /
                 (1 - θ k ^ (1 - δ / 2))) * θ k ^ (-((k : ℝ) + 1 - δ / 2)) *
                 (r / R) ^ ((k : ℝ) + 1 - δ / 2) * scalarRms volume (ball 0 R) u := by
-  obtain ⟨δ, hδ0, hδ2, θ, C, CX, hCX, hθC, h350⟩ := equation_3_50 hd hΛ hs hsd
+  obtain ⟨δ₀, hδ₀0, hδ₀2, h350δ⟩ := equation_3_50 hd hΛ hs hsd
+  refine ⟨δ₀, hδ₀0, hδ₀2, fun δ hδ0 hδδ₀ => ?_⟩
+  have hδ2 : δ ≤ 1 / 2 := hδδ₀.trans hδ₀2
+  obtain ⟨θ, C, CX, hCX, hθC, h350⟩ := h350δ δ hδ0 hδδ₀
   choose Cg hCg h348 using fun k : ℕ => implication_348 (d := d) (Λ := Λ) k
-  refine ⟨δ, hδ0, hδ2, θ, C, Cg, CX, hCX, fun k => ⟨(hθC k).1, (hθC k).2.1, (hθC k).2.2, hCg k⟩,
+  refine ⟨θ, C, Cg, CX, hCX, fun k => ⟨(hθC k).1, (hθC k).2.1, (hθC k).2.2, hCg k⟩,
     fun P hP => ?_⟩
   obtain ⟨X, hXos, hX1, hXae⟩ := h350 P hP
   refine ⟨X, hXos, hX1, ?_⟩
