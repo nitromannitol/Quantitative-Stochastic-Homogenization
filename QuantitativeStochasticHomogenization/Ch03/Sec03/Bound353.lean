@@ -105,7 +105,7 @@ theorem scalarRms_correction_large {k : ℕ} (hk : 1 ≤ k) {q : Vec d → ℝ}
     (hq : ∀ t : ℝ, 0 < t → ∀ x, q (t • x) = t ^ k * q x)
     {ρ t r₀ C₁ C₂₇ C₃ K δ : ℝ} (hρ : 0 < ρ) (ht : 1 ≤ t) (hr₀ : 0 < r₀) (hr₀ρ : r₀ ≤ ρ)
     (hδ : 0 ≤ δ) (hC₁ : 0 ≤ C₁) (hsmall : C₁ * r₀ ^ (-δ) ≤ 1 / 2) (hC₂₇ : 0 ≤ C₂₇)
-    (hC₃ : 0 ≤ C₃) (hK : 0 ≤ K) {w φ p : Vec d → ℝ}
+    (hC₃ : 0 ≤ C₃) {w φ p : Vec d → ℝ}
     (hwL2 : MemLp w 2 (volume.restrict (ball (0 : Vec d) ρ)))
     (hφL2 : ∀ r : ℝ, 0 < r → MemLp φ 2 (volume.restrict (ball (0 : Vec d) r)))
     (hpL2 : ∀ r : ℝ, 0 < r → MemLp p 2 (volume.restrict (ball (0 : Vec d) r)))
@@ -163,5 +163,227 @@ theorem scalarRms_correction_large {k : ℕ} (hk : 1 ≤ k) {q : Vec d → ℝ}
     _ = 4 * C₂₇ * (1 + C₃) * K * (t ^ (k - 1) * ρ ^ (-δ)) * scalarRms volume (ball 0 ρ) q := by
         ring
     _ = _ := by rw [hpow]; ring
+
+theorem two_pow_rpow (i : ℕ) (y : ℝ) : ((2 : ℝ) ^ i) ^ y = ((2 : ℝ) ^ y) ^ i := by
+  rw [← Real.rpow_natCast, ← Real.rpow_mul (by norm_num), mul_comm, Real.rpow_mul (by norm_num),
+    Real.rpow_natCast]
+
+theorem two_pow_sub_mul {j n : ℕ} (hjn : j ≤ n) (r₀ : ℝ) :
+    (2 : ℝ) ^ (n - j) * (2 ^ j * r₀) = 2 ^ n * r₀ := by
+  rw [← mul_assoc, ← pow_add, Nat.sub_add_cancel hjn]
+
+/-- **(3.53)** and the geometric smallness of the increments, for the sequences of the proof of
+(3.46) on the radii `r_m = 2^m r₀`. -/
+theorem bound_353 {a : CoefficientField d Λ} {A : Mat d} {k : ℕ} (hk : 1 ≤ k) {q : Vec d → ℝ}
+    (hq : ∀ t : ℝ, 0 < t → ∀ x, q (t • x) = t ^ k * q x)
+    (hqL2 : ∀ r : ℝ, 0 < r → MemLp q 2 (volume.restrict (ball (0 : Vec d) r)))
+    {r₀ δ C₅₂ C₃ C₁ C₂₇ : ℝ} (hr₀ : 0 < r₀) (hδ0 : 0 < δ) (hδ1 : δ < 1) (hC₅₂ : 0 ≤ C₅₂)
+    (hC₃ : 0 ≤ C₃) (hC₁ : 0 ≤ C₁) (hC₂₇ : 0 ≤ C₂₇) (hsmall : C₁ * r₀ ^ (-δ) ≤ 1 / 2)
+    (u φ p : ℕ → Vec d → ℝ)
+    (hu : ∀ m, IsSolutionBall a (2 ^ m * r₀) (u m) ∧
+      scalarRms volume (ball 0 (2 ^ m * r₀)) (fun x => u m x - q x) ≤
+        C₅₂ * (2 ^ m * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ m * r₀)) q)
+    (hφ : ∀ m, φ m ∈ solutionGrowthSpace a (k - 1) ∧ ∀ r : ℝ, r₀ ≤ r → r ≤ 2 ^ m * r₀ →
+      scalarRms volume (ball 0 r) (fun x => (u (m + 1) x - u m x) - φ m x) ≤
+        C₃ * (r / (2 ^ m * r₀)) ^ ((k : ℝ) - δ / 2) *
+          scalarRms volume (ball 0 (2 ^ m * r₀)) (fun x => u (m + 1) x - u m x))
+    (hp : ∀ m, p m ∈ harmonicPolys A (k - 1) ∧ ∀ R : ℝ, r₀ ≤ R →
+      scalarRms volume (ball 0 R) (fun x => φ m x - p m x) ≤
+        C₁ * R ^ (-δ) * scalarRms volume (ball 0 R) (p m))
+    (hgrow : ∀ m (t ρ : ℝ), 0 < ρ → 1 ≤ t →
+      scalarRms volume (ball 0 (t * ρ)) (p m) ≤ C₂₇ * t ^ (k - 1) * scalarRms volume (ball 0 ρ) (p m)) :
+    (∀ j n, j ≤ n → scalarRms volume (ball 0 (2 ^ j * r₀))
+        (fun x => (u n x - ∑ m ∈ Finset.range n, φ m x) - q x) ≤
+      (C₅₂ + C₃ * (C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1)) / (1 - (2 : ℝ) ^ (-(δ / 2))) +
+        4 * C₂₇ * (1 + C₃) * (C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1)) / (1 - (2 : ℝ) ^ (δ - 1))) *
+        (2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q) ∧
+    (∀ j n, j ≤ n → scalarRms volume (ball 0 (2 ^ j * r₀))
+        (fun x => (u (n + 1) x - u n x) - φ n x) ≤
+      C₃ * (C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1)) * (((2 : ℝ) ^ (-(δ / 2))) ^ (n - j) *
+        (2 ^ j * r₀) ^ (-δ)) * scalarRms volume (ball 0 (2 ^ j * r₀)) q) := by
+  obtain ⟨K₁, hK₁⟩ : ∃ K₁ : ℝ, K₁ = C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1) := ⟨_, rfl⟩
+  have hK₁0 : 0 ≤ K₁ := by rw [hK₁]; positivity
+  rw [← hK₁]
+  have hρ : ∀ m : ℕ, 0 < (2 : ℝ) ^ m * r₀ := fun m => by positivity
+  have hr₀ρ : ∀ m : ℕ, r₀ ≤ (2 : ℝ) ^ m * r₀ := fun m => by
+    have : (1 : ℝ) ≤ 2 ^ m := one_le_pow₀ (by norm_num)
+    nlinarith
+  have hρmono : ∀ m n : ℕ, m ≤ n → (2 : ℝ) ^ m * r₀ ≤ 2 ^ n * r₀ := fun m n h => by
+    have : (2 : ℝ) ^ m ≤ 2 ^ n := pow_le_pow_right₀ (by norm_num) h
+    nlinarith
+  -- (B1)
+  have hw : ∀ m, scalarRms volume (ball 0 (2 ^ m * r₀)) (fun x => u (m + 1) x - u m x) ≤
+      K₁ * (2 ^ m * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ m * r₀)) q := fun m => by
+    have h1 := (hu (m + 1)).2
+    rw [pow_succ, mul_comm _ (2 : ℝ), mul_assoc] at h1
+    have h := scalarRms_increment_le hq hqL2 (hρ m) hδ0.le hC₅₂ (hu m).1.1
+      (by have := (hu (m + 1)).1.1; rwa [pow_succ, mul_comm _ (2 : ℝ), mul_assoc] at this)
+      (hu m).2 h1
+    rwa [← hK₁] at h
+  -- (B2)
+  have hB : ∀ j n, j ≤ n → scalarRms volume (ball 0 (2 ^ j * r₀))
+      (fun x => (u (n + 1) x - u n x) - φ n x) ≤
+      C₃ * K₁ * (((2 : ℝ) ^ (-(δ / 2))) ^ (n - j) * (2 ^ j * r₀) ^ (-δ)) *
+        scalarRms volume (ball 0 (2 ^ j * r₀)) q := fun j n hjn => by
+    have ht : (0 : ℝ) < 2 ^ (n - j) := by positivity
+    have hφn := (hφ n).2 _ (hr₀ρ j) (hρmono j n hjn)
+    rw [← two_pow_sub_mul hjn r₀] at hφn
+    have hwn := hw n
+    rw [← two_pow_sub_mul hjn r₀] at hwn
+    have h := scalarRms_correction_small hq (hρ j) ht hC₃ hφn hwn
+    rwa [two_pow_rpow] at h
+  refine ⟨fun j n hjn => ?_, fun j n hjn => hB j n hjn⟩
+  -- the decomposition of `v_n - q`
+  have hdec : ∀ n, j ≤ n → ∀ x, (u n x - ∑ m ∈ Finset.range n, φ m x) - q x =
+      (u j x - q x) + ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x) -
+        ∑ m ∈ Finset.range j, φ m x := by
+    intro n hn
+    induction n, hn using Nat.le_induction with
+    | base => intro x; rw [Finset.Ico_self, Finset.sum_empty]; ring
+    | succ n hjn ih =>
+      intro x
+      rw [Finset.sum_range_succ, Finset.sum_Ico_succ_top hjn]
+      have := ih x
+      linarith
+  have hx1 : (0 : ℝ) ≤ (2 : ℝ) ^ (-(δ / 2)) := (Real.rpow_pos_of_pos two_pos _).le
+  have hx1' : (2 : ℝ) ^ (-(δ / 2)) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
+  have hx2 : (0 : ℝ) ≤ (2 : ℝ) ^ (δ - 1) := (Real.rpow_pos_of_pos two_pos _).le
+  have hx2' : (2 : ℝ) ^ (δ - 1) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
+  have hρj := hρ j
+  have hqj := hqL2 _ hρj
+  have hq0 := scalarRms_nonneg (d := d) (ball 0 (2 ^ j * r₀)) q
+  have hρδ : 0 ≤ (2 ^ j * r₀ : ℝ) ^ (-δ) := Real.rpow_nonneg hρj.le _
+  -- membership in `L²(B_{r_j})`
+  have huL2 : ∀ m, j ≤ m → MemLp (u m) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) :=
+    fun m hm => (hu m).1.1.mono_measure (Measure.restrict_mono
+      (ball_zero_subset_ball_zero (hρmono j m hm)) le_rfl)
+  have hφL2 : ∀ m, MemLp (φ m) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := fun m =>
+    ((hφ m).1.1 _ hρj).1
+  classical
+  set F : ℕ → Vec d → ℝ := fun m => if j ≤ m then fun x => (u (m + 1) x - u m x) - φ m x
+    else fun _ => 0 with hFdef
+  have hF : ∀ m, MemLp (F m) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := fun m => by
+    by_cases h : j ≤ m
+    · simp only [hFdef, h, ite_true]
+      exact ((huL2 (m + 1) (by omega)).sub (huL2 m h)).sub (hφL2 m)
+    · simp only [hFdef, h, ite_false]; exact MemLp.zero
+  have hS1 := scalarRms_finset_sum_le (Finset.Ico j n) hF (fun _ => 1)
+  have hS2 := scalarRms_finset_sum_le (Finset.range j) hφL2 (fun _ => 1)
+  have eS1 : (fun x => ∑ m ∈ Finset.Ico j n, (1 : ℝ) * F m x) =
+      fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x) := by
+    funext x
+    refine Finset.sum_congr rfl fun m hm => ?_
+    simp only [hFdef, (Finset.mem_Ico.1 hm).1, ite_true, one_mul]
+  have eS2 : (fun x => ∑ m ∈ Finset.range j, (1 : ℝ) * φ m x) =
+      fun x => ∑ m ∈ Finset.range j, φ m x := by
+    funext x; simp only [one_mul]
+  rw [eS1] at hS1
+  rw [eS2] at hS2
+  -- the terms of the scales between `r_j` and `r_n`
+  have hT1 : ∑ m ∈ Finset.Ico j n, |(1 : ℝ)| * scalarRms volume (ball 0 (2 ^ j * r₀)) (F m) ≤
+      C₃ * K₁ / (1 - (2 : ℝ) ^ (-(δ / 2))) * (2 ^ j * r₀) ^ (-δ) *
+        scalarRms volume (ball 0 (2 ^ j * r₀)) q := by
+    have hterm : ∀ m ∈ Finset.Ico j n, |(1 : ℝ)| * scalarRms volume (ball 0 (2 ^ j * r₀)) (F m) ≤
+        C₃ * K₁ * ((2 : ℝ) ^ (-(δ / 2))) ^ (m - j) * ((2 ^ j * r₀) ^ (-δ) *
+          scalarRms volume (ball 0 (2 ^ j * r₀)) q) := fun m hm => by
+      have hjm := (Finset.mem_Ico.1 hm).1
+      simp only [abs_one, one_mul, hFdef, hjm, ite_true]
+      refine (hB j m hjm).trans (le_of_eq ?_)
+      ring
+    refine (Finset.sum_le_sum hterm).trans ?_
+    rw [← Finset.sum_mul, ← Finset.mul_sum, Finset.sum_Ico_eq_sum_range]
+    simp only [Nat.add_sub_cancel_left]
+    have hgeo : ∑ i ∈ Finset.range (n - j), ((2 : ℝ) ^ (-(δ / 2))) ^ i ≤
+        1 / (1 - (2 : ℝ) ^ (-(δ / 2))) := by
+      have h := geom_sum_Ico_le_of_lt_one hx1 hx1' (m := 0) (n := n - j)
+      rwa [← Finset.range_eq_Ico, pow_zero] at h
+    have hc : 0 ≤ C₃ * K₁ := mul_nonneg hC₃ hK₁0
+    calc (C₃ * K₁ * ∑ i ∈ Finset.range (n - j), ((2 : ℝ) ^ (-(δ / 2))) ^ i) *
+          ((2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q)
+        ≤ (C₃ * K₁ * (1 / (1 - (2 : ℝ) ^ (-(δ / 2))))) *
+          ((2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q) :=
+          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hgeo hc) (mul_nonneg hρδ hq0)
+      _ = _ := by ring
+  -- the corrections of the scales below `r_j`
+  have hT2 : ∑ m ∈ Finset.range j, |(1 : ℝ)| * scalarRms volume (ball 0 (2 ^ j * r₀)) (φ m) ≤
+      4 * C₂₇ * (1 + C₃) * K₁ / (1 - (2 : ℝ) ^ (δ - 1)) * (2 ^ j * r₀) ^ (-δ) *
+        scalarRms volume (ball 0 (2 ^ j * r₀)) q := by
+    have hterm : ∀ m ∈ Finset.range j, |(1 : ℝ)| * scalarRms volume (ball 0 (2 ^ j * r₀)) (φ m) ≤
+        4 * C₂₇ * (1 + C₃) * K₁ * ((2 : ℝ) ^ (δ - 1)) ^ (j - m) * ((2 ^ j * r₀) ^ (-δ) *
+          scalarRms volume (ball 0 (2 ^ j * r₀)) q) := fun m hm => by
+      have hmj : m ≤ j := (Finset.mem_range.1 hm).le
+      rw [abs_one, one_mul]
+      have ht1 : (1 : ℝ) ≤ 2 ^ (j - m) := one_le_pow₀ (by norm_num)
+      have hφw : scalarRms volume (ball 0 (2 ^ m * r₀)) (fun x => (u (m + 1) x - u m x) - φ m x) ≤
+          C₃ * scalarRms volume (ball 0 (2 ^ m * r₀)) (fun x => u (m + 1) x - u m x) := by
+        have h := (hφ m).2 _ (hr₀ρ m) le_rfl
+        rwa [div_self (hρ m).ne', Real.one_rpow, mul_one] at h
+      have hwL2 : MemLp (fun x => u (m + 1) x - u m x) 2
+          (volume.restrict (ball (0 : Vec d) (2 ^ m * r₀))) :=
+        ((hu (m + 1)).1.1.mono_measure (Measure.restrict_mono
+          (ball_zero_subset_ball_zero (hρmono m (m + 1) (Nat.le_succ m))) le_rfl)).sub (hu m).1.1
+      have h := scalarRms_correction_large hk hq (hρ m) ht1 hr₀ (hr₀ρ m) hδ0.le hC₁ hsmall hC₂₇ hC₃
+        hwL2 (fun r hr => ((hφ m).1.1 r hr).1) (fun r hr => ((hp m).1.2 r hr).1) (hp m).2
+        (hgrow m _ _ (hρ m) ht1) hφw (hw m)
+      rw [two_pow_sub_mul hmj, two_pow_rpow] at h
+      refine h.trans (le_of_eq ?_)
+      ring
+    refine (Finset.sum_le_sum hterm).trans ?_
+    rw [← Finset.sum_mul, ← Finset.mul_sum]
+    have hgeo : ∑ m ∈ Finset.range j, ((2 : ℝ) ^ (δ - 1)) ^ (j - m) ≤
+        1 / (1 - (2 : ℝ) ^ (δ - 1)) := by
+      rw [← Finset.sum_range_reflect]
+      have e : ∀ i ∈ Finset.range j, ((2 : ℝ) ^ (δ - 1)) ^ (j - (j - 1 - i)) ≤
+          ((2 : ℝ) ^ (δ - 1)) ^ i := fun i hi => by
+        have hi' := Finset.mem_range.1 hi
+        exact pow_le_pow_of_le_one hx2 hx2'.le (by omega)
+      refine (Finset.sum_le_sum e).trans ?_
+      have h := geom_sum_Ico_le_of_lt_one hx2 hx2' (m := 0) (n := j)
+      rwa [← Finset.range_eq_Ico, pow_zero] at h
+    have hc : 0 ≤ 4 * C₂₇ * (1 + C₃) * K₁ := by positivity
+    calc (4 * C₂₇ * (1 + C₃) * K₁ * ∑ m ∈ Finset.range j, ((2 : ℝ) ^ (δ - 1)) ^ (j - m)) *
+          ((2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q)
+        ≤ (4 * C₂₇ * (1 + C₃) * K₁ * (1 / (1 - (2 : ℝ) ^ (δ - 1)))) *
+          ((2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q) :=
+          mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hgeo hc) (mul_nonneg hρδ hq0)
+      _ = _ := by ring
+  -- assembly
+  rw [show (fun x => (u n x - ∑ m ∈ Finset.range n, φ m x) - q x) =
+      fun x => ((u j x - q x) + ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x)) -
+        ∑ m ∈ Finset.range j, φ m x from funext (hdec n hjn)]
+  have hmemA : MemLp (fun x => u j x - q x) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) :=
+    (huL2 j le_rfl).sub hqj
+  have hmemS1 : MemLp (fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x)) 2
+      (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := by
+    have h := memLp_finset_sum' (Finset.Ico j n) (fun m _ => hF m)
+    have e : (∑ m ∈ Finset.Ico j n, F m) =
+        fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x) := by
+      funext x
+      rw [Finset.sum_apply]
+      refine Finset.sum_congr rfl fun m hm => ?_
+      simp only [hFdef, (Finset.mem_Ico.1 hm).1, ite_true]
+    rwa [e] at h
+  have hmemS2 : MemLp (fun x => ∑ m ∈ Finset.range j, φ m x) 2
+      (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := by
+    have h := memLp_finset_sum' (Finset.range j) (fun m _ => hφL2 m)
+    have e : (∑ m ∈ Finset.range j, φ m) = fun x => ∑ m ∈ Finset.range j, φ m x := by
+      funext x; rw [Finset.sum_apply]
+    rwa [e] at h
+  calc scalarRms volume (ball 0 (2 ^ j * r₀))
+        (fun x => ((u j x - q x) + ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x)) -
+          ∑ m ∈ Finset.range j, φ m x)
+      ≤ (scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => u j x - q x) +
+          scalarRms volume (ball 0 (2 ^ j * r₀))
+            (fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x))) +
+          scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => ∑ m ∈ Finset.range j, φ m x) :=
+        (scalarRms_sub_le (hmemA.add hmemS1) hmemS2).trans
+          (add_le_add (scalarRms_add_le hmemA hmemS1) le_rfl)
+    _ ≤ (C₅₂ * (2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q +
+          C₃ * K₁ / (1 - (2 : ℝ) ^ (-(δ / 2))) * (2 ^ j * r₀) ^ (-δ) *
+            scalarRms volume (ball 0 (2 ^ j * r₀)) q) +
+          4 * C₂₇ * (1 + C₃) * K₁ / (1 - (2 : ℝ) ^ (δ - 1)) * (2 ^ j * r₀) ^ (-δ) *
+            scalarRms volume (ball 0 (2 ^ j * r₀)) q :=
+        add_le_add (add_le_add (hu j).2 (hS1.trans hT1)) (hS2.trans hT2)
+    _ = _ := by ring
 
 end QSH
