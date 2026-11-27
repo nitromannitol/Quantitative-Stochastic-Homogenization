@@ -1417,7 +1417,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `x = M y`, `M Mᵀ = A` (`Ch03/Sec02/HarmonicPolynomials.lean`), as for `k = 1`.
 - (3.26)–(3.27): `QSH.equation_3_27` (`Ch03/Sec03/HomogeneousParts.lean`), for `p ∈ Ā_k`, every center
   `y` and `r > 0`, with the Taylor parts `(π_{m,y} - π_{m-1,y}) p (x) = (1/m!) ∇^m p(y) (x - y)^{⊗m}`
-  written with `iteratedFDeriv`, and `C(k, d)`. The book derives the second inequality from (3.7) for
+  written with `iteratedFDeriv`, and `C(k, d)` (the book's `C_k` comes from (3.7) and depends on `Λ`;
+  here `A` is arbitrary). The book derives the second inequality from (3.7) for
   `ā`-harmonic polynomials; the proof here holds for every polynomial of degree at most `k`
   (`QSH.scalarRms_homogeneousComponents_zero`): by homogeneity `Q(t v) = ∑_i t^i Q_i(v)`, each
   homogeneous component is a combination of the dilates `Q(t_j ·)`, `t_j = (j + 1)/(k + 1)`, with the

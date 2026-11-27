@@ -11,7 +11,8 @@ Taylor expansion at `y`.
 
 For a polynomial `p(x) = Q(x - y)` the homogeneous part of degree `m` at `y` is the homogeneous
 component of degree `m` of `Q` (`eval_homogeneousComponent_eq_iteratedFDeriv`), and the inequality
-holds for every polynomial of degree at most `k`, with `C(k, d)` (`scalarRms_homogeneousComponents`):
+holds for every polynomial of degree at most `k`, with `C(k, d)`
+(`scalarRms_homogeneousComponents_zero`):
 by homogeneity `Q(t v) = ∑_i t^i Q_i(v)`, so each component is a fixed combination of `Q(t_j ·)` for
 `k + 1` distinct `t_j ∈ (0, 1]` (the inverse Vandermonde matrix), and `‖Q(t ·)‖_{L̲²(B_r)} ≤
 t^{-d/2} ‖Q‖_{L̲²(B_r)}`. The book derives the second inequality for `ā`-harmonic polynomials from
