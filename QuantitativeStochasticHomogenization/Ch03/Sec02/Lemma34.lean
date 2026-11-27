@@ -27,7 +27,8 @@ Section 3.2. For a symmetric matrix `A` with `1 ≤ A ≤ Λ` (the homogenized m
   `exists_affine_improvement`);
 * Lemma 3.4 (`lemma_3_4`): if `u` has an `A`-harmonic approximation on every ball `B_r`,
   `r ∈ [X, R/2]`, with relative error `K r^{-α}` on `B_{r/2}`, then
-  `r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ C R⁻¹ ‖u - (u)_{B_R}‖_{L̲²(B_R)}` for `r ∈ [X, R]`.
+  `r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ C R⁻¹ ‖u - (u)_{B_R}‖_{L̲²(B_R)}` for `r ∈ [X, R]`; the
+  proof needs the approximations only on the balls `B_{r/2}` (`lemma_3_4_halfBall`).
 -/
 
 open MeasureTheory Filter Set
@@ -790,7 +791,7 @@ theorem lemma_3_4_aux {C₁ θ b β γ μ c₄ c₅ K α R R₀ X s₂ : ℝ} (h
     {u : Vec d → ℝ} (hu : MemLp u 2 (volume.restrict (ball 0 R)))
     {osc : ℝ → ℝ} (hosc : ∀ t, osc t =
       scalarRms volume (ball 0 t) (fun x => u x - ⨍ y in ball 0 t, u y))
-    (hyp : ∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 r) w ∧
+    (hyp : ∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 (r / 2)) w ∧
         scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤ K * r ^ (-α) * osc r)
     {r' : ℝ} (hR₀r' : R₀ ≤ r') (hr'R : r' ≤ R / 2) :
     1 / r' * osc r' ≤
@@ -838,8 +839,7 @@ theorem lemma_3_4_aux {C₁ θ b β γ μ c₄ c₅ K α R R₀ X s₂ : ℝ} (h
     intro j p
     by_cases hj : R₀ ≤ rr j
     · obtain ⟨w, hw, hη⟩ := hyp (rr j) (hR₀X.trans hj) (hrr_le j)
-      have hw2 : IsL2HarmonicOn A (ball 0 (rr j / 2)) w :=
-        hw.mono (ball_zero_subset_ball_zero (by linarith [hrr0 j]))
+      have hw2 : IsL2HarmonicOn A (ball 0 (rr j / 2)) w := hw
       obtain ⟨c', q', h1, h2⟩ := himp A hsym hA θ hθ0 hθΛ (rr j) (hrr0 j) u w
         (hmem _ ((hrr_le j).trans (by linarith))) hw2 p.1 p.2
       rw [← hs₂, ← hbdef] at h1
@@ -997,15 +997,13 @@ theorem lemma_3_4_aux {C₁ θ b β γ μ c₄ c₅ K α R R₀ X s₂ : ℝ} (h
         gcongr
     _ = Real.sqrt ((1 / θ) ^ d) * (1 / θ) * c₅ * (2 * s₂) * (1 / R * osc R) := by ring
 
-/-- **Lemma 3.4.** Let `α > 0`, `K ≥ 1` and `A` symmetric with `1 ≤ A ≤ Λ`. There is
-`C(α, K, d, Λ)` such that, for `X ≥ 1`, `R ≥ 2X` and `u ∈ L²(B_R)` such that for every
-`r ∈ [X, R/2]` some `A`-harmonic `w` in `B_r` satisfies (3.21),
-`‖u - w‖_{L̲²(B_{r/2})} ≤ K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, the bound (3.22)
-`r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ C R⁻¹ ‖u - (u)_{B_R}‖_{L̲²(B_R)}` holds for every `r ∈ [X, R]`. -/
-theorem lemma_3_4 (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α K : ℝ} (hα : 0 < α) (hK : 1 ≤ K) :
+/-- **Lemma 3.4 with the harmonic approximations on the half balls**: the conclusion of Lemma 3.4
+holds when the `A`-harmonic `w` in (3.21) is only defined on `B_{r/2}`, the hypothesis of
+Lemma 3.6 and the output of Proposition 3.2. The proof uses `w` only on `B_{r/2}`. -/
+theorem lemma_3_4_halfBall (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α K : ℝ} (hα : 0 < α) (hK : 1 ≤ K) :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
       ∀ X R : ℝ, 1 ≤ X → 2 * X ≤ R → ∀ u : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 R)) →
-      (∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 r) w ∧
+      (∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 (r / 2)) w ∧
         scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤
           K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) →
       ∀ r : ℝ, X ≤ r → r ≤ R →
@@ -1170,6 +1168,25 @@ theorem lemma_3_4 (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α K : ℝ} (hα : 0 < α) (h
     have : 1 / r * osc r ≤ Real.sqrt ((2 * H) ^ d) * (2 * H) * (1 / R * osc R) :=
       h.trans (mul_le_mul_of_nonneg_right hfac hDR0)
     exact this.trans (hmono _ (by linarith))
+
+/-- **Lemma 3.4.** Let `α > 0`, `K ≥ 1` and `A` symmetric with `1 ≤ A ≤ Λ`. There is
+`C(α, K, d, Λ)` such that, for `X ≥ 1`, `R ≥ 2X` and `u ∈ L²(B_R)` such that for every
+`r ∈ [X, R/2]` some `A`-harmonic `w` in `B_r` satisfies (3.21),
+`‖u - w‖_{L̲²(B_{r/2})} ≤ K r^{-α} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, the bound (3.22)
+`r⁻¹ ‖u - (u)_{B_r}‖_{L̲²(B_r)} ≤ C R⁻¹ ‖u - (u)_{B_R}‖_{L̲²(B_R)}` holds for every `r ∈ [X, R]`. -/
+theorem lemma_3_4 (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α K : ℝ} (hα : 0 < α) (hK : 1 ≤ K) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ X R : ℝ, 1 ≤ X → 2 * X ≤ R → ∀ u : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 R)) →
+      (∀ r : ℝ, X ≤ r → r ≤ R / 2 → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 r) w ∧
+        scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤
+          K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) →
+      ∀ r : ℝ, X ≤ r → r ≤ R →
+        1 / r * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) ≤
+          C / R * scalarRms volume (ball 0 R) (fun x => u x - ⨍ y in ball 0 R, u y) := by
+  obtain ⟨C, hC, h⟩ := lemma_3_4_halfBall hd hΛ hα hK
+  refine ⟨C, hC, fun A hsym hA X R hX hXR u hu hyp => h A hsym hA X R hX hXR u hu fun r h1 h2 => ?_⟩
+  obtain ⟨w, hw, hη⟩ := hyp r h1 h2
+  exact ⟨w, hw.mono (ball_zero_subset_ball_zero (by linarith)), hη⟩
 
 end Lemma34
 
