@@ -180,7 +180,7 @@ theorem eval_homogeneousComponent_eq_iteratedFDeriv (Q : MvPolynomial (Fin d) �
         Polynomial.X ^ i := ⟨_, rfl⟩
   have hg : (fun s : ℝ => MvPolynomial.eval (s • v) Q) = fun s => G.eval s := by
     funext s
-    rw [eval_smul_eq_sum hQ, hG, Polynomial.eval_finset_sum]
+    rw [eval_smul_eq_sum hQ, hG, Polynomial.eval_finsetSum]
     refine Finset.sum_congr rfl fun i _ => ?_
     simp only [Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_pow, Polynomial.eval_X]
     ring
@@ -190,12 +190,12 @@ theorem eval_homogeneousComponent_eq_iteratedFDeriv (Q : MvPolynomial (Fin d) �
   have hcoeff : (Polynomial.derivative^[m] G).eval 0 =
       (m.factorial : ℝ) * MvPolynomial.eval v (MvPolynomial.homogeneousComponent m Q) := by
     rw [← Polynomial.coeff_zero_eq_eval_zero, Polynomial.coeff_iterate_derivative, zero_add,
-      Nat.descFactorial_self, nsmul_eq_mul, hG, Polynomial.finset_sum_coeff]
+      Nat.descFactorial_self, nsmul_eq_mul, hG, Polynomial.finsetSum_coeff]
     congr 1
     rw [Finset.sum_eq_single m]
     · simp
     · intro i _ him
-      simp [Polynomial.coeff_C_mul_X_pow, Ne.symm him]
+      simp [Ne.symm him]
     · intro hm
       exact absurd (Finset.mem_range.2 (by omega)) hm
   have hline' : (Polynomial.derivative^[m] G).eval 0 =
