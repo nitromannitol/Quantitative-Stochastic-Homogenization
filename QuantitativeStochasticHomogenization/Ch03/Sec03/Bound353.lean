@@ -355,7 +355,7 @@ theorem bound_353 {a : CoefficientField d Λ} {A : Mat d} {k : ℕ} (hk : 1 ≤ 
     (huL2 j le_rfl).sub hqj
   have hmemS1 : MemLp (fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x)) 2
       (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := by
-    have h := memLp_finset_sum' (Finset.Ico j n) (fun m _ => hF m)
+    have h := memLp_finsetSum' (Finset.Ico j n) (fun m _ => hF m)
     have e : (∑ m ∈ Finset.Ico j n, F m) =
         fun x => ∑ m ∈ Finset.Ico j n, ((u (m + 1) x - u m x) - φ m x) := by
       funext x
@@ -365,7 +365,7 @@ theorem bound_353 {a : CoefficientField d Λ} {A : Mat d} {k : ℕ} (hk : 1 ≤ 
     rwa [e] at h
   have hmemS2 : MemLp (fun x => ∑ m ∈ Finset.range j, φ m x) 2
       (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) := by
-    have h := memLp_finset_sum' (Finset.range j) (fun m _ => hφL2 m)
+    have h := memLp_finsetSum' (Finset.range j) (fun m _ => hφL2 m)
     have e : (∑ m ∈ Finset.range j, φ m) = fun x => ∑ m ∈ Finset.range j, φ m x := by
       funext x; rw [Finset.sum_apply]
     rwa [e] at h
