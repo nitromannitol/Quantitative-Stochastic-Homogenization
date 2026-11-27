@@ -1,5 +1,7 @@
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Implication348
 import QuantitativeStochasticHomogenization.Ch03.Sec03.WeakGradientH10
+import QuantitativeStochasticHomogenization.Ch03.Sec03.TestMollification
+import QuantitativeStochasticHomogenization.AppD.HeatSmoothing
 
 /-!
 # Limits of solutions with geometrically small increments
@@ -178,5 +180,224 @@ theorem vectorRms_grad_sub_le {Λ : ℝ} (hΛ : 1 ≤ Λ) :
   rw [← ENNReal.ofReal_mul hC.le, ENNReal.ofReal_le_ofReal_iff (mul_nonneg hC.le hnn)] at hb
   exact hb.trans (mul_le_mul_of_nonneg_left
     (mul_le_mul_of_nonneg_left hosc (inv_nonneg.2 hr.le)) hC.le)
+
+/-- The pairing `∫ (a h)·∇φ` as a sum of pairings of the components of `h`. -/
+theorem dot_mulVec_gradient_eq {Λ : ℝ} (a : CoefficientField d Λ) (h : Vec d → Vec d)
+    (φ : Vec d → ℝ) (x : Vec d) :
+    dot ((a x).mulVec (h x)) (gradient φ x) =
+      ∑ k, h x k * ∑ i, a x i k * coordinateDerivative i φ x := by
+  simp only [dot, gradient, Matrix.mulVec, dotProduct, Finset.sum_mul, Finset.mul_sum]
+  rw [Finset.sum_comm]
+  exact Finset.sum_congr rfl fun k _ => Finset.sum_congr rfl fun i _ => by ring
+
+/-- **Limits of solutions with geometrically small increments.** If `v_n` solves `-∇·(a∇v_n) = 0`
+in `B_{2^n r₀}` with gradient `g_n`, and `‖v_{n+1} - v_n‖_{L̲²(B_{2^j r₀})} ≤ B_j ε^{n-j}` for
+`j ≤ n` with `ε < 1`, then `v_n` converges in `L̲²(B_{2^j r₀})` for every `j` to a solution `u` in
+every ball. -/
+theorem solution_limit {Λ : ℝ} (hΛ : 1 ≤ Λ) (a : CoefficientField d Λ) {r₀ ε : ℝ} (hr₀ : 0 < r₀)
+    (hε0 : 0 ≤ ε) (hε1 : ε < 1) (v : ℕ → Vec d → ℝ) (g : ℕ → Vec d → Vec d)
+    (hv : ∀ n, MemLp (v n) 2 (volume.restrict (ball 0 (2 ^ n * r₀))) ∧
+      (∀ i, MemLp (fun x => g n x i) 2 (volume.restrict (ball 0 (2 ^ n * r₀)))) ∧
+      HasWeakGradient (ball 0 (2 ^ n * r₀)) (v n) (g n) ∧
+      HasWeakDivergence (ball 0 (2 ^ n * r₀)) (fun x => (a x).mulVec (g n x)) (fun _ => 0))
+    (B : ℕ → ℝ) (hB : ∀ j, 0 ≤ B j)
+    (hinc : ∀ j n, j ≤ n → scalarRms volume (ball 0 (2 ^ j * r₀))
+      (fun x => v (n + 1) x - v n x) ≤ B j * ε ^ (n - j)) :
+    ∃ u : Vec d → ℝ, (∀ R : ℝ, 0 < R → IsSolutionBall a R u) ∧
+      ∀ j, Tendsto (fun n => scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => v n x - u x))
+        atTop (𝓝 0) := by
+  obtain ⟨Cc, hCc, hcacc⟩ := vectorRms_grad_sub_le (d := d) hΛ
+  have hρ : ∀ j : ℕ, 0 < (2 : ℝ) ^ j * r₀ := fun j => by positivity
+  have hρmono : ∀ m n : ℕ, m ≤ n → (2 : ℝ) ^ m * r₀ ≤ 2 ^ n * r₀ := fun m n h => by
+    have : (2 : ℝ) ^ m ≤ 2 ^ n := pow_le_pow_right₀ (by norm_num) h
+    nlinarith
+  have hsub : ∀ m n : ℕ, m ≤ n → ball (0 : Vec d) (2 ^ m * r₀) ⊆ ball 0 (2 ^ n * r₀) :=
+    fun m n h => ball_zero_subset_ball_zero (hρmono m n h)
+  have hres : ∀ m n : ℕ, m ≤ n → volume.restrict (ball (0 : Vec d) (2 ^ m * r₀)) ≤
+      volume.restrict (ball 0 (2 ^ n * r₀)) := fun m n h => Measure.restrict_mono (hsub m n h) le_rfl
+  obtain ⟨u, hu⟩ : ∃ u : Vec d → ℝ, u = fun x => limUnder atTop (fun n => v n x) := ⟨_, rfl⟩
+  obtain ⟨G, hG⟩ : ∃ G : Vec d → Vec d, G = fun x i => limUnder atTop (fun n => g n x i) :=
+    ⟨_, rfl⟩
+  -- convergence of the values on every ball
+  have hval : ∀ j, MemLp u 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) ∧
+      Tendsto (fun n => eLpNorm (v (n + j) - u) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))))
+        atTop (𝓝 0) := by
+    intro j
+    obtain ⟨hae, hlim⟩ := limit_on_ball (f := fun n => v (n + j)) (hρ j) (hB j) hε0 hε1
+      (fun n => (hv (n + j)).1.mono_measure (hres j (n + j) (by omega)))
+      (fun n => by
+        have h := hinc j (n + j) (by omega)
+        rwa [show n + j - j = n by omega, show n + j + 1 = n + 1 + j by omega] at h)
+    refine hlim u ?_
+    filter_upwards [hae] with x ⟨l, hl⟩
+    have h1 : Tendsto (fun n => v n x) atTop (𝓝 l) := (Filter.tendsto_add_atTop_iff_nat j).1 hl
+    have h2 : Tendsto (fun n => v n x) atTop (𝓝 (u x)) := by
+      rw [hu]; exact tendsto_nhds_limUnder ⟨l, h1⟩
+    exact (Filter.tendsto_add_atTop_iff_nat j).2 h2
+  -- convergence of the gradients on every ball
+  have hgrad : ∀ j i, MemLp (fun x => G x i) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀))) ∧
+      Tendsto (fun n => eLpNorm ((fun x => g (n + j + 1) x i) - fun x => G x i) 2
+        (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀)))) atTop (𝓝 0) := by
+    intro j i
+    have hρ2 : (2 : ℝ) ^ (j + 1) * r₀ / 2 = 2 ^ j * r₀ := by rw [pow_succ]; ring
+    have hincg : ∀ n, scalarRms volume (ball 0 (2 ^ j * r₀))
+        (fun x => g (n + 1 + j + 1) x i - g (n + j + 1) x i) ≤
+          Cc * (((2 : ℝ) ^ (j + 1) * r₀)⁻¹ * B (j + 1)) * ε ^ n := fun n => by
+      have hm1 : j + 1 ≤ n + j + 1 := by omega
+      have hm2 : j + 1 ≤ n + 1 + j + 1 := by omega
+      have hc := hcacc a _ (hρ (j + 1)) (v (n + 1 + j + 1)) (v (n + j + 1)) (g (n + 1 + j + 1))
+        (g (n + j + 1)) ((hv _).1.mono_measure (hres _ _ hm2))
+        ((hv _).1.mono_measure (hres _ _ hm1))
+        (fun i => ((hv _).2.1 i).mono_measure (hres _ _ hm2))
+        (fun i => ((hv _).2.1 i).mono_measure (hres _ _ hm1))
+        ((hv _).2.2.1.mono (hsub _ _ hm2)) ((hv _).2.2.1.mono (hsub _ _ hm1))
+        ((hv _).2.2.2.mono' (hsub _ _ hm2)) ((hv _).2.2.2.mono' (hsub _ _ hm1))
+      rw [hρ2] at hc
+      have hcomp := scalarRms_coord_le_vectorRms (U := ball (0 : Vec d) (2 ^ j * r₀))
+        (G := fun x => g (n + 1 + j + 1) x - g (n + j + 1) x) (fun k =>
+          (((hv _).2.1 k).mono_measure (hres _ _ (by omega))).sub
+            (((hv _).2.1 k).mono_measure (hres _ _ (by omega)))) i
+      have hi := hinc (j + 1) (n + j + 1) hm1
+      rw [show n + j + 1 - (j + 1) = n by omega, show n + j + 1 + 1 = n + 1 + j + 1 by omega] at hi
+      calc scalarRms volume (ball 0 (2 ^ j * r₀))
+            (fun x => g (n + 1 + j + 1) x i - g (n + j + 1) x i)
+          ≤ vectorRms volume (ball 0 (2 ^ j * r₀))
+              (fun x => g (n + 1 + j + 1) x - g (n + j + 1) x) := hcomp
+        _ ≤ Cc * (((2 : ℝ) ^ (j + 1) * r₀)⁻¹ *
+              scalarRms volume (ball 0 (2 ^ (j + 1) * r₀))
+                (fun x => v (n + 1 + j + 1) x - v (n + j + 1) x)) := hc
+        _ ≤ Cc * (((2 : ℝ) ^ (j + 1) * r₀)⁻¹ * (B (j + 1) * ε ^ n)) := by
+            gcongr
+        _ = _ := by ring
+    obtain ⟨hae, hlim⟩ := limit_on_ball (f := fun n => fun x => g (n + j + 1) x i) (hρ j)
+      (by have := hB (j + 1); positivity) hε0 hε1
+      (fun n => ((hv (n + j + 1)).2.1 i).mono_measure (hres j (n + j + 1) (by omega))) hincg
+    refine hlim (fun x => G x i) ?_
+    filter_upwards [hae] with x ⟨l, hl⟩
+    have h1 : Tendsto (fun n => g n x i) atTop (𝓝 l) := (Filter.tendsto_add_atTop_iff_nat (j + 1)).1
+      (by simpa only [add_assoc] using hl)
+    have h2 : Tendsto (fun n => g n x i) atTop (𝓝 (G x i)) := by
+      rw [hG]; exact tendsto_nhds_limUnder ⟨l, h1⟩
+    have h3 := (Filter.tendsto_add_atTop_iff_nat (j + 1)).2 h2
+    simpa only [add_assoc] using h3
+  have hΛ0 : (0 : ℝ) ≤ Λ := by linarith
+  refine ⟨u, fun R hR => ?_, fun j => ?_⟩
+  · obtain ⟨j, hj⟩ := pow_unbounded_of_one_lt (R / r₀) (one_lt_two : (1 : ℝ) < 2)
+    have hRj : R ≤ 2 ^ j * r₀ := by rw [div_lt_iff₀ hr₀] at hj; linarith
+    have hsubR : ball (0 : Vec d) R ⊆ ball 0 (2 ^ j * r₀) := ball_zero_subset_ball_zero hRj
+    have hresR : volume.restrict (ball (0 : Vec d) R) ≤ volume.restrict (ball 0 (2 ^ j * r₀)) :=
+      Measure.restrict_mono hsubR le_rfl
+    have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) R)) :=
+      isFiniteMeasure_restrict.mpr (volume_ball_ne_top' 0 R)
+    have huR : MemLp u 2 (volume.restrict (ball (0 : Vec d) R)) := (hval j).1.mono_measure hresR
+    have hGR : ∀ k, MemLp (fun x => G x k) 2 (volume.restrict (ball (0 : Vec d) R)) := fun k =>
+      (hgrad j k).1.mono_measure hresR
+    have hsubn : ∀ n, ball (0 : Vec d) R ⊆ ball 0 (2 ^ (n + j + 1) * r₀) := fun n =>
+      hsubR.trans (hsub _ _ (by omega))
+    have hvR : ∀ n, MemLp (v (n + j + 1)) 2 (volume.restrict (ball (0 : Vec d) R)) := fun n =>
+      (hv _).1.mono_measure (Measure.restrict_mono (hsubn n) le_rfl)
+    have hgR : ∀ n k, MemLp (fun x => g (n + j + 1) x k) 2 (volume.restrict (ball (0 : Vec d) R)) :=
+      fun n k => ((hv _).2.1 k).mono_measure (Measure.restrict_mono (hsubn n) le_rfl)
+    have hvlim : Tendsto (fun n => eLpNorm (fun x => v (n + j + 1) x - u x) 2
+        (volume.restrict (ball (0 : Vec d) R))) atTop (𝓝 0) := by
+      have h := (Filter.tendsto_add_atTop_iff_nat 1).2 (hval j).2
+      refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h (fun _ => zero_le)
+        fun n => ?_
+      rw [show n + 1 + j = n + j + 1 by omega]
+      exact eLpNorm_mono_measure _ hresR
+    have hglim : ∀ k, Tendsto (fun n => eLpNorm (fun x => g (n + j + 1) x k - G x k) 2
+        (volume.restrict (ball (0 : Vec d) R))) atTop (𝓝 0) := fun k =>
+      tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (hgrad j k).2
+        (fun _ => zero_le) fun n => eLpNorm_mono_measure _ hresR
+    -- test functions are bounded
+    have hbdd : ∀ ψ : Vec d → ℝ, Continuous ψ → HasCompactSupport ψ →
+        MemLp ψ 2 (volume.restrict (ball (0 : Vec d) R)) := fun ψ hψ hψc => by
+      obtain ⟨M, hM⟩ := hψ.bounded_above_of_compact_support hψc
+      exact MemLp.of_bound hψ.aestronglyMeasurable M (Eventually.of_forall hM)
+    refine ⟨huR, G, hGR, fun i => ⟨IntegrableOn.locallyIntegrableOn (huR.integrable one_le_two),
+      IntegrableOn.locallyIntegrableOn ((hGR i).integrable one_le_two), fun φ hφ => ?_⟩, ?_⟩
+    · have hdφ : MemLp (coordinateDerivative i φ) 2 (volume.restrict (ball (0 : Vec d) R)) :=
+        hbdd _ (continuous_coordinateDerivative (hφ.1.of_le (by exact_mod_cast le_top)) i)
+          (hasCompactSupport_coordinateDerivative hφ.2.1 i)
+      have hφ2 : MemLp φ 2 (volume.restrict (ball (0 : Vec d) R)) :=
+        hbdd _ hφ.1.continuous hφ.2.1
+      have hL := tendsto_integral_mul_of_eLpNorm_sub hdφ huR hvR hvlim
+      have hRt := (tendsto_integral_mul_of_eLpNorm_sub hφ2 (hGR i) (hgR · i) (hglim i)).neg
+      have heq : ∀ n, ∫ x in ball 0 R, coordinateDerivative i φ x * v (n + j + 1) x =
+          -∫ x in ball 0 R, φ x * g (n + j + 1) x i := fun n => by
+        have h := (((hv (n + j + 1)).2.2.1.mono (hsubn n)) i).2.2 φ hφ
+        simp only [mul_comm (coordinateDerivative i φ _), mul_comm (φ _)]
+        exact h
+      have h := tendsto_nhds_unique hL (hRt.congr fun n => (heq n).symm)
+      simp only [mul_comm (coordinateDerivative i φ _), mul_comm (φ _)] at h
+      exact h
+    · refine ⟨fun i => IntegrableOn.locallyIntegrableOn
+        ((memLp_coefficient_mulVec_apply_of_coord hΛ0 a hGR i).integrable one_le_two),
+        locallyIntegrableOn_zero, fun φ hφ => ?_⟩
+      simp only [zero_mul, integral_zero, neg_zero]
+      -- the coefficients of the pairing
+      have hdφc : ∀ i, Continuous (coordinateDerivative i φ) := fun i =>
+        continuous_coordinateDerivative (hφ.1.of_le (by exact_mod_cast le_top)) i
+      choose M hM using fun i => (hdφc i).bounded_above_of_compact_support
+        (hasCompactSupport_coordinateDerivative hφ.2.1 i)
+      have hψm : ∀ k, AEStronglyMeasurable (fun x => ∑ i, a x i k * coordinateDerivative i φ x)
+          (volume.restrict (ball (0 : Vec d) R)) := fun k =>
+        Finset.aestronglyMeasurable_fun_sum _ fun i _ =>
+          ((a.locally_integrable i k).aestronglyMeasurable.restrict).mul
+            (hdφc i).aestronglyMeasurable
+      have hψb : ∀ k x, ‖∑ i, a x i k * coordinateDerivative i φ x‖ ≤ ∑ i, Λ * M i := fun k x => by
+        refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ => ?_)
+        rw [norm_mul, Real.norm_eq_abs]
+        exact mul_le_mul (abs_coefficient_entry_le a x i k) (hM i x) (norm_nonneg _) hΛ0
+      have hψ2 : ∀ k, MemLp (fun x => ∑ i, a x i k * coordinateDerivative i φ x) 2
+          (volume.restrict (ball (0 : Vec d) R)) := fun k =>
+        MemLp.of_bound (hψm k) _ (Eventually.of_forall (hψb k))
+      have hint : ∀ (h : Vec d → Vec d), (∀ k, MemLp (fun x => h x k) 2
+          (volume.restrict (ball (0 : Vec d) R))) → ∀ k,
+          Integrable (fun x => h x k * ∑ i, a x i k * coordinateDerivative i φ x)
+            (volume.restrict (ball (0 : Vec d) R)) := fun h hh k =>
+        Integrable.mono' (((hh k).integrable one_le_two).norm.mul_const (∑ i, Λ * M i))
+          ((hh k).aestronglyMeasurable.mul (hψm k)) (Eventually.of_forall fun x => by
+            rw [norm_mul]
+            exact mul_le_mul_of_nonneg_left (hψb k x) (norm_nonneg _))
+      have hsplit : ∀ (h : Vec d → Vec d), (∀ k, MemLp (fun x => h x k) 2
+          (volume.restrict (ball (0 : Vec d) R))) →
+          ∫ x in ball 0 R, dot ((a x).mulVec (h x)) (gradient φ x) =
+            ∑ k, ∫ x in ball 0 R, h x k * ∑ i, a x i k * coordinateDerivative i φ x := by
+        intro h hh
+        simp_rw [dot_mulVec_gradient_eq a h φ]
+        exact integral_finsetSum _ fun k _ => hint h hh k
+      have hzero : ∀ n, ∑ k, ∫ x in ball 0 R, g (n + j + 1) x k *
+          ∑ i, a x i k * coordinateDerivative i φ x = 0 := fun n => by
+        rw [← hsplit _ (hgR n)]
+        have h := ((hv (n + j + 1)).2.2.2.mono' (hsubn n)).2.2 φ hφ
+        simpa only [zero_mul, integral_zero, neg_zero] using h
+      have hlimk : ∀ k, Tendsto (fun n => ∫ x in ball 0 R, g (n + j + 1) x k *
+          ∑ i, a x i k * coordinateDerivative i φ x) atTop
+          (𝓝 (∫ x in ball 0 R, G x k * ∑ i, a x i k * coordinateDerivative i φ x)) := fun k => by
+        have h := tendsto_integral_mul_of_eLpNorm_sub (hψ2 k) (hGR k) (hgR · k) (hglim k)
+        simp only [mul_comm (∑ i, a _ i k * coordinateDerivative i φ _)] at h
+        exact h
+      have hsum := tendsto_finsetSum (Finset.univ : Finset (Fin d)) fun k _ => hlimk k
+      have h0 := tendsto_nhds_unique hsum (tendsto_const_nhds.congr fun n => (hzero n).symm)
+      rw [hsplit G hGR]
+      exact h0
+  · have hV : 0 < volume.real (ball (0 : Vec d) (2 ^ j * r₀)) := by
+      rw [measureReal_def]
+      exact ENNReal.toReal_pos (volume_ball_ne_zero' 0 (hρ j)) (volume_ball_ne_top' 0 _)
+    have hsV : 0 < Real.sqrt (volume.real (ball (0 : Vec d) (2 ^ j * r₀))) := Real.sqrt_pos.2 hV
+    have hconv : ∀ n, scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => v (n + j) x - u x) =
+        (eLpNorm (v (n + j) - u) 2 (volume.restrict (ball (0 : Vec d) (2 ^ j * r₀)))).toReal /
+          Real.sqrt (volume.real (ball (0 : Vec d) (2 ^ j * r₀))) := fun n => by
+      rw [show v (n + j) - u = fun x => v (n + j) x - u x from rfl,
+        eLpNorm_eq_ofReal_sqrt_mul_scalarRms (f := fun x => v (n + j) x - u x) hV
+          (((hv (n + j)).1.mono_measure (hres j (n + j) (by omega))).sub (hval j).1),
+        ENNReal.toReal_ofReal (mul_nonneg (Real.sqrt_nonneg _) (scalarRms_nonneg _ _))]
+      field_simp
+    have h := ((ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp (hval j).2).div_const
+      (Real.sqrt (volume.real (ball (0 : Vec d) (2 ^ j * r₀))))
+    rw [ENNReal.toReal_zero, zero_div] at h
+    refine (Filter.tendsto_add_atTop_iff_nat j).1 ?_
+    exact h.congr fun n => (hconv n).symm
 
 end QSH
