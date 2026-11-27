@@ -157,4 +157,98 @@ theorem scalarRms_homogeneousComponents_zero (k : ℕ) :
           rw [Finset.sum_mul]
           exact Finset.sum_congr rfl fun j _ => by ring
 
+theorem deriv_iterate_polynomial_eval (G : Polynomial ℝ) (n : ℕ) :
+    deriv^[n] (fun s => G.eval s) = fun s => (Polynomial.derivative^[n] G).eval s := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [Function.iterate_succ_apply', ih, Function.iterate_succ_apply']
+    funext s
+    exact Polynomial.deriv _
+
+/-- The homogeneous component of degree `m` of a polynomial is its Taylor part of degree `m` at the
+origin: `Q_m(v) = (1/m!) ∇^m Q(0) v^{⊗m}`. -/
+theorem eval_homogeneousComponent_eq_iteratedFDeriv (Q : MvPolynomial (Fin d) ℝ) (m : ℕ)
+    (v : Vec d) :
+    MvPolynomial.eval v (MvPolynomial.homogeneousComponent m Q) =
+      (m.factorial : ℝ)⁻¹ * iteratedFDeriv ℝ m (fun x => MvPolynomial.eval x Q) 0 (fun _ => v) := by
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, k = max m Q.totalDegree := ⟨_, rfl⟩
+  have hQ : Q.totalDegree ≤ k := by rw [hk]; exact le_max_right _ _
+  have hmk : m ≤ k := by rw [hk]; exact le_max_left _ _
+  obtain ⟨G, hG⟩ : ∃ G : Polynomial ℝ, G = ∑ i ∈ Finset.range (k + 1),
+      Polynomial.C (MvPolynomial.eval v (MvPolynomial.homogeneousComponent i Q)) *
+        Polynomial.X ^ i := ⟨_, rfl⟩
+  have hg : (fun s : ℝ => MvPolynomial.eval (s • v) Q) = fun s => G.eval s := by
+    funext s
+    rw [eval_smul_eq_sum hQ, hG, Polynomial.eval_finset_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    simp only [Polynomial.eval_mul, Polynomial.eval_C, Polynomial.eval_pow, Polynomial.eval_X]
+    ring
+  have hline := PDE.iteratedDeriv_line (U := univ) isOpen_univ
+    (PDE.contDiff_eval_mvPolynomial Q).contDiffOn v m 0 (mem_univ _)
+  rw [zero_smul, hg, iteratedDeriv_eq_iterate, deriv_iterate_polynomial_eval] at hline
+  have hcoeff : (Polynomial.derivative^[m] G).eval 0 =
+      (m.factorial : ℝ) * MvPolynomial.eval v (MvPolynomial.homogeneousComponent m Q) := by
+    rw [← Polynomial.coeff_zero_eq_eval_zero, Polynomial.coeff_iterate_derivative, zero_add,
+      Nat.descFactorial_self, nsmul_eq_mul, hG, Polynomial.finset_sum_coeff]
+    congr 1
+    rw [Finset.sum_eq_single m]
+    · simp
+    · intro i _ him
+      simp [Polynomial.coeff_C_mul_X_pow, Ne.symm him]
+    · intro hm
+      exact absurd (Finset.mem_range.2 (by omega)) hm
+  have hline' : (Polynomial.derivative^[m] G).eval 0 =
+      iteratedFDeriv ℝ m (fun x => MvPolynomial.eval x Q) 0 (fun _ => v) := hline
+  rw [hcoeff] at hline'
+  have hfac : (m.factorial : ℝ) ≠ 0 := by exact_mod_cast (Nat.factorial_pos m).ne'
+  rw [← hline', inv_mul_cancel_left₀ hfac]
+
+/-- **(3.27)**: for `p ∈ Ā_k`, a center `y` and `r > 0`, with the Taylor parts
+`(π_{m,y} - π_{m-1,y}) p (x) = (1/m!) ∇^m p(y) (x - y)^{⊗m}`,
+`‖p‖_{L̲²(B_r(y))} ≤ ∑_{m ≤ k} ‖(π_{m,y} - π_{m-1,y}) p‖_{L̲²(B_r(y))} ≤ C ‖p‖_{L̲²(B_r(y))}`, with
+`C(k, d)`. -/
+theorem equation_3_27 (k : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (A : Mat d), ∀ p ∈ harmonicPolys A k, ∀ (y : Vec d) (r : ℝ), 0 < r →
+      scalarRms volume (ball y r) p ≤
+        ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball y r)
+          (fun x => (m.factorial : ℝ)⁻¹ * iteratedFDeriv ℝ m p y (fun _ => x - y)) ∧
+      ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball y r)
+          (fun x => (m.factorial : ℝ)⁻¹ * iteratedFDeriv ℝ m p y (fun _ => x - y)) ≤
+        C * scalarRms volume (ball y r) p := by
+  obtain ⟨C, hC0, hzero⟩ := scalarRms_homogeneousComponents_zero (d := d) k
+  refine ⟨C, hC0, fun A p hp y r hr => ?_⟩
+  obtain ⟨⟨P, hP, hPe⟩, -⟩ := hp
+  have hpP : p = fun x => MvPolynomial.eval x P := funext hPe
+  obtain ⟨Q, hQ⟩ : ∃ Q : MvPolynomial (Fin d) ℝ,
+      Q = MvPolynomial.bind₁ (fun i => MvPolynomial.X i + MvPolynomial.C (y i)) P := ⟨_, rfl⟩
+  have hQe : ∀ v, MvPolynomial.eval v Q = p (v + y) := fun v => by
+    have e : (fun i => MvPolynomial.eval v (MvPolynomial.X i + MvPolynomial.C (y i))) = v + y := by
+      funext i; simp
+    rw [hQ, eval_bind₁', hPe, e]
+  have hQdeg : Q.totalDegree ≤ k := by
+    rw [hQ]
+    refine (totalDegree_bind₁_le _ (fun i => ?_) P).trans hP
+    refine (MvPolynomial.totalDegree_add _ _).trans (max_le ?_ ?_)
+    · rw [MvPolynomial.totalDegree_X]
+    · rw [MvPolynomial.totalDegree_C]; omega
+  have hQfun : (fun x => MvPolynomial.eval x Q) = fun x => p (x + y) := funext hQe
+  have hpart : ∀ m x, (m.factorial : ℝ)⁻¹ * iteratedFDeriv ℝ m p y (fun _ => x + y - y) =
+      MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q) := fun m x => by
+    rw [eval_homogeneousComponent_eq_iteratedFDeriv, hQfun, iteratedFDeriv_comp_add_right,
+      zero_add, add_sub_cancel_right]
+  have hsum : ∀ m ∈ Finset.range (k + 1), scalarRms volume (ball y r)
+      (fun x => (m.factorial : ℝ)⁻¹ * iteratedFDeriv ℝ m p y (fun _ => x - y)) =
+      scalarRms volume (ball 0 r)
+        (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) := fun m _ => by
+    rw [scalarRms_ball_translate]
+    congr 1
+    funext x
+    exact hpart m x
+  have hp0 : scalarRms volume (ball y r) p =
+      scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) := by
+    rw [scalarRms_ball_translate, hQfun]
+  rw [Finset.sum_congr rfl hsum, hp0]
+  exact hzero Q hQdeg r hr
+
 end QSH
