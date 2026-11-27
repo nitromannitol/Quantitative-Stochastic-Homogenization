@@ -169,4 +169,196 @@ theorem exists_poly_of_harmonic_growth (hd : 0 < d) (k : ℕ) {h : Vec d → ℝ
     exact hPn _ hb (by linarith [n.cast_nonneg (α := ℝ)]) x
       (by rw [← ball_zero_eq_pdeEuclideanBall hb]; exact hxm)
 
+/-- A symmetric `A` with `1 ≤ A ≤ Λ` is `M Mᵀ` for an invertible `M`. -/
+theorem exists_mul_transpose_eq (hΛ : 1 ≤ Λ) {A : Mat d} (hsym : A.transpose = A)
+    (hA : HomogenizedMatrixBounds A Λ) : ∃ M : Mat d, M.det ≠ 0 ∧ M * M.transpose = A := by
+  have hpos : ∀ ξ : Vec d, ξ ≠ 0 → 0 < dot ξ (A.mulVec ξ) := by
+    intro ξ hξ
+    have h1 := (hA ξ).1
+    have h2 : 0 < euclideanSq ξ := by
+      rcases (BaseExponent.euclideanSq_nonneg ξ).eq_or_lt with h0 | h0
+      · exfalso
+        apply hξ
+        funext i
+        have hsum : ∑ j, ξ j * ξ j = 0 := h0.symm
+        have := (Finset.sum_eq_zero_iff_of_nonneg (fun j _ => mul_self_nonneg (ξ j))).mp hsum i
+          (Finset.mem_univ i)
+        simpa using this
+      · exact h0
+    linarith
+  obtain ⟨M, hdet, hMM⟩ := exists_mul_transpose_eq_symmPart hpos
+  refine ⟨M, hdet, ?_⟩
+  rw [hMM, hsym, ← two_smul ℝ A, smul_smul]
+  norm_num
+
+/-- **The elements of (3.23) are the `A`-harmonic polynomials of degree at most `k`**, up to
+almost everywhere equality. -/
+theorem exists_harmonicPoly_ae_of_growth (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) (k : ℕ) {A : Mat d}
+    (hsym : A.transpose = A) (hA : HomogenizedMatrixBounds A Λ) {u : Vec d → ℝ}
+    (hu : u ∈ growthHarmonicSpace A k) :
+    ∃ p ∈ harmonicPolys A k, ∀ᵐ x ∂(volume : Measure (Vec d)), u x = p x := by
+  obtain ⟨M, hdet, hMA⟩ := exists_mul_transpose_eq hΛ hsym hA
+  have hΛ0 : 0 < Λ := by linarith
+  have hsΛ : 0 < Real.sqrt Λ := Real.sqrt_pos.2 hΛ0
+  have hA' : HomogenizedMatrixBounds (M * M.transpose) Λ := by rw [hMA]; exact hA
+  have hsym' : (M * M.transpose).transpose = M * M.transpose := by rw [hMA]; exact hsym
+  have hdet1 := one_le_abs_det hdet hA'
+  have hdet0 : 0 < |M.det| := by linarith
+  have hEB : ∀ b : ℝ, matrixEllipsoid M b ⊆ ball 0 (Real.sqrt Λ * b) := fun b =>
+    matrixEllipsoid_subset_ball_sqrt hdet hΛ0 hA' hsym' b
+  have huA : ∀ R : ℝ, 0 < R → IsL2HarmonicOn (M * M.transpose) (ball 0 R) u := fun R hR => by
+    rw [hMA]; exact hu.1 R hR
+  have hhar : ∀ b : ℝ, 0 < b → IsL2HarmonicOn 1 (ball (0 : Vec d) b) (fun y => u (M.mulVec y)) :=
+    fun b hb => ((huA _ (mul_pos hsΛ hb)).mono (hEB b)).comp_matrixEllipsoid hdet
+  obtain ⟨c, hc⟩ : ∃ c : ℝ, c = Real.sqrt (Real.sqrt Λ ^ d / |M.det|) := ⟨_, rfl⟩
+  have hc0 : 0 ≤ c := by rw [hc]; exact Real.sqrt_nonneg _
+  have hle : ∀ r : ℝ, 0 < r → (r ^ (k + 1))⁻¹ * scalarRms volume (ball 0 r) (fun y => u (M.mulVec y))
+      ≤ Real.sqrt Λ ^ (k + 1) * c * (((Real.sqrt Λ * r) ^ (k + 1))⁻¹ *
+        scalarRms volume (ball 0 (Real.sqrt Λ * r)) u) := by
+    intro r hr
+    have hvol : volume.real (ball (0 : Vec d) (Real.sqrt Λ * r)) ≤
+        (Real.sqrt Λ ^ d / |M.det|) * volume.real (matrixEllipsoid M r) := by
+      rw [volume_real_matrixEllipsoid, volume_real_ball_mul hsΛ r]
+      apply le_of_eq
+      field_simp
+    have h1 : scalarRms volume (matrixEllipsoid M r) u ≤
+        c * scalarRms volume (ball 0 (Real.sqrt Λ * r)) u := by
+      rw [hc]
+      exact scalarRms_le_sqrt_mul_of_subset (hEB r) (volume_matrixEllipsoid_ne_zero hdet hr)
+        (volume_ball_ne_top' 0 _) hvol (by positivity)
+        (huA _ (mul_pos hsΛ hr)).1.integrable_sq
+    rw [← scalarRms_matrixEllipsoid_eq hdet r]
+    have hr' : 0 < (r ^ (k + 1))⁻¹ := by positivity
+    calc (r ^ (k + 1))⁻¹ * scalarRms volume (matrixEllipsoid M r) u
+        ≤ (r ^ (k + 1))⁻¹ * (c * scalarRms volume (ball 0 (Real.sqrt Λ * r)) u) :=
+          mul_le_mul_of_nonneg_left h1 hr'.le
+      _ = _ := by
+          rw [mul_pow]
+          field_simp
+  have hgrow : Tendsto (fun r : ℝ => (r ^ (k + 1))⁻¹ *
+      scalarRms volume (ball 0 r) (fun y => u (M.mulVec y))) atTop (𝓝 0) := by
+    have hcomp := hu.2.comp (tendsto_id.const_mul_atTop hsΛ)
+    have hup : Tendsto (fun r : ℝ => Real.sqrt Λ ^ (k + 1) * c * (((Real.sqrt Λ * r) ^ (k + 1))⁻¹ *
+        scalarRms volume (ball 0 (Real.sqrt Λ * r)) u)) atTop (𝓝 0) := by
+      simpa [Function.comp_def] using hcomp.const_mul (Real.sqrt Λ ^ (k + 1) * c)
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hup ?_ ?_
+    · filter_upwards [eventually_gt_atTop 0] with r hr
+      exact mul_nonneg (by positivity) (scalarRms_nonneg _ _)
+    · filter_upwards [eventually_gt_atTop 0] with r hr
+      exact hle r hr
+  obtain ⟨P, hPdeg, hPharm, hae⟩ := exists_poly_of_harmonic_growth (by omega) k hhar hgrow
+  obtain ⟨Q, hQdeg, hQe⟩ := exists_poly_comp_mulVec M⁻¹ P
+  refine ⟨fun x => MvPolynomial.eval (M⁻¹.mulVec x) P,
+    ⟨⟨Q, hQdeg.trans hPdeg, fun x => (hQe x).symm⟩, fun ρ hρ => ?_⟩, ?_⟩
+  · have hE := isL2HarmonicOn_comp_inv hdet hρ (PDE.contDiff_eval_mvPolynomial P)
+      (fun y _ => hPharm y)
+    rw [hMA] at hE
+    exact hE.mono (ball_subset_matrixEllipsoid hdet hA' ρ)
+  · have hdetinv : (Matrix.toLin' M⁻¹).det ≠ 0 := by
+      rw [LinearMap.det_toLin', Matrix.det_nonsing_inv, Ring.inverse_eq_inv']
+      exact inv_ne_zero hdet
+    have h := (Measure.LinearMap.quasiMeasurePreserving (μ := (volume : Measure (Vec d)))
+      (Matrix.toLin' M⁻¹) hdetinv).ae hae
+    filter_upwards [h] with x hx
+    simp only [Matrix.toLin'_apply, Matrix.mulVec_mulVec,
+      Matrix.mul_nonsing_inv M (isUnit_iff_ne_zero.2 hdet), Matrix.one_mulVec] at hx
+    exact hx
+
+theorem abs_eval_mvPolynomial_le {P : MvPolynomial (Fin d) ℝ} {k : ℕ} (hP : P.totalDegree ≤ k) {r : ℝ}
+    (hr : 1 ≤ r) {x : Vec d} (hx : euclideanNorm x ≤ r) :
+    |MvPolynomial.eval x P| ≤ (∑ s ∈ P.support, |P.coeff s|) * r ^ k := by
+  have hxi : ∀ i, |x i| ≤ r := fun i => by
+    have h : x i ^ 2 ≤ euclideanSq x := by
+      rw [euclideanSq, dot, sq]
+      exact Finset.single_le_sum (f := fun j => x j * x j) (fun j _ => mul_self_nonneg _)
+        (Finset.mem_univ i)
+    exact (Real.abs_le_sqrt h).trans hx
+  conv_lhs => rw [P.as_sum, map_sum]
+  refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+  rw [Finset.sum_mul]
+  refine Finset.sum_le_sum fun s hs => ?_
+  rw [MvPolynomial.eval_monomial, abs_mul]
+  refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+  rw [Finsupp.prod, Finset.abs_prod]
+  calc ∏ i ∈ s.support, |x i ^ s i| ≤ ∏ i ∈ s.support, r ^ s i :=
+        by
+          gcongr with i hi
+          rw [abs_pow]; exact pow_le_pow_left₀ (abs_nonneg _) (hxi i) _
+    _ = r ^ (s.sum fun _ e => e) := by rw [Finset.prod_pow_eq_pow_sum]; rfl
+    _ ≤ r ^ k := pow_le_pow_right₀ hr ((MvPolynomial.le_totalDegree hs).trans hP)
+
+/-- The `A`-harmonic polynomials of degree at most `k` belong to (3.23). -/
+theorem harmonicPolys_subset_growthHarmonicSpace (A : Mat d) (k : ℕ) :
+    harmonicPolys A k ⊆ growthHarmonicSpace A k := by
+  rintro p ⟨⟨P, hP, hPe⟩, hph⟩
+  refine ⟨hph, ?_⟩
+  obtain ⟨S, hS⟩ : ∃ S : ℝ, S = ∑ s ∈ P.support, |P.coeff s| := ⟨_, rfl⟩
+  have hS0 : 0 ≤ S := by rw [hS]; exact Finset.sum_nonneg fun _ _ => abs_nonneg _
+  have hle : ∀ r : ℝ, 1 ≤ r → (r ^ (k + 1))⁻¹ * scalarRms volume (ball 0 r) p ≤ S * r⁻¹ := by
+    intro r hr
+    have hr0 : 0 < r := by linarith
+    have hpt : ∀ x ∈ ball (0 : Vec d) r, |p x| ≤ S * r ^ k := fun x hx => by
+      rw [hPe x, hS]
+      exact abs_eval_mvPolynomial_le hP hr (mem_ball_zero_iff'.1 hx).le
+    have hvol : 0 < volume.real (ball (0 : Vec d) r) := by
+      rw [measureReal_def]
+      exact ENNReal.toReal_pos (volume_ball_ne_zero' 0 hr0) (volume_ball_ne_top' 0 r)
+    have hrms : scalarRms volume (ball 0 r) p ≤ S * r ^ k := by
+      refine scalarRms_le_of_integral_sq_le hvol (by positivity) ?_
+      calc ∫ x in ball 0 r, p x ^ 2 ≤ ∫ x in ball 0 r, (S * r ^ k) ^ 2 :=
+            setIntegral_mono_on (hph r hr0).1.integrable_sq
+              (integrableOn_const (volume_ball_ne_top' 0 r)) (measurableSet_ball' 0 r)
+              (fun x hx => by rw [← sq_abs]; exact pow_le_pow_left₀ (abs_nonneg _) (hpt x hx) 2)
+        _ = _ := by rw [setIntegral_const, smul_eq_mul, mul_comm]
+    calc (r ^ (k + 1))⁻¹ * scalarRms volume (ball 0 r) p ≤ (r ^ (k + 1))⁻¹ * (S * r ^ k) :=
+          mul_le_mul_of_nonneg_left hrms (by positivity)
+      _ = S * r⁻¹ := by field_simp; ring
+  have hup : Tendsto (fun r : ℝ => S * r⁻¹) atTop (𝓝 0) := by
+    simpa using tendsto_inv_atTop_zero.const_mul S
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hup ?_ ?_
+  · filter_upwards [eventually_gt_atTop 0] with r hr
+    exact mul_nonneg (by positivity) (scalarRms_nonneg _ _)
+  · filter_upwards [eventually_ge_atTop 1] with r hr
+    exact hle r hr
+
+/-- `inf_{p ∈ Ā_k} ‖u - p‖_{L̲²(B_r)}` with `Ā_k` the space (3.23). -/
+def growthFlatness (A : Mat d) (k : ℕ) (u : Vec d → ℝ) (r : ℝ) : ℝ :=
+  ⨅ p : growthHarmonicSpace A k, scalarRms volume (ball 0 r) (fun x => u x - (p : Vec d → ℝ) x)
+
+/-- The distance to (3.23) is the distance to the `A`-harmonic polynomials of degree at most `k`. -/
+theorem growthFlatness_eq (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) (k : ℕ) {A : Mat d} (hsym : A.transpose = A)
+    (hA : HomogenizedMatrixBounds A Λ) (u : Vec d → ℝ) (r : ℝ) :
+    growthFlatness A k u r = harmonicFlatness A k u r := by
+  have : Nonempty (harmonicPolys A k) := ⟨⟨_, zero_mem_harmonicPolys A k⟩⟩
+  have : Nonempty (growthHarmonicSpace A k) :=
+    ⟨⟨_, harmonicPolys_subset_growthHarmonicSpace A k (zero_mem_harmonicPolys A k)⟩⟩
+  have hbdd : BddBelow (range fun p : growthHarmonicSpace A k =>
+      scalarRms volume (ball 0 r) (fun x => u x - (p : Vec d → ℝ) x)) :=
+    ⟨0, by rintro _ ⟨p, rfl⟩; exact scalarRms_nonneg _ _⟩
+  unfold growthFlatness harmonicFlatness
+  apply le_antisymm
+  · exact le_ciInf fun p => ciInf_le hbdd ⟨p.1, harmonicPolys_subset_growthHarmonicSpace A k p.2⟩
+  · refine le_ciInf fun p => ?_
+    obtain ⟨q, hq, hpq⟩ := exists_harmonicPoly_ae_of_growth hd hΛ k hsym hA p.2
+    rw [scalarRms_congr_ae (g := fun x => u x - q x)
+      (ae_restrict_of_ae (by filter_upwards [hpq] with x hx; rw [hx]))]
+    exact ciInf_le (bddBelow_harmonicFlatness A k u r) ⟨q, hq⟩
+
+/-- **Lemma 3.6 as printed**, with `Ā_k` the space (3.23) of the book. -/
+theorem lemma_3_6_growth (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) {α : ℝ} (hα : 0 < α) (k : ℕ) :
+    ∃ θ C : ℝ, 0 < θ ∧ θ < 1 / 2 ∧ 0 ≤ C ∧
+      ∀ A : Mat d, A.transpose = A → HomogenizedMatrixBounds A Λ →
+      ∀ K X R : ℝ, 1 ≤ X → ∀ u : Vec d → ℝ, MemLp u 2 (volume.restrict (ball 0 R)) →
+      (∀ r : ℝ, X ≤ r → r ≤ R → ∃ w : Vec d → ℝ, IsL2HarmonicOn A (ball 0 (r / 2)) w ∧
+        scalarRms volume (ball 0 (r / 2)) (fun x => u x - w x) ≤
+          K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y)) →
+      ∀ r : ℝ, X ≤ r → r ≤ R →
+        growthFlatness A k u (θ * r) ≤
+          1 / 4 * θ ^ ((k : ℝ) + 1 - α / 2) * growthFlatness A k u r +
+            C * K * r ^ (-α) * scalarRms volume (ball 0 r) (fun x => u x - ⨍ y in ball 0 r, u y) := by
+  obtain ⟨θ, C, hθ0, hθ1, hC, h⟩ := lemma_3_6 hd hΛ hα k
+  refine ⟨θ, C, hθ0, hθ1, hC, fun A hsym hA K X R hX u hu hyp r hXr hrR => ?_⟩
+  rw [growthFlatness_eq hd hΛ k hsym hA, growthFlatness_eq hd hΛ k hsym hA]
+  exact h A hsym hA K X R hX u hu hyp r hXr hrR
+
 end QSH
