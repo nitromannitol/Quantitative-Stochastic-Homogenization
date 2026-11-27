@@ -68,37 +68,6 @@ theorem dilate_mem_harmonicPolys {A : Mat d} {k : ℕ} {p : Vec d → ℝ}
     obtain ⟨h1, h2, h3, h4⟩ := rescale_h1_div hU hV hVt ht hmap (fun _ => A) hL2 hg hgrad hdiv hloc
     exact ⟨h1, fun x => t • g (t • x), h2, h3, h4⟩
 
-/-- The homogeneous components of a polynomial of degree at most `k` are fixed combinations of its
-dilates by `t_j ∈ (0, 1]`. -/
-theorem exists_vandermonde_combination (k : ℕ) :
-    ∃ (t : Fin (k + 1) → ℝ) (L : Matrix (Fin (k + 1)) (Fin (k + 1)) ℝ), (∀ j, 0 < t j) ∧
-      ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ (m : Fin (k + 1)) (x : Vec d),
-        MvPolynomial.eval x (MvPolynomial.homogeneousComponent (m : ℕ) Q) =
-          ∑ j, L m j * MvPolynomial.eval (t j • x) Q := by
-  obtain ⟨t, ht⟩ : ∃ t : Fin (k + 1) → ℝ, t = fun j : Fin (k + 1) => (((j : ℕ) : ℝ) + 1) / (k + 1) :=
-    ⟨_, rfl⟩
-  have ht0 : ∀ j, 0 < t j := fun j => by rw [ht]; positivity
-  have hinj : Function.Injective t := fun i j hij => by
-    rw [ht] at hij
-    simp only at hij
-    have h := (div_left_inj' (by positivity : ((k : ℝ) + 1) ≠ 0)).1 hij
-    exact Fin.ext (by exact_mod_cast (add_right_cancel h))
-  obtain ⟨L, hL⟩ : ∃ L : Matrix (Fin (k + 1)) (Fin (k + 1)) ℝ, L = (Matrix.vandermonde t)⁻¹ :=
-    ⟨_, rfl⟩
-  have hdet : (Matrix.vandermonde t).det ≠ 0 := Matrix.det_vandermonde_ne_zero_iff.2 hinj
-  have hLV : L * Matrix.vandermonde t = 1 := by
-    rw [hL]; exact Matrix.nonsing_inv_mul _ (isUnit_iff_ne_zero.2 hdet)
-  have hdelta : ∀ m i : Fin (k + 1), ∑ j, L m j * t j ^ (i : ℕ) = if m = i then 1 else 0 := by
-    intro m i
-    have h := congrFun (congrFun hLV m) i
-    simp only [Matrix.mul_apply, Matrix.vandermonde_apply, Matrix.one_apply] at h
-    exact h
-  refine ⟨t, L, ht0, fun Q hQ m x => ?_⟩
-  simp_rw [eval_smul_eq_sum hQ, Finset.mul_sum, ← Fin.sum_univ_eq_sum_range]
-  rw [Finset.sum_comm]
-  simp_rw [← mul_assoc, ← Finset.sum_mul, hdelta]
-  simp
-
 /-- **The homogeneous components of an `A`-harmonic polynomial are `A`-harmonic.** -/
 theorem homogeneousComponent_mem_harmonicPolys {A : Mat d} {k : ℕ} {p : Vec d → ℝ}
     (hp : p ∈ harmonicPolys A k) {P : MvPolynomial (Fin d) ℝ} (hP : P.totalDegree ≤ k)
@@ -107,7 +76,7 @@ theorem homogeneousComponent_mem_harmonicPolys {A : Mat d} {k : ℕ} {p : Vec d 
   have hdeg : (MvPolynomial.homogeneousComponent m P).totalDegree ≤ m :=
     (MvPolynomial.homogeneousComponent_isHomogeneous m P).totalDegree_le
   by_cases hmk : m ≤ k
-  · obtain ⟨t, L, ht0, hcomb⟩ := exists_vandermonde_combination (d := d) k
+  · obtain ⟨t, L, ht0, -, hcomb⟩ := exists_vandermonde_combination (d := d) k
     have hcomb' := hcomb P hP ⟨m, Nat.lt_succ_of_le hmk⟩
     simp only at hcomb'
     have hmem : (fun x => ∑ j, L ⟨m, Nat.lt_succ_of_le hmk⟩ j *

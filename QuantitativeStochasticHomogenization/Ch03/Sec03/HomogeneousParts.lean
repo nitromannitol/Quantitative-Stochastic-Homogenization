@@ -71,17 +71,14 @@ theorem eval_smul_eq_sum {Q : MvPolynomial (Fin d) ℝ} {k : ℕ} (hQ : Q.totalD
   exact Finset.sum_congr rfl fun i _ => PDE.eval_smul_of_isHomogeneous
     (MvPolynomial.homogeneousComponent_isHomogeneous i Q) t v
 
-/-- **(3.27) for polynomials, centered at the origin**: the homogeneous components of a polynomial
-of degree at most `k` satisfy `‖Q‖ ≤ ∑_m ‖Q_m‖ ≤ C ‖Q‖` in `L̲²(B_r)`, with `C(k, d)`. -/
-theorem scalarRms_homogeneousComponents_zero (k : ℕ) :
-    ∃ C : ℝ, 0 ≤ C ∧ ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ r : ℝ, 0 < r →
-      scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) ≤
-        ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 r)
-          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) ∧
-      ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 r)
-          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) ≤
-        C * scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) := by
-  -- the nodes `t_j = (j + 1)/(k + 1)` and the inverse Vandermonde matrix
+/-- The homogeneous components of a polynomial of degree at most `k` are fixed combinations of its
+dilates by `t_j ∈ (0, 1]`. -/
+theorem exists_vandermonde_combination (k : ℕ) :
+    ∃ (t : Fin (k + 1) → ℝ) (L : Matrix (Fin (k + 1)) (Fin (k + 1)) ℝ), (∀ j, 0 < t j) ∧
+      (∀ j, t j ≤ 1) ∧
+      ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ (m : Fin (k + 1)) (x : Vec d),
+        MvPolynomial.eval x (MvPolynomial.homogeneousComponent (m : ℕ) Q) =
+          ∑ j, L m j * MvPolynomial.eval (t j • x) Q := by
   obtain ⟨t, ht⟩ : ∃ t : Fin (k + 1) → ℝ, t = fun j : Fin (k + 1) => (((j : ℕ) : ℝ) + 1) / (k + 1) :=
     ⟨_, rfl⟩
   have ht0 : ∀ j, 0 < t j := fun j => by rw [ht]; positivity
@@ -105,6 +102,23 @@ theorem scalarRms_homogeneousComponents_zero (k : ℕ) :
     have h := congrFun (congrFun hLV m) i
     simp only [Matrix.mul_apply, Matrix.vandermonde_apply, Matrix.one_apply] at h
     exact h
+  refine ⟨t, L, ht0, ht1, fun Q hQ m x => ?_⟩
+  simp_rw [eval_smul_eq_sum hQ, Finset.mul_sum, ← Fin.sum_univ_eq_sum_range]
+  rw [Finset.sum_comm]
+  simp_rw [← mul_assoc, ← Finset.sum_mul, hdelta]
+  simp
+
+/-- **(3.27) for polynomials, centered at the origin**: the homogeneous components of a polynomial
+of degree at most `k` satisfy `‖Q‖ ≤ ∑_m ‖Q_m‖ ≤ C ‖Q‖` in `L̲²(B_r)`, with `C(k, d)`. -/
+theorem scalarRms_homogeneousComponents_zero (k : ℕ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ r : ℝ, 0 < r →
+      scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) ≤
+        ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 r)
+          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) ∧
+      ∑ m ∈ Finset.range (k + 1), scalarRms volume (ball 0 r)
+          (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent m Q)) ≤
+        C * scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) := by
+  obtain ⟨t, L, ht0, ht1, hcomb⟩ := exists_vandermonde_combination (d := d) k
   obtain ⟨C, hC⟩ : ∃ C : ℝ, C = ∑ m : Fin (k + 1), ∑ j : Fin (k + 1),
       |L m j| * Real.sqrt ((1 / t j) ^ d) := ⟨_, rfl⟩
   have hC0 : 0 ≤ C := by rw [hC]; positivity
@@ -121,10 +135,7 @@ theorem scalarRms_homogeneousComponents_zero (k : ℕ) :
         fun x => ∑ j ∈ Finset.univ, L m j * MvPolynomial.eval (t j • x) Q := by
       intro m
       funext x
-      simp_rw [eval_smul_eq_sum hQ, Finset.mul_sum, ← Fin.sum_univ_eq_sum_range]
-      rw [Finset.sum_comm]
-      simp_rw [← mul_assoc, ← Finset.sum_mul, hdelta]
-      simp
+      exact hcomb Q hQ m x
     have hdil : ∀ j : Fin (k + 1), scalarRms volume (ball 0 r)
         (fun x => MvPolynomial.eval (t j • x) Q) ≤
         Real.sqrt ((1 / t j) ^ d) * scalarRms volume (ball 0 r) (fun x => MvPolynomial.eval x Q) := by
