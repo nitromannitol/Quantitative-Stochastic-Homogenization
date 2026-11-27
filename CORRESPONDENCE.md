@@ -1543,15 +1543,14 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `t_j = (j + 1)/(k + 1)` (`QSH.exists_vandermonde_combination`, the inverse Vandermonde matrix).
 - (3.53): `QSH.bound_353` (`Ch03/Sec03/Bound353.lean`), deterministic, for one coefficient field, a
   homogeneous `q ∈ Ā_k` of degree `k ≥ 1` and the radii `r_m = 2^m r₀` (the book: `θ^{-m} r₀`): for
-  sequences `u_m` (solutions in `B_{r_m}` with (3.52)), `φ_m ∈ A_{k-1}` (with `(iii')_{k-1}` for
-  `w_m = u_{m+1} - u_m`) and `p_m ∈ Ā_{k-1}` (with `(i)_{k-1}` for `φ_m` (`(i)_{k-1}` is available for `k = 1` from `QSH.theorem_3_8_zero`;
-  for `k ≥ 2` it is (3.47), not yet formalized), and `C₁ r₀^{-δ} ≤ 1/2`), with
-  one exponent `δ ∈ (0, 1)` for the three estimates, `v_n = u_n - ∑_{m<n} φ_m` satisfies
-  `‖v_n - q‖_{L̲²(B_{r_j})} ≤ C r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, and
-  `‖v_{n+1} - v_n‖_{L̲²(B_{r_j})} ≤ C 2^{-(n-j)δ/2} r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, the
-  summability used in Step 2. The book's proof, with the growth `‖p‖_{L̲²(B_{tρ})} ≤ C t^{k-1}
-  ‖p‖_{L̲²(B_ρ)}` of `Ā_{k-1}` from (3.27) and the exact scaling `‖q‖_{L̲²(B_{tρ})} = t^k ‖q‖_{L̲²(B_ρ)}`
-  of the homogeneous `q`.
+  sequences `u_m` (solutions in `B_{r_m}` with (3.52)), `φ_m ∈ A_{k-1}` (with `(iii')_{k-1}` for `w_m =
+  u_{m+1} - u_m`) and `p_m ∈ Ā_{k-1}` (with `(i)_{k-1}` for `φ_m` (`(i)_{k-1}` is available for `k = 1`
+  from `QSH.theorem_3_8_zero`; for `k ≥ 2` it is (3.47), not yet formalized), and `C₁ r₀^{-δ} ≤ 1/2`),
+  with one exponent `δ ∈ (0, 1)` for the three estimates, `v_n = u_n - ∑_{m<n} φ_m` satisfies `‖v_n -
+  q‖_{L̲²(B_{r_j})} ≤ C r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, and `‖v_{n+1} - v_n‖_{L̲²(B_{r_j})} ≤ C
+  2^{-(n-j)δ/2} r_j^{-δ} ‖q‖_{L̲²(B_{r_j})}` for `j ≤ n`, the summability used in Step 2. The book's
+  proof, with the growth `‖p‖_{L̲²(B_{tρ})} ≤ C t^{k-1} ‖p‖_{L̲²(B_ρ)}` of `Ā_{k-1}` from (3.27) and the
+  exact scaling `‖q‖_{L̲²(B_{tρ})} = t^k ‖q‖_{L̲²(B_ρ)}` of the homogeneous `q`.
 
 ## Section 3.3: (3.46) for homogeneous `q` and statement (ii)₁ (`Ch03/Sec03/`)
 
@@ -1578,7 +1577,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of `A_0` are constants almost everywhere), both from `QSH.theorem_3_8_zero`; `p = p(0) + ℓ` with the
   homogeneous part `ℓ` of degree one handled by (3.46) and the constant in `A_0 ⊆ A_1`. Departures: the
   scale is `X₀ ∨ X₅₂` rather than one scale for every `k`; `X` is real valued and the statement holds
-  for almost every coefficient field; `Λ > 1`.
+  for almost every coefficient field; `Λ > 1`; the constant `C` depends on `s`, as for `k = 0`.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
