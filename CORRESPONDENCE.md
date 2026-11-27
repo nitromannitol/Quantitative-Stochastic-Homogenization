@@ -1596,6 +1596,33 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   used (see the correspondence of (3.48)). Departures: as in Theorem 3.3, `X` is real valued, the
   estimate holds for almost every coefficient field and `Λ > 1`; the constants depend on `s`.
 
+## Section 3.3: statement (i)₁ (`Ch03/Sec03/Theorem38IOne.lean`)
+
+- Lean: `QSH.theorem_3_8_i_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`, `C`
+  and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such that,
+  for almost every coefficient field, every `u ∈ A_1` has some `p ∈ Ā_1` with
+  `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every `R ≥ X`. This is `(i)₁`, (3.47) for `k = 1`.
+- Proof: (3.47) for `k = 1` from (3.51) (`QSH.equation_3_50` for polynomials of degree two), `(i)₀`
+  (`QSH.theorem_3_8_zero`) and `(ii)₁` (`QSH.theorem_3_8_ii_one`). Steps 1–2 (`QSH.growth_core`,
+  `Ch03/Sec03/GrowthIteration.lean`): along `r_j = θ^{-j} r₀`, a bound `‖u‖_{L̲²(B_{r_j})} ≤ M r_j^β`
+  with `β ≤ 2` and (3.51), summed as in (3.56)–(3.57) (`QSH.flatness_le_of_growth`), give `p_j ∈ Ā_2`
+  with `‖u - p_j‖_{L̲²(B_{r_j})} ≤ K r_j^{β-δ}`; by (3.27), the parts of degree two of the `p_j` are at
+  most `K r_j^{β-δ-2}` on `B_1` (they tend to zero since `u ∈ A_1`, as in (3.58)), and the parts of
+  degree zero and one change from `j` to `j + 1` by at most `K r_j^{β-δ}` and `K r_j^{β-δ-1}`. Step 3
+  is organized differently: in place of the sums `ω(m)` of (3.61)–(3.70), the growth exponent is
+  lowered from `2` by `δ` finitely many times (`QSH.growth_step_large`, while `β - δ > 1`), with
+  `δ = 2/(2n+1) ≤ δ₀` so that `β - δ = 1` never occurs, and in the last step (`QSH.growth_step_final`,
+  `0 < β - δ < 1`) the parts of degree one form a Cauchy sequence whose limit `q(x) = v·x` satisfies
+  `‖u - q‖_{L̲²(B_{r_j})} ≤ M r_j^{β-δ}` (`QSH.exists_dot_growth`); the limit uses the equivalence of
+  norms on linear functions (`QSH.exists_norm_le_scalarRms_dot`, `Ch03/Sec03/LinearCoefficients.lean`).
+  This iteration is qualitative: the constant `C` of `(i)₁` comes from `(ii)₁` and (3.27) only.
+  Step 4 as in the book: `φ_q ∈ A_1` from `(ii)₁`, `u - φ_q ∈ A_0`, a constant `c` by `(i)₀`, and
+  `p = q + c` with `‖q‖_{L̲²(B_R)} ≤ C ‖p‖_{L̲²(B_R)}` by (3.27). Departures: the exponent `δ` is that
+  of `(ii)₁`; the scale is `X₀ ∨ X₂ ∨ X₅`, the scales of `(i)₀`, `(ii)₁` and (3.50); as in Theorem 3.3,
+  `X` is real valued, the estimate holds for almost every coefficient field and `Λ > 1`; the constants
+  depend on `s`. The qualitative description of `A_1` through the first-order correctors of
+  Section 3.4 is `QSH.firstOrderLiouville`.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
