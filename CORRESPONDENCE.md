@@ -1585,7 +1585,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Lean: `QSH.theorem_3_8_iii_prime_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`,
   `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such
   that, for almost every coefficient field, every `R ≥ X` and every solution `u` in `B_R`, some
-  `φ ∈ A_1` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`.
+  `φ ∈ A_1` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. This is
+  `(iii')₁`, (3.45) for `k = 1`; statement `(iii)₁` of Theorem 3.8, with the exponent `2` of (3.41),
+  follows from (3.49) and is not proved.
 - Proof: (3.48) for `k = 1` above the random scale (`QSH.implication_348_random`) with `(ii)₁`
   (`QSH.theorem_3_8_ii_one`); the exponent is `δ = min(δ₂, δ₀)` with `δ₂` that of `(ii)₁` and `δ₀` that
   of (3.50), which is why (3.50) and its combination with (3.48) are stated for every exponent below
