@@ -7,7 +7,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec02.HarmonicGrowth
 Armstrong–Kuusi–Mourrat, *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
 Section 3.3: "Theorem 3.3 is actually the base case" of Theorem 3.8. `solutionGrowthSpace a k` is the
 space `A_k` of (3.38) for one coefficient field. For `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`, with the
-random scale of Theorem 3.3 (`theorem_3_8_zero`):
+random scale of Theorem 3.3 and a constant depending on `s` (`theorem_3_8_zero`):
 
 * (i)₀ every `u ∈ A_0` agrees almost everywhere with a constant, an element of `Ā_0`, so (3.40)
   holds with any exponent;

@@ -1458,8 +1458,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `r ∈ [X, R]`, `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R) ‖u‖_{L̲²(B_R)}` with `φ = (u)_{B_X} ∈ A_0`. `A_k` of
   (3.38) is `QSH.solutionGrowthSpace a k` (solutions in `H¹(B_R)` for every `R` with
   `r^{-(k+1)} ‖u‖_{L̲²(B_r)} → 0`) and `Ā_0 = QSH.harmonicPolys ā 0`. Departures: the scale is that of
-  Theorem 3.3, not one scale for every `k`; as in Theorem 3.3, `X` is real valued, the statements
-  hold for almost every coefficient field and `Λ > 1`.
+  Theorem 3.3, not one scale for every `k`; the constant `C` of (iii)₀ depends on `s` (the book prints
+  `C(k, d, Λ)`, but its proof enlarges the constants by `H^{d/2}` with `H(s, k, d, Λ)`); as in
+  Theorem 3.3, `X` is real valued, the statements hold for almost every coefficient field and `Λ > 1`.
 - Proof: the book's base case. (iii)₀ is (3.17) with the averages on `B_X` and `B_r` compared as in
   the proof of (3.18) (`QSH.scalarRms_sub_setAverage_scale_le`); (i)₀ is (iii)₀ with `R → ∞`, which
   gives `‖u - (u)_{B_X}‖_{L̲²(B_r)} = 0` for every `r ≥ X`; (ii)₀ holds since `Ā_0` consists of
