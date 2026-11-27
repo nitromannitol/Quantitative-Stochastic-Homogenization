@@ -1392,7 +1392,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `‖u‖_{L̲²(B_r)} = o(r^{k+1})`) and identifies it with the `ā`-harmonic polynomials of degree at most
   `k` by (3.7); `lemma_3_6` uses that characterization. The identification is
   `Ch03/Sec02/HarmonicGrowth.lean`: `QSH.growthHarmonicSpace A k` is (3.23) (weakly `A`-harmonic in
-  `H¹(B_R)` for every `R`, with `r^{-(k+1)} ‖u‖_{L̲²(B_r)} → 0`); it contains `harmonicPolys A k`
+  `H¹(B_R)` for every `R`, with `r^{-(k+1)} ‖u‖_{L̲²(B_r)} → 0`; the norm is the normalized one, as
+  (3.7) requires); it contains `harmonicPolys A k`
   (`QSH.harmonicPolys_subset_growthHarmonicSpace`), and each of its elements agrees almost everywhere
   with an element of `harmonicPolys A k` (`QSH.exists_harmonicPoly_ae_of_growth`; the book's spaces
   are spaces of classes of functions). The proof of the second inclusion takes, after `x = M y`, the

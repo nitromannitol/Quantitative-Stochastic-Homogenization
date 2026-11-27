@@ -105,6 +105,28 @@ theorem exists_poly_comp_mulVec (N : Mat d) (P : MvPolynomial (Fin d) ℝ) :
       simp [Matrix.mulVec, dotProduct]
     rw [eval_bind₁', e]
 
+/-- A symmetric `A` with `1 ≤ A ≤ Λ` is `M Mᵀ` for an invertible `M`. -/
+theorem exists_mul_transpose_eq {A : Mat d} (hsym : A.transpose = A)
+    (hA : HomogenizedMatrixBounds A Λ) : ∃ M : Mat d, M.det ≠ 0 ∧ M * M.transpose = A := by
+  have hpos : ∀ ξ : Vec d, ξ ≠ 0 → 0 < dot ξ (A.mulVec ξ) := by
+    intro ξ hξ
+    have h1 := (hA ξ).1
+    have h2 : 0 < euclideanSq ξ := by
+      rcases (BaseExponent.euclideanSq_nonneg ξ).eq_or_lt with h0 | h0
+      · exfalso
+        apply hξ
+        funext i
+        have hsum : ∑ j, ξ j * ξ j = 0 := h0.symm
+        have := (Finset.sum_eq_zero_iff_of_nonneg (fun j _ => mul_self_nonneg (ξ j))).mp hsum i
+          (Finset.mem_univ i)
+        simpa using this
+      · exact h0
+    linarith
+  obtain ⟨M, hdet, hMM⟩ := exists_mul_transpose_eq_symmPart hpos
+  refine ⟨M, hdet, ?_⟩
+  rw [hMM, hsym, ← two_smul ℝ A, smul_smul]
+  norm_num
+
 /-- **(3.24) for `A`-harmonic functions on balls, every order**: for a symmetric `A` with
 `1 ≤ A ≤ Λ` and `h` `A`-harmonic in `B_ρ`, there is `q ∈ Ā_k` with
 `‖h - q‖_{L̲²(B_t)} ≤ C (t/ρ)^{k+1} ‖h‖_{L̲²(B_ρ)}` for `t ≤ ρ/(4√Λ)`, with `C(k, d, Λ)`. -/
@@ -121,24 +143,7 @@ theorem exists_harmonicPoly_scalarRms_ball_le (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) (k
   have hκ0 : 0 ≤ κ := by rw [hκ]; exact Real.sqrt_nonneg _
   refine ⟨C * Real.sqrt Λ ^ (k + 1) * κ, by positivity, ?_⟩
   intro A hsym hA ρ hρ h hh
-  have hpos : ∀ ξ : Vec d, ξ ≠ 0 → 0 < dot ξ (A.mulVec ξ) := by
-    intro ξ hξ
-    have h1 := (hA ξ).1
-    have h2 : 0 < euclideanSq ξ := by
-      rcases (BaseExponent.euclideanSq_nonneg ξ).eq_or_lt with h0 | h0
-      · exfalso
-        apply hξ
-        funext i
-        have hsum : ∑ j, ξ j * ξ j = 0 := h0.symm
-        have := (Finset.sum_eq_zero_iff_of_nonneg (fun j _ => mul_self_nonneg (ξ j))).mp hsum i
-          (Finset.mem_univ i)
-        simpa using this
-      · exact h0
-    linarith
-  obtain ⟨M, hdet, hMM⟩ := exists_mul_transpose_eq_symmPart hpos
-  have hMA : M * M.transpose = A := by
-    rw [hMM, hsym, ← two_smul ℝ A, smul_smul]
-    norm_num
+  obtain ⟨M, hdet, hMA⟩ := exists_mul_transpose_eq hsym hA
   have hA' : HomogenizedMatrixBounds (M * M.transpose) Λ := by rw [hMA]; exact hA
   have hsym' : (M * M.transpose).transpose = M * M.transpose := by rw [hMA]; exact hsym
   have hdet1 := one_le_abs_det hdet hA'

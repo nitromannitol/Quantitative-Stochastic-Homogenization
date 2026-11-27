@@ -169,28 +169,6 @@ theorem exists_poly_of_harmonic_growth (hd : 0 < d) (k : ℕ) {h : Vec d → ℝ
     exact hPn _ hb (by linarith [n.cast_nonneg (α := ℝ)]) x
       (by rw [← ball_zero_eq_pdeEuclideanBall hb]; exact hxm)
 
-/-- A symmetric `A` with `1 ≤ A ≤ Λ` is `M Mᵀ` for an invertible `M`. -/
-theorem exists_mul_transpose_eq {A : Mat d} (hsym : A.transpose = A)
-    (hA : HomogenizedMatrixBounds A Λ) : ∃ M : Mat d, M.det ≠ 0 ∧ M * M.transpose = A := by
-  have hpos : ∀ ξ : Vec d, ξ ≠ 0 → 0 < dot ξ (A.mulVec ξ) := by
-    intro ξ hξ
-    have h1 := (hA ξ).1
-    have h2 : 0 < euclideanSq ξ := by
-      rcases (BaseExponent.euclideanSq_nonneg ξ).eq_or_lt with h0 | h0
-      · exfalso
-        apply hξ
-        funext i
-        have hsum : ∑ j, ξ j * ξ j = 0 := h0.symm
-        have := (Finset.sum_eq_zero_iff_of_nonneg (fun j _ => mul_self_nonneg (ξ j))).mp hsum i
-          (Finset.mem_univ i)
-        simpa using this
-      · exact h0
-    linarith
-  obtain ⟨M, hdet, hMM⟩ := exists_mul_transpose_eq_symmPart hpos
-  refine ⟨M, hdet, ?_⟩
-  rw [hMM, hsym, ← two_smul ℝ A, smul_smul]
-  norm_num
-
 /-- **The elements of (3.23) are the `A`-harmonic polynomials of degree at most `k`**, up to
 almost everywhere equality. -/
 theorem exists_harmonicPoly_ae_of_growth (hd : 2 ≤ d) (hΛ : 1 ≤ Λ) (k : ℕ) {A : Mat d}
