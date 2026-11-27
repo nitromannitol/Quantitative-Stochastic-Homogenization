@@ -1415,6 +1415,15 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `Ch03/Sec02/TaylorHarmonic.lean`, from the symmetry of the derivatives of an analytic function and
   `∑ᵢ Dᵐ⁺²f(0)(x, …, x, eᵢ, eᵢ) = Dᵐ(Δf)(0)(x, …, x)`). The passage to `A` is the change of variables
   `x = M y`, `M Mᵀ = A` (`Ch03/Sec02/HarmonicPolynomials.lean`), as for `k = 1`.
+- (3.26)–(3.27): `QSH.equation_3_27` (`Ch03/Sec03/HomogeneousParts.lean`), for `p ∈ Ā_k`, every center
+  `y` and `r > 0`, with the Taylor parts `(π_{m,y} - π_{m-1,y}) p (x) = (1/m!) ∇^m p(y) (x - y)^{⊗m}`
+  written with `iteratedFDeriv`, and `C(k, d)`. The book derives the second inequality from (3.7) for
+  `ā`-harmonic polynomials; the proof here holds for every polynomial of degree at most `k`
+  (`QSH.scalarRms_homogeneousComponents_zero`): by homogeneity `Q(t v) = ∑_i t^i Q_i(v)`, each
+  homogeneous component is a combination of the dilates `Q(t_j ·)`, `t_j = (j + 1)/(k + 1)`, with the
+  coefficients of the inverse Vandermonde matrix, and `‖Q(t ·)‖_{L̲²(B_r)} ≤ t^{-d/2} ‖Q‖_{L̲²(B_r)}`.
+  The Taylor part of degree `m` at the origin is the homogeneous component of degree `m`
+  (`QSH.eval_homogeneousComponent_eq_iteratedFDeriv`); the center `y` is reached by translation.
 - Lemma 3.4: `QSH.lemma_3_4`: `α > 0` (the bound `α ≤ 1` of the book is not used), `K ≥ 1`, `X ≥ 1`,
   `R ≥ 2X`, `u ∈ L²(B_R)` with the approximation (3.21) for `r ∈ [X, R/2]`; then (3.22) for every
   `r ∈ [X, R]`. The proof is the book's improvement-of-flatness iteration along the radii
