@@ -1393,8 +1393,30 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   neighbouring `r_j` at the end), and the affine minimizers `p_j` of `E₁(r_j)` are replaced by the
   affine functions produced by the improvement step, whose slopes are controlled by the same
   step; the bookkeeping is the discrete lemma `QSH.discrete_flatness_iteration` and the geometric
-  bound `QSH.sum_rpow_neg_le`. Theorem 3.3 is not formalized; Proposition 3.2, on which it rests, is
-  `proposition_3_2` (Section 3.1).
+  bound `QSH.sum_rpow_neg_le`. The proof uses the approximation `w` only on `B_{r/2}`, and
+  `QSH.lemma_3_4_halfBall` is Lemma 3.4 with `w` an `A`-harmonic function in `B_{r/2}` (the hypothesis
+  of Lemma 3.6), which is what Proposition 3.2 provides; `QSH.lemma_3_4` follows from it.
+
+## Section 3.2: Theorem 3.3 (`Ch03/Sec02/Theorem33.lean`)
+
+- Lean: `QSH.theorem_3_3`, for `d ≥ 2` and `Λ > 1` (the hypotheses of Proposition 3.2; the book:
+  `Λ ≥ 1`). For `s ∈ (0, d)` there is `C > 0` such that, for every law satisfying (0.10)–(0.11), there is
+  a random variable `X_s ≥ 1` with `OsBound P X_s s C`, (3.15), such that, for almost every
+  coefficient field, every `R ≥ X_s`, every `u ∈ H¹(B_R)` with `a∇u` weakly divergence free in `B_R`
+  (`u` and its weak gradient in `L²(B_R)`) and every `r ∈ [X_s, R]`, (3.17) and (3.18) hold in the
+  normalized `L̲²` norms. Departures, as in Proposition 3.2: `X_s` is real valued and the estimates hold
+  for almost every coefficient field (the book's `X_s` takes values in `[1, ∞]`); `Λ > 1`.
+- Proof: the book's. Proposition 3.2 at every radius `r ∈ [X, R/2]` gives an `ā`-harmonic function in
+  `B_{r/2}` with (3.21) on `B_{r/2}` for `K = max(C, 1)` and the exponent `α(d - s)`, the input of
+  `lemma_3_4_halfBall` (the book states Lemma 3.4 with `w` harmonic in `B_r`, which Proposition 3.2
+  does not give; the proof of Lemma 3.4 needs only `B_{r/2}`); `ā` is symmetric with `1 ≤ ā ≤ Λ`
+  (`homogenizedMatrix_transpose`, `euclideanSq_le_dot_homogenizedMatrix`,
+  `homogenizedMatrix_dot_bounds`). `X_s = 2X`, `X` the random variable of Proposition 3.2, so that
+  `R ≥ X_s` gives `R ≥ 2X`. (3.18) is Step 3 of the book: the averages on `B_ρ` and `B_{2ρ}` differ by
+  at most `2^{d/2} ‖u - (u)_{B_{2ρ}}‖_{L̲²(B_{2ρ})}` (`abs_setAverage_ball_sub_le`), and (3.17) sums
+  these differences to `|(u)_{B_r} - (u)_{B_R}| ≤ 3 · 2^{d/2} C ‖u - (u)_{B_R}‖_{L̲²(B_R)}`
+  (`abs_setAverage_ball_sub_le_of_decay`, an induction on the number of doublings);
+  `scalarRms_ball_le_of_decay` concludes.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
