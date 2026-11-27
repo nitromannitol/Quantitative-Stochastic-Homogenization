@@ -357,4 +357,60 @@ theorem dirichletApproximation (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) :
     _ ≤ (CX + CA + 1) * E * ρ :=
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (by linarith) hE0) hρ0
 
+/-- **(3.52)**, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: above a random scale `X ≤ O_s(C)`, for almost
+every coefficient field, every `k`, every `r ≥ X` and every `q ∈ Ā_k`, there is a weak solution `u` of
+`-∇·(a∇u) = 0` in `B_r` (the solution of the Dirichlet problem in `B_r` with the values of `q`) with
+`‖u - q‖_{L̲²(B_r)} ≤ C_k r^{-γ} ‖q‖_{L̲²(B_r)}`, `γ = α(d - s)`. The exponent, the scale and the
+exceptional set do not depend on `k`. -/
+theorem equation_3_52 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s) (hsd : s < d) :
+    ∃ γ : ℝ, 0 < γ ∧ ∃ (C : ℕ → ℝ) (CX : ℝ), 0 < CX ∧ (∀ k, 0 ≤ C k) ∧
+      ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
+      ∃ X : CoefficientField d Λ → ℝ, OsBound P X s CX ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
+        ∀ (k : ℕ) (r : ℝ), X a ≤ r → ∀ q ∈ harmonicPolys (homogenizedMatrix P) k,
+          ∃ u, IsSolutionBall a r u ∧
+            scalarRms volume (ball 0 r) (fun x => u x - q x) ≤
+              C k * r ^ (-γ) * scalarRms volume (ball 0 r) q := by
+  obtain ⟨α, hα, hdir⟩ := dirichletApproximation hd hΛ
+  obtain ⟨CD, hCD, hD⟩ := hdir s hs hsd
+  have hds : 0 < (d : ℝ) - s := by linarith
+  choose C₂₇ hC₂₇ hgrow using fun k : ℕ => scalarRms_poly_growth (d := d) k
+  refine ⟨α * ((d : ℝ) - s), mul_pos hα hds, fun k => CD * (C₂₇ k * 2 ^ k), CD, hCD,
+    fun k => mul_nonneg hCD.le (mul_nonneg (hC₂₇ k) (by positivity)), fun P hP => ?_⟩
+  obtain ⟨X, hXos, hX1, hXae⟩ := hD P hP
+  refine ⟨X, hXos, hX1, ?_⟩
+  filter_upwards [hXae] with a ha
+  intro k r hXr q hq
+  have hr1 : 1 ≤ r := (hX1 a).trans hXr
+  have hr0 : 0 < r := by linarith
+  have h2r : 0 < 2 * r := by linarith
+  obtain ⟨⟨Q, hQ, hQe⟩, hqh⟩ := hq
+  obtain ⟨hqL2, gq, hgq, hqgrad, hqdiv⟩ := hqh (2 * r) h2r
+  obtain ⟨u, g, hu, hg, hug, hdiv, hb⟩ := ha (2 * r) (hXr.trans (by linarith)) q gq hqL2 hgq
+    hqgrad hqdiv
+  rw [show 2 * r / 2 = r by ring] at hu hg hug hdiv hb
+  refine ⟨u, ⟨hu, g, hg, hug, hdiv⟩, ?_⟩
+  have hneg : scalarRms volume (ball 0 r) (fun x => u x - q x) =
+      scalarRms volume (ball 0 r) (fun x => q x - u x) := by
+    have e : (fun x => u x - q x) = fun x => -1 * (q x - u x) := by funext x; ring
+    rw [e, scalarRms_const_mul, abs_neg, abs_one, one_mul]
+  rw [hneg]
+  have hosc : scalarRms volume (ball 0 (2 * r)) (fun x => q x - ⨍ y in ball 0 (2 * r), q y) ≤
+      scalarRms volume (ball 0 (2 * r)) q := by
+    refine (scalarRms_sub_setAverage_le_sub_const (volume_ball_ne_top' 0 _) hqL2 0).trans ?_
+    simp only [sub_zero, le_refl]
+  have hqP : q = fun x => MvPolynomial.eval x Q := funext hQe
+  have hg2 := hgrow k Q hQ r (2 * r) hr0 (by linarith)
+  rw [← hqP, show 2 * r / r = 2 by field_simp] at hg2
+  have hpow : (2 * r) ^ (-(α * ((d : ℝ) - s))) ≤ r ^ (-(α * ((d : ℝ) - s))) :=
+    Real.rpow_le_rpow_of_nonpos hr0 (by linarith) (by nlinarith)
+  have hq0 := scalarRms_nonneg (d := d) (ball 0 r) q
+  calc scalarRms volume (ball 0 r) (fun x => q x - u x)
+      ≤ CD * (2 * r) ^ (-(α * ((d : ℝ) - s))) *
+          scalarRms volume (ball 0 (2 * r)) (fun x => q x - ⨍ y in ball 0 (2 * r), q y) := hb
+    _ ≤ CD * r ^ (-(α * ((d : ℝ) - s))) * (C₂₇ k * 2 ^ k * scalarRms volume (ball 0 r) q) := by
+        refine mul_le_mul (mul_le_mul_of_nonneg_left hpow hCD.le) (hosc.trans hg2)
+          (scalarRms_nonneg _ _) (mul_nonneg hCD.le (Real.rpow_nonneg hr0.le _))
+    _ = CD * (C₂₇ k * 2 ^ k) * r ^ (-(α * ((d : ℝ) - s))) * scalarRms volume (ball 0 r) q := by
+        ring
+
 end QSH
