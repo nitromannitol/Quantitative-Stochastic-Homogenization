@@ -1601,8 +1601,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Lean: `QSH.theorem_3_8_i_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`, `C`
   and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such that,
   for almost every coefficient field, every `u ∈ A_1` has some `p ∈ Ā_1` with
-  `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every `R ≥ X`. This is `(i)₁`, (3.47) for `k = 1`.
-- Proof: (3.47) for `k = 1` from (3.51) (`QSH.equation_3_50` for polynomials of degree two), `(i)₀`
+  `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every `R ≥ X`. This is `(i)₁`, obtained by the implication (3.47) for `k = 1`.
+- Proof: the implication (3.47) for `k = 1`, from (3.51) (`QSH.equation_3_50` for polynomials of degree two), `(i)₀`
   (`QSH.theorem_3_8_zero`) and `(ii)₁` (`QSH.theorem_3_8_ii_one`). Steps 1–2 (`QSH.growth_core`,
   `Ch03/Sec03/GrowthIteration.lean`): along `r_j = θ^{-j} r₀`, a bound `‖u‖_{L̲²(B_{r_j})} ≤ M r_j^β`
   with `β ≤ 2` and (3.51), summed as in (3.56)–(3.57) (`QSH.flatness_le_of_growth`), give `p_j ∈ Ā_2`
@@ -1621,7 +1621,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of `(ii)₁`; the scale is `X₀ ∨ X₂ ∨ X₅`, the scales of `(i)₀`, `(ii)₁` and (3.50); as in Theorem 3.3,
   `X` is real valued, the estimate holds for almost every coefficient field and `Λ > 1`; the constants
   depend on `s`. The qualitative description of `A_1` through the first-order correctors of
-  Section 3.4 is `QSH.firstOrderLiouville`.
+  Section 3.4 is `QSH.firstOrderLiouville`; its space `HarmonicA1 a` and `solutionGrowthSpace a 1` are
+  two encodings of `A_1` that are not yet related in Lean.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 

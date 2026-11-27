@@ -590,7 +590,7 @@ theorem scalarRms_dot_ball (v : Vec d) {r : ℝ} (hr : 0 < r) :
     scalarRms volume (ball 0 r) (fun x => dot v x) =
       r * scalarRms volume (ball 0 1) (fun x => dot v x) := by
   have h := scalarRms_ball_homogeneous (q := fun x => dot v x)
-    (fun t _ x => dot_smul_right' v x t) (r := 1) hr
+    (fun t _ x => dot_smul_right_pow v x t) (r := 1) hr
   rwa [mul_one, pow_one] at h
 
 /-- The growth iteration when `0 < β - δ < 1`: a linear function `x ↦ v·x` with

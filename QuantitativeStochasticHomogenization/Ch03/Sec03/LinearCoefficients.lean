@@ -31,7 +31,7 @@ theorem eval_sum_C_mul_X (v x : Vec d) :
     MvPolynomial.eval x (∑ i, MvPolynomial.C (v i) * MvPolynomial.X i) = dot v x := by
   simp [dot]
 
-theorem dot_smul_right' (v x : Vec d) (t : ℝ) : dot v (t • x) = t ^ 1 * dot v x := by
+theorem dot_smul_right_pow (v x : Vec d) (t : ℝ) : dot v (t • x) = t ^ 1 * dot v x := by
   simp only [dot, Pi.smul_apply, smul_eq_mul, pow_one, Finset.mul_sum]
   exact Finset.sum_congr rfl fun i _ => by ring
 
