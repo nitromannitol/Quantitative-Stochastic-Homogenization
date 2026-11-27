@@ -1649,10 +1649,34 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `δ ∈ (0, 1/2]`, `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
   `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every solution `u` in
   `B_R`, some `φ ∈ A_2` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{3-δ/2} ‖u‖_{L̲²(B_R)}` for every
-  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved; nor is `(i)₂`, (3.47) for `k = 2`.
-- Proof: `QSH.iii_prime_of_ii`, the argument of `(iii')₁` for every `k`: (3.48) above the random scale
+  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved.
+- Proof: `QSH.iii_prime_of_ii` (`Ch03/Sec03/Theorem38IIIPrimeOne.lean`, which also derives `(iii')₁`
+  from it), the argument of `(iii')₁` for every `k`: (3.48) above the random scale
   (`QSH.implication_348_random`) with `(ii)_k` given as a hypothesis, the scale `X₂ ∨ X₃ ∨ H`; applied
   with `(ii)₂` (`QSH.theorem_3_8_ii_two`). Departures: as for `(iii')₁`.
+
+## Section 3.3: statement (i)₂ (`Ch03/Sec03/Theorem38ITwo.lean`)
+
+- Lean: `QSH.theorem_3_8_i_two`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `δ ∈ (0, 1/2]`, `C`
+  and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such that,
+  for almost every coefficient field, every `u ∈ A_2` has some `p ∈ Ā_2` with
+  `‖u - p‖_{L̲²(B_R)} ≤ C R^{-δ} ‖p‖_{L̲²(B_R)}` for every `R ≥ X`. This is `(i)₂`, obtained by the
+  implication (3.47) for `k = 2`.
+- Proof: `QSH.implication_347`, the implication (3.47) for every `k ≥ 1`, deterministic, applied with
+  (3.51) (`QSH.equation_3_50` for polynomials of degree three), `(ii)₂` (`QSH.theorem_3_8_ii_two`) and
+  `(i)₁` (`QSH.theorem_3_8_i_one`). Steps 1–3 are the growth iteration of `(i)₁` for every `k`
+  (`QSH.exists_homogeneous_growth`, `Ch03/Sec03/GrowthIterationHigher.lean`): polynomials of degree
+  `k + 1`, the growth exponent lowered from `k + 1` by `δ = 2/(2n+1)` while it stays above `k`, and a
+  last step in which the parts of degree `k` converge in the finite-dimensional space of homogeneous
+  `Ā`-harmonic polynomials of degree `k` (`QSH.homogeneousHarmonic`,
+  `QSH.exists_limit_homogeneousHarmonic`, equivalence of norms in finite dimension), to `q` with
+  `‖u - q‖_{L̲²(B_{r_j})} ≤ M r_j^σ`, `k - 1 < σ < k`; this is qualitative, as for `(i)₁`. Step 4 as in
+  the book: `φ_q ∈ A_k` from `(ii)_k`, `u - φ_q ∈ A_{k-1}`, `p̃ ∈ Ā_{k-1}` from `(i)_{k-1}`, and
+  `p = q + p̃` with `‖q‖ ≤ C ‖p‖` by (3.27) and `‖p̃‖ ≤ ‖p‖ + ‖q‖`; the exponent is `min(δ₁, δ₂)`, those
+  of `(i)_{k-1}` and `(ii)_k`. Departures: the scale is `X₁ ∨ X₂ ∨ X₅`, the scales of `(i)₁`, `(ii)₂`
+  and (3.50); as in Theorem 3.3, `X` is real valued, the estimate holds for almost every coefficient
+  field and `Λ > 1`; the constants depend on `s`. The case `k = 1` (`QSH.theorem_3_8_i_one`) keeps its
+  own proof (`Ch03/Sec03/GrowthIteration.lean`), with `(i)₀` in the form of `QSH.theorem_3_8_zero`.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 

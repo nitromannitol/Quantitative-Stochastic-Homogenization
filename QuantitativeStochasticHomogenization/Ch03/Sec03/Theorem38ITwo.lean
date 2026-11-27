@@ -33,7 +33,7 @@ theorem implication_347 {Λ : ℝ} {a : CoefficientField d Λ} {A : Mat d}
       harmonicFlatness A (k + 1) v (θ * r) ≤
         1 / 4 * θ ^ (((k + 1 : ℕ) : ℝ) + 1 - δ / 2) * harmonicFlatness A (k + 1) v r +
           C₅ * r ^ (-δ) * scalarRms volume (ball 0 r) v)
-    (hC₁ : 0 ≤ C₁) (hC₂ : 0 ≤ C₂) (hδ₁ : 0 < δ₁) (hδ₂ : 0 < δ₂) (hC27 : 0 ≤ C27)
+    (hC₁ : 0 ≤ C₁) (hC₂ : 0 ≤ C₂) (hδ₂ : 0 < δ₂)
     (h27 : ∀ Q : MvPolynomial (Fin d) ℝ, Q.totalDegree ≤ k → ∀ r : ℝ, 0 < r →
       scalarRms volume (ball 0 r)
           (fun x => MvPolynomial.eval x (MvPolynomial.homogeneousComponent k Q)) ≤
@@ -244,8 +244,8 @@ theorem theorem_3_8_i_two (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs
   have hX₅r : X₅ a ≤ r₀ := by rw [hr₀def]; exact le_max_right _ _
   have hr₀1 : 1 ≤ r₀ := (hX₅1 a).trans hX₅r
   obtain ⟨p, hp, hpb⟩ := implication_347 (k := 2) (n := n) (A := homogenizedMatrix P) (by norm_num)
-    hθ0 (by linarith) hC50.le hn1 hδ (hX₅1 a) hX₅r (fun r hr v hv => ha5 3 r hr v hv) hC₁ hC₂ hδ₁0
-    hδ₂0 hC27 h27'
+    hθ0 (by linarith) hC50.le hn1 hδ (hX₅1 a) hX₅r (fun r hr v hv => ha5 3 r hr v hv) hC₁ hC₂
+    hδ₂0 h27'
     (fun q hq => by
       obtain ⟨φ, hφ, hb⟩ := ha2 q hq
       exact ⟨φ, hφ, fun R hR => hb R (hX₂r.trans hR)⟩)

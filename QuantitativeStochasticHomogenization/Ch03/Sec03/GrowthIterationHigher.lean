@@ -50,7 +50,7 @@ theorem finiteDimensional_homogeneousHarmonic (A : Mat d) (k : ℕ) :
       (MvPolynomial.homogeneousSubmodule (Fin d) ℝ k).map (evalLinearMap (d := d)) := by
     rintro f ⟨-, P, hP, hfP⟩
     exact ⟨P, hP, funext fun x => (hfP x).symm⟩
-  haveI := (Submodule.fg_iff_finiteDimensional _).1 hfg
+  have := (Submodule.fg_iff_finiteDimensional _).1 hfg
   exact Submodule.finiteDimensional_of_le hle
 
 theorem homogeneousHarmonic_smul {A : Mat d} {k : ℕ} {f : Vec d → ℝ}
@@ -100,12 +100,12 @@ theorem eq_zero_of_mem_homogeneousHarmonic {A : Mat d} {k : ℕ} {f : Vec d → 
 /-- **Limits in `homogeneousHarmonic A k`**: a geometric Cauchy sequence for `‖·‖_{L̲²(B_1)}`
 converges, with the tail bound. -/
 theorem exists_limit_homogeneousHarmonic (A : Mat d) (k : ℕ) {q : ℕ → Vec d → ℝ}
-    (hq : ∀ m, q m ∈ homogeneousHarmonic A k) {B ρ : ℝ} (hρ0 : 0 ≤ ρ) (hρ1 : ρ < 1)
+    (hq : ∀ m, q m ∈ homogeneousHarmonic A k) {B ρ : ℝ} (hρ1 : ρ < 1)
     (hinc : ∀ m, scalarRms volume (ball 0 1) (fun x => q m x - q (m + 1) x) ≤ B * ρ ^ m) :
     ∃ C : ℝ, 0 ≤ C ∧ ∃ Q ∈ homogeneousHarmonic A k, ∀ m,
       scalarRms volume (ball 0 1) (fun x => q m x - Q x) ≤ C * (B * ρ ^ m / (1 - ρ)) := by
   classical
-  haveI := finiteDimensional_homogeneousHarmonic A k
+  have := finiteDimensional_homogeneousHarmonic A k
   set V := homogeneousHarmonic A k with hV
   set b := Module.finBasis ℝ V
   set μ := volume.restrict (ball (0 : Vec d) 1) with hμ
@@ -549,7 +549,7 @@ theorem drift_of_increments {θ r₀ K σ : ℝ} {P : ℕ → MvPolynomial (Fin 
 
 /-- `Σ_{i < n} r^i x_i ≤ (Σ_{i < n} (y_i + c_i)) r^σ` when `x_i ≤ y_i + c_i r^{σ-i}`, `n - 1 < σ`. -/
 theorem sum_pow_mul_le {r σ : ℝ} {n : ℕ} (hr : 1 ≤ r) (hσ : (n : ℝ) - 1 ≤ σ) {x y c : ℕ → ℝ}
-    (hy : ∀ i, 0 ≤ y i) (hc : ∀ i, 0 ≤ c i) (hx : ∀ i ∈ Finset.range n, x i ≤ y i + c i * r ^ (σ - i)) :
+    (hy : ∀ i, 0 ≤ y i) (hx : ∀ i ∈ Finset.range n, x i ≤ y i + c i * r ^ (σ - i)) :
     ∑ i ∈ Finset.range n, r ^ i * x i ≤ (∑ i ∈ Finset.range n, (y i + c i)) * r ^ σ := by
   have hr0 : 0 < r := by linarith
   rw [Finset.sum_mul]
@@ -616,7 +616,7 @@ theorem growth_step_large_k {Λ : ℝ} {a : CoefficientField d Λ} {A : Mat d} {
   have hlow : ∑ i ∈ Finset.range (k + 1), r ^ i * N i m ≤
       (∑ i ∈ Finset.range (k + 1), (N i 0 + max 0 (K / (θ ^ (-(σ - i)) - 1)))) * r ^ σ := by
     refine sum_pow_mul_le (hr1 m) (by push_cast; linarith) (fun i => by rw [hN]; exact scalarRms_nonneg _ _)
-      (fun i => le_max_left _ _) fun i hi => ?_
+      fun i hi => ?_
     have hik : (i : ℝ) < σ := by
       have : i ≤ k := Nat.lt_succ_iff.1 (Finset.mem_range.1 hi)
       have : (i : ℝ) ≤ k := by exact_mod_cast this
@@ -685,9 +685,8 @@ theorem growth_step_final_k {Λ : ℝ} {a : CoefficientField d Λ} {A : Mat d} {
     ⟨homogeneousComponent_mem_harmonicPolys (hP j).2.1 (hP j).1 (fun x => rfl) k,
       MvPolynomial.homogeneousComponent k (P j), MvPolynomial.homogeneousComponent_mem k (P j),
       fun x => rfl⟩
-  have hρ0 : 0 ≤ θ ^ ((k : ℝ) - σ) := Real.rpow_nonneg hθ0.le _
   have hρ1 : θ ^ ((k : ℝ) - σ) < 1 := Real.rpow_lt_one hθ0.le hθ1 (by linarith)
-  obtain ⟨Cl, hCl, q, hq, hql⟩ := exists_limit_homogeneousHarmonic A k hqV hρ0 hρ1
+  obtain ⟨Cl, hCl, q, hq, hql⟩ := exists_limit_homogeneousHarmonic A k hqV hρ1
     (B := K * r₀ ^ (σ - k)) (fun j => by
       have h := (hP j).2.2.2.2 k le_rfl
       rw [radius_rpow hθ0 hr₀, neg_sub] at h
@@ -750,7 +749,7 @@ theorem growth_step_final_k {Λ : ℝ} {a : CoefficientField d Λ} {A : Mat d} {
   have hlow : ∑ i ∈ Finset.range k, r ^ i * N i m ≤
       (∑ i ∈ Finset.range k, (N i 0 + max 0 (K / (θ ^ (-(σ - i)) - 1)))) * r ^ σ := by
     refine sum_pow_mul_le (hr1 m) (by linarith) (fun i => by rw [hN]; exact scalarRms_nonneg _ _)
-      (fun i => le_max_left _ _) fun i hi => ?_
+      fun i hi => ?_
     have hik : (i : ℝ) < σ := by
       have : i + 1 ≤ k := Finset.mem_range.1 hi
       have : (i : ℝ) + 1 ≤ k := by exact_mod_cast this
