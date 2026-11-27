@@ -117,4 +117,66 @@ theorem scalarRms_coord_le_vectorRms {U : Set (Vec d)} {G : Vec d → Vec d}
     exact Finset.single_le_sum (f := fun j => G x j * G x j) (fun j _ => mul_self_nonneg _)
       (Finset.mem_univ i)
 
+/-- The limit on one ball of a sequence with geometrically small increments in `L̲²`. -/
+theorem limit_on_ball {f : ℕ → Vec d → ℝ} {ρ c ε : ℝ} (hρ : 0 < ρ) (hc : 0 ≤ c) (hε0 : 0 ≤ ε)
+    (hε1 : ε < 1) (hf : ∀ n, MemLp (f n) 2 (volume.restrict (ball (0 : Vec d) ρ)))
+    (hinc : ∀ n, scalarRms volume (ball 0 ρ) (fun x => f (n + 1) x - f n x) ≤ c * ε ^ n) :
+    (∀ᵐ x ∂(volume.restrict (ball (0 : Vec d) ρ)), ∃ l, Tendsto (fun n => f n x) atTop (𝓝 l)) ∧
+      ∀ F : Vec d → ℝ, (∀ᵐ x ∂(volume.restrict (ball (0 : Vec d) ρ)),
+        Tendsto (fun n => f n x) atTop (𝓝 (F x))) →
+        MemLp F 2 (volume.restrict (ball (0 : Vec d) ρ)) ∧
+          Tendsto (fun n => eLpNorm (f n - F) 2 (volume.restrict (ball (0 : Vec d) ρ))) atTop (𝓝 0) := by
+  have : IsFiniteMeasure (volume.restrict (ball (0 : Vec d) ρ)) :=
+    isFiniteMeasure_restrict.mpr (volume_ball_ne_top' 0 ρ)
+  have hV : 0 < volume.real (ball (0 : Vec d) ρ) := by
+    rw [measureReal_def]
+    exact ENNReal.toReal_pos (volume_ball_ne_zero' 0 hρ) (volume_ball_ne_top' 0 ρ)
+  refine ae_limit_of_geometric hf (c := Real.sqrt (volume.real (ball (0 : Vec d) ρ)) * c)
+    (by positivity) hε0 hε1 fun n => ?_
+  rw [show f (n + 1) - f n = fun x => f (n + 1) x - f n x from rfl,
+    eLpNorm_eq_ofReal_sqrt_mul_scalarRms (f := fun x => f (n + 1) x - f n x) hV
+      ((hf (n + 1)).sub (hf n))]
+  refine ENNReal.ofReal_le_ofReal ?_
+  rw [mul_assoc]
+  exact mul_le_mul_of_nonneg_left (hinc n) (Real.sqrt_nonneg _)
+
+/-- The Caccioppoli inequality for the difference of two solutions with given gradients. -/
+theorem vectorRms_grad_sub_le {Λ : ℝ} (hΛ : 1 ≤ Λ) :
+    ∃ Cc : ℝ, 0 < Cc ∧ ∀ (a : CoefficientField d Λ) (r : ℝ), 0 < r →
+      ∀ (v w : Vec d → ℝ) (g h : Vec d → Vec d),
+      MemLp v 2 (volume.restrict (ball 0 r)) → MemLp w 2 (volume.restrict (ball 0 r)) →
+      (∀ i, MemLp (fun x => g x i) 2 (volume.restrict (ball 0 r))) →
+      (∀ i, MemLp (fun x => h x i) 2 (volume.restrict (ball 0 r))) →
+      HasWeakGradient (ball 0 r) v g → HasWeakGradient (ball 0 r) w h →
+      HasWeakDivergence (ball 0 r) (fun x => (a x).mulVec (g x)) (fun _ => 0) →
+      HasWeakDivergence (ball 0 r) (fun x => (a x).mulVec (h x)) (fun _ => 0) →
+      vectorRms volume (ball 0 (r / 2)) (fun x => g x - h x) ≤
+        Cc * (r⁻¹ * scalarRms volume (ball 0 r) (fun x => v x - w x)) := by
+  obtain ⟨C, hC, hcacc⟩ := interiorCaccioppoli (d := d) hΛ
+  refine ⟨C, hC, fun a r hr v w g h hv hw hg hh hvg hwh hdg hdh => ?_⟩
+  have hgrad : HasWeakGradient (ball 0 r) (fun x => v x - w x) (fun x => g x - h x) := by
+    have h1 := hasWeakGradient_add hvg (hwh.const_mul' (-1))
+    convert h1 using 1
+    · funext x; ring
+    · funext x; simp [sub_eq_add_neg]
+  have hdiv : HasWeakDivergence (ball 0 r) (fun x => (a x).mulVec (g x - h x) + (fun _ => (0 : Vec d)) x)
+      (fun x => -(fun _ => (0 : ℝ)) x) := by
+    have h1 := hasWeakDivergence_add hdg (hdh.const_smul' (-1))
+    convert h1 using 1
+    · funext x; rw [Matrix.mulVec_sub, add_zero]; simp [sub_eq_add_neg]
+    · funext x; simp
+  have hb := hcacc 0 r hr a (fun x => v x - w x) (fun x => g x - h x) (fun _ => 0) (fun _ => 0)
+    (hv.sub hw) (fun i => (hg i).sub (hh i)) hgrad MemLp.zero (fun _ => MemLp.zero) hdiv
+  rw [negativeSobolevOneNorm_zero_zero, add_zero] at hb
+  have hosc : scalarRms volume (ball 0 r) (fun x => (v x - w x) - ⨍ y in ball 0 r, (v y - w y)) ≤
+      scalarRms volume (ball 0 r) (fun x => v x - w x) := by
+    refine (scalarRms_sub_setAverage_le_sub_const (u := fun x => v x - w x)
+      (volume_ball_ne_top' 0 r) (hv.sub hw) 0).trans ?_
+    simp only [sub_zero, le_refl]
+  have hnn : 0 ≤ r⁻¹ * scalarRms volume (ball 0 r) (fun x => (v x - w x) - ⨍ y in ball 0 r, (v y - w y)) :=
+    mul_nonneg (inv_nonneg.2 hr.le) (scalarRms_nonneg _ _)
+  rw [← ENNReal.ofReal_mul hC.le, ENNReal.ofReal_le_ofReal_iff (mul_nonneg hC.le hnn)] at hb
+  exact hb.trans (mul_le_mul_of_nonneg_left
+    (mul_le_mul_of_nonneg_left hosc (inv_nonneg.2 hr.le)) hC.le)
+
 end QSH
