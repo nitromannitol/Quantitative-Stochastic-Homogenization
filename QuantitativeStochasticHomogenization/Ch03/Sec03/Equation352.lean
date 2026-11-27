@@ -6,7 +6,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec03.Equation350
 
 Armstrong–Kuusi–Mourrat, Section 3.3, Step 1 of the proof of (3.46): for `q ∈ Ā_k` the solution of the
 Dirichlet problem in `B_r` for the coefficient field `a` with the values of `q` is within
-`C r^{-δ} ‖q‖_{L̲²(B_r)}` of `q` in `L̲²(B_r)`, (3.52), by Theorem 2.18 after the dilation `x ↦ r x`,
+`C r^{-γ} ‖q‖_{L̲²(B_r)}`, `γ = α(d - s)`, of `q` in `L̲²(B_r)`, (3.52), by Theorem 2.18 after the dilation `x ↦ r x`,
 since `q` itself solves the homogenized Dirichlet problem. `dirichletApprox_of_bound` is the
 deterministic step, for one coefficient field and one radius, with the data gradient of `q` in
 `L^{2+δ}` by the Meyers estimate for the constant coefficient field `ā`.

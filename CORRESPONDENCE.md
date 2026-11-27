@@ -1530,8 +1530,9 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   gradient is the weak gradient of `q`, in `L^{2+δ}(B_r)` by the Meyers estimate for the constant
   coefficient field `ā` on `B_{2r}`, and `‖q‖_{L̲²(B_{2r})} ≤ C 2^k ‖q‖_{L̲²(B_r)}` by (3.27)
   (`QSH.scalarRms_poly_growth`). The heterogeneous Dirichlet problem is solved by
-  `QSH.exists_ballDirichlet_field` (`Ch03/Sec03/BallDirichletField.lean`). The exponent is that of
-  Proposition 3.2, `α(d - s)` (the book: `δ = α(d - s) ∧ 1/2`).
+  `QSH.exists_ballDirichlet_field` (`Ch03/Sec03/BallDirichletField.lean`). The exponent is `α(d - s)`
+  with `α` built as in Proposition 3.2 (in Lean a separate constant of `QSH.dirichletApproximation`);
+  the book has `δ = α(d - s) ∧ 1/2`, and the later steps can use the minimum of the two exponents.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
