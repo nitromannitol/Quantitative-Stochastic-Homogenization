@@ -21,21 +21,36 @@ variable {d : ℕ} {Λ : ℝ}
 
 set_option maxHeartbeats 400000 in
 /-- **(3.46) for homogeneous `q`**, deterministic. -/
-theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) (hΛ : 1 ≤ Λ) (a : CoefficientField d Λ)
-    (A : Mat d) {q : Vec d → ℝ} (hqA : q ∈ harmonicPolys A k)
-    (hq : ∀ t : ℝ, 0 < t → ∀ x, q (t • x) = t ^ k * q x)
-    {r₀ δ C₅₂ C₃ C₁ : ℝ} (hr₀ : 0 < r₀) (hδ0 : 0 < δ) (hδ1 : δ < 1) (hC₅₂ : 0 ≤ C₅₂)
-    (hC₃ : 0 ≤ C₃) (hC₁ : 0 ≤ C₁) (hsmall : C₁ * r₀ ^ (-δ) ≤ 1 / 2)
-    (H52 : ∀ r : ℝ, r₀ ≤ r → ∃ u, IsSolutionBall a r u ∧
-      scalarRms volume (ball 0 r) (fun x => u x - q x) ≤ C₅₂ * r ^ (-δ) * scalarRms volume (ball 0 r) q)
-    (Hiii : ∀ R : ℝ, r₀ ≤ R → ∀ w, IsSolutionBall a R w → ∃ φ ∈ solutionGrowthSpace a (k - 1),
-      ∀ r : ℝ, r₀ ≤ r → r ≤ R → scalarRms volume (ball 0 r) (fun x => w x - φ x) ≤
-        C₃ * (r / R) ^ ((k : ℝ) - δ / 2) * scalarRms volume (ball 0 R) w)
-    (Hi : ∀ φ ∈ solutionGrowthSpace a (k - 1), ∃ p ∈ harmonicPolys A (k - 1), ∀ R : ℝ, r₀ ≤ R →
-      scalarRms volume (ball 0 R) (fun x => φ x - p x) ≤ C₁ * R ^ (-δ) * scalarRms volume (ball 0 R) p) :
-    ∃ C : ℝ, 0 ≤ C ∧ ∃ u ∈ solutionGrowthSpace a k, ∀ j : ℕ,
-      scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => u x - q x) ≤
-        C * (2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q := by
+theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) {δ C₅₂ C₃ : ℝ} (hδ0 : 0 < δ)
+    (hδ1 : δ < 1) (hC₅₂ : 0 ≤ C₅₂) (hC₃ : 0 ≤ C₃) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (_ : 1 ≤ Λ) (a : CoefficientField d Λ) (A : Mat d) (q : Vec d → ℝ),
+      q ∈ harmonicPolys A k → (∀ t : ℝ, 0 < t → ∀ x, q (t • x) = t ^ k * q x) →
+      ∀ (r₀ C₁ : ℝ), 0 < r₀ → 0 ≤ C₁ → C₁ * r₀ ^ (-δ) ≤ 1 / 2 →
+      (∀ r : ℝ, r₀ ≤ r → ∃ u, IsSolutionBall a r u ∧
+        scalarRms volume (ball 0 r) (fun x => u x - q x) ≤
+          C₅₂ * r ^ (-δ) * scalarRms volume (ball 0 r) q) →
+      (∀ R : ℝ, r₀ ≤ R → ∀ w, IsSolutionBall a R w → ∃ φ ∈ solutionGrowthSpace a (k - 1),
+        ∀ r : ℝ, r₀ ≤ r → r ≤ R → scalarRms volume (ball 0 r) (fun x => w x - φ x) ≤
+          C₃ * (r / R) ^ ((k : ℝ) - δ / 2) * scalarRms volume (ball 0 R) w) →
+      (∀ φ ∈ solutionGrowthSpace a (k - 1), ∃ p ∈ harmonicPolys A (k - 1), ∀ R : ℝ, r₀ ≤ R →
+        scalarRms volume (ball 0 R) (fun x => φ x - p x) ≤
+          C₁ * R ^ (-δ) * scalarRms volume (ball 0 R) p) →
+      ∃ u ∈ solutionGrowthSpace a k, ∀ j : ℕ,
+        scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => u x - q x) ≤
+          C * (2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q := by
+  obtain ⟨C₂₇, hC₂₇, hgrow0⟩ := scalarRms_poly_growth (d := d) (k - 1)
+  obtain ⟨K₁, hK₁⟩ : ∃ K₁ : ℝ, K₁ = C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1) := ⟨_, rfl⟩
+  have hK₁0 : 0 ≤ K₁ := by rw [hK₁]; positivity
+  obtain ⟨K₅₃, hK₅₃⟩ : ∃ K : ℝ, K = C₅₂ + C₃ * K₁ / (1 - (2 : ℝ) ^ (-(δ / 2))) +
+      4 * C₂₇ * (1 + C₃) * K₁ / (1 - (2 : ℝ) ^ (δ - 1)) := ⟨_, rfl⟩
+  have hx2' : (2 : ℝ) ^ (δ - 1) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
+  have hε1 : (2 : ℝ) ^ (-(δ / 2)) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
+  have hK₅₃0 : 0 ≤ K₅₃ := by
+    rw [hK₅₃]
+    have h1 : 0 < 1 - (2 : ℝ) ^ (-(δ / 2)) := by linarith
+    have h2 : 0 < 1 - (2 : ℝ) ^ (δ - 1) := by linarith
+    positivity
+  refine ⟨K₅₃, hK₅₃0, fun hΛ a A q hqA hq r₀ C₁ hr₀ hC₁ hsmall H52 Hiii Hi => ?_⟩
   have hρ : ∀ m : ℕ, 0 < (2 : ℝ) ^ m * r₀ := fun m => by positivity
   have hr₀ρ : ∀ m : ℕ, r₀ ≤ (2 : ℝ) ^ m * r₀ := fun m => by
     have : (1 : ℝ) ≤ 2 ^ m := one_le_pow₀ (by norm_num)
@@ -51,7 +66,6 @@ theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) (hΛ : 1 ≤ Λ) (a
     ((hu (m + 1)).1.mono (hρmono m (m + 1) (Nat.le_succ m))).sub (hu m).1
   choose φ hφA hφ using fun m : ℕ => Hiii _ (hr₀ρ m) _ (hw m)
   choose p hpA hp using fun m : ℕ => Hi (φ m) (hφA m)
-  obtain ⟨C₂₇, hC₂₇, hgrow0⟩ := scalarRms_poly_growth (d := d) (k - 1)
   have hgrow : ∀ m (t ρ : ℝ), 0 < ρ → 1 ≤ t → scalarRms volume (ball 0 (t * ρ)) (p m) ≤
       C₂₇ * t ^ (k - 1) * scalarRms volume (ball 0 ρ) (p m) := fun m t ρ hρ0 ht => by
     obtain ⟨⟨P, hP, hPe⟩, -⟩ := hpA m
@@ -66,10 +80,7 @@ theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) (hΛ : 1 ≤ Λ) (a
     fun n => (hu n).1.sub (isSolutionBall_of_mem_solutionGrowthSpace
       (sum_mem_solutionGrowthSpace _ fun m _ => hφA m) (hρ n))
   choose hvL2 gv hgv hvgrad hvdiv using hvsol
-  obtain ⟨K₁, hK₁⟩ : ∃ K₁ : ℝ, K₁ = C₅₂ * (Real.sqrt (2 ^ d) * 2 ^ k + 1) := ⟨_, rfl⟩
-  have hK₁0 : 0 ≤ K₁ := by rw [hK₁]; positivity
   have hε0 : (0 : ℝ) ≤ (2 : ℝ) ^ (-(δ / 2)) := (Real.rpow_pos_of_pos two_pos _).le
-  have hε1 : (2 : ℝ) ^ (-(δ / 2)) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
   obtain ⟨ul, hul, hlim⟩ := solution_limit hΛ a hr₀ hε0 hε1
     (fun n x => u n x - ∑ m ∈ Finset.range n, φ m x) gv
     (fun n => ⟨hvL2 n, hgv n, hvgrad n, hvdiv n⟩)
@@ -88,14 +99,6 @@ theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) (hΛ : 1 ≤ Λ) (a
       refine h.trans (le_of_eq ?_)
       ring)
   -- the estimate for the limit
-  obtain ⟨K₅₃, hK₅₃⟩ : ∃ K : ℝ, K = C₅₂ + C₃ * K₁ / (1 - (2 : ℝ) ^ (-(δ / 2))) +
-      4 * C₂₇ * (1 + C₃) * K₁ / (1 - (2 : ℝ) ^ (δ - 1)) := ⟨_, rfl⟩
-  have hx2' : (2 : ℝ) ^ (δ - 1) < 1 := Real.rpow_lt_one_of_one_lt_of_neg one_lt_two (by linarith)
-  have hK₅₃0 : 0 ≤ K₅₃ := by
-    rw [hK₅₃]
-    have h1 : 0 < 1 - (2 : ℝ) ^ (-(δ / 2)) := by linarith
-    have h2 : 0 < 1 - (2 : ℝ) ^ (δ - 1) := by linarith
-    positivity
   have hest : ∀ j : ℕ, scalarRms volume (ball 0 (2 ^ j * r₀)) (fun x => ul x - q x) ≤
       K₅₃ * (2 ^ j * r₀) ^ (-δ) * scalarRms volume (ball 0 (2 ^ j * r₀)) q := by
     intro j
@@ -124,7 +127,7 @@ theorem implication_346_homogeneous {k : ℕ} (hk : 1 ≤ k) (hΛ : 1 ≤ Λ) (a
     filter_upwards [eventually_ge_atTop j] with n hn
     exact hle n hn
   -- the growth of the limit
-  refine ⟨K₅₃, hK₅₃0, ul, ⟨hul, ?_⟩, hest⟩
+  refine ⟨ul, ⟨hul, ?_⟩, hest⟩
   have hq1 : ∀ t : ℝ, 0 < t → scalarRms volume (ball 0 t) q =
       t ^ k * scalarRms volume (ball (0 : Vec d) 1) q := fun t ht => by
     have h := scalarRms_ball_homogeneous hq (r := 1) ht
