@@ -415,6 +415,7 @@ import QuantitativeStochasticHomogenization.Ch03.Sec02.HarmonicGrowth
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Theorem38Base
 import QuantitativeStochasticHomogenization.Ch03.Sec03.HomogeneousParts
 import QuantitativeStochasticHomogenization.Ch03.Sec03.Implication348
+import QuantitativeStochasticHomogenization.Ch03.Sec03.Equation350
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma52
 import QuantitativeStochasticHomogenization.Ch05.Sec01.Lemma510
 import QuantitativeStochasticHomogenization.Ch05.Sec04.FrozenFromSlope

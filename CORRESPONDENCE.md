@@ -1499,6 +1499,22 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   not depend on `r`, and the corrections of the scales below `r` are summed with their growth
   (`QSH.scalarRms_correction_le`) as in the last step of the book's proof.
 
+## Section 3.3: the estimate (3.50) (`Ch03/Sec03/Equation350.lean`)
+
+- Lean: `QSH.equation_3_50`, for `d ≥ 2`, `Λ > 1`, `s ∈ (0, d)` and `k ∈ ℕ`: there are
+  `δ = min(α(d - s), 1/2)` (as in (3.44)), `θ ∈ (0, 1/2)` and `C > 0` such that, for every law
+  satisfying (0.10)–(0.11), the random variable `X ≥ 1` of Proposition 3.2 (with `OsBound P X s C`)
+  gives, for almost every coefficient field and every solution `v` in `B_r`, `r ≥ X`,
+  `harmonicFlatness ā k v (θ r) ≤ ¼ θ^{k+1-δ/2} harmonicFlatness ā k v r + C r^{-δ} ‖v‖_{L̲²(B_r)}`:
+  the book's (3.50) multiplied by `(θ r)^k`. The proof is the book's: Proposition 3.2 at every radius
+  in `[X, r]` gives (3.28) with the exponent `α(d - s) ≥ δ`, and `QSH.lemma_3_6` for `k` and `δ`
+  concludes. The scale is that of Proposition 3.2 (the book: `r₀ = H ∨ X_s` with the scales of
+  Theorem 2.18 and Proposition 3.2); as there, the estimate holds for almost every coefficient field.
+- `QSH.implication_348_random` combines it with `QSH.implication_348`: for almost every coefficient
+  field, every `r₀ ≥ X` that satisfies the smallness conditions of (3.48) for the constants of (3.50)
+  and of `(ii)_k` (the book's `r₀ = H ∨ X_s`, `H` large) and at which `(ii)_k` holds gives `(iii')_k`
+  above `r₀`.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
