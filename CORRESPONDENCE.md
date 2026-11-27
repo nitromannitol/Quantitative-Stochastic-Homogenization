@@ -1364,7 +1364,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
 - Definition 4.5 is not formalized: `𝒴ₛ` is the maximum of the minimal scales of Theorem 3.8 (all
   `k`), Proposition 3.21 and Proposition 4.3, and Theorem 3.8 is proved only for `k = 1`.
 
-## Section 3.2: Lemmas 3.4 and 3.6 (`Ch03/Sec02/Lemma34.lean`)
+## Section 3.2: Lemmas 3.4 and 3.6 (`Ch03/Sec02/Lemma34.lean`, `Ch03/Sec02/Lemma36.lean`)
 
 - Setting: the balls are Euclidean balls centered at the origin, `‖·‖_{L̲²(U)}` is `scalarRms volume U`,
   `(u)_U` is `⨍ x in U, u x`, and "`w ∈ H¹(B_r)` is a weak solution of `-∇·(ā∇w) = 0` in `B_r`" is
@@ -1384,7 +1384,25 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `inf_ℓ ‖u - ℓ‖_{L̲²(B_{θr})} ≤ θ^{-d/2} ‖u - (u)_{B_r}‖_{L̲²(B_r)}`, and the book's choice
   `θ = (C_k 2^{2+d/2})^{-2/α}` needs `α > 0`). The proof is the book's, through the improvement step
   for a given affine function (`QSH.exists_affine_improvement`), with `θ ≤ (16 (C + 1) 2^{d/2})^{-2/α}`
-  and `θ < 1/(2√Λ)`. The cases `k ≥ 2` are not formalized (they need (3.7) for `k ≥ 2`).
+  and `θ < 1/(2√Λ)`.
+- Lemma 3.6, every `k`: `QSH.lemma_3_6` (`Ch03/Sec02/Lemma36.lean`), for `α > 0`, with
+  `harmonicFlatness A k u r = inf_{p ∈ Ā_k} ‖u - p‖_{L̲²(B_r)}` and `Ā_k = QSH.harmonicPolys A k`, the
+  functions `x ↦ P(x)` with `P` a polynomial of total degree at most `k` that are weakly `A`-harmonic
+  on every ball. The book defines `Ā_k` by (3.23) (the `ā`-harmonic functions on `ℝ^d` with
+  `‖u‖_{L̲²(B_r)} = o(r^{k+1})`) and identifies it with the `ā`-harmonic polynomials of degree at most
+  `k` by (3.7); the Lean definition is that characterization. The proof is the book's, with (3.24)
+  in the `L̲²` form `‖h - q‖_{L̲²(B_t)} ≤ C (t/ρ)^{k+1} ‖h‖_{L̲²(B_ρ)}` for `t ≤ ρ/(4√Λ)`
+  (`QSH.exists_harmonicPoly_scalarRms_ball_le`) applied to `w_r - p`, `p ∈ Ā_k`, and
+  `θ = min(1/(8√Λ), (4 (C + 1) 2^{k+1} 2^{d/2})^{-2/α})`. (3.24) is proved for the Laplacian on balls
+  (`QSH.TaylorHarmonic.harmonicTaylorBall`, `Ch03/Sec02/HarmonicTaylorBall.lean`) with the Taylor
+  polynomial of degree `k` at `0` of the smooth representative (Weyl's lemma of the elliptic
+  regularity library): Taylor's formula with Lagrange remainder along segments and the pointwise
+  derivative bounds `|Dᵐv(z)| ≤ (C m/r)ᵐ ‖u - (u)_{B_r(z)}‖` of the library ((3.7) for the Laplacian),
+  at the points of `B_{b/4}` after a translation; the Taylor polynomials of a harmonic function are
+  harmonic (Exercise 3.5, `QSH.TaylorHarmonic.laplacian_eval_taylorPoly`,
+  `Ch03/Sec02/TaylorHarmonic.lean`, from the symmetry of the derivatives of an analytic function and
+  `∑ᵢ Dᵐ⁺²f(0)(x, …, x, eᵢ, eᵢ) = Dᵐ(Δf)(0)(x, …, x)`). The passage to `A` is the change of variables
+  `x = M y`, `M Mᵀ = A` (`Ch03/Sec02/HarmonicPolynomials.lean`), as for `k = 1`.
 - Lemma 3.4: `QSH.lemma_3_4`: `α > 0` (the bound `α ≤ 1` of the book is not used), `K ≥ 1`, `X ≥ 1`,
   `R ≥ 2X`, `u ∈ L²(B_R)` with the approximation (3.21) for `r ∈ [X, R/2]`; then (3.22) for every
   `r ∈ [X, R]`. The proof is the book's improvement-of-flatness iteration along the radii

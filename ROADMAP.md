@@ -8,7 +8,7 @@ The numbered results below are those of the Springer edition of the book (Armstr
 
 A name in the second column is the one given in the heading of the result in the book. The statuses are `not started`, `in progress` (with the note `moving from einstein-relation-lean` when the work is being moved from that repository), `statement frozen` (the statement is registered in [FROZEN.md](FROZEN.md)), `proved` (for a definition: `defined`), with a pointer to [CORRESPONDENCE.md](CORRESPONDENCE.md) when the Lean statement differs from the book.
 
-The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 70 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.1 (Proposition 3.2), Section 3.2 (Theorem 3.3 and Lemma 3.4), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 8.1 (Lemma 8.1), Section 10.1 (Definition 10.2 and Proposition 10.3), Section 10.2 (Lemma 10.9), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 28 are in progress.
+The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas, 6 corollaries and 21 definitions. 71 of them are proved or defined, in Appendix A, Section 1.2 (Lemma 1.1), Section 1.3 (Definition 1.2 and Propositions 1.7–1.8), Section 1.4 (Propositions 1.10 and 1.12, Lemma 1.13 and Corollary 1.14), Section 2.1 (Lemmas 2.1, 2.2 and 2.7 and Theorem 2.4), Section 2.2 (Proposition 2.11, Lemmas 2.12, 2.13, 2.15 and 2.16 and Definition 2.14), Section 2.3 (Theorem 2.17), Section 3.1 (Proposition 3.2), Section 3.2 (Theorem 3.3 and Lemmas 3.4 and 3.6), Section 3.4 (Definitions 3.14 and 3.15, Lemma 3.16, Proposition 3.21 and Lemma 3.23), the opening of Chapter 4 (Theorem 4.1), Section 4.1 (Definition 4.2, Proposition 4.3 and Lemma 4.4), Section 4.2 (Definitions 4.7–4.9 and Propositions 4.10–4.12), Section 4.3 (Lemma 4.13), Section 4.4 (Lemma 4.21), Section 5.1 (Lemmas 5.2 and 5.10), Section 5.3 (Definition 5.23 and Lemma 5.24), Section 5.4 (Lemmas 5.27–5.30), Section 8.1 (Lemma 8.1), Section 10.1 (Definition 10.2 and Proposition 10.3), Section 10.2 (Lemma 10.9), Appendix C (Theorem C.1, Lemmas C.2 and C.4–C.6 and Corollary C.3), Appendix D (Lemmas D.3 and D.4) and Appendix E (Lemma E.6), and 27 are in progress.
 
 ## Moving from einstein-relation-lean
 
@@ -21,7 +21,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | --- | --- | --- | --- | --- |
 | 1 | Introduction and Qualitative Theory | 12 | 8 | 4 |
 | 2 | Convergence of the Subadditive Quantities | 12 | 11 | 1 |
-| 3 | Regularity on Large Scales | 23 | 8 | 3 |
+| 3 | Regularity on Large Scales | 23 | 9 | 2 |
 | 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
 | 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
 | 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
@@ -35,7 +35,7 @@ The book has **226 numbered results**: 38 theorems, 37 propositions, 124 lemmas,
 | Appendix C | The Meyers L^{2+δ} Estimate | 9 | 6 | 3 |
 | Appendix D | Sobolev Norms and Heat Flow | 5 | 2 | 3 |
 | Appendix E | Parabolic Green Functions | 7 | 1 | 0 |
-| | **Total** | **226** | **70** | **28** |
+| | **Total** | **226** | **71** | **27** |
 
 ## Front matter
 
@@ -122,7 +122,7 @@ No numbered result.
 | --- | --- | --- |
 | Theorem 3.3 | Quenched C^{0,1}-type estimate | proved, for `Λ > 1` (the hypothesis of Proposition 3.2), with (3.17)–(3.18) for almost every coefficient field and `X_s ≥ 1` real valued (`theorem_3_3`, module `Ch03/Sec02/Theorem33.lean`), from Proposition 3.2 and Lemma 3.4 with the approximations on half balls (`lemma_3_4_halfBall`); see CORRESPONDENCE.md |
 | Lemma 3.4 |  | proved, for every symmetric `A` with `1 ≤ A ≤ Λ` (in particular `ā`), with a constant depending only on `α, K, d, Λ` (`lemma_3_4`, module `Ch03/Sec02/Lemma34.lean`; the proof needs the approximations only on the half balls, `lemma_3_4_halfBall`), from the harmonic expansion on balls (`harmonicExpansionBall`); see CORRESPONDENCE.md |
-| Lemma 3.6 |  | in progress (the case `k = 1`, for `α > 0`, proved as `lemma_3_6_one`, module `Ch03/Sec02/Lemma34.lean`; the cases `k ≥ 2` need the `C^{k,1}` estimate (3.7) for `k ≥ 2`) |
+| Lemma 3.6 |  | proved, for every `k` and `α > 0`, with `Ā_k` the polynomials of degree at most `k` that are weakly `ā`-harmonic (`lemma_3_6`, module `Ch03/Sec02/Lemma36.lean`), from (3.24) at every order (`exists_harmonicPoly_scalarRms_ball_le`, module `Ch03/Sec02/HarmonicPolynomials.lean`), which rests on the pointwise derivative bounds for harmonic functions of the elliptic regularity library and the harmonicity of Taylor polynomials (Exercise 3.5, `laplacian_eval_taylorPoly`); the case `k = 1` is also `lemma_3_6_one`, module `Ch03/Sec02/Lemma34.lean`; see CORRESPONDENCE.md |
 
 ### 3.3 Higher-Order Regularity Theory and Liouville Theorems, module `Ch03/Sec03HigherOrderRegularityAndLiouville.lean`
 
