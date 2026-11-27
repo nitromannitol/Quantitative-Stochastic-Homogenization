@@ -1588,7 +1588,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   that, for almost every coefficient field, every `R ≥ X` and every solution `u` in `B_R`, some
   `φ ∈ A_1` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{2-δ/2} ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. This is
   `(iii')₁`, (3.45) for `k = 1`; statement `(iii)₁` of Theorem 3.8, with the exponent `2` of (3.41),
-  follows from (3.49) and is not proved.
+  is `QSH.theorem_3_8_iii_one`, from (3.49) (see below).
 - Proof: (3.48) for `k = 1` above the random scale (`QSH.implication_348_random`) with `(ii)₁`
   (`QSH.theorem_3_8_ii_one`); the exponent is `δ = min(δ₂, δ₀)` with `δ₂` that of `(ii)₁` and `δ₀` that
   of (3.50), which is why (3.50) and its combination with (3.48) are stated for every exponent below
@@ -1649,7 +1649,8 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `δ ∈ (0, 1/2]`, `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
   `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every solution `u` in
   `B_R`, some `φ ∈ A_2` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{3-δ/2} ‖u‖_{L̲²(B_R)}` for every
-  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved.
+  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved (by (3.49) it needs
+  `(i)₃`, `(ii)₃` and `(iii')₃`).
 - Proof: `QSH.iii_prime_of_ii` (`Ch03/Sec03/Theorem38IIIPrimeOne.lean`, which also derives `(iii')₁`
   from it), the argument of `(iii')₁` for every `k`: (3.48) above the random scale
   (`QSH.implication_348_random`) with `(ii)_k` given as a hypothesis, the scale `X₂ ∨ X₃ ∨ H`; applied
@@ -1677,6 +1678,24 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   and (3.50); as in Theorem 3.3, `X` is real valued, the estimate holds for almost every coefficient
   field and `Λ > 1`; the constants depend on `s`. The case `k = 1` (`QSH.theorem_3_8_i_one`) keeps its
   own proof (`Ch03/Sec03/GrowthIteration.lean`), with `(i)₀` in the form of `QSH.theorem_3_8_zero`.
+
+## Section 3.3: statement (iii)₁ (`Ch03/Sec03/Theorem38IIIOne.lean`)
+
+- Lean: `QSH.theorem_3_8_iii_one`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there is `C` and, for every
+  law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with `X ≤ O_s(C)` such that, for almost
+  every coefficient field, every `R ≥ X` and every solution `u` in `B_R`, some `φ ∈ A_1` satisfies
+  `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)² ‖u‖_{L̲²(B_R)}` for every `r ∈ [X, R]`. This is `(iii)₁`, (3.41) for
+  `k = 1`, obtained by the implication (3.49) for `k = 1`.
+- Proof: `QSH.implication_349`, the implication (3.49) for every `k`, deterministic, as in the book:
+  `ψ ∈ A_{k+1}` from `(iii')_{k+1}`, `p_ψ ∈ Ā_{k+1}` from `(i)_{k+1}`, `ψ̃ ∈ A_{k+1}` from `(ii)_{k+1}`
+  for the part `q` of degree `k + 1` of `p_ψ`, and `φ = ψ - ψ̃`; (3.75) is
+  `‖ψ̃‖_{L̲²(B_r)} ≤ (1 + C)(r/R)^{k+1} ‖q‖_{L̲²(B_R)}` with `‖q‖ ≤ C ‖p_ψ‖` by (3.27) and
+  `‖p_ψ‖_{L̲²(B_R)} ≤ 2 ‖ψ‖_{L̲²(B_R)}`, which uses the smallness `C R^{-δ} ≤ 1/2` of the constant of
+  `(i)_{k+1}` (a constant scale `H`, in place of the book's `R ≥ 2X_s`); `φ ∈ A_k` since
+  `‖φ‖_{L̲²(B_r)} = O(r^{k+1-δ}) + O(r^k)`. Applied with `(i)₂` (`QSH.theorem_3_8_i_two`), `(ii)₂`
+  (`QSH.theorem_3_8_ii_two`) and `(iii')₂` (`QSH.theorem_3_8_iii_prime_two`). Departures: the scale is
+  `X₁ ∨ X₂ ∨ X₃ ∨ H`; as in Theorem 3.3, `X` is real valued, the estimate holds for almost every
+  coefficient field and `Λ > 1`; the constant depends on `s`.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
