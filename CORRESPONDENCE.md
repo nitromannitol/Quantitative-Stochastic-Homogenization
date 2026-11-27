@@ -1713,8 +1713,10 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `k = 1, 2` (`QSH.theorem_3_8_i_one`, …, `QSH.theorem_3_8_iii_one`) are kept. Departures: the exponent
   `δ`, the constants and the random scale `X` depend on `k`, whereas Theorem 3.8 has one exponent
   `δ(s, d, Λ)` and one scale `X_s` for every `k` (with constants depending on `k`); as in Theorem 3.3,
-  `X` is real valued, the statements hold for almost every coefficient field and `Λ > 1`. The dimension
-  formula (3.42) is not proved.
+  `X` is real valued, the statements hold for almost every coefficient field and `Λ > 1`; the constants
+  depend on `s`, as for `k = 0, 1, 2`. For one `k`, the minimum of the three exponents and the maximum of
+  the three scales (`osBound_max`) serve all of (i)–(iii); what is missing is one scale for every `k`.
+  The dimension formula (3.42) is not proved.
 
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
