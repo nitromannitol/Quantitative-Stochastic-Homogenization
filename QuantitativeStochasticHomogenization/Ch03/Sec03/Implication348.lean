@@ -410,4 +410,207 @@ theorem scalarRms_correction_le {θ R r r₀ Cg ρ U : ℝ} {k m : ℕ} (hθ0 : 
           ρ ^ m * U := by ring
     _ = _ := by rw [hratio]
 
+/-- The main term of (3.48): `‖u_j‖_{L̲²(B_r)} ≤ θ^{-d/2} (r/(θR))^{k+γ} U` for
+`θ^{j+1} R < r ≤ θ^j R` and `‖u_j‖_{L̲²(B_{θ^j R})} ≤ (θ^k ρ)^j U`, `ρ = θ^γ`. -/
+theorem scalarRms_main_term_le {θ R r γ U : ℝ} {k j : ℕ} (hθ0 : 0 < θ) (hR0 : 0 < R)
+    (hr0 : 0 < r) (hγ0 : 0 < γ) (hU : 0 ≤ U) (hjspec : θ ^ (j + 1) * R < r) (hjup : r ≤ θ ^ j * R)
+    {uj : Vec d → ℝ} (hmem : MemLp uj 2 (volume.restrict (ball (0 : Vec d) (θ ^ j * R))))
+    (hb : scalarRms volume (ball 0 (θ ^ j * R)) uj ≤ (θ ^ k) ^ j * (θ ^ γ) ^ j * U) :
+    scalarRms volume (ball 0 r) uj ≤
+      Real.sqrt ((1 / θ) ^ d) * (r / (θ * R)) ^ ((k : ℝ) + γ) * U := by
+  have hT0 : 0 ≤ r / (θ * R) := by positivity
+  have hθjT : θ ^ j ≤ r / (θ * R) := by
+    rw [le_div_iff₀ (by positivity)]
+    rw [pow_succ] at hjspec
+    nlinarith
+  have h1 := scalarRms_ball_le hr0 hjup hmem
+  have hratio : θ ^ j * R / r ≤ 1 / θ := by
+    rw [div_le_div_iff₀ hr0 hθ0]
+    rw [pow_succ] at hjspec
+    nlinarith
+  have h2 : Real.sqrt ((θ ^ j * R / r) ^ d) ≤ Real.sqrt ((1 / θ) ^ d) :=
+    Real.sqrt_le_sqrt (pow_le_pow_left₀ (by positivity) hratio d)
+  have hsq : 0 ≤ Real.sqrt ((1 / θ) ^ d) := Real.sqrt_nonneg _
+  calc scalarRms volume (ball 0 r) uj
+      ≤ Real.sqrt ((θ ^ j * R / r) ^ d) * scalarRms volume (ball 0 (θ ^ j * R)) uj := h1
+    _ ≤ Real.sqrt ((1 / θ) ^ d) * ((θ ^ k) ^ j * (θ ^ γ) ^ j * U) :=
+        mul_le_mul h2 hb (scalarRms_nonneg _ _) hsq
+    _ ≤ Real.sqrt ((1 / θ) ^ d) * ((r / (θ * R)) ^ ((k : ℝ) + γ) * U) :=
+        mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right
+          (pow_mul_rpow_le_rpow hθ0 hT0 hγ0 k j hθjT) hU) hsq
+    _ = _ := by ring
+
+set_option maxHeartbeats 400000 in
+/-- **The implication (3.48)**, deterministic form: for one coefficient field `a`, the estimate
+(3.50) above the scale `r₀` and `(ii)_k` with `r₀` large give `(iii')_k`: every solution `u` in `B_R`,
+`R ≥ r₀`, has some `φ ∈ A_k` with `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{k+1-δ/2} ‖u‖_{L̲²(B_R)}` for every
+`r ∈ [r₀, R]`, with `C(θ, δ, k, d)`. -/
+theorem implication_348 (k : ℕ) :
+    ∃ Cg : ℝ, 0 ≤ Cg ∧ ∀ (a : CoefficientField d Λ) (A : Mat d) (r₀ θ δ C₅₀ C₂ : ℝ),
+      0 < r₀ → 0 < θ → θ < 1 → 0 < δ → δ ≤ 1 → 0 ≤ C₂ →
+      (∀ r : ℝ, r₀ ≤ r → ∀ v, IsSolutionBall a r v →
+        harmonicFlatness A k v (θ * r) ≤
+          1 / 4 * θ ^ ((k : ℝ) + 1 - δ / 2) * harmonicFlatness A k v r +
+            C₅₀ * r ^ (-δ) * scalarRms volume (ball 0 r) v) →
+      (∀ p ∈ harmonicPolys A k, ∃ φ ∈ solutionGrowthSpace a k, ∀ s : ℝ, r₀ ≤ s →
+        scalarRms volume (ball 0 s) (fun x => φ x - p x) ≤
+          C₂ * s ^ (-δ) * scalarRms volume (ball 0 s) p) →
+      C₅₀ * r₀ ^ (-δ) ≤ 1 / 8 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+      C₂ * r₀ ^ (-δ) * (Real.sqrt ((1 / θ) ^ d) + 1) ≤ 1 / 2 * θ ^ ((k : ℝ) + 1 - δ / 2) →
+      C₂ * r₀ ^ (-δ) ≤ 1 / 2 →
+      ∀ R : ℝ, r₀ ≤ R → ∀ u, IsSolutionBall a R u → ∃ φ ∈ solutionGrowthSpace a k,
+        ∀ r : ℝ, r₀ ≤ r → r ≤ R →
+          scalarRms volume (ball 0 r) (fun x => u x - φ x) ≤
+            (Real.sqrt ((1 / θ) ^ d) + Cg * (Real.sqrt ((1 / θ) ^ d) + 1) /
+              (1 - θ ^ (1 - δ / 2))) * θ ^ (-((k : ℝ) + 1 - δ / 2)) *
+              (r / R) ^ ((k : ℝ) + 1 - δ / 2) * scalarRms volume (ball 0 R) u := by
+  obtain ⟨Cg, hCg, hstep⟩ := exists_correction_step (d := d) (Λ := Λ) k
+  refine ⟨Cg, hCg, ?_⟩
+  intro a A r₀ θ δ C₅₀ C₂ hr₀ hθ0 hθ1 hδ hδ1 hC₂ H50 Hii hs50 hs2 hs2' R hR u hu
+  have hR0 : 0 < R := lt_of_lt_of_le hr₀ hR
+  have hstep' := hstep a A r₀ θ δ C₅₀ C₂ hr₀ hθ0 hθ1 hδ hδ1 hC₂ H50 Hii hs50 hs2 hs2'
+  obtain ⟨γ, hγ⟩ : ∃ γ : ℝ, γ = 1 - δ / 2 := ⟨_, rfl⟩
+  have hβγ : (k : ℝ) + 1 - δ / 2 = k + γ := by rw [hγ]; ring
+  rw [hβγ] at hstep' ⊢
+  rw [← hγ]
+  have hγ0 : 0 < γ := by rw [hγ]; linarith
+  obtain ⟨ρ, hρ⟩ : ∃ ρ : ℝ, ρ = θ ^ γ := ⟨_, rfl⟩
+  have hρ0 : 0 ≤ ρ := by rw [hρ]; exact (Real.rpow_pos_of_pos hθ0 γ).le
+  have hρ1 : ρ < 1 := by rw [hρ]; exact Real.rpow_lt_one hθ0.le hθ1 hγ0
+  have hq : θ ^ ((k : ℝ) + γ) = θ ^ k * ρ := by
+    rw [Real.rpow_add hθ0, Real.rpow_natCast, hρ]
+  have hex : ∃ n : ℕ, θ ^ (n + 1) * R < r₀ := by
+    obtain ⟨n, hn⟩ := exists_pow_lt_of_lt_one (div_pos hr₀ hR0) hθ1
+    refine ⟨n, ?_⟩
+    have : θ ^ (n + 1) ≤ θ ^ n := pow_le_pow_of_le_one hθ0.le hθ1.le (Nat.le_succ n)
+    rw [lt_div_iff₀ hR0] at hn
+    nlinarith [hR0]
+  classical
+  obtain ⟨N, hN⟩ : ∃ N, N = Nat.find hex := ⟨_, rfl⟩
+  have hNspec : θ ^ (N + 1) * R < r₀ := by rw [hN]; exact Nat.find_spec hex
+  have hNmin : ∀ m < N, r₀ ≤ θ ^ (m + 1) * R := fun m hm => by
+    rw [hN] at hm; exact not_lt.1 (Nat.find_min hex hm)
+  obtain ⟨Φ, hΦ, hb⟩ := exists_correction_iteration (a := a) (k := k)
+    (fun φ => φ ∈ solutionGrowthSpace a k ∧ ∀ t s : ℝ, r₀ ≤ t → t ≤ s →
+      scalarRms volume (ball 0 s) φ ≤ Cg * (s / t) ^ k * scalarRms volume (ball 0 t) φ)
+    (fun φ hφ => hφ.1) hθ0 hθ1.le hR0 (Real.rpow_pos_of_pos hθ0 _).le hu N
+    (fun j hj v hv => by
+      have h := hstep' (θ ^ j * R) (by rw [← mul_assoc, ← pow_succ']; exact hNmin j hj) v hv
+      rwa [← mul_assoc, ← pow_succ'] at h)
+  simp only [hq, mul_pow] at hb
+  have hU := scalarRms_nonneg (d := d) (ball 0 R) u
+  have hsolj : ∀ j ≤ N, ∀ t : ℝ, 0 < t → t ≤ R →
+      IsSolutionBall a t (fun x => u x - ∑ m ∈ Finset.range j, Φ m x) := fun j hj t ht htR =>
+    (hu.mono htR).sub (isSolutionBall_of_mem_solutionGrowthSpace (sum_mem_solutionGrowthSpace _
+      fun m hm => (hΦ m (by have := Finset.mem_range.1 hm; omega)).1) ht)
+  have hθle : ∀ i : ℕ, θ ^ i * R ≤ R := fun i => by
+    have : θ ^ i ≤ 1 := pow_le_one₀ hθ0.le hθ1.le
+    nlinarith
+  refine ⟨fun x => ∑ m ∈ Finset.range N, Φ m x,
+    sum_mem_solutionGrowthSpace _ fun m hm => (hΦ m (Finset.mem_range.1 hm)).1, ?_⟩
+  intro r hr₀r hrR
+  have hr0 : 0 < r := lt_of_lt_of_le hr₀ hr₀r
+  have hexj : ∃ j : ℕ, θ ^ (j + 1) * R < r := ⟨N, lt_of_lt_of_le hNspec hr₀r⟩
+  obtain ⟨j, hj⟩ : ∃ j, j = Nat.find hexj := ⟨_, rfl⟩
+  have hjspec : θ ^ (j + 1) * R < r := by rw [hj]; exact Nat.find_spec hexj
+  have hjN : j ≤ N := by rw [hj]; exact Nat.find_min' hexj (lt_of_lt_of_le hNspec hr₀r)
+  have hjup : r ≤ θ ^ j * R := by
+    rcases Nat.eq_zero_or_pos j with h0 | hpos
+    · rw [h0, pow_zero, one_mul]; exact hrR
+    · have h := Nat.find_min hexj (show j - 1 < Nat.find hexj by rw [← hj]; omega)
+      rw [not_lt, show j - 1 + 1 = j by omega] at h
+      exact h
+  obtain ⟨T, hT⟩ : ∃ T : ℝ, T = r / (θ * R) := ⟨_, rfl⟩
+  have hT0 : 0 ≤ T := by rw [hT]; positivity
+  have hsq : 0 ≤ Real.sqrt ((1 / θ) ^ d) := Real.sqrt_nonneg _
+  have hmain := scalarRms_main_term_le (k := k) hθ0 hR0 hr0 hγ0 hU hjspec hjup
+    (hsolj j hjN _ (by positivity) (hθle j)).1 (by rw [← hρ]; exact hb j hjN)
+  rw [← hT] at hmain
+  have htail : ∀ m ∈ Finset.Ico j N, scalarRms volume (ball 0 r) (Φ m) ≤
+      Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * ρ ^ m * scalarRms volume (ball 0 R) u := by
+    intro m hm
+    obtain ⟨hjm, hmN⟩ := Finset.mem_Ico.1 hm
+    have ht1 : r₀ ≤ θ ^ (m + 1) * R := hNmin m hmN
+    have ht2 : θ ^ (m + 1) * R ≤ r := by
+      have : θ ^ (m + 1) ≤ θ ^ (j + 1) := pow_le_pow_of_le_one hθ0.le hθ1.le (by omega)
+      nlinarith
+    rw [hT]
+    refine scalarRms_correction_le hθ0 hθ1 hR0 hr₀ hCg hρ0 hρ1.le hU
+      (um := fun x => u x - ∑ i ∈ Finset.range m, Φ i x)
+      (um1 := fun x => u x - ∑ i ∈ Finset.range (m + 1), Φ i x)
+      (by funext x; rw [Finset.sum_range_succ]; ring)
+      (hsolj m (by omega) _ (by positivity) (hθle m)).1
+      (hsolj (m + 1) (by omega) _ (by positivity) (hθle (m + 1))).1
+      (hb m (by omega)) (hb (m + 1) (by omega)) (hΦ m hmN).2 ht1 ht2
+  have hmemr : ∀ m, MemLp (if m < N then Φ m else fun _ => (0 : ℝ)) 2
+      (volume.restrict (ball (0 : Vec d) r)) := fun m => by
+    by_cases h : m < N
+    · simp only [h, if_true]; exact ((hΦ m h).1.1 r hr0).1
+    · simp only [h, if_false]; exact MemLp.zero
+  have hS := scalarRms_finset_sum_le (Finset.Ico j N) hmemr (fun _ => (1 : ℝ))
+  have e1 : (fun x => ∑ m ∈ Finset.Ico j N, (1 : ℝ) * (if m < N then Φ m else fun _ => 0) x) =
+      fun x => ∑ m ∈ Finset.Ico j N, Φ m x := by
+    funext x
+    refine Finset.sum_congr rfl fun m hm => ?_
+    simp only [(Finset.mem_Ico.1 hm).2, if_true, one_mul]
+  have e2 : ∀ m ∈ Finset.Ico j N, |(1 : ℝ)| * scalarRms volume (ball 0 r)
+      (if m < N then Φ m else fun _ => 0) = scalarRms volume (ball 0 r) (Φ m) := fun m hm => by
+    simp only [abs_one, one_mul, (Finset.mem_Ico.1 hm).2, if_true]
+  rw [e1, Finset.sum_congr rfl e2] at hS
+  have hsumb : scalarRms volume (ball 0 r) (fun x => ∑ m ∈ Finset.Ico j N, Φ m x) ≤
+      Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * (ρ ^ j / (1 - ρ)) *
+        scalarRms volume (ball 0 R) u := by
+    calc _ ≤ ∑ m ∈ Finset.Ico j N, scalarRms volume (ball 0 r) (Φ m) := hS
+      _ ≤ ∑ m ∈ Finset.Ico j N, Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * ρ ^ m *
+            scalarRms volume (ball 0 R) u := Finset.sum_le_sum htail
+      _ = Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * (∑ m ∈ Finset.Ico j N, ρ ^ m) *
+            scalarRms volume (ball 0 R) u := by
+          rw [Finset.mul_sum, Finset.sum_mul]
+      _ ≤ _ := mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
+          (geom_sum_Ico_le_of_lt_one hρ0 hρ1) (by positivity)) hU
+  have hθjT : θ ^ j ≤ T := by
+    rw [hT, le_div_iff₀ (by positivity)]
+    rw [pow_succ] at hjspec
+    nlinarith
+  have hρj : T ^ k * ρ ^ j ≤ T ^ ((k : ℝ) + γ) := by
+    have e : ρ ^ j = (θ ^ j) ^ γ := by
+      rw [hρ, ← Real.rpow_natCast (θ ^ γ) j, ← Real.rpow_mul hθ0.le, ← Real.rpow_natCast θ j,
+        ← Real.rpow_mul hθ0.le, mul_comm γ]
+    rw [e, Real.rpow_add' hT0 (add_pos_of_nonneg_of_pos (Nat.cast_nonneg k) hγ0).ne',
+      Real.rpow_natCast]
+    exact mul_le_mul_of_nonneg_left (Real.rpow_le_rpow (by positivity) hθjT hγ0.le)
+      (pow_nonneg hT0 k)
+  have hTβ : T ^ ((k : ℝ) + γ) = θ ^ (-((k : ℝ) + γ)) * (r / R) ^ ((k : ℝ) + γ) := by
+    rw [hT, show r / (θ * R) = (r / R) / θ by field_simp, Real.div_rpow (by positivity) hθ0.le,
+      Real.rpow_neg hθ0.le]
+    ring
+  have h1ρ : 0 < 1 - ρ := by linarith
+  have hsplit : (fun x => u x - ∑ m ∈ Finset.range N, Φ m x) =
+      fun x => (u x - ∑ m ∈ Finset.range j, Φ m x) - ∑ m ∈ Finset.Ico j N, Φ m x := by
+    funext x
+    rw [← Finset.sum_range_add_sum_Ico _ hjN]
+    ring
+  have hmemj := (hsolj j hjN r hr0 hrR).1
+  have hmemsum : MemLp (fun x => ∑ m ∈ Finset.Ico j N, Φ m x) 2
+      (volume.restrict (ball (0 : Vec d) r)) :=
+    (isSolutionBall_of_mem_solutionGrowthSpace (sum_mem_solutionGrowthSpace _
+      fun m hm => (hΦ m (Finset.mem_Ico.1 hm).2).1) hr0).1
+  rw [hsplit, ← hρ]
+  have hCgs : 0 ≤ Cg * (Real.sqrt ((1 / θ) ^ d) + 1) := by positivity
+  calc scalarRms volume (ball 0 r) (fun x => (u x - ∑ m ∈ Finset.range j, Φ m x) -
+        ∑ m ∈ Finset.Ico j N, Φ m x)
+      ≤ Real.sqrt ((1 / θ) ^ d) * T ^ ((k : ℝ) + γ) * scalarRms volume (ball 0 R) u +
+          Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * T ^ k * (ρ ^ j / (1 - ρ)) *
+            scalarRms volume (ball 0 R) u :=
+        (scalarRms_sub_le hmemj hmemsum).trans (add_le_add hmain hsumb)
+    _ ≤ Real.sqrt ((1 / θ) ^ d) * T ^ ((k : ℝ) + γ) * scalarRms volume (ball 0 R) u +
+          Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * (T ^ ((k : ℝ) + γ) / (1 - ρ)) *
+            scalarRms volume (ball 0 R) u := by
+        refine add_le_add le_rfl (mul_le_mul_of_nonneg_right ?_ hU)
+        rw [mul_assoc (Cg * _), mul_div_assoc']
+        exact mul_le_mul_of_nonneg_left (div_le_div_of_nonneg_right hρj h1ρ.le) hCgs
+    _ = _ := by
+        rw [hTβ]
+        field_simp
+
 end QSH
