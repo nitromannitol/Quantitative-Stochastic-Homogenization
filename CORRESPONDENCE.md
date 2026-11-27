@@ -1448,6 +1448,23 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   (`abs_setAverage_ball_sub_le_of_decay`, an induction on the number of doublings);
   `scalarRms_ball_le_of_decay` concludes.
 
+## Section 3.3: Theorem 3.8 for `k = 0` (`Ch03/Sec03/Theorem38Base.lean`)
+
+- Lean: `QSH.theorem_3_8_zero`, for `d ≥ 2` and `Λ > 1` (the hypotheses of Theorem 3.3). For
+  `s ∈ (0, d)` there is `C > 0` such that, for every law satisfying (0.10)–(0.11), there is a random
+  variable `X ≥ 1` with `OsBound P X s C` such that, for almost every coefficient field `a`:
+  (i)₀ every `u ∈ A_0` agrees almost everywhere with an element of `Ā_0` (a constant), which gives
+  (3.40) for every exponent; (ii)₀ `Ā_0 ⊆ A_0`; (iii)₀ for `R ≥ X`, a solution `u ∈ H¹(B_R)` and
+  `r ∈ [X, R]`, `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R) ‖u‖_{L̲²(B_R)}` with `φ = (u)_{B_X} ∈ A_0`. `A_k` of
+  (3.38) is `QSH.solutionGrowthSpace a k` (solutions in `H¹(B_R)` for every `R` with
+  `r^{-(k+1)} ‖u‖_{L̲²(B_r)} → 0`) and `Ā_0 = QSH.harmonicPolys ā 0`. Departures: the scale is that of
+  Theorem 3.3, not one scale for every `k`; as in Theorem 3.3, `X` is real valued, the statements
+  hold for almost every coefficient field and `Λ > 1`.
+- Proof: the book's base case. (iii)₀ is (3.17) with the averages on `B_X` and `B_r` compared as in
+  the proof of (3.18) (`QSH.scalarRms_sub_setAverage_scale_le`); (i)₀ is (iii)₀ with `R → ∞`, which
+  gives `‖u - (u)_{B_X}‖_{L̲²(B_r)} = 0` for every `r ≥ X`; (ii)₀ holds since `Ā_0` consists of
+  constants.
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
