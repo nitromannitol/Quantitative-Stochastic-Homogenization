@@ -19,7 +19,8 @@ The proof is the book's: (3.17) is Lemma 3.4 with the harmonic approximation of 
 only), with `X_s = 2X` for the random variable `X` of Proposition 3.2; (3.18) follows from (3.17)
 by comparing the averages of `u` on the balls `B_ρ` and `B_{2ρ}` (`abs_setAverage_ball_sub_le`,
 `abs_setAverage_ball_sub_le_of_decay`). As in Proposition 3.2, the statement holds for almost
-every coefficient field, `X_s` is real valued, and `u ∈ H¹(B_R)` is given with its weak gradient.
+every coefficient field, `X_s` is real valued (the book: values in `[1, ∞]`), `Λ > 1` (the
+hypothesis of Proposition 3.2), and `u ∈ H¹(B_R)` is given with its weak gradient.
 -/
 
 open MeasureTheory Filter Set
@@ -196,8 +197,9 @@ for every `r ∈ [X_s, R]` the estimates (3.17)
 `‖u‖_{L̲²(B_r)} ≤ C ‖u‖_{L̲²(B_R)}`.
 
 Departures from the book, as in Proposition 3.2: the estimates hold for almost every coefficient
-field (the book's `X_s` takes the value `∞` on the exceptional set); `X_s` is real valued; the
-solution `u ∈ H¹(B_R)` is given with its weak gradient `g` (`u, g ∈ L²(B_R)`). -/
+field (the book's `X_s` takes the value `∞` on the exceptional set); `X_s` is real valued; `Λ > 1`,
+the hypothesis of Proposition 3.2; the solution `u ∈ H¹(B_R)` is given with its weak gradient `g`
+(`u, g ∈ L²(B_R)`). -/
 theorem theorem_3_3 (hd : 2 ≤ d) {Λ : ℝ} (hΛ : 1 < Λ) {s : ℝ} (hs : 0 < s) (hsd : s < d) :
     ∃ C : ℝ, 0 < C ∧ ∀ P : Measure (CoefficientField d Λ), LawHypotheses P →
       ∃ X : CoefficientField d Λ → ℝ, OsBound P X s C ∧ (∀ a, 1 ≤ X a) ∧ ∀ᵐ a ∂P,
