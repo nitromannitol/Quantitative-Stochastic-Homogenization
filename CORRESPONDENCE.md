@@ -1649,7 +1649,7 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   `δ ∈ (0, 1/2]`, `C` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
   `X ≤ O_s(C)` such that, for almost every coefficient field, every `R ≥ X` and every solution `u` in
   `B_R`, some `φ ∈ A_2` satisfies `‖u - φ‖_{L̲²(B_r)} ≤ C (r/R)^{3-δ/2} ‖u‖_{L̲²(B_R)}` for every
-  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved.
+  `r ∈ [X, R]`. This is `(iii')₂`, (3.45) for `k = 2`; `(iii)₂` is not proved; nor is `(i)₂`, (3.47) for `k = 2`.
 - Proof: `QSH.iii_prime_of_ii`, the argument of `(iii')₁` for every `k`: (3.48) above the random scale
   (`QSH.implication_348_random`) with `(ii)_k` given as a hypothesis, the scale `X₂ ∨ X₃ ∨ H`; applied
   with `(ii)₂` (`QSH.theorem_3_8_ii_two`). Departures: as for `(iii')₁`.
