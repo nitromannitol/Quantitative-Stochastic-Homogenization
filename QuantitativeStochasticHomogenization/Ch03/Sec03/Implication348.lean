@@ -350,4 +350,64 @@ theorem exists_correction_step (k : ℕ) :
         exact add_le_add le_rfl (mul_le_mul_of_nonneg_right hs2 hv0)
     _ = θ ^ β * scalarRms volume (ball 0 r) v := by ring
 
+theorem pow_mul_rpow_le_rpow {θ T γ : ℝ} (hθ0 : 0 < θ) (hT0 : 0 ≤ T) (hγ0 : 0 < γ) (k i : ℕ)
+    (hi : θ ^ i ≤ T) : (θ ^ k) ^ i * (θ ^ γ) ^ i ≤ T ^ ((k : ℝ) + γ) := by
+  have e : (θ ^ k) ^ i * (θ ^ γ) ^ i = (θ ^ i) ^ k * (θ ^ i) ^ γ := by
+    rw [← pow_mul, mul_comm k i, pow_mul, ← Real.rpow_natCast (θ ^ γ) i,
+      ← Real.rpow_mul hθ0.le, ← Real.rpow_natCast θ i, ← Real.rpow_mul hθ0.le, mul_comm γ]
+  rw [e, Real.rpow_add' hT0 (add_pos_of_nonneg_of_pos (Nat.cast_nonneg k) hγ0).ne',
+    Real.rpow_natCast]
+  exact mul_le_mul (pow_le_pow_left₀ (by positivity) hi k)
+    (Real.rpow_le_rpow (by positivity) hi hγ0.le) (by positivity) (pow_nonneg hT0 k)
+
+/-- The bound of one correction `φ_m = u_m - u_{m+1}` of (3.48) on `B_r`, `r ≥ θ^{m+1} R`. -/
+theorem scalarRms_correction_le {θ R r r₀ Cg ρ U : ℝ} {k m : ℕ} (hθ0 : 0 < θ) (hθ1 : θ < 1)
+    (hR0 : 0 < R) (hr₀ : 0 < r₀) (hCg : 0 ≤ Cg) (hρ0 : 0 ≤ ρ) (hρ1 : ρ ≤ 1) (hU : 0 ≤ U)
+    {um um1 φ : Vec d → ℝ} (eφ : φ = fun x => um x - um1 x)
+    (hmem_m : MemLp um 2 (volume.restrict (ball (0 : Vec d) (θ ^ m * R))))
+    (hmem_m1 : MemLp um1 2 (volume.restrict (ball (0 : Vec d) (θ ^ (m + 1) * R))))
+    (hm1 : scalarRms volume (ball 0 (θ ^ m * R)) um ≤ (θ ^ k) ^ m * ρ ^ m * U)
+    (hm2 : scalarRms volume (ball 0 (θ ^ (m + 1) * R)) um1 ≤
+      (θ ^ k) ^ (m + 1) * ρ ^ (m + 1) * U)
+    (hg : ∀ t s : ℝ, r₀ ≤ t → t ≤ s →
+      scalarRms volume (ball 0 s) φ ≤ Cg * (s / t) ^ k * scalarRms volume (ball 0 t) φ)
+    (ht1 : r₀ ≤ θ ^ (m + 1) * R) (ht2 : θ ^ (m + 1) * R ≤ r) :
+    scalarRms volume (ball 0 r) φ ≤
+      Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * (r / (θ * R)) ^ k * ρ ^ m * U := by
+  have hpos1 : 0 < θ ^ (m + 1) * R := lt_of_lt_of_le hr₀ ht1
+  have hle : θ ^ (m + 1) * R ≤ θ ^ m * R := by
+    have : θ ^ (m + 1) ≤ θ ^ m := pow_le_pow_of_le_one hθ0.le hθ1.le (Nat.le_succ m)
+    nlinarith
+  have hsq : 0 ≤ Real.sqrt ((1 / θ) ^ d) := Real.sqrt_nonneg _
+  have hb1 := scalarRms_ball_le hpos1 hle hmem_m
+  rw [show θ ^ m * R / (θ ^ (m + 1) * R) = 1 / θ by rw [pow_succ]; field_simp] at hb1
+  have hθk1 : θ ^ k ≤ 1 := pow_le_one₀ hθ0.le hθ1.le
+  have hρm : ρ ^ (m + 1) ≤ ρ ^ m := pow_le_pow_of_le_one hρ0 hρ1 (Nat.le_succ m)
+  have hkm : (θ ^ k) ^ (m + 1) ≤ (θ ^ k) ^ m :=
+    pow_le_pow_of_le_one (by positivity) hθk1 (Nat.le_succ m)
+  have hm2' : scalarRms volume (ball 0 (θ ^ (m + 1) * R)) um1 ≤ (θ ^ k) ^ m * ρ ^ m * U :=
+    hm2.trans (mul_le_mul_of_nonneg_right (mul_le_mul hkm hρm (by positivity) (by positivity)) hU)
+  have hum : MemLp um 2 (volume.restrict (ball (0 : Vec d) (θ ^ (m + 1) * R))) :=
+    hmem_m.mono_measure (Measure.restrict_mono (ball_zero_subset_ball_zero hle) le_rfl)
+  have hΦm : scalarRms volume (ball 0 (θ ^ (m + 1) * R)) φ ≤
+      (Real.sqrt ((1 / θ) ^ d) + 1) * ((θ ^ k) ^ m * ρ ^ m) * U := by
+    rw [eφ]
+    refine (scalarRms_sub_le hum hmem_m1).trans ?_
+    calc _ ≤ Real.sqrt ((1 / θ) ^ d) * ((θ ^ k) ^ m * ρ ^ m * U) + (θ ^ k) ^ m * ρ ^ m * U :=
+          add_le_add (hb1.trans (mul_le_mul_of_nonneg_left hm1 hsq)) hm2'
+      _ = _ := by ring
+  have hratio : (r / (θ ^ (m + 1) * R)) ^ k * (θ ^ k) ^ m = (r / (θ * R)) ^ k := by
+    rw [← pow_mul, mul_comm k m, pow_mul, ← mul_pow]
+    congr 1
+    rw [pow_succ]
+    field_simp
+  calc scalarRms volume (ball 0 r) φ
+      ≤ Cg * (r / (θ ^ (m + 1) * R)) ^ k *
+          ((Real.sqrt ((1 / θ) ^ d) + 1) * ((θ ^ k) ^ m * ρ ^ m) * U) :=
+        (hg _ _ ht1 ht2).trans (mul_le_mul_of_nonneg_left hΦm
+          (mul_nonneg hCg (pow_nonneg (div_nonneg (hpos1.le.trans ht2) hpos1.le) k)))
+    _ = Cg * (Real.sqrt ((1 / θ) ^ d) + 1) * ((r / (θ ^ (m + 1) * R)) ^ k * (θ ^ k) ^ m) *
+          ρ ^ m * U := by ring
+    _ = _ := by rw [hratio]
+
 end QSH
