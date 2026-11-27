@@ -1515,6 +1515,24 @@ Lean: (i) `QSH.exists_blockBound_all_scales`
   of (3.50) and of `(ii)_k` (the book's `r₀ = H ∨ X_s`, `H` large) and at which `(ii)_k` holds gives
   `(iii')_k` above `r₀`.
 
+## Section 3.3: the estimate (3.52) (`Ch03/Sec03/Equation352.lean`)
+
+- Lean: `QSH.equation_3_52`, for `d ≥ 2`, `Λ > 1` and `s ∈ (0, d)`: there are `γ = α(d - s) > 0`,
+  constants `C_k` and, for every law satisfying (0.10)–(0.11), a random variable `X ≥ 1` with
+  `OsBound P X s C` such that, for almost every coefficient field, every `k`, every `r ≥ X` and every
+  `q ∈ Ā_k`, some weak solution `u` of `-∇·(a∇u) = 0` in `B_r` satisfies
+  `‖u - q‖_{L̲²(B_r)} ≤ C_k r^{-γ} ‖q‖_{L̲²(B_r)}`; `γ`, `X` and the exceptional set do not depend on
+  `k`. The solution is that of the Dirichlet problem in `B_r` with the values of `q` (the Dirichlet
+  condition is not part of the statement, which (3.46) does not use).
+- Proof: the book's Step 1 of (3.46), with Theorem 2.18 on `B_{1/2}` after the dilation `x ↦ 2r x`
+  (`QSH.dirichletApprox_of_bound`, `QSH.dirichletApproximation`, the analogue of Proposition 3.2 with
+  the roles of `a` and `ā` exchanged): `q` is the solution of the homogenized problem, the data
+  gradient is the weak gradient of `q`, in `L^{2+δ}(B_r)` by the Meyers estimate for the constant
+  coefficient field `ā` on `B_{2r}`, and `‖q‖_{L̲²(B_{2r})} ≤ C 2^k ‖q‖_{L̲²(B_r)}` by (3.27)
+  (`QSH.scalarRms_poly_growth`). The heterogeneous Dirichlet problem is solved by
+  `QSH.exists_ballDirichlet_field` (`Ch03/Sec03/BallDirichletField.lean`). The exponent is that of
+  Proposition 3.2, `α(d - s)` (the book: `δ = α(d - s) ∧ 1/2`).
+
 ## Section 3.4: Lemma 3.23 (`Ch03/Sec04/Lemma323.lean`)
 
 - Lemma 3.23: `QSH.lemma_3_23`, for `d ≥ 2` and `Λ > 1`, with `c = 4π²` and `C` chosen before the
