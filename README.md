@@ -1,6 +1,8 @@
 # Quantitative stochastic homogenization and large-scale regularity
 
-A **Lean 4** formalization, in progress, of the book
+[![CI](https://github.com/nitromannitol/Quantitative-Stochastic-Homogenization/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nitromannitol/Quantitative-Stochastic-Homogenization/actions/workflows/build.yml)
+
+A Lean 4 formalization, in progress, of the book
 
 > Scott Armstrong, Tuomo Kuusi and Jean-Christophe Mourrat,
 > *Quantitative Stochastic Homogenization and Large-Scale Regularity*,
@@ -8,128 +10,169 @@ A **Lean 4** formalization, in progress, of the book
 > ([arXiv:1705.05300](https://arxiv.org/abs/1705.05300),
 > [doi:10.1007/978-3-030-15545-2](https://doi.org/10.1007/978-3-030-15545-2)).
 
-The book is not included in this repository. The numbered results are cited by the numbering of the
-Springer edition; see [`ROADMAP.md`](ROADMAP.md).
+The formalization is partial. Of the 226 numbered results of the book, 71 are proved (or, for
+definitions, defined) and 27 are in progress; the others are not started. The proved results are
+mostly in Chapters 1 to 5 and Appendices A, C and D. The library has no `sorry` and uses only the
+standard axioms.
 
-The development is built on [mathlib](https://github.com/leanprover-community/mathlib4) and is set up to
-use four public libraries: [CoarseGraining](https://github.com/scottnarmstrong/CoarseGraining), the
-homogenization library of Armstrong and Kuusi,
-[HighContrastHomogenization](https://github.com/scottnarmstrong/HighContrastHomogenization),
-[EllipticRegularityLean](https://github.com/scottnarmstrong/EllipticRegularityLean), and
-[subdiffusive-process](https://github.com/nitromannitol/subdiffusive-process).
+The book is not included in this repository. Results are cited by the numbering of the Springer
+edition; [`ROADMAP.md`](ROADMAP.md) lists every numbered result with its status.
 
 ## The book
 
-The book presents the quantitative homogenization and large-scale regularity theory for elliptic
-equations in divergence form with random coefficients. The coefficient field is uniformly elliptic,
-stationary under translations by `ℤᵈ`, and has a unit range of dependence (the standing assumptions,
-(0.6), (0.10) and (0.11) of the book). Its chapters are:
+The book studies the elliptic equation `−∇·(a(x)∇u) = 0` in `ℝᵈ` with a random coefficient field
+`a`. The field takes values in the symmetric matrices with `I ≤ a(x) ≤ ΛI`. Its law is invariant
+under translations by `ℤᵈ` and has a unit range of dependence: the restrictions of `a` to two sets
+at distance at least one are independent. These are the standing assumptions (0.6), (0.10) and
+(0.11) of the book.
 
-| Chapter | Title |
+On large scales the solutions behave like those of an equation `−∇·(ā∇u) = 0` with a constant,
+deterministic matrix `ā`, the *homogenized matrix*. The book makes this quantitative. It proves an
+algebraic rate of convergence for subadditive energy quantities (Chapter 2). It proves a regularity
+theory that holds above a random scale with a stretched exponential moment (Chapter 3). It derives
+optimal bounds on the first-order correctors `φ_e` (Chapter 4) and their scaling limit, a Gaussian
+free field (Chapter 5). Later chapters treat two-scale expansions, Calderón–Zygmund estimates,
+parabolic equations, nonsymmetric coefficients and nonlinear equations.
+
+Here `X ≤ O_s(θ)` means `E[exp((X/θ)ˢ)] ≤ 2`, the notation of Appendix A.
+
+| Chapter | Title | Numbered results | Proved or defined | In progress |
+| --- | --- | --- | --- | --- |
+| 1 | Introduction and Qualitative Theory | 12 | 8 | 4 |
+| 2 | Convergence of the Subadditive Quantities | 12 | 11 | 1 |
+| 3 | Regularity on Large Scales | 23 | 9 | 2 |
+| 4 | Quantitative Description of First-Order Correctors | 25 | 12 | 3 |
+| 5 | Scaling Limits of First-Order Correctors | 19 | 8 | 0 |
+| 6 | Quantitative Two-Scale Expansions | 13 | 0 | 2 |
+| 7 | Calderón–Zygmund Gradient `Lᵖ` Estimates | 10 | 0 | 1 |
+| 8 | Estimates for Parabolic Problems | 19 | 1 | 0 |
+| 9 | Decay of the Parabolic Semigroup | 18 | 0 | 0 |
+| 10 | Linear Equations with Nonsymmetric Coefficients | 16 | 3 | 1 |
+| 11 | Nonlinear Equations | 12 | 0 | 0 |
+| A | The `O_s` Notation | 10 | 10 | 0 |
+| B | Function Spaces and Elliptic Equations on Lipschitz Domains | 16 | 0 | 7 |
+| C | The Meyers `L^{2+δ}` Estimate | 9 | 6 | 3 |
+| D | Sobolev Norms and Heat Flow | 5 | 2 | 3 |
+| E | Parabolic Green Functions | 7 | 1 | 0 |
+| | **Total** | **226** | **71** | **27** |
+
+## What is proved
+
+- **Chapter 1.** The homogenized matrix (Definition 1.2), Lemma 1.1, Propositions 1.7, 1.8, 1.10 and
+  1.12 (the multiscale Poincaré inequality), Lemma 1.13 and Corollary 1.14.
+- **Chapter 2.** The rate of convergence of the subadditive quantities (Theorem 2.4 and
+  Proposition 2.11), the weak convergence with a rate of the gradients and fluxes of the maximizers
+  (Theorem 2.17), and Lemmas 2.1, 2.2, 2.7, 2.12, 2.13, 2.15 and 2.16, with Definition 2.14.
+- **Chapter 3.** Harmonic approximation (Proposition 3.2), the large-scale `C^{0,1}`-type estimate
+  (Theorem 3.3), Lemmas 3.4 and 3.6, Definitions 3.14 and 3.15, the existence of correctors
+  (Lemma 3.16), Proposition 3.21 and Lemma 3.23. Theorem 3.8, the higher regularity theory, holds
+  for every `k`, with a random scale that depends on `k`.
+- **Chapter 4.** Theorem 4.1 in the form (4.2) with `s = 1`, Proposition 4.3, Lemma 4.4, Definitions
+  4.2 and 4.7 to 4.9, Propositions 4.10 to 4.12, Lemma 4.13 and Lemma 4.21. Parts (i) and (iii) of
+  Theorem 4.6, and the estimate (4.126) of Theorem 4.24 with `p = 2` and `s = 1`, are proved.
+- **Chapter 5.** The Cramér–Wold lemma (Lemma 5.2), Lemma 5.10, Definition 5.23, Lemma 5.24 and
+  Lemmas 5.27 to 5.30.
+- **Chapters 8 and 10.** The parabolic Caccioppoli inequality (Lemma 8.1), Definition 10.2,
+  Proposition 10.3 and Lemma 10.9.
+- **Appendices.** All of Appendix A; the interior Meyers estimate and its lemmas (Theorem C.1,
+  Lemma C.2, Corollary C.3, Lemmas C.4 to C.6); Lemmas D.3, D.4 and E.6.
+
+## What is not proved
+
+- **Chapter 1.** Proposition 1.11 is proved for `d ≠ 4` only. Proposition 1.15, Lemma 1.16 and
+  Theorem 1.17 are in progress.
+- **Chapter 3.** The dimension formula (3.42) of Theorem 3.8, and a single random scale for all `k`.
+  Lemma 3.9, Corollary 3.10, Lemma 3.22 and all of Sections 3.5 (boundary regularity) and 3.6.
+  Lemma 3.17 is in progress: its bounds (3.85)–(3.86) hold with a random scale that depends on the
+  slope.
+- **Chapter 4.** Part (ii) of Theorem 4.6 is proved only under further hypotheses, and (4.4)–(4.7)
+  of Theorem 4.1 are not formalized. Lemma 4.22 is in progress. Definition 4.5, Lemmas 4.14 to
+  4.17, 4.19, 4.20, 4.23 and 4.25 and Proposition 4.27 are not started.
+- **Chapter 5.** The central limit theorem for `J₁` (Proposition 5.25, Theorem 5.26) and the
+  convergence of the correctors to a Gaussian free field (Theorem 5.32).
+- **Chapters 6 to 11.** Chapters 6, 7, 9 and 11 have no proved result; Lemma 6.1, Proposition 6.2
+  and Lemma 7.2 are in progress. Chapter 8 has only Lemma 8.1, and Chapter 10 the three results
+  above, with Lemma 10.10 in progress.
+- **Lipschitz domains.** Theorems 1.17 and 2.18 and the global results of Appendices B and C are in
+  progress on bounded convex domains or domains with a boundary density condition.
+
+## The main theorems in Lean
+
+| Book | Lean declaration |
 | --- | --- |
-| 1 | Introduction and Qualitative Theory |
-| 2 | Convergence of the Subadditive Quantities |
-| 3 | Regularity on Large Scales |
-| 4 | Quantitative Description of First-Order Correctors |
-| 5 | Scaling Limits of First-Order Correctors |
-| 6 | Quantitative Two-Scale Expansions |
-| 7 | Calderón–Zygmund Gradient `Lᵖ` Estimates |
-| 8 | Estimates for Parabolic Problems |
-| 9 | Decay of the Parabolic Semigroup |
-| 10 | Linear Equations with Nonsymmetric Coefficients |
-| 11 | Nonlinear Equations |
-| A–E | The `O_s` notation; function spaces and elliptic equations on Lipschitz domains; the Meyers `L^{2+δ}` estimate; Sobolev norms and heat flow; parabolic Green functions |
+| Definition 1.2, the homogenized matrix | `QSH.exists_homogenizedMatrix` |
+| Proposition 1.12, multiscale Poincaré inequality | `QSH.proposition_1_12` |
+| Theorem 2.4 | `QSH.theorem_2_4` |
+| Theorem 2.17 | `QSH.theorem_2_17` |
+| Proposition 3.2, harmonic approximation | `QSH.proposition_3_2` |
+| Theorem 3.3, quenched `C^{0,1}`-type estimate | `QSH.theorem_3_3` |
+| Theorem 3.8 (i)–(iii), every `k` | `QSH.theorem_3_8` |
+| Lemma 3.16, existence of the correctors | `QSH.homogenizationDataExists` |
+| Proposition 3.21 | `QSH.uniformGaussianCorrectorRate` |
+| Theorem 4.1, (4.2) with `s = 1` | `QSH.averagedCorrectorGradient_holds` |
+| Theorem 4.6 (i) | `QSH.uniformAdditivityJ1_holds` |
+| Theorem 4.6 (iii) | `QSH.uniformFluctuationJ1_holds` |
+| Theorem 4.24, (4.126) with `p = 2` | `QSH.negativeSobolevCorrector_holds` |
+| Lemma 5.24 | `QSH.coarsenedCoefficientEstimates_holds` |
+| Lemma 5.29 (i) | `QSH.blockCLT_holds` |
+| Lemma 8.1, parabolic Caccioppoli inequality | `QSH.lemma_8_1` |
+| Proposition 10.3 | `QSH.GeneralCoefficientField.proposition_10_3` |
+| Theorem C.1, interior Meyers estimate | `QSH.theorem_C_1` |
 
-## Status
+How to read the statements: a coefficient field is `QSH.CoefficientField d Λ`, and the standing
+assumptions on its law `P` are `QSH.LawHypotheses P`. `X ≤ O_s(θ)` is `QSH.OsBound P X s θ`. Most
+statements fix `d ≥ 2` and `Λ > 1`, choose the constants, and then hold for every law that satisfies
+`LawHypotheses`, as the constants of the book depend only on `d`, `Λ` and the exponents. Every other
+numbered result is named in [`ROADMAP.md`](ROADMAP.md), with its module.
 
-[`ROADMAP.md`](ROADMAP.md) lists every numbered result of the book (226 of them, by chapter and
-section) with its status. Where a proof departs from the book, [`CORRESPONDENCE.md`](CORRESPONDENCE.md)
-records it. Proved so far, besides the `O_s` calculus of Appendix A and Definitions 4.7–4.9:
+## Statements used by the Einstein relation
 
-- Section 1.3: the limit (1.22) of the expected energy on the triadic cubes and the homogenized
-  matrix of Definition 1.2 (`exists_homogenizedMatrix`), from the parallelogram identity and the
-  subadditivity (1.11) of the energy.
-- Lemma 3.16: every law satisfying (0.10)–(0.11) has first-order correctors with jointly measurable
-  stationary gradients, hence homogenization data (`homogenizationDataExists`), built from the
-  correctors of the homogenization theorem at a polynomial scale in high contrast.
-- Proposition 3.21 with constants chosen before the law and at every center
-  (`uniformGaussianCorrectorRate`), from the homogenization theorem at a polynomial scale in high
-  contrast; the homogenized matrix of the homogenization data is identified with the matrix of these
-  bounds (`homogenized_eq_of_basisBounds`).
-- The first-order Liouville theorem (Theorem 3.8 for `k = 1`, `firstOrderLiouville`) with the
-  harmonic approximation on ellipsoids (`harmonicApproximation`) that it rests on, and the harmonic
-  expansion on balls.
-- The bounds (3.85) and (3.86) of Lemma 3.17, parts of Lemma 6.1 (the skew symmetry up to a constant
-  matrix and the divergence identity (6.6), where the statement gives a deterministic vector and the
-  proof identifies it), and the flux-corrector oscillation bound of Proposition 6.2
-  (`sublinearCorrectors`), from the homogenization theorem at a polynomial scale in high contrast.
-- For Lemma 4.21: the excess decay of one slope on balls at every center from the homogenization
-  theorem in high contrast (`ballExcessDecay`), the observation of the smoothed correctors from the
-  linear estimate (`smoothedCorrectorObservation_of_gaussianGradient`), the single-slope estimate on
-  the classes of laws with the linear estimate from the finite-ball observation
-  (`slopeEstimateOnClass_of_linear_finiteBall`), and the finite-ball observation from the estimate
-  with compact tests (`finiteBallObservation_of_compactTests`); and the estimate with compact tests
-  itself, for every `d ≥ 2`, `Λ > 1` and `k > 0` (`compactTestFiniteBall`), from the first-order and
-  flux correctors above their random scale, with tests adapted to the homogenized matrix of the law.
-- The heat identity (H) of the route of Proposition 4.10 and the pathwise heat bound for every law
-  and all homogenization data (`heatPathwiseBound_of_lawHypotheses`, and with a kernel of mass
-  `(d + 1)/u`, `exists_heatPathwiseKernel`); hence (5.58) for every law, with a constant that depends
-  on the law, from Proposition 3.21, the Borel joint measurability of `J1Heat` and the conclusions
-  of Propositions 4.11 and 4.12 (`estimate558_of_law`). The library proves only the almost sure
-  measurability of `J1Heat`; the bootstrap below uses bounded jointly measurable versions of `J₁`
-  in place of the Borel measurability.
-- Parts (i), (iii) and (iv) of Theorem 4.6 conditional on Propositions 4.10–4.12 and the initial
-  exponent of Proposition 4.3, and Lemma 5.29 (i)–(iii) for centered local additive fields.
-- The bootstrap of Theorem 4.6 with constants chosen before the law: Definitions 4.7–4.9 with their
-  constants and Proposition 4.12 with the constant of its conclusion chosen before the law;
-  Proposition 4.3 (`uniformBaseFluctuation_holds`), Proposition 4.10 with (4.70)
-  (`uniformImprovementOfAdditivity_holds`, `uniformExpectationEstimates_holds`) and Lemma 4.13 with
-  the linear estimate (`exists_uniform_commutator_linear_of_fluctuations`), with constants chosen
-  before the law for bounded jointly measurable versions of `J₁`, from Proposition 3.21 and the heat
-  identity (H) (`uniformGaussianInputs_holds`); and Proposition 4.11 at the exponents of the
-  bootstrap from the single-slope estimate of Lemma 4.21 on classes of laws
-  (`uniformLocalizationEstimates_of_linearSlope`); hence Theorem 4.6 (i) and (iii), the Gaussian
-  gradient bound and (5.58) with constants chosen before the law from that single-slope estimate
-  alone (`uniformAdditivityJ1_of_linearSlope`, `uniformFluctuationJ1_of_linearSlope`,
-  `uniformEnergyEstimate_of_linearSlope`).
-- With no hypothesis (`Ch05/Sec04/FrozenProved.lean`): the single-slope estimate of Lemma 4.21 on
-  the classes of laws with the linear estimate (`uniformLinearSlopeEstimates_holds`), Proposition
-  4.11 at the exponents of the bootstrap (`uniformLocalizationEstimates_holds`), Theorem 4.6 (i) and
-  (iii) and (5.58) with constants chosen before the law (`uniformAdditivityJ1_holds`,
-  `uniformFluctuationJ1_holds`, `uniformEnergyEstimate_holds`), and the frozen statements E1–E7.
-
-Some of this material was moved here from
-[einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). The current
-priority is the frozen statements E1–E7 needed by that repository, listed in
+Seven statements are frozen for the formalization of the Einstein relation in
+[einstein-relation-lean](https://github.com/nitromannitol/einstein-relation-lean). Each is a
+proposition in [`Frozen/`](QuantitativeStochasticHomogenization/Frozen/), fixed by its hash in
 [`FROZEN.md`](FROZEN.md). All seven are proved with no hypothesis in
-`Ch05/Sec04/FrozenProved.lean`: `averagedCorrectorGradient_holds` (E1), `blockBoundary_holds` (E2),
-`blockChange_holds` (E3), `blockCLT_holds` (E4), `coarsenedCoefficientEstimates_holds` (E5),
-`localizedEnergy_holds` (E6) and `negativeSobolevCorrector_holds` (E7); each depends only on the
-axioms `propext`, `Classical.choice` and `Quot.sound`. Their rows in `FROZEN.md` are in the state
-`proved` and point to these theorems in its table of proofs: each frozen file is imported by the
-modules of its proof, whose last steps have the frozen proposition as their type (for instance
-`Frozen/AveragedCorrectorGradient.lean` is imported by `Ch04/Opening/Theorem41.lean`), so a proof
-after the second marker of the frozen file would close an import cycle.
+[`Ch05/Sec04/FrozenProved.lean`](QuantitativeStochasticHomogenization/Ch05/Sec04/FrozenProved.lean).
 
-The proofs go through the estimate with compact tests `CompactTestFiniteBall d Λ k`, proved for
-every `d ≥ 2`, `Λ > 1` and `k > 0` (`compactTestFiniteBall`, `UniformCompactTestFiniteBall`): a
-deterministic finite-ball estimate for `a`-harmonic functions above a random radius at every
-center, bounding their square integrals on the balls between an inner and an outer radius by
-finitely many pairings with compact tests at the inner scale and the outer term. It takes the place
-of AKM Lemma 4.20, which uses Theorem 3.8 at a high order. The tests are rescaled derivatives of a
-compact profile adapted to the homogenized matrix of the law, so they are chosen for each law, while
-their number, their bounds and the constants are chosen before it. The proof uses the first-order
-correctors and the skew flux correctors of Lemma 3.17, Lemma 6.1 and Proposition 6.2 through the
-tensor identity of Section 3.3 (`Ch04/Sec04/CompactTest*.lean`). From it, the finite-ball
-observation (`finiteBallObservation_of_compactTests`) gives the theorems of
-`Ch05/Sec04/FrozenFromCompactTests.lean`; Proposition 3.21, the heat identity (H), the existence of
-homogenization data and the observation of the smoothed correctors enter through
-`uniformGaussianCorrectorRate`, `exists_heatPathwiseKernel`, `homogenizationDataExists` and
-`smoothedCorrectorObservation_of_gaussianGradient`. The same statements from the single-slope
-estimate of Lemma 4.21 on the classes of laws with the linear estimate (`UniformLinearSlopeEstimates`)
-are in `Ch05/Sec04/FrozenFromSlope.lean`, and from it and Proposition 3.21 in
-`Ch05/Sec04/FrozenFromInputs.lean`. The departures from the book are recorded in
-[`CORRESPONDENCE.md`](CORRESPONDENCE.md).
+| id | Book | Frozen statement | Proof |
+| --- | --- | --- | --- |
+| E1 | Theorem 4.1, (4.2) | `QSH.Frozen.averagedCorrectorGradient` | `QSH.averagedCorrectorGradient_holds` |
+| E2 | Lemma 5.29 (ii), (5.91)–(5.92) | `QSH.Frozen.blockBoundary` | `QSH.blockBoundary_holds` |
+| E3 | Lemma 5.29 (iii) | `QSH.Frozen.blockChange` | `QSH.blockChange_holds` |
+| E4 | Lemma 5.29 (i), (5.90) | `QSH.Frozen.blockCLT` | `QSH.blockCLT_holds` |
+| E5 | Lemma 5.24, (5.63)–(5.64) | `QSH.Frozen.coarsenedCoefficientEstimates` | `QSH.coarsenedCoefficientEstimates_holds` |
+| E6 | (5.85), Theorem 4.6 (iv) | `QSH.Frozen.localizedEnergy` | `QSH.localizedEnergy_holds` |
+| E7 | Theorem 4.24, (4.126) | `QSH.Frozen.negativeSobolevCorrector` | `QSH.negativeSobolevCorrector_holds` |
+
+The proofs are in a separate module because the modules they use import the frozen files.
+
+## Scope
+
+- **`Λ > 1`.** Most results assume `Λ > 1`; when `Λ = 1` the field is the identity.
+- **Routes.** The correctors and several estimates of Chapters 2 to 6 are obtained from the
+  homogenization theorem at a polynomial scale in high contrast of Armstrong, Kuusi and Loher
+  ([HighContrastHomogenization](https://github.com/scottnarmstrong/HighContrastHomogenization)),
+  not by the proofs of the book. For instance Theorem 2.4 is proved from the correctors, and
+  Proposition 2.11 from Theorem 2.4, the reverse of the book's order.
+- **Lemma 4.20** is replaced, in the proof of Lemma 4.21, by an estimate with compact tests
+  (`QSH.compactTestFiniteBall`) proved from the first-order and flux correctors.
+- **Random scales.** Random scales are real valued, and statements hold for almost every coefficient
+  field.
+- [`CORRESPONDENCE.md`](CORRESPONDENCE.md) records every departure from the book: a different route,
+  a hypothesis made explicit, or a measurability fact that the book takes for granted.
+
+## Checking the proofs
+
+- **No `sorry`.** [`scripts/check_frozen.py`](scripts/check_frozen.py) rejects `axiom`, `admit`,
+  `sorryAx`, `native_decide`, `unsafe` and similar tokens in the library. It also rejects any change
+  to a frozen statement or to a definition it uses.
+- **Standard axioms only.**
+  [`Meta/AxiomsAudit.lean`](QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean) fails to
+  compile when a declaration of the library depends on an axiom other than `propext`,
+  `Classical.choice` and `Quot.sound`.
+- **Continuous integration.** The **CI** workflow builds the library, rejects any warning, runs the
+  frozen-statement checker and the axiom audit. There is no comparator pair.
+
+`QuantitativeStochasticHomogenization/` contains 601 Lean files with about 142,000 lines.
 
 ## Building
 
@@ -145,21 +188,16 @@ The dependencies are public repositories, pinned to exact revisions in
 [`lakefile.lean`](lakefile.lean) and [`lake-manifest.json`](lake-manifest.json):
 
 - Lean and mathlib `v4.35.0-rc2`.
-- CoarseGraining at `310d1a6bab3ba2d398cdaffec32f3c9d4b5a24be`.
-- HighContrastHomogenization at `7a13dbcd8d6609264a713373f5c69ceeac870472`.
-- EllipticRegularityLean at `1e29da02bcc6e3c2359a5b8e0559e76d02ec4002`.
-- subdiffusive-process at `4c6b8fa60357a07fd5713e5104a6cc70f8e432dc`, which brings
+- [CoarseGraining](https://github.com/scottnarmstrong/CoarseGraining), the homogenization library
+  of Armstrong and Kuusi, at `310d1a6bab3ba2d398cdaffec32f3c9d4b5a24be`.
+- [HighContrastHomogenization](https://github.com/scottnarmstrong/HighContrastHomogenization) at
+  `7a13dbcd8d6609264a713373f5c69ceeac870472`.
+- [EllipticRegularityLean](https://github.com/scottnarmstrong/EllipticRegularityLean) at
+  `1e29da02bcc6e3c2359a5b8e0559e76d02ec4002`.
+- [subdiffusive-process](https://github.com/nitromannitol/subdiffusive-process) at
+  `4c6b8fa60357a07fd5713e5104a6cc70f8e432dc`, which brings
   [MarkovProcess](https://github.com/scottnarmstrong/MarkovProcess) at
   `666cda029098a1106914fc9fa7abd1727573284a`.
-
-The continuous-integration workflow ([`.github/workflows/build.yml`](.github/workflows/build.yml))
-builds the library, rejects any warning, runs
-[`scripts/check_frozen.py`](scripts/check_frozen.py), which rejects `axiom`, `admit`,
-`native_decide`, `unsafe` and similar tokens and any change to a frozen statement or to a definition
-it uses, and compiles
-[`QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean`](QuantitativeStochasticHomogenization/Meta/AxiomsAudit.lean),
-which fails when a declaration of the library uses an axiom other than `propext`, `Classical.choice`
-and `Quot.sound`.
 
 ## Repository layout
 
